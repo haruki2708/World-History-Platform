@@ -88,6 +88,23 @@ function tutorRequest(
   });
 }
 
+/**
+ * Events with neighbouring `text` events joined: where the stream splits the
+ * text is not part of the contract.
+ */
+function merged(events: Record<string, unknown>[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const event of events) {
+    const last = out[out.length - 1];
+    if (event.type === "text" && last?.type === "text") {
+      out[out.length - 1] = { type: "text", text: String(last.text) + String(event.text) };
+    } else {
+      out.push(event);
+    }
+  }
+  return out;
+}
+
 async function read(response: Response): Promise<Outcome> {
   const raw = await response.text();
   assert.ok(raw === "" || raw.endsWith("\n"), "every NDJSON line ends with a newline");
@@ -536,6 +553,149 @@ await check("origin: same host passes; another site, or a null origin -> bad_req
   }
 });
 
+// --- Map links in Claude's answers ------------------------------------------
+
+const { MapLinkStream } = await import("../mapLinks");
+const { CACHED_SYSTEM_TEXT, buildSystem } = await import("../prompt");
+
+/** Feeds `pieces` through a MapLinkStream; returns the text, links and counts. */
+function extract(pieces: string[], view: Partial<TutorContext> = {}) {
+  const stream = new MapLinkStream({ ...context, ...view });
+  const events = [...pieces.flatMap((piece) => stream.push(piece)), ...stream.finish()];
+  for (const event of events) {
+    // A complete marker must never reach the text.
+    if (event.type === "text") {
+      assert.ok(!/\[\[map:[^\]\n]*\]\]/.test(event.text), `marker leaked: ${event.text}`);
+    }
+  }
+  return {
+    text: events.map((event) => (event.type === "text" ? event.text : "")).join(""),
+    links: events.flatMap((event) => (event.type === "map_link" ? [event.link] : [])),
+    ...stream.report(),
+  };
+}
+
+// Viewing 216 BCE with Cannae selected (the default context).
+const ALPS = { year: -218, eventId: "hannibal-crosses-the-alps" };
+const ZAMA = { year: -202, eventId: "battle-of-zama" };
+
+await check("links: an answer without markers passes through unchanged", () => {
+  const answer = "Rome fought Carthage.\n\n- one\n- two\n\nThat is all.";
+  const result = extract([answer]);
+  assert.equal(result.text, answer);
+  assert.deepEqual(result.links, []);
+  assert.deepEqual([result.sent, result.dropped], [0, 0]);
+});
+
+await check("links: markers at the end become links, with no blank lines left over", () => {
+  const result = extract([
+    "Hannibal marched on.\n\n[[map:-218:hannibal-crosses-the-alps]]\n[[map:-202:battle-of-zama]]\n[[map:-200]]\n\n",
+  ]);
+  assert.equal(result.text, "Hannibal marched on.");
+  assert.deepEqual(result.links, [ALPS, ZAMA, { year: -200, eventId: null }]);
+});
+
+await check("links: a marker cut anywhere between two pieces still comes out", () => {
+  const answer =
+    "Before [[x]] after.\n\n[[map:-218:hannibal-crosses-the-alps]] [[map:-202:battle-of-zama]]";
+  for (let cut = 0; cut <= answer.length; cut++) {
+    const result = extract([answer.slice(0, cut), answer.slice(cut)]);
+    assert.equal(result.text, "Before [[x]] after.", `cut at ${cut}`);
+    assert.deepEqual(result.links, [ALPS, ZAMA], `cut at ${cut}`);
+  }
+  // And one character at a time.
+  const result = extract([...answer]);
+  assert.equal(result.text, "Before [[x]] after.");
+  assert.deepEqual(result.links, [ALPS, ZAMA]);
+});
+
+await check("links: malformed markers are dropped quietly and counted", () => {
+  const result = extract([
+    "Text.\n[[map:]]\n[[map:abc]]\n[[map: -218]]\n[[map:-218:Hannibal Crosses]]\n[[map:-218:]]\n[[map:-218:hannibal-crosses-the-alps:x]]",
+  ]);
+  assert.equal(result.text, "Text.");
+  assert.deepEqual(result.links, []);
+  assert.equal(result.dropped, 6);
+});
+
+await check("links: unknown events and years outside the app are dropped", () => {
+  const result = extract([
+    "Text.\n[[map:-216:battle-of-hastings]]\n[[map:-600]]\n[[map:-20]]\n[[map:1066]]",
+  ]);
+  assert.equal(result.text, "Text.");
+  assert.deepEqual(result.links, []);
+  assert.equal(result.dropped, 4);
+});
+
+await check("links: an event with a year outside its dates goes to its first year", () => {
+  const result = extract([
+    "Text. [[map:-300:battle-of-zama]] [[map:-440:twelve-tables]] [[map:-450:twelve-tables]]",
+  ]);
+  assert.deepEqual(result.links, [
+    ZAMA,
+    { year: -451, eventId: "twelve-tables" },
+    { year: -450, eventId: "twelve-tables" },
+  ]);
+});
+
+await check("links: at most three, no duplicates, never the current view", () => {
+  const result = extract([
+    "Text.\n[[map:-216:battle-of-cannae]]\n[[map:-218:hannibal-crosses-the-alps]]\n[[map:-218:hannibal-crosses-the-alps]]\n[[map:-202:battle-of-zama]]\n[[map:-300]]\n[[map:-146]]",
+  ]);
+  assert.deepEqual(result.links, [ALPS, ZAMA, { year: -300, eventId: null }]);
+  assert.deepEqual([result.sent, result.dropped], [3, 3]);
+  // With nothing selected, the current year alone is the current view.
+  const plain = extract(["Text. [[map:-216]] [[map:-216:battle-of-cannae]]"], {
+    selectedEventId: null,
+  });
+  assert.deepEqual(plain.links, [{ year: -216, eventId: "battle-of-cannae" }]);
+});
+
+await check("links: a marker inside a paragraph leaves no double space", () => {
+  assert.equal(
+    extract(["Cannae [[map:-216:battle-of-zama]] was a disaster."]).text,
+    "Cannae was a disaster.",
+  );
+  assert.equal(extract(["One.\n\n[[map:-218]]\n\nTwo."]).text, "One.\n\nTwo.");
+  assert.equal(extract(["[[map:-218]]\n\nStarts with a marker."]).text, "Starts with a marker.");
+});
+
+await check("links: [[ in ordinary text is kept as written", () => {
+  const cases: [string, string][] = [
+    ["Arrays look like [[1, 2], [3]] in code.", "Arrays look like [[1, 2], [3]] in code."],
+    ["A wiki writes [[Rome]] for a link.", "A wiki writes [[Rome]] for a link."],
+    ["Ends with [[", "Ends with [["],
+    ["Ends with [[ma", "Ends with [[ma"],
+    ["Almost: [[mapping]], [[map]] and [ [map:-218]].", "Almost: [[mapping]], [[map]] and [ [map:-218]]."],
+    ["A line break [[map:-218\ninside is not a marker.", "A line break [[map:-218\ninside is not a marker."],
+    // The marker is found after the extra bracket, which stays as text.
+    ["Triple [[[map:-218]] bracket.", "Triple [ bracket."],
+  ];
+  for (const [answer, expected] of cases) assert.equal(extract([answer]).text, expected, answer);
+});
+
+await check("links: a marker cut off by the end of the answer is dropped", () => {
+  const result = extract(["The answer stops here.\n\n[[map:-218:hannibal-cro"]);
+  assert.equal(result.text, "The answer stops here.");
+  assert.deepEqual([result.sent, result.dropped], [0, 1]);
+});
+
+await check("prompt: the marker instructions sit in the fixed, cached part", () => {
+  assert.match(CACHED_SYSTEM_TEXT[0], /Buttons to the map/);
+  assert.match(CACHED_SYSTEM_TEXT[0], /\[\[map:YEAR:EVENT_ID\]\]/);
+  assert.equal(JSON.stringify(buildSystem("standard")), JSON.stringify(buildSystem("standard")));
+  // Earlier answers come back from the chat without markers and render as is.
+  const history: TutorMessage[] = [
+    user("First"),
+    { role: "assistant", content: "Answer one." },
+    user("Second"),
+  ];
+  assert.equal(
+    JSON.stringify(buildClaudeParams({ depth: "standard", messages: history })),
+    JSON.stringify(buildClaudeParams({ depth: "standard", messages: structuredClone(history) })),
+  );
+});
+
 // --- Live path, against the fake API ---------------------------------------
 
 process.env.TUTOR_MOCK = "0";
@@ -559,10 +719,8 @@ await check("live: streams the model's text and sends the expected request", asy
     messages: [user("Earlier"), { role: "assistant", content: "Before" }, user("Now")],
   });
   assert.equal(result.status, 200);
-  assert.deepEqual(result.events, [
-    { type: "text", text: "Hello" },
-    { type: "text", text: ", " },
-    { type: "text", text: "world." },
+  assert.deepEqual(merged(result.events), [
+    { type: "text", text: "Hello, world." },
     { type: "done", truncated: false },
   ]);
 
@@ -602,17 +760,17 @@ const upstream: [string, number, Record<string, unknown>[]][] = [
   ["403", 502, [{ type: "error", code: "unavailable" }]],
   ["refusal", 422, [{ type: "error", code: "refused" }]],
   ["empty", 502, [{ type: "error", code: "unavailable" }]],
-  ["refusal_mid", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "refused" }]],
-  ["overloaded_mid", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "overloaded" }]],
+  ["refusal_mid", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "refused" }]],
+  ["overloaded_mid", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "overloaded" }]],
   ["overloaded_first", 503, [{ type: "error", code: "overloaded" }]],
-  ["drop", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "unavailable" }]],
-  ["max_tokens", 200, [{ type: "text", text: "Cut " }, { type: "text", text: "off" }, { type: "done", truncated: true }]],
+  ["drop", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "unavailable" }]],
+  ["max_tokens", 200, [{ type: "text", text: "Cut off" }, { type: "done", truncated: true }]],
 ];
 for (const [scenario, status, events] of upstream) {
   await check(`live: upstream ${scenario} -> ${JSON.stringify(events.at(-1))}, status ${status}`, async () => {
     const result = await ask(`Test #upstream:${scenario}`);
     assert.equal(result.status, status);
-    assert.deepEqual(result.events, events);
+    assert.deepEqual(merged(result.events), events);
   });
 }
 
@@ -630,7 +788,7 @@ await check("live: cancelling the response body cancels the upstream request", a
   );
   const reader = response.body!.getReader();
   const { value } = await reader.read();
-  assert.equal(new TextDecoder().decode(value), '{"type":"text","text":"Waiting "}\n');
+  assert.equal(new TextDecoder().decode(value), '{"type":"text","text":"Waiting"}\n');
   await reader.cancel();
   await untilDisconnect(expected);
 });
@@ -658,11 +816,9 @@ await check("live: slow upstream -> ping first, then the answer or a late error,
     ),
   );
   assert.equal(answer.status, 200);
-  assert.deepEqual(answer.events, [
+  assert.deepEqual(merged(answer.events), [
     { type: "ping" },
-    { type: "text", text: "Hello" },
-    { type: "text", text: ", " },
-    { type: "text", text: "world." },
+    { type: "text", text: "Hello, world." },
     { type: "done", truncated: false },
   ]);
   assert.equal(noCredits.status, 200);
@@ -740,6 +896,24 @@ await check("cost: past the daily cap -> limit_reached for everyone, without cal
     withEnv({});
     limits.setQuotaStore(new MemoryQuotaStore());
   }
+});
+
+await check("live: markers in Claude's text -> map_link events, text without markers", async () => {
+  const before = logged.length;
+  const result = await ask("Tell me more #upstream:links");
+  assert.equal(result.status, 200);
+  assert.deepEqual(merged(result.events), [
+    {
+      type: "text",
+      text: "Hannibal crossed the Alps in 218 BCE and won at Cannae two years later.",
+    },
+    { type: "map_link", link: { year: -218, eventId: "hannibal-crosses-the-alps" } },
+    { type: "map_link", link: { year: -202, eventId: "battle-of-zama" } },
+    { type: "done", truncated: false },
+  ]);
+  const logs = logged.slice(before).join("\n");
+  assert.match(logs, /\[tutor\] map links.*"sent":2.*"dropped":1/);
+  assert.ok(!logs.includes("Hannibal"), "the answer is not logged");
 });
 
 await check("logs: failures are logged with details, never with the key", () => {

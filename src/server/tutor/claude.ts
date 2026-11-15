@@ -8,6 +8,7 @@ import {
   TUTOR_MODEL,
 } from "./config";
 import { isAbort, logTutorError, toTutorErrorCode } from "./errors";
+import { MapLinkStream } from "./mapLinks";
 import { estimateCostUsd, mergeUsage, type TokenUsage } from "./pricing";
 import { buildMessages, buildSystem } from "./prompt";
 
@@ -48,6 +49,9 @@ export function buildClaudeParams(request: TutorRequest) {
  * (the user pressed stop or left), the API request is cancelled and the
  * generator ends without a final event.
  *
+ * Map-link markers in the model's text become `map_link` events (see
+ * mapLinks.ts); the text sent on never contains them.
+ *
  * `onCost` receives the estimated cost in USD once the request is over, also
  * when it stopped early: then it covers the usage reported so far (the input
  * side is known from the start; output only when the API reported it).
@@ -60,12 +64,14 @@ export async function* streamClaudeAnswer(
   let stream: ReturnType<Anthropic["beta"]["messages"]["stream"]> | undefined;
   const usage: TokenUsage = {};
   let finished = false;
+  // Validated requests end with the question, so there is always one.
+  const question = request.messages.findLast((message) => message.role === "user");
+  const links = new MapLinkStream(question!.context);
   try {
     stream = getClient().beta.messages.stream(buildClaudeParams(request), {
       signal,
     });
 
-    let wroteText = false;
     for await (const event of stream) {
       if (event.type === "message_start") mergeUsage(usage, event.message.usage);
       else if (event.type === "message_delta") mergeUsage(usage, event.usage);
@@ -75,10 +81,10 @@ export async function* streamClaudeAnswer(
         event.delta.type === "text_delta" &&
         event.delta.text !== ""
       ) {
-        wroteText = true;
-        yield { type: "text", text: event.delta.text };
+        yield* links.push(event.delta.text);
       }
     }
+    yield* finishLinks(links);
 
     const message = await stream.finalMessage();
     mergeUsage(usage, message.usage);
@@ -108,7 +114,7 @@ export async function* streamClaudeAnswer(
       message.stop_reason === "pause_turn"
     ) {
       yield { type: "done", truncated: true };
-    } else if (!wroteText) {
+    } else if (!links.hasText) {
       console.error("[tutor] the model returned no text");
       yield { type: "error", code: "unavailable" };
     } else {
@@ -116,6 +122,8 @@ export async function* streamClaudeAnswer(
     }
   } catch (error) {
     if (isAbort(error, signal)) return;
+    // Keep the text held back so far; the chat shows a partial answer.
+    yield* finishLinks(links);
     const code = toTutorErrorCode(error);
     logTutorError(code, error);
     yield { type: "error", code };
@@ -135,6 +143,16 @@ export async function* streamClaudeAnswer(
       }
     }
   }
+}
+
+/** Sends what the link stream held back, and logs how many links it made. */
+function finishLinks(links: MapLinkStream): TutorStreamEvent[] {
+  if (links.finished) return [];
+  const events = links.finish();
+  const { sent, dropped } = links.report();
+  // Counts only: the answer itself is never logged.
+  if (sent > 0 || dropped > 0) console.info("[tutor] map links", { sent, dropped });
+  return events;
 }
 
 /** Enough digits for a fraction of a cent, without float noise in logs. */
