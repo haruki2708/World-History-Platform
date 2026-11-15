@@ -30,8 +30,72 @@
   {
     "id": "ptolemaic-egypt",
     "name": { "en": "Ptolemaic Egypt", "vi": "Ai Cập thời Ptolemaios" },
-    "color": "#c9a227",
+    "color": "#e6cf3a",
     "startYear": -305,
     "endYear": -30
+  },
+  {
+    "id": "latins",
+    "name": { "en": "Latin League", "vi": "Liên minh Latinh" },
+    "color": "#e89a8c",
+    "endYear": -338
+  },
+  {
+    "id": "samnites",
+    "name": { "en": "Samnites", "vi": "Người Samnite" },
+    "color": "#7a5a3a"
+  },
+  {
+    "id": "syracuse",
+    "name": { "en": "Syracuse", "vi": "Syracuse" },
+    "color": "#5fb8de",
+    "endYear": -212
+  },
+  {
+    "id": "macedon",
+    "name": { "en": "Kingdom of Macedon", "vi": "Vương quốc Macedonia" },
+    "color": "#5a55c8",
+    "endYear": -168
+  },
+  {
+    "id": "epirus",
+    "name": { "en": "Kingdom of Epirus", "vi": "Vương quốc Epirus" },
+    "color": "#a3d66e"
+  },
+  {
+    "id": "seleucid-empire",
+    "name": { "en": "Seleucid Empire", "vi": "Đế quốc Seleukos" },
+    "color": "#17968a",
+    "startYear": -312,
+    "endYear": -63
+  },
+  {
+    "id": "pergamon",
+    "name": { "en": "Kingdom of Pergamon", "vi": "Vương quốc Pergamon" },
+    "color": "#d95fa8",
+    "endYear": -133
+  },
+  {
+    "id": "numidia",
+    "name": { "en": "Kingdom of Numidia", "vi": "Vương quốc Numidia" },
+    "color": "#9a9440"
+  },
+  {
+    "id": "pontus",
+    "name": { "en": "Kingdom of Pontus", "vi": "Vương quốc Pontus" },
+    "color": "#e0662f",
+    "startYear": -281,
+    "endYear": -63
+  },
+  {
+    "id": "italian-allies",
+    "name": { "en": "Italian allies (socii)", "vi": "Các đồng minh Ý (socii)" },
+    "color": "#7d8a99"
+  },
+  {
+    "id": "parthia",
+    "name": { "en": "Parthian Empire", "vi": "Đế quốc Parthia" },
+    "color": "#a04a7a",
+    "startYear": -247
   }
 ]
