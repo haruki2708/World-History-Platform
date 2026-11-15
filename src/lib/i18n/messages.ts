@@ -37,14 +37,53 @@ const en = {
   "events.sources": "Sources",
   "events.approximate": "Approximate location",
   "tutor.heading": "AI tutor",
-  "tutor.placeholder":
-    "The tutor is built in phase 4. It will know the year, the place and the event you are looking at.",
-  "tutor.context": "Context the tutor will receive",
-  "tutor.context.year": "Year",
-  "tutor.context.event": "Selected event",
-  "tutor.context.view": "Map view",
-  "tutor.context.zoom": "zoom",
-  "tutor.context.none": "none",
+  "tutor.intro":
+    "Ask about what you are looking at. Each question is sent with the year, the map view and the selected event.",
+  "tutor.suggestions": "Suggested questions",
+  "tutor.suggest.here": "What is happening here?",
+  "tutor.suggest.event": "Why does {event} matter?",
+  "tutor.suggest.people": "Who are the key figures at this time?",
+  "tutor.suggest.before": "What led up to the situation in {year}?",
+  "tutor.messages": "Conversation",
+  "tutor.you": "You",
+  "tutor.assistant": "Tutor",
+  "tutor.askedAt": "Asked at {year}",
+  "tutor.thinking": "Thinking…",
+  "tutor.stopped": "Stopped",
+  "tutor.truncated": "The answer reached its length limit and was cut short.",
+  "tutor.deepTag": "Deep",
+  "tutor.retry": "Try again",
+  "tutor.answered": "The tutor answered:",
+  "tutor.input.label": "Ask the tutor",
+  "tutor.input.placeholder": "Ask a question…",
+  "tutor.input.hint": "Enter to send · Shift+Enter for a new line",
+  "tutor.chars": "{count}/{max}",
+  "tutor.send": "Send",
+  "tutor.stop": "Stop answering",
+  "tutor.new": "New chat",
+  "tutor.deep": "Deep answer",
+  "tutor.deep.note": "Slower, but more thorough.",
+  "tutor.context.label": "Sent with your question",
+  "tutor.context.mapView": "map view",
+  "tutor.limit":
+    "This conversation is getting long. Start a new chat to keep asking.",
+  "tutor.mock": "Simulated answers (dev only)",
+  "tutor.error.not_configured":
+    "The tutor is not ready yet: the server has no API key configured.",
+  "tutor.error.invalid_key":
+    "The tutor is not available: the server's API key was rejected.",
+  "tutor.error.no_credits":
+    "The tutor is not available right now: the AI account has run out of credit.",
+  "tutor.error.rate_limited":
+    "Too many questions in a short time. Wait a moment, then try again.",
+  "tutor.error.overloaded":
+    "The AI service is busy right now. Try again in a moment.",
+  "tutor.error.refused":
+    "The tutor declined to answer this. Try asking it a different way.",
+  "tutor.error.bad_request":
+    "This question could not be sent. It may be too long, or the conversation too large.",
+  "tutor.error.unavailable":
+    "Something went wrong while reaching the tutor. Try again.",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -82,14 +121,53 @@ const vi: Record<MessageKey, string> = {
   "events.sources": "Nguồn",
   "events.approximate": "Vị trí ước lượng",
   "tutor.heading": "Gia sư AI",
-  "tutor.placeholder":
-    "Gia sư sẽ làm ở giai đoạn 4. Nó sẽ biết năm, địa điểm và sự kiện bạn đang xem.",
-  "tutor.context": "Ngữ cảnh gia sư sẽ nhận được",
-  "tutor.context.year": "Năm",
-  "tutor.context.event": "Sự kiện đang chọn",
-  "tutor.context.view": "Vùng bản đồ",
-  "tutor.context.zoom": "mức phóng",
-  "tutor.context.none": "chưa chọn",
+  "tutor.intro":
+    "Hãy hỏi về những gì bạn đang xem. Mỗi câu hỏi được gửi kèm năm, vùng bản đồ và sự kiện đang chọn.",
+  "tutor.suggestions": "Câu hỏi gợi ý",
+  "tutor.suggest.here": "Chuyện gì đang xảy ra ở đây?",
+  "tutor.suggest.event": "Vì sao {event} quan trọng?",
+  "tutor.suggest.people": "Ai là những nhân vật chính lúc này?",
+  "tutor.suggest.before": "Điều gì dẫn tới tình hình năm {year}?",
+  "tutor.messages": "Cuộc trò chuyện",
+  "tutor.you": "Bạn",
+  "tutor.assistant": "Gia sư",
+  "tutor.askedAt": "Hỏi khi xem năm {year}",
+  "tutor.thinking": "Đang suy nghĩ…",
+  "tutor.stopped": "Đã dừng",
+  "tutor.truncated": "Câu trả lời chạm giới hạn độ dài nên bị cắt ngắn.",
+  "tutor.deepTag": "Sâu",
+  "tutor.retry": "Thử lại",
+  "tutor.answered": "Gia sư đã trả lời:",
+  "tutor.input.label": "Hỏi gia sư",
+  "tutor.input.placeholder": "Đặt câu hỏi…",
+  "tutor.input.hint": "Enter để gửi · Shift+Enter để xuống dòng",
+  "tutor.chars": "{count}/{max}",
+  "tutor.send": "Gửi",
+  "tutor.stop": "Dừng trả lời",
+  "tutor.new": "Trò chuyện mới",
+  "tutor.deep": "Giải thích sâu",
+  "tutor.deep.note": "Chậm hơn nhưng kỹ hơn.",
+  "tutor.context.label": "Gửi kèm câu hỏi",
+  "tutor.context.mapView": "vùng bản đồ",
+  "tutor.limit":
+    "Cuộc trò chuyện đã khá dài. Hãy bắt đầu cuộc trò chuyện mới để hỏi tiếp.",
+  "tutor.mock": "Câu trả lời giả lập (chỉ khi phát triển)",
+  "tutor.error.not_configured":
+    "Gia sư chưa sẵn sàng: máy chủ chưa được cấu hình khoá API.",
+  "tutor.error.invalid_key":
+    "Gia sư chưa dùng được: khoá API của máy chủ bị từ chối.",
+  "tutor.error.no_credits":
+    "Gia sư tạm thời chưa dùng được: tài khoản AI đã hết tín dụng.",
+  "tutor.error.rate_limited":
+    "Bạn hỏi quá nhiều trong thời gian ngắn. Chờ một lát rồi thử lại.",
+  "tutor.error.overloaded":
+    "Dịch vụ AI đang quá tải. Hãy thử lại sau ít phút.",
+  "tutor.error.refused":
+    "Gia sư từ chối trả lời câu này. Hãy thử hỏi theo cách khác.",
+  "tutor.error.bad_request":
+    "Không gửi được câu hỏi này. Có thể câu hỏi quá dài hoặc cuộc trò chuyện quá lớn.",
+  "tutor.error.unavailable":
+    "Có lỗi khi kết nối tới gia sư. Hãy thử lại.",
 };
 
 export const messages: Record<Locale, Record<MessageKey, string>> = { en, vi };
