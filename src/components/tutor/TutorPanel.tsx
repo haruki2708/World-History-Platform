@@ -61,11 +61,6 @@ export function TutorPanel() {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted max-lg:sr-only">
           {t("tutor.heading")}
         </h2>
-        {chat.usingMock && (
-          <span className="truncate rounded-full border border-dashed border-line px-1.5 text-[10px] text-muted">
-            {t("tutor.mock")}
-          </span>
-        )}
         <button
           type="button"
           onClick={reset}

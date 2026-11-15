@@ -67,7 +67,6 @@ const en = {
   "tutor.context.mapView": "map view",
   "tutor.limit":
     "This conversation is getting long. Start a new chat to keep asking.",
-  "tutor.mock": "Simulated answers (dev only)",
   "tutor.error.not_configured":
     "The tutor is not ready yet: the server has no API key configured.",
   "tutor.error.invalid_key":
@@ -151,7 +150,6 @@ const vi: Record<MessageKey, string> = {
   "tutor.context.mapView": "vùng bản đồ",
   "tutor.limit":
     "Cuộc trò chuyện đã khá dài. Hãy bắt đầu cuộc trò chuyện mới để hỏi tiếp.",
-  "tutor.mock": "Câu trả lời giả lập (chỉ khi phát triển)",
   "tutor.error.not_configured":
     "Gia sư chưa sẵn sàng: máy chủ chưa được cấu hình khoá API.",
   "tutor.error.invalid_key":

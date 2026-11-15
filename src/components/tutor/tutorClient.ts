@@ -13,8 +13,6 @@ export interface StreamOptions {
   signal: AbortSignal;
   /** Called with each piece of answer text as it arrives. */
   onText: (text: string) => void;
-  /** Called once if the dev-only simulated tutor answered instead. */
-  onMock?: () => void;
 }
 
 const ERROR_CODES: readonly TutorErrorCode[] = [
@@ -35,7 +33,7 @@ const ERROR_CODES: readonly TutorErrorCode[] = [
  */
 export async function streamTutor(
   request: TutorRequest,
-  { signal, onText, onMock }: StreamOptions,
+  { signal, onText }: StreamOptions,
 ): Promise<TutorOutcome> {
   let response: Response;
   try {
@@ -48,14 +46,6 @@ export async function streamTutor(
   } catch (error) {
     if (signal.aborted) throw error;
     return { kind: "error", code: "unavailable" };
-  }
-
-  // DEV-ONLY FALLBACK — remove together with ./devMockTutor.ts once
-  // /api/tutor (T-005) is merged. Production builds drop this branch.
-  if (process.env.NODE_ENV === "development" && response.status === 404) {
-    const { mockTutorResponse } = await import("./devMockTutor");
-    response = mockTutorResponse(request, signal);
-    onMock?.();
   }
 
   if (!response.body) {

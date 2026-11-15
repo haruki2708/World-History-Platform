@@ -20,8 +20,8 @@ const TABS: { id: PanelTab; label: "events.heading" | "tutor.heading" }[] = [
  * Each region is owned by one lane; this file only arranges them.
  *
  * On wide screens the side panel stacks the event list above the tutor and
- * splits the height between them. On narrow screens there is not enough
- * height for both, so they become tabs.
+ * gives the chat the larger share (2:3). On narrow screens there is not
+ * enough height for both, so they become tabs.
  */
 export function AppShell() {
   const { t, locale } = useT();
@@ -44,10 +44,19 @@ export function AppShell() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <main className="min-h-64 flex-1 lg:min-h-0">
+        {/* On phones the open tab gets the room it needs: the chat takes two
+            thirds of the height and the map shrinks, the event list shares
+            it evenly with the map. */}
+        <main
+          className={`flex-1 lg:min-h-0 ${tab === "tutor" ? "min-h-32" : "min-h-64"}`}
+        >
           <MapView />
         </main>
-        <aside className="flex min-h-0 flex-1 flex-col border-t border-line lg:w-96 lg:flex-none lg:border-l lg:border-t-0">
+        <aside
+          className={`flex min-h-0 flex-col border-t border-line lg:w-96 lg:flex-none lg:border-l lg:border-t-0 ${
+            tab === "tutor" ? "flex-[2]" : "flex-1"
+          }`}
+        >
           <div
             role="tablist"
             aria-label={t("panel.tabs")}
@@ -76,7 +85,7 @@ export function AppShell() {
             id="panel-events"
             role="tabpanel"
             aria-labelledby="panel-tab-events"
-            className={`min-h-0 flex-1 flex-col lg:flex ${
+            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-[2] ${
               tab === "events" ? "flex" : "hidden"
             }`}
           >
@@ -86,7 +95,7 @@ export function AppShell() {
             id="panel-tutor"
             role="tabpanel"
             aria-labelledby="panel-tab-tutor"
-            className={`min-h-0 flex-1 flex-col lg:flex ${
+            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-[3] ${
               tab === "tutor" ? "flex" : "hidden"
             }`}
           >

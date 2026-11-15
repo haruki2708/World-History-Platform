@@ -74,7 +74,6 @@ function toHistory(entries: ChatEntry[]): TutorMessage[] {
 export function useTutorChat() {
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [usingMock, setUsingMock] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // Abort any request still running when the panel unmounts.
@@ -114,7 +113,6 @@ export function useTutorChat() {
               text += piece;
               updateAnswer(answerId, () => ({ content: text }));
             },
-            onMock: () => setUsingMock(true),
           },
         );
         if (outcome.kind === "done") {
@@ -191,5 +189,5 @@ export function useTutorChat() {
     setAnnouncement(null);
   };
 
-  return { entries, busy, atLimit, usingMock, announcement, send, retry, stop, reset };
+  return { entries, busy, atLimit, announcement, send, retry, stop, reset };
 }
