@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { useT } from "@/lib/i18n/useT";
 import { YEAR_MAX, YEAR_MIN, formatYear } from "@/lib/years";
@@ -26,13 +26,19 @@ const ROWS: { keys: Token[]; description: MessageKey }[] = [
 const KBD_CLASS =
   "inline-flex min-w-6 items-center justify-center rounded border border-line border-b-2 bg-surface px-1.5 py-px font-sans text-xs font-medium text-foreground";
 
+interface ShortcutsHelpProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
 /**
  * The small "?" button in the header that hints at the shortcuts, and the
  * dialog listing them. Also owns the `?` and Esc-leaves-a-field shortcuts.
+ * The open state lives with the caller, so other dialogs (About) can open it.
  */
-export function ShortcutsHelp() {
+export function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps) {
   const { t, locale } = useT();
-  const [open, setOpen] = useState(false);
+  const setOpen = onOpenChange;
 
   useEscapeLeavesField();
   useShortcuts((event) => {
