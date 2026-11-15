@@ -88,6 +88,23 @@ function tutorRequest(
   });
 }
 
+/**
+ * Events with neighbouring `text` events joined: where the stream splits the
+ * text is not part of the contract.
+ */
+function merged(events: Record<string, unknown>[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const event of events) {
+    const last = out[out.length - 1];
+    if (event.type === "text" && last?.type === "text") {
+      out[out.length - 1] = { type: "text", text: String(last.text) + String(event.text) };
+    } else {
+      out.push(event);
+    }
+  }
+  return out;
+}
+
 async function read(response: Response): Promise<Outcome> {
   const raw = await response.text();
   assert.ok(raw === "" || raw.endsWith("\n"), "every NDJSON line ends with a newline");
@@ -559,10 +576,8 @@ await check("live: streams the model's text and sends the expected request", asy
     messages: [user("Earlier"), { role: "assistant", content: "Before" }, user("Now")],
   });
   assert.equal(result.status, 200);
-  assert.deepEqual(result.events, [
-    { type: "text", text: "Hello" },
-    { type: "text", text: ", " },
-    { type: "text", text: "world." },
+  assert.deepEqual(merged(result.events), [
+    { type: "text", text: "Hello, world." },
     { type: "done", truncated: false },
   ]);
 
@@ -602,17 +617,17 @@ const upstream: [string, number, Record<string, unknown>[]][] = [
   ["403", 502, [{ type: "error", code: "unavailable" }]],
   ["refusal", 422, [{ type: "error", code: "refused" }]],
   ["empty", 502, [{ type: "error", code: "unavailable" }]],
-  ["refusal_mid", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "refused" }]],
-  ["overloaded_mid", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "overloaded" }]],
+  ["refusal_mid", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "refused" }]],
+  ["overloaded_mid", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "overloaded" }]],
   ["overloaded_first", 503, [{ type: "error", code: "overloaded" }]],
-  ["drop", 200, [{ type: "text", text: "Partial " }, { type: "error", code: "unavailable" }]],
-  ["max_tokens", 200, [{ type: "text", text: "Cut " }, { type: "text", text: "off" }, { type: "done", truncated: true }]],
+  ["drop", 200, [{ type: "text", text: "Partial" }, { type: "error", code: "unavailable" }]],
+  ["max_tokens", 200, [{ type: "text", text: "Cut off" }, { type: "done", truncated: true }]],
 ];
 for (const [scenario, status, events] of upstream) {
   await check(`live: upstream ${scenario} -> ${JSON.stringify(events.at(-1))}, status ${status}`, async () => {
     const result = await ask(`Test #upstream:${scenario}`);
     assert.equal(result.status, status);
-    assert.deepEqual(result.events, events);
+    assert.deepEqual(merged(result.events), events);
   });
 }
 
@@ -630,7 +645,7 @@ await check("live: cancelling the response body cancels the upstream request", a
   );
   const reader = response.body!.getReader();
   const { value } = await reader.read();
-  assert.equal(new TextDecoder().decode(value), '{"type":"text","text":"Waiting "}\n');
+  assert.equal(new TextDecoder().decode(value), '{"type":"text","text":"Waiting"}\n');
   await reader.cancel();
   await untilDisconnect(expected);
 });
@@ -658,11 +673,9 @@ await check("live: slow upstream -> ping first, then the answer or a late error,
     ),
   );
   assert.equal(answer.status, 200);
-  assert.deepEqual(answer.events, [
+  assert.deepEqual(merged(answer.events), [
     { type: "ping" },
-    { type: "text", text: "Hello" },
-    { type: "text", text: ", " },
-    { type: "text", text: "world." },
+    { type: "text", text: "Hello, world." },
     { type: "done", truncated: false },
   ]);
   assert.equal(noCredits.status, 200);
