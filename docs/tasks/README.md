@@ -27,4 +27,6 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-006](T-006-tutor-chat.md) | 1 | Khung chat của gia sư AI | Xong, đã gộp 2026-11-15 |
 | [T-007](T-007-tutor-hardening.md) | 2 | Gia cố route của gia sư AI: giới hạn, trần chi phí, giữ kết nối | Xong, đã gộp 2026-11-16 |
 | [T-008](T-008-desktop-ux.md) | 1 | Trải nghiệm trên máy tính: link chia sẻ, nhớ ngôn ngữ, phím tắt | Xong, đã gộp 2026-11-16 |
-| [T-009](T-009-map-labels.md) | 2 | Nhãn tên thế lực trên bản đồ, chuyển cảnh giữa các mốc | Sẵn sàng giao |
+| [T-009](T-009-map-labels.md) | 2 | Nhãn tên thế lực trên bản đồ, chuyển cảnh giữa các mốc | Đang làm (giao 2026-11-16) |
+| [T-010](T-010-tutor-map-links.md) | 1 | Nút "xem trên bản đồ" trong câu trả lời của gia sư (giao diện) | Sẵn sàng giao |
+| [T-011](T-011-tutor-map-links-server.md) | 2 | Server tạo nút "xem trên bản đồ" từ câu trả lời của Claude | Chờ lane 2 xong T-009 |

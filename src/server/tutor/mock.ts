@@ -1,11 +1,13 @@
 import { getEvent, getEventsAround } from "@/data";
-import type {
-  TutorErrorCode,
-  TutorRequest,
-  TutorStreamEvent,
+import {
+  TUTOR_LIMITS,
+  type TutorErrorCode,
+  type TutorMapLink,
+  type TutorRequest,
+  type TutorStreamEvent,
 } from "@/lib/tutor";
 import type { Locale } from "@/lib/types";
-import { formatYear } from "@/lib/years";
+import { clampYear, formatYear } from "@/lib/years";
 import { ERROR_STATUS } from "./config";
 
 /*
@@ -16,6 +18,10 @@ import { ERROR_STATUS } from "./config";
  *   #error:<code>     fail with that TutorErrorCode before any text
  *   #error:midstream  send some text, then fail with `unavailable`
  *   #truncated        finish with `done` and `truncated: true`
+ *   #nolinks          send no map links
+ *
+ * Unless told otherwise, the answer carries map links built from the context
+ * (see mockMapLinks): one halfway through the text, the rest at the end.
  *   #slow             think for 20 s before the first text, like a long deep
  *                     answer, so the `ping` keep-alives can be seen
  *   #slow:<seconds>   the same, for that many seconds (at most 120)
@@ -107,6 +113,31 @@ function buildAnswer(request: TutorRequest): string {
   return paragraphs.join("\n\n");
 }
 
+/**
+ * Up to TUTOR_LIMITS.maxMapLinks links, valid by construction: the selected
+ * event, the most important other located event around the year, and a
+ * year-only link 25 years on.
+ */
+function mockMapLinks(request: TutorRequest): TutorMapLink[] {
+  const last = request.messages[request.messages.length - 1];
+  if (last.role !== "user" || last.content.includes("#nolinks")) return [];
+  const { year, selectedEventId } = last.context;
+
+  const links: TutorMapLink[] = [];
+  const selected = selectedEventId ? getEvent(selectedEventId) : undefined;
+  if (selected) links.push({ year: selected.year, eventId: selected.id });
+
+  const other = getEventsAround(year)
+    .filter((event) => event.id !== selectedEventId && event.location)
+    .sort((a, b) => b.importance - a.importance || a.year - b.year)[0];
+  if (other) links.push({ year: other.year, eventId: other.id });
+
+  const later = clampYear(year + 25);
+  if (later !== year) links.push({ year: later, eventId: null });
+
+  return links.slice(0, TUTOR_LIMITS.maxMapLinks);
+}
+
 /** Splits text into chunks of a few words, keeping all whitespace. */
 function chunk(text: string): string[] {
   const words = text.match(/\S+\s*/g) ?? [];
@@ -156,12 +187,22 @@ export async function* streamMockAnswer(
 
   const chunks = chunk(buildAnswer(request));
   const stopAfter = failMidstream ? Math.min(8, chunks.length) : chunks.length;
-  for (const text of chunks.slice(0, stopAfter)) {
+  const links = mockMapLinks(request);
+  const halfway = Math.floor(chunks.length / 2);
+  for (const [index, text] of chunks.slice(0, stopAfter).entries()) {
+    // The first link arrives mid-answer, as a real one may.
+    if (index === halfway && links.length > 0) {
+      yield { type: "map_link", link: links.shift()! };
+    }
     yield { type: "text", text };
     await sleep(CHUNK_DELAY_MS, signal);
     if (signal.aborted) return;
   }
 
-  if (failMidstream) yield { type: "error", code: "unavailable" };
-  else yield { type: "done", truncated: question.includes("#truncated") };
+  if (failMidstream) {
+    yield { type: "error", code: "unavailable" };
+    return;
+  }
+  for (const link of links) yield { type: "map_link", link };
+  yield { type: "done", truncated: question.includes("#truncated") };
 }

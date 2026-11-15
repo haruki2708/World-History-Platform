@@ -6,12 +6,14 @@
 //     src/server/tutor/tools/self-check.ts
 
 import assert from "node:assert/strict";
+import { getEvent } from "@/data";
 import {
   TUTOR_LIMITS,
   type TutorContext,
   type TutorMessage,
   type TutorStreamEvent,
 } from "@/lib/tutor";
+import { YEAR_MAX, YEAR_MIN } from "@/lib/years";
 import { startFakeAnthropic } from "./fake-anthropic";
 
 const DUMMY_KEY = "test-key-not-a-real-secret";
@@ -135,7 +137,38 @@ await check("mock: streams text then done, as NDJSON, uncached", async () => {
   assert.equal(result.cacheControl, "no-store");
   assert.ok(result.events.length > 5, "several text chunks");
   assert.deepEqual(result.events.at(-1), { type: "done", truncated: false });
-  assert.ok(result.events.slice(0, -1).every((event) => event.type === "text"));
+  assert.ok(
+    result.events
+      .slice(0, -1)
+      .every((event) => event.type === "text" || event.type === "map_link"),
+  );
+});
+
+await check("mock: map links are valid, capped, and one arrives mid-answer", async () => {
+  const { events } = await ask("What is happening here?");
+  const links = (events as TutorStreamEvent[]).flatMap((event) =>
+    event.type === "map_link" ? [event.link] : [],
+  );
+  assert.ok(links.length > 0, "some links");
+  assert.ok(links.length <= TUTOR_LIMITS.maxMapLinks, "at most maxMapLinks");
+  const keys = links.map((link) => `${link.year}|${link.eventId}`);
+  assert.equal(new Set(keys).size, keys.length, "no duplicates");
+  for (const link of links) {
+    assert.ok(link.year >= YEAR_MIN && link.year <= YEAR_MAX, "year in range");
+    if (link.eventId !== null) {
+      const event = getEvent(link.eventId);
+      assert.ok(event, `known event ${link.eventId}`);
+      assert.ok(
+        link.year >= event.year && link.year <= (event.endYear ?? event.year),
+        "year within the event",
+      );
+    }
+  }
+  const firstLink = events.findIndex((event) => event.type === "map_link");
+  const lastText = events.findLastIndex((event) => event.type === "text");
+  assert.ok(firstLink < lastText, "a link before the text ends");
+  const { events: none } = await ask("What is happening here? #nolinks");
+  assert.ok(none.every((event) => event.type !== "map_link"), "#nolinks");
 });
 
 await check("mock: repeats the context it received (en)", async () => {

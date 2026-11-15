@@ -10,7 +10,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 3. Dữ liệu | 40–60 sự kiện, 12–15 mốc biên giới | Lane 3 (T-003, T-004) | Xem trọn thời kỳ không bị trống | Sự kiện xong (59 sự kiện, T-003). Biên giới (T-004): đợt 1 (509, 264, 146) đã gộp; đợt 2 (11 mốc) đang làm |
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
 | 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Đang làm. Xong: T-007 (giới hạn, trần chi phí), T-008 (link chia sẻ, nhớ ngôn ngữ, phím tắt) |
-| 6. Mở rộng | Tutor điều khiển bản đồ, quiz, thời kỳ mới | Chốt sau | | |
+| 6. Mở rộng | Gia sư dẫn đường trên bản đồ; sau đó quiz, thời kỳ mới | Lane 1 (T-010), Lane 2 (T-011) | Câu trả lời có nút đưa tới đúng sự kiện và năm | Đang làm: gia sư dẫn đường |
 
 ## Nhật ký
 
@@ -21,6 +21,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-16:** Người dùng chốt: ưu tiên máy tính, điện thoại chỉ cần dùng được. Lane 3 có lại hạn mức, bắt đầu T-004 đợt 1. Thêm vào hợp đồng tutor mã lỗi `limit_reached` và sự kiện `ping`. Viết T-007 (lane 2: giới hạn, trần chi phí, giữ kết nối) và T-008 (lane 1: link chia sẻ, nhớ ngôn ngữ, phím tắt).
 - **2026-11-16:** Lane 2 xong T-007, lane 1 xong T-008; gộp cả hai. Chạy thử đầu cuối trên bản gộp: link mở đúng năm, sự kiện, ngôn ngữ; phím tắt; nút chia sẻ; nhớ ngôn ngữ; câu trả lời chậm vẫn về nhờ `ping`; giới hạn mỗi phút và `limit_reached` hiện đúng thông báo.
 - **2026-11-16:** Lane 3 xong T-004 đợt 1 (3 mốc biên giới vẽ tay theo Shepherd và Cliopatria). Người dùng chốt: thêm Ba Tư và các vương quốc lớn đang để trống; đồng minh Ý tô đỏ nhạt cùng tông La Mã; gộp đợt 1 ngay; giao lane 2 nhãn tên thế lực và chuyển cảnh (T-009). Phiên chính gộp đợt 1, thêm dòng ghi công Cliopatria (CC BY 4.0) vào chú giải và README, sửa lỗi chớp tiếng Anh khi tải trang.
+- **2026-11-16:** Lane 1 có lại hạn mức. Người dùng chọn làm "gia sư dẫn đường": câu trả lời kèm nút đưa tới sự kiện hay năm được nhắc tới. Phiên chính thêm sự kiện `map_link` vào hợp đồng và cho chế độ giả lập gửi nút mẫu. Cách làm: model chèn ký hiệu vào câu trả lời, server tách ra thành nút (một lần gọi API, không dùng tool use). Viết T-010 (lane 1, giao diện) và T-011 (lane 2, server, sau T-009).
 
 ## Việc để giai đoạn 5
 

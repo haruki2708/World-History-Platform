@@ -12,6 +12,8 @@ export const TUTOR_LIMITS = {
   maxQuestionChars: 2000,
   /** Most messages (user + assistant) in one request. */
   maxMessages: 40,
+  /** Most map links in one answer. */
+  maxMapLinks: 3,
 } as const;
 
 /**
@@ -30,6 +32,22 @@ export interface TutorContext {
 export type TutorMessage =
   | { role: "user"; content: string; context: TutorContext }
   | { role: "assistant"; content: string };
+
+/**
+ * A place in the app the tutor suggests looking at, shown under its answer
+ * as a button that moves the timeline (and, for an event, the map) there.
+ * The chat builds the button's label from the data, in the user's language.
+ *
+ * The server guarantees: `year` is within [YEAR_MIN, YEAR_MAX]; `eventId`,
+ * when set, is an event in the data set and `year` lies within that event's
+ * years; no two links of one answer are equal; at most
+ * TUTOR_LIMITS.maxMapLinks per answer.
+ */
+export interface TutorMapLink {
+  year: Year;
+  /** An event id from the data set, or null for "go to this year". */
+  eventId: string | null;
+}
 
 /** "standard" answers at effort high; "deep" at effort xhigh. */
 export type TutorDepth = "standard" | "deep";
@@ -72,9 +90,13 @@ export type TutorErrorCode =
  * `ping` carries nothing: the server sends it while the model is still
  * thinking, to start the response early and keep the connection alive.
  * Clients ignore it.
+ *
+ * `map_link` may arrive at any point before `done`, mixed with `text`.
+ * The text never contains the markup the model used to request the links.
  */
 export type TutorStreamEvent =
   | { type: "ping" }
   | { type: "text"; text: string }
+  | { type: "map_link"; link: TutorMapLink }
   | { type: "done"; truncated: boolean }
   | { type: "error"; code: TutorErrorCode };
