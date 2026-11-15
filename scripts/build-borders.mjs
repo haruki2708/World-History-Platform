@@ -7,7 +7,7 @@
 //
 // The source describes every territory as rings built from shared, named
 // border lines ("arcs") and inline points, so a border drawn once is reused
-// by both neighbours and by every snapshot (see scripts/borders/README.md).
+// by both neighbours and by every snapshot (see docs/data/BORDERS.md).
 //
 // Checks, using the base map (public/map/basemap.json) as the land mask:
 //   - no two territories overlap on land (overlaps at sea are hidden by the

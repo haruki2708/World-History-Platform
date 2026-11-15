@@ -3,7 +3,7 @@
 // border never shifts between snapshots unless the history says it moved.
 //
 // Lines start and end at sea where they meet a coast: the water layer hides
-// whatever a territory spills into the sea. See README.md for the sources.
+// whatever a territory spills into the sea. See docs/data/BORDERS.md.
 
 export const arcs = {
   // ---------------------------------------------------------------- Italy

@@ -4,7 +4,8 @@
 // points, names of shared arcs from arcs.mjs ("-name" reverses one), and
 // { coast: [from, to] } for a stretch of the base map's coastline. A polygon
 // can also be { island: [lng, lat] }: the whole island containing that point.
-// See README.md for the method and docs/data/SOURCES.md for the sources.
+// See docs/data/BORDERS.md for the method, the choices made for each
+// snapshot and the sources.
 
 // ---------------------------------------------------------------- sources
 
@@ -53,7 +54,6 @@ const ISLANDS = {
   formentera: island(1.45, 38.7),
   malta: island(14.43, 35.9),
   gozo: island(14.25, 36.04),
-  pantelleria: island(11.98, 36.78),
 };
 
 const CYCLADES = [
@@ -484,7 +484,7 @@ const bce509 = {
         ISLANDS.corcyra,
         ISLANDS.crete,
         ...CYCLADES,
-        // Cyrene and the Pentapolis (tributary to Persia since 525 BCE).
+        // Cyrene and the Pentapolis.
         [
           [19.85, 32.2],
           [20.05, 31.6],
@@ -584,7 +584,7 @@ const bce509 = {
     {
       polityId: "macedon",
       polygons: [
-        // Lower Macedonia under Amyntas I (vassal of Persia from about 510).
+        // Lower Macedonia.
         [
           [22.6, 40.05],
           [22.35, 40.0],
@@ -749,7 +749,6 @@ const bce264 = {
         ISLANDS.formentera,
         ISLANDS.malta,
         ISLANDS.gozo,
-        ISLANDS.pantelleria,
       ],
     },
     {
