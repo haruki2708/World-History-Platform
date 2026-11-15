@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/useT";
-import { LocaleSwitch } from "./LocaleSwitch";
 import { MapView } from "./map/MapView";
 import { EventPanel } from "./panel/EventPanel";
+import { HeaderActions } from "./shell/HeaderActions";
+import { UrlSync } from "./shell/UrlSync";
 import { TimelineBar } from "./timeline/TimelineBar";
 import { TutorPanel } from "./tutor/TutorPanel";
 
@@ -33,6 +34,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-dvh flex-col">
+      <UrlSync />
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-4 py-3">
         <div className="min-w-0">
           <h1 className="text-base font-semibold leading-tight">
@@ -40,7 +42,7 @@ export function AppShell() {
           </h1>
           <p className="text-sm text-muted">{t("app.subtitle")}</p>
         </div>
-        <LocaleSwitch />
+        <HeaderActions />
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">

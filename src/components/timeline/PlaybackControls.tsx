@@ -18,6 +18,7 @@ export function PlayButton({ playing, onToggle }: PlayButtonProps) {
       type="button"
       onClick={onToggle}
       aria-label={label}
+      aria-keyshortcuts="Space"
       title={label}
       className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
