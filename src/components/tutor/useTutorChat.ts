@@ -6,9 +6,11 @@ import {
   type TutorContext,
   type TutorDepth,
   type TutorErrorCode,
+  type TutorMapLink,
   type TutorMessage,
 } from "@/lib/tutor";
 import { useAppStore } from "@/store/useAppStore";
+import { addMapLink } from "./mapLinks";
 import { streamTutor } from "./tutorClient";
 
 export type AnswerStatus = "streaming" | "done" | "stopped" | "error";
@@ -21,6 +23,11 @@ export type ChatEntry =
       content: string;
       status: AnswerStatus;
       depth: TutorDepth;
+      /**
+       * "View on the map" links, in arrival order. Shown under the answer
+       * only; never sent back to the server.
+       */
+      links: readonly TutorMapLink[];
       error?: TutorErrorCode;
       truncated?: boolean;
     };
@@ -113,6 +120,11 @@ export function useTutorChat() {
               text += piece;
               updateAnswer(answerId, () => ({ content: text }));
             },
+            onMapLink: (link) => {
+              updateAnswer(answerId, (entry) => ({
+                links: addMapLink(entry.links, link),
+              }));
+            },
           },
         );
         if (outcome.kind === "done") {
@@ -151,6 +163,7 @@ export function useTutorChat() {
       content: "",
       status: "streaming",
       depth,
+      links: [],
     };
     const messages: TutorMessage[] = [
       ...toHistory(entries),
@@ -172,6 +185,7 @@ export function useTutorChat() {
       content: "",
       status: "streaming",
       depth: answer.depth,
+      links: [],
     };
     const messages: TutorMessage[] = [
       ...toHistory(entries.slice(0, -2)),

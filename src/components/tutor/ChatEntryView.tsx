@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useT } from "@/lib/i18n/useT";
 import { formatYear } from "@/lib/years";
+import { MapLinkButtons } from "./MapLinkButtons";
 import { RETRYABLE_ERRORS, type ChatEntry } from "./useTutorChat";
 
 interface ChatEntryViewProps {
@@ -56,6 +57,8 @@ export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
           streaming={entry.status === "streaming"}
         />
       )}
+      {/* Shown as they arrive, and kept if the answer stops or fails. */}
+      <MapLinkButtons links={entry.links} />
 
       {entry.status === "stopped" && (
         <p className="text-xs text-muted italic">{t("tutor.stopped")}</p>

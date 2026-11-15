@@ -1,9 +1,11 @@
 import {
   TUTOR_ENDPOINT,
   type TutorErrorCode,
+  type TutorMapLink,
   type TutorRequest,
   type TutorStreamEvent,
 } from "@/lib/tutor";
+import { sanitizeMapLink } from "./mapLinks";
 
 export type TutorOutcome =
   | { kind: "done"; truncated: boolean }
@@ -13,6 +15,12 @@ export interface StreamOptions {
   signal: AbortSignal;
   /** Called with each piece of answer text as it arrives. */
   onText: (text: string) => void;
+  /**
+   * Called with each map link as it arrives, already checked against the
+   * data (invalid links are dropped here). Duplicates and the per-answer
+   * limit are left to the caller, which holds the answer's links.
+   */
+  onMapLink: (link: TutorMapLink) => void;
 }
 
 const ERROR_CODES: readonly TutorErrorCode[] = [
@@ -34,7 +42,7 @@ const ERROR_CODES: readonly TutorErrorCode[] = [
  */
 export async function streamTutor(
   request: TutorRequest,
-  { signal, onText }: StreamOptions,
+  { signal, onText, onMapLink }: StreamOptions,
 ): Promise<TutorOutcome> {
   let response: Response;
   try {
@@ -67,6 +75,11 @@ export async function streamTutor(
     }
     if (event.type === "text") {
       onText(event.text);
+      return null;
+    }
+    if (event.type === "map_link") {
+      const link = sanitizeMapLink(event.link);
+      if (link) onMapLink(link);
       return null;
     }
     if (event.type === "done") return { kind: "done", truncated: event.truncated };
