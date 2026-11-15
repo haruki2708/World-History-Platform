@@ -28,6 +28,10 @@ const SHEPHERD_ROMAN = {
     'W. R. Shepherd, Historical Atlas (1923): "Roman territory from the beginning of the 1st Punic War (264 B.C.)"',
   url: "https://commons.wikimedia.org/wiki/File:Roman_expansion_264_BC_Shepherd.jpg",
 };
+const SHEPHERD_MACEDONIA = {
+  title: 'W. R. Shepherd, Historical Atlas (1911): "The Macedonian Empire, 336–323 B.C."',
+  url: "https://commons.wikimedia.org/wiki/File:Shepherd-c-018-019.jpg",
+};
 const SHEPHERD_DIADOCHI = {
   title: 'W. R. Shepherd, Historical Atlas (1923): "Kingdoms of the Diadochi, 301 and 200 B.C."',
   url: "https://commons.wikimedia.org/wiki/File:Diadochi_kingdoms_301_200.jpg",
@@ -538,18 +542,6 @@ const AGER_ROMANUS_290 = [
   [12.6, 41.0],
   [11.8, 41.6],
 ];
-/** Allies north of Rome in 290: Etruria, Umbria, Picenum. */
-const ALLIES_NORTH_290 = [
-  "apuan",
-  "apennine-pistoia",
-  "rubicon-line",
-  [13.5, 43.9],
-  [13.9, 42.95],
-  "-ager-romanus-north-a",
-  [10.9, 42.1],
-  [9.95, 42.6],
-  [10.0, 43.3],
-];
 /** Samnium, Campania and Apulia, allied after 290; Lucania and the south not. */
 const ALLIES_SOUTH_290 = [
   "ager-romanus-south",
@@ -687,11 +679,7 @@ const NUMIDIA_LATE = [
   [9.3, 33.9],
   [8.0, 34.3],
   [6.0, 34.6],
-  [4.0, 35.0],
-  [2.0, 35.0],
-  [1.5, 35.4],
-  [1.5, 36.75],
-  [3.0, 37.0],
+  "-saldae",
   [6.0, 37.3],
   [8.0, 37.3],
 ];
@@ -711,8 +699,8 @@ const MAURETANIA = [
 ];
 /** Mauretania with western Numidia, given to Bocchus I after Jugurtha (88–30). */
 const MAURETANIA_LATE = [
-  [1.5, 36.75],
-  [1.5, 35.4],
+  "saldae",
+  [4.0, 34.7],
   [2.0, 35.0],
   [0.0, 34.8],
   [-1.5, 34.6],
@@ -726,6 +714,9 @@ const MAURETANIA_LATE = [
   [-3.0, 35.55],
   [-1.5, 35.5],
   [0.0, 36.3],
+  [2.0, 36.75],
+  [3.0, 37.0],
+  [5.0, 37.05],
 ];
 /** Cyrenaica, from the Altars of the Philaeni to Catabathmus. */
 const CYRENAICA = [
@@ -2257,6 +2248,210 @@ const PERGAMON_146 = polygonOf(bce146, "pergamon", 0, { coast: [[29.05, 40.37], 
 const PONTUS_146 = polygonOf(bce146, "pontus", 0, [32.0, 41.85]);
 const PARTHIA_146 = polygonOf(bce146, "parthia", 0, "-zagros-146");
 
+// ------------------------------------------------- T-012: review of batch 2
+// Shapes added when batch 2 was checked against Shepherd and Cliopatria
+// (docs/data/BORDERS.md, "Soát lại đợt 2").
+
+const WIKI_SENONES = wiki("Senones: the Adriatic coast from Ariminum to Ancona, subdued in 283 BC", "Senones");
+const WIKI_UMBRI = wiki("Umbri: Roman conquest completed about 260 BC", "Umbri");
+const WIKI_PICENTES = wiki("Picentes: treaty with Rome in 299 BC", "Picentes");
+const WIKI_ETRUSCAN_WARS = wiki(
+  "Roman–Etruscan Wars: Etruria conquered in 265–264 BC",
+  "Roman%E2%80%93Etruscan_Wars",
+);
+const WIKI_CISALPINE = wiki(
+  "Cisalpine Gaul: the revolt of 218 BC and the conquest completed in 191 BC",
+  "Cisalpine_Gaul",
+);
+const WIKI_LIGURES = wiki("Ligures: subdued between 187 and 155 BC", "Ligures");
+const WIKI_ILLYRIAN_WARS = wiki("Illyrian Wars: the Roman protectorate of 229 BC", "Illyrian_Wars");
+const WIKI_CELTIBERIAN = wiki(
+  "Celtiberian Wars: the provinces after 201 BC and the peace of 179 BC",
+  "Celtiberian_Wars",
+);
+const WIKI_TIGRANES = wiki("Tigranes the Great: the seventy valleys ceded to Parthia", "Tigranes_the_Great");
+const WIKI_PONTUS_PROVINCE = wiki(
+  "Bithynia and Pontus: Pompey's province and the client kingdom of eastern Pontus",
+  "Bithynia_et_Pontus",
+);
+const WIKI_APAMEA = wiki("Treaty of Apamea: Cilicia kept by Antiochus, Lycia and Caria to Rhodes", "Treaty_of_Apamea");
+const WIKI_ILLYRICUM = wiki("Illyricum: Caesar's command from 59 BC", "Illyricum_(Roman_province)");
+
+/** Cisalpine Gaul with the Senones' coast down to the Aesis (until 283). */
+const CISALPINE_SENONES = [...CISALPINE_264.slice(1), [12.95, 44.4], "-senones", "-rubicon-west"];
+/** Picenum, allied by the treaty of 299, between the Senones and Rome (290). */
+const PICENUM_290 = [
+  [13.0, 43.42],
+  [13.25, 43.5],
+  [13.35, 43.63],
+  [13.6, 43.85],
+  [14.1, 43.4],
+  [13.9, 42.95],
+  [13.15, 42.95],
+  [13.05, 43.15],
+];
+/** The Roman protectorate in southern Illyria from 229: Apollonia, Epidamnus, the Parthini, the Atintani. */
+const ILLYRIA_229 = [
+  { coast: [[19.47, 40.42], [19.58, 41.62]] },
+  [19.95, 41.62],
+  [20.15, 41.3],
+  [20.1, 40.85],
+  [19.9, 40.4],
+];
+/** The same after the Third Illyrian War (168), north to Lissus. */
+const ILLYRIA_168 = [
+  { coast: [[19.47, 40.42], [19.62, 41.8]] },
+  [20.0, 41.95],
+  [20.15, 41.4],
+  [20.1, 40.85],
+  [19.9, 40.4],
+];
+/** Roman Spain in 201: the 146 shape without the upper Ebro valley, won in 181–179. */
+const HISPANIA_201 = (() => {
+  const cut = HISPANIA_146.findIndex((piece) => JSON.stringify(piece) === "[-1.2,40.2]");
+  if (HISPANIA_146[0] !== "-pyrenees-east" || cut !== 6) throw new Error("HISPANIA_146 changed");
+  return [HISPANIA_146[0], [0.3, 41.9], [-0.5, 41.45], [-1.1, 40.85], ...HISPANIA_146.slice(cut)];
+})();
+/** Attalus I's Pergamon (218, 201) and the Seleucid realm around it. */
+const PERGAMON_ATTALID = ["pergamon-attalid", { coast: [[27.26, 37.86], [26.85, 39.5]] }];
+const SELEUCID_ATTALID = (() => {
+  const tail = SELEUCID_EARLY.slice(-2);
+  if (tail[0] !== "pergamon-264") throw new Error("SELEUCID_EARLY changed");
+  return [...SELEUCID_EARLY.slice(0, -2), "pergamon-attalid", { coast: [[27.26, 37.86], [28.25, 37.03]] }];
+})();
+/** Caria south of the Maeander and Lycia, Rhodian from 188 to 167 (Cliopatria "Rhodes"). */
+const RHODIAN_PERAEA = [
+  { coast: [[27.26, 37.86], [30.57, 36.7]] },
+  [30.58, 36.78],
+  [30.55, 36.85],
+  [30.1, 36.95],
+  [29.65, 37.15],
+  [28.75, 37.6],
+  [28.45, 38.05],
+];
+/** Caria, part of the province of Asia from 129; Lycia stays free (Wikipedia "Asia (Roman province)"). */
+const CARIA = [
+  { coast: [[27.26, 37.86], [28.85, 36.72]] },
+  [29.25, 37.0],
+  [29.65, 37.15],
+  [28.75, 37.6],
+  [28.45, 38.05],
+];
+const WIKI_ANTIOCHUS7 = wiki("Antiochus VII Sidetes: the siege of Jerusalem in 134 BC", "Antiochus_VII_Sidetes");
+const WIKI_ASIA = wiki("Asia (Roman province): its regions in 129 BC", "Asia_(Roman_province)");
+/**
+ * Pompey's Pontus (63): the Black Sea coast from Amastris to Trapezus, joined
+ * to Bithynia; the interior was left to client kings (Cliopatria "Kingdom of
+ * Pontus", −63 to −26), and is left blank.
+ */
+const PONTUS_COAST = [
+  [32.0, 41.85],
+  [32.11, 41.59],
+  [32.31, 41.2],
+  [33.31, 41.59],
+  [34.33, 41.52],
+  [34.4, 41.0],
+  [35.1, 41.1],
+  [35.64, 41.05],
+  [36.09, 40.85],
+  [36.47, 40.8],
+  [36.9, 41.0],
+  [37.44, 40.95],
+  [37.83, 40.85],
+  [38.3, 40.8],
+  [38.78, 40.85],
+  [39.05, 40.95],
+  [39.74, 40.85],
+  [40.37, 40.85],
+  [40.54, 40.9],
+  [41.05, 41.1],
+  [41.35, 41.13],
+  [41.55, 41.5],
+  [41.5, 41.8],
+  [40.0, 41.3],
+  [38.0, 41.25],
+  [36.4, 41.6],
+  [36.0, 41.95],
+  [35.2, 42.25],
+  [34.4, 42.2],
+  [33.0, 42.15],
+];
+/** Illyricum, the coast from the Timavus to Lissus: Caesar's command from 59 (Shepherd: Roman by 44). */
+const ILLYRICUM = [
+  [13.6, 45.85],
+  [13.95, 45.75],
+  [14.6, 45.45],
+  [15.3, 45.1],
+  [15.9, 44.6],
+  [16.5, 44.1],
+  [17.1, 43.7],
+  [17.8, 43.35],
+  [18.5, 42.9],
+  [19.2, 42.5],
+  [19.6, 42.2],
+  [20.0, 41.95],
+  [19.62, 41.8],
+  [19.4, 41.8],
+  [19.1, 41.85],
+  [18.4, 42.2],
+  [17.3, 42.55],
+  [16.2, 42.85],
+  [15.6, 43.3],
+  [14.6, 44.1],
+  [13.8, 44.6],
+  [13.3, 45.0],
+  [13.4, 45.55],
+];
+/** The Seleucid rump in 88, without Hasmonean Judaea (Cliopatria, −91 to −78). */
+const SYRIA_88 = [
+  [35.7, 36.5],
+  [35.6, 35.3],
+  [35.4, 34.3],
+  [35.2, 33.6],
+  [35.0, 33.0],
+  [34.6, 32.45],
+  [34.85, 32.43],
+  [35.16, 32.43],
+  [35.4, 32.56],
+  [35.53, 33.2],
+  [35.7, 33.33],
+  [36.05, 33.01],
+  [35.93, 32.49],
+  [36.69, 32.49],
+  [36.9, 33.07],
+  [37.99, 33.97],
+  [39.51, 34.49],
+  ...EUPHRATES,
+  [37.2, 36.61],
+  [36.15, 36.95],
+];
+/** Armenia in 88, before Tigranes took back the seventy valleys (Cliopatria, −91 to −88). */
+const ARMENIA_88 = [
+  [38.83, 39.06],
+  [38.79, 39.9],
+  [40.4, 40.1],
+  [40.75, 40.36],
+  [40.57, 40.68],
+  [41.35, 41.13],
+  [42.5, 41.4],
+  [44.0, 41.2],
+  [44.79, 41.26],
+  [44.85, 40.68],
+  [44.52, 40.61],
+  [44.64, 40.42],
+  [44.5, 39.58],
+  [44.07, 39.38],
+  [44.36, 38.74],
+  [44.32, 38.48],
+  [43.95, 38.16],
+  [43.89, 37.71],
+  [42.8, 37.77],
+  [41.67, 38.03],
+  [40.57, 38.03],
+  [40.45, 38.29],
+  [39.46, 38.48],
+];
+
 const ITALY_ROMAN = [AGER_ROMANUS, CISPADANA, ITALY_NORTH_146, ALLIES_SOUTH];
 const WEST_ISLANDS = [ISLANDS.sicily, ISLANDS.sardinia, ISLANDS.corsica, ISLANDS.malta, ISLANDS.gozo];
 const BALEARICS = [ISLANDS.mallorca, ISLANDS.menorca, ISLANDS.ibiza, ISLANDS.formentera];
@@ -2277,16 +2472,24 @@ const EAST_EARLY = [
   { polityId: "armenia", polygons: [ARMENIA_EARLY] },
   { polityId: "parthia", polygons: [PARTHIA_EARLY] },
 ];
+/** The east in 218 and 201: Attalus I's larger Pergamon. */
+const EAST_ATTALID = EAST_EARLY.map((feature) =>
+  feature.polityId === "seleucid-empire"
+    ? { ...feature, polygons: [SELEUCID_ATTALID] }
+    : feature.polityId === "pergamon"
+      ? { ...feature, polygons: [PERGAMON_ATTALID] }
+      : feature,
+);
 const SOURCES_EAST = [WIKI_PARTHIA, WIKI_GALATIA, WIKI_BITHYNIA, WIKI_CAPPADOCIA, WIKI_ARMENIA];
 
 const bce338 = {
   year: -338,
-  sources: [WIKI_ACHAEMENID, SHEPHERD_ITALY, SHEPHERD_COLONIES, CLIOPATRIA],
+  sources: [WIKI_ACHAEMENID, SHEPHERD_MACEDONIA, SHEPHERD_ITALY, SHEPHERD_COLONIES, WIKI_SENONES, CLIOPATRIA],
   features: [
     { polityId: "rome", polygons: [ROME_338] },
     { polityId: "etruscans", polygons: [ETRURIA_338] },
     { polityId: "samnites", polygons: [SAMNIUM_338] },
-    { polityId: "gauls", polygons: [GAUL, CISALPINE_264] },
+    { polityId: "gauls", polygons: [GAUL, CISALPINE_SENONES] },
     {
       polityId: "greek-city-states",
       polygons: [
@@ -2329,11 +2532,23 @@ const bce338 = {
 
 const bce290 = {
   year: -290,
-  sources: [SHEPHERD_ITALY, SHEPHERD_DIADOCHI, WIKI_BITHYNIA, WIKI_CAPPADOCIA, WIKI_ARMENIA, CLIOPATRIA],
+  sources: [
+    SHEPHERD_ITALY,
+    WIKI_ETRUSCAN_WARS,
+    WIKI_PICENTES,
+    WIKI_UMBRI,
+    WIKI_SENONES,
+    SHEPHERD_DIADOCHI,
+    WIKI_BITHYNIA,
+    WIKI_CAPPADOCIA,
+    WIKI_ARMENIA,
+    CLIOPATRIA,
+  ],
   features: [
     { polityId: "rome", polygons: [AGER_ROMANUS_290] },
-    { polityId: "italian-allies", polygons: [ALLIES_NORTH_290, ALLIES_SOUTH_290] },
-    { polityId: "gauls", polygons: [GAUL, CISALPINE_264] },
+    { polityId: "italian-allies", polygons: [PICENUM_290, ALLIES_SOUTH_290] },
+    { polityId: "etruscans", polygons: [ETRURIA_338] },
+    { polityId: "gauls", polygons: [GAUL, CISALPINE_SENONES] },
     {
       polityId: "greek-city-states",
       polygons: [
@@ -2419,14 +2634,31 @@ const bce241 = {
 
 const bce218 = {
   year: -218,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, SHEPHERD_ITALY, SHEPHERD_DIADOCHI, ...SOURCES_EAST, CLIOPATRIA],
+  sources: [
+    WIKI_PROVINCES,
+    SHEPHERD_ROMAN,
+    SHEPHERD_ITALY,
+    WIKI_CISALPINE,
+    WIKI_LIGURES,
+    WIKI_ILLYRIAN_WARS,
+    SHEPHERD_DIADOCHI,
+    ...SOURCES_EAST,
+    CLIOPATRIA,
+  ],
   features: [
     {
       polityId: "rome",
-      polygons: [AGER_ROMANUS, CISPADANA, SICILY_NON_SYRACUSE, ISLANDS.sardinia, ISLANDS.corsica, ISLANDS.corcyra],
+      polygons: [
+        AGER_ROMANUS,
+        SICILY_NON_SYRACUSE,
+        ISLANDS.sardinia,
+        ISLANDS.corsica,
+        ISLANDS.corcyra,
+        ILLYRIA_229,
+      ],
     },
-    { polityId: "italian-allies", polygons: [ITALY_NORTH_146, ALLIES_SOUTH] },
-    { polityId: "gauls", polygons: [GAUL] },
+    { polityId: "italian-allies", polygons: [ALLIES_NORTH_264, ALLIES_SOUTH] },
+    { polityId: "gauls", polygons: [GAUL, CISALPINE_264] },
     { polityId: "syracuse", polygons: [SYRACUSE_264] },
     {
       polityId: "carthage",
@@ -2449,20 +2681,32 @@ const bce218 = {
     },
     { polityId: "macedon", polygons: [MACEDON_264, ISLANDS.euboea] },
     { polityId: "epirus", polygons: [EPIRUS_264] },
-    ...EAST_EARLY,
+    ...EAST_ATTALID,
   ],
 };
 
 const bce201 = {
   year: -201,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, SHEPHERD_DIADOCHI, FOSSA_REGIA, WIKI_MAURETANIA, ...SOURCES_EAST, CLIOPATRIA],
+  sources: [
+    WIKI_PROVINCES,
+    SHEPHERD_ROMAN,
+    WIKI_CELTIBERIAN,
+    WIKI_CISALPINE,
+    WIKI_LIGURES,
+    WIKI_ILLYRIAN_WARS,
+    SHEPHERD_DIADOCHI,
+    FOSSA_REGIA,
+    WIKI_MAURETANIA,
+    ...SOURCES_EAST,
+    CLIOPATRIA,
+  ],
   features: [
     {
       polityId: "rome",
-      polygons: [AGER_ROMANUS, CISPADANA, ...WEST_ISLANDS, ISLANDS.corcyra, HISPANIA_146],
+      polygons: [AGER_ROMANUS, ...WEST_ISLANDS, ISLANDS.corcyra, HISPANIA_201, ILLYRIA_229],
     },
-    { polityId: "italian-allies", polygons: [ITALY_NORTH_146, ALLIES_SOUTH] },
-    { polityId: "gauls", polygons: [GAUL] },
+    { polityId: "italian-allies", polygons: [ALLIES_NORTH_264, ALLIES_SOUTH] },
+    { polityId: "gauls", polygons: [GAUL, CISALPINE_264] },
     { polityId: "carthage", polygons: [CARTHAGE_201] },
     { polityId: "numidia", polygons: [NUMIDIA_201] },
     { polityId: "mauretania", polygons: [MAURETANIA] },
@@ -2482,17 +2726,27 @@ const bce201 = {
     },
     { polityId: "macedon", polygons: [MACEDON_264, ISLANDS.euboea] },
     { polityId: "epirus", polygons: [EPIRUS_264] },
-    ...EAST_EARLY,
+    ...EAST_ATTALID,
   ],
 };
 
 const bce168 = {
   year: -168,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, FOSSA_REGIA, WIKI_MAURETANIA, ...SOURCES_EAST, CLIOPATRIA],
+  sources: [
+    WIKI_PROVINCES,
+    SHEPHERD_ROMAN,
+    WIKI_CELTIBERIAN,
+    WIKI_ILLYRIAN_WARS,
+    WIKI_APAMEA,
+    FOSSA_REGIA,
+    WIKI_MAURETANIA,
+    ...SOURCES_EAST,
+    CLIOPATRIA,
+  ],
   features: [
     {
       polityId: "rome",
-      polygons: [AGER_ROMANUS, CISPADANA, ...WEST_ISLANDS, ISLANDS.corcyra, HISPANIA_146],
+      polygons: [AGER_ROMANUS, CISPADANA, ...WEST_ISLANDS, ISLANDS.corcyra, HISPANIA_146, ILLYRIA_168],
     },
     { polityId: "italian-allies", polygons: [ITALY_NORTH_146, ALLIES_SOUTH] },
     { polityId: "gauls", polygons: [GAUL] },
@@ -2505,6 +2759,7 @@ const bce168 = {
         GREECE_509,
         ISLANDS.euboea,
         ...GREEK_EAST,
+        RHODIAN_PERAEA,
         MASSALIA,
         BYZANTIUM,
         BLACK_SEA_WEST,
@@ -2515,7 +2770,7 @@ const bce168 = {
     },
     { polityId: "epirus", polygons: [EPIRUS_264] },
     { polityId: "ptolemaic-egypt", polygons: [EGYPT, CYRENAICA, ISLANDS.cyprus] },
-    { polityId: "seleucid-empire", polygons: [SYRIA, MESOPOTAMIA, IRAN_168] },
+    { polityId: "seleucid-empire", polygons: [SYRIA, CILICIA, MESOPOTAMIA, IRAN_168] },
     { polityId: "parthia", polygons: [PARTHIA_EARLY] },
     { polityId: "pergamon", polygons: [PERGAMON_146] },
     { polityId: "pontus", polygons: [PONTUS_146] },
@@ -2537,7 +2792,7 @@ const GREEK_NORTH = [BYZANTIUM, BLACK_SEA_WEST, OLBIA, CHERSONESOS, HERACLEA_PON
 
 const bce129 = {
   year: -129,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
+  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_ASIA, WIKI_ANTIOCHUS7, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
   features: [
     {
       polityId: "rome",
@@ -2551,6 +2806,7 @@ const bce129 = {
         ISLANDS.euboea,
         ISLANDS.corcyra,
         PERGAMON_146,
+        CARIA,
       ],
     },
     { polityId: "italian-allies", polygons: [ITALY_NORTH_146, ALLIES_SOUTH] },
@@ -2572,7 +2828,18 @@ const bce129 = {
 
 const bce88 = {
   year: -88,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_BITHYNIA, WIKI_CAPPADOCIA, WIKI_ARMENIA, WIKI_PARTHIA, WIKI_MAURETANIA, CLIOPATRIA],
+  sources: [
+    WIKI_PROVINCES,
+    SHEPHERD_ROMAN,
+    WIKI_BITHYNIA,
+    WIKI_CAPPADOCIA,
+    WIKI_ARMENIA,
+    WIKI_TIGRANES,
+    WIKI_ASIA,
+    WIKI_PARTHIA,
+    WIKI_MAURETANIA,
+    CLIOPATRIA,
+  ],
   features: [
     {
       polityId: "rome",
@@ -2596,16 +2863,16 @@ const bce88 = {
       polygons: [ISLANDS.crete, ...GREEK_LATE, MASSALIA, BYZANTIUM, BLACK_SEA_WEST, OLBIA, HERACLEA_PONTICA],
     },
     { polityId: "ptolemaic-egypt", polygons: [EGYPT, ISLANDS.cyprus] },
-    { polityId: "seleucid-empire", polygons: [SYRIA] },
+    { polityId: "seleucid-empire", polygons: [SYRIA_88] },
     { polityId: "parthia", polygons: [PARTHIA_146, MESOPOTAMIA] },
     {
       // Mithridates VI at his height: Pontus with Bithynia, Cappadocia,
       // Galatia and the Roman province of Asia, overrun in 89–88, and his
       // Black Sea possessions in the Crimea.
       polityId: "pontus",
-      polygons: [PONTUS_146, BITHYNIA_146, CAPPADOCIA_146, GALATIA_146, PERGAMON_146, CHERSONESOS, BOSPORUS],
+      polygons: [PONTUS_146, BITHYNIA_146, CAPPADOCIA_146, GALATIA_146, PERGAMON_146, CARIA, CHERSONESOS, BOSPORUS],
     },
-    { polityId: "armenia", polygons: [ARMENIA_146] },
+    { polityId: "armenia", polygons: [ARMENIA_88] },
   ],
 };
 
@@ -2623,12 +2890,25 @@ const ROME_63 = [
   ISLANDS.euboea,
   ISLANDS.corcyra,
   PERGAMON_146,
+  CARIA,
   BITHYNIA_146,
-  PONTUS_146,
+  PONTUS_COAST,
   CILICIA,
   SYRIA,
 ];
-const SOURCES_LATE = [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_ARMENIA, WIKI_CAPPADOCIA, WIKI_GALATIA, WIKI_PARTHIA, WIKI_MAURETANIA, CLIOPATRIA];
+const SOURCES_LATE = [
+  WIKI_PROVINCES,
+  SHEPHERD_ROMAN,
+  WIKI_ASIA,
+  WIKI_PONTUS_PROVINCE,
+  WIKI_ILLYRICUM,
+  WIKI_ARMENIA,
+  WIKI_CAPPADOCIA,
+  WIKI_GALATIA,
+  WIKI_PARTHIA,
+  WIKI_MAURETANIA,
+  CLIOPATRIA,
+];
 
 const bce63 = {
   year: -63,
@@ -2649,7 +2929,7 @@ const bce50 = {
   year: -50,
   sources: SOURCES_LATE,
   features: [
-    { polityId: "rome", polygons: [...ROME_63, GAUL_FREE, ISLANDS.cyprus] },
+    { polityId: "rome", polygons: [...ROME_63, GAUL_FREE, ISLANDS.cyprus, ILLYRICUM] },
     { polityId: "numidia", polygons: [NUMIDIA_LATE] },
     { polityId: "mauretania", polygons: [MAURETANIA_LATE] },
     { polityId: "greek-city-states", polygons: [...GREEK_LATE, MASSALIA, ...GREEK_NORTH] },
@@ -2665,7 +2945,7 @@ const bce30 = {
   features: [
     {
       polityId: "rome",
-      polygons: [...ROME_63, GAUL_FREE, ISLANDS.cyprus, EGYPT, NUMIDIA_LATE, MAURETANIA_LATE, MASSALIA],
+      polygons: [...ROME_63, GAUL_FREE, ISLANDS.cyprus, ILLYRICUM, EGYPT, NUMIDIA_LATE, MAURETANIA_LATE, MASSALIA],
     },
     { polityId: "greek-city-states", polygons: [...GREEK_LATE, ...GREEK_NORTH] },
     { polityId: "parthia", polygons: [PARTHIA_146, MESOPOTAMIA] },
