@@ -16,6 +16,12 @@ import { ERROR_STATUS } from "./config";
  *   #error:<code>     fail with that TutorErrorCode before any text
  *   #error:midstream  send some text, then fail with `unavailable`
  *   #truncated        finish with `done` and `truncated: true`
+ *   #slow             think for 20 s before the first text, like a long deep
+ *                     answer, so the `ping` keep-alives can be seen
+ *   #slow:<seconds>   the same, for that many seconds (at most 120)
+ *
+ * Mock answers go through the same usage limits as real ones; they cost
+ * nothing, so they never add to the daily spending total.
  */
 
 function isErrorCode(value: string | undefined): value is TutorErrorCode {
@@ -23,6 +29,8 @@ function isErrorCode(value: string | undefined): value is TutorErrorCode {
 }
 
 const FIRST_CHUNK_DELAY_MS = 250;
+const SLOW_DEFAULT_SECONDS = 20;
+const SLOW_MAX_SECONDS = 120;
 const CHUNK_DELAY_MS = 35;
 const WORDS_PER_CHUNK = 3;
 
@@ -109,6 +117,14 @@ function chunk(text: string): string[] {
   return chunks;
 }
 
+/** Time before the first chunk, from the `#slow` directive if there is one. */
+function firstChunkDelayMs(question: string): number {
+  const slow = /#slow(?::(\d+(?:\.\d+)?))?/.exec(question);
+  if (!slow) return FIRST_CHUNK_DELAY_MS;
+  const seconds = slow[1] === undefined ? SLOW_DEFAULT_SECONDS : Number(slow[1]);
+  return Math.min(seconds, SLOW_MAX_SECONDS) * 1000;
+}
+
 /** Resolves after `ms`, or at once when the signal aborts. */
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
@@ -131,7 +147,7 @@ export async function* streamMockAnswer(
   const directive = /#error:([a-z_]+)/.exec(question)?.[1];
   const failMidstream = directive === "midstream";
 
-  await sleep(FIRST_CHUNK_DELAY_MS, signal);
+  await sleep(firstChunkDelayMs(question), signal);
   if (signal.aborted) return;
   if (isErrorCode(directive)) {
     yield { type: "error", code: directive };

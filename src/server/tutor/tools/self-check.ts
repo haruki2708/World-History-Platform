@@ -54,14 +54,24 @@ interface Outcome {
   text: string;
 }
 
-async function post(body: unknown, signal?: AbortSignal): Promise<Outcome> {
-  const response = await handleTutorPost(
-    new Request("http://localhost/api/tutor", {
-      method: "POST",
-      body: typeof body === "string" ? body : JSON.stringify(body),
-      signal,
-    }),
-  );
+// Each request comes from its own address unless a test says otherwise, so
+// the per-person limits only bite in the checks written for them.
+let nextAddress = 0;
+const freshAddress = () => `10.0.${Math.floor(nextAddress / 250)}.${(nextAddress++ % 250) + 1}`;
+
+function tutorRequest(
+  body: unknown,
+  { signal, headers }: { signal?: AbortSignal; headers?: Record<string, string> } = {},
+): Request {
+  return new Request("http://localhost/api/tutor", {
+    method: "POST",
+    body: typeof body === "string" ? body : JSON.stringify(body),
+    headers: { "x-forwarded-for": freshAddress(), ...headers },
+    signal,
+  });
+}
+
+async function read(response: Response): Promise<Outcome> {
   const raw = await response.text();
   assert.ok(raw === "" || raw.endsWith("\n"), "every NDJSON line ends with a newline");
   const events = raw
@@ -78,6 +88,13 @@ async function post(body: unknown, signal?: AbortSignal): Promise<Outcome> {
       .map((event) => event.text)
       .join(""),
   };
+}
+
+async function post(
+  body: unknown,
+  options?: { signal?: AbortSignal; headers?: Record<string, string> },
+): Promise<Outcome> {
+  return read(await handleTutorPost(tutorRequest(body, options)));
 }
 
 const ask = (question: string, depth = "standard", overrides?: Partial<TutorContext>) =>
@@ -350,10 +367,7 @@ async function untilDisconnect(expected: number): Promise<void> {
 await check("live: cancelling the response body cancels the upstream request", async () => {
   const expected = fake.clientDisconnects + 1;
   const response = await handleTutorPost(
-    new Request("http://localhost/api/tutor", {
-      method: "POST",
-      body: JSON.stringify({ depth: "standard", messages: [user("Wait #upstream:hang")] }),
-    }),
+    tutorRequest({ depth: "standard", messages: [user("Wait #upstream:hang")] }),
   );
   const reader = response.body!.getReader();
   const { value } = await reader.read();
@@ -366,11 +380,10 @@ await check("live: aborting the incoming request cancels the upstream request", 
   const expected = fake.clientDisconnects + 1;
   const abort = new AbortController();
   const response = await handleTutorPost(
-    new Request("http://localhost/api/tutor", {
-      method: "POST",
-      body: JSON.stringify({ depth: "standard", messages: [user("Wait #upstream:hang")] }),
-      signal: abort.signal,
-    }),
+    tutorRequest(
+      { depth: "standard", messages: [user("Wait #upstream:hang")] },
+      { signal: abort.signal },
+    ),
   );
   const reader = response.body!.getReader();
   await reader.read();
