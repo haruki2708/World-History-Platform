@@ -41,7 +41,8 @@ Ba mảng (timeline, bản đồ, tutor) chỉ giao tiếp qua store này.
 |---|---|---|---|
 | `year` | `Year` | Timeline qua `setYear`; chọn sự kiện qua `selectEvent(id, year)` | Tất cả |
 | `viewport` | `MapViewport` | Bản đồ qua `setViewport` mỗi khi di chuyển | Tutor |
-| `selectedEventId` | `string \| null` | Panel và bản đồ qua `selectEvent` | Tất cả |
+| `selectedEventId` | `string \| null` | Panel, bản đồ, nút trong câu trả lời của gia sư, qua `selectEvent` | Tất cả |
+| `focusRequest` | `number` | Tăng mỗi lần `selectEvent` chọn một sự kiện, kể cả chọn lại đúng sự kiện đang chọn | Bản đồ (bay tới sự kiện) |
 | `locale` | `"en" \| "vi"` | `LocaleSwitch` | Tất cả |
 
 `setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra.
@@ -69,7 +70,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - Một thế lực trong `polities.json` phải được ít nhất một sự kiện hoặc một file biên giới dùng (quyết định 2026-11-16; có những thế lực chỉ xuất hiện trên bản đồ, như Ba Tư).
 - Màu: đồng minh Ý cùng tông đỏ với La Mã (đỏ nhạt), để cả bán đảo đọc là vùng của La Mã nhưng vẫn phân biệt công dân với đồng minh. Hai thế lực chung đường biên phải phân biệt rõ ở cả chế độ sáng lẫn tối.
 - Biên giới được vẽ tay theo bản đồ Shepherd (phạm vi công cộng) và Cliopatria (CC BY 4.0). Giấy phép CC BY 4.0 bắt buộc ghi công: dòng ghi công nằm ở chú giải bản đồ và ở `README.md`; không được gỡ. Phương pháp và căn cứ từng mốc: `docs/data/BORDERS.md`. Dựng lại file: `npm run borders`.
-- Khi `border-snapshots.json` còn rỗng và chạy `npm run dev`, bản đồ dùng ba mốc thử vẽ thô trong `src/components/map/__fixtures__/` (chú giải ghi "Dữ liệu thử"). Có mốc thật là dữ liệu thử tự tắt; bản build chính thức không bao giờ chứa chúng.
+- Bản đồ ghi tên thế lực ở điểm sâu nhất trong phần đất liền của lãnh thổ, ẩn nhãn không đủ chỗ ở mức phóng hiện tại, và chuyển cảnh mờ dần 400 ms giữa hai mốc (`src/components/map/labels/`, `territoryFade.ts`).
 
 ### Bản đồ nền
 
@@ -93,6 +94,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 ## Link chia sẻ và phím tắt
 
 - **Địa chỉ trang** phản ánh trạng thái đang xem: `/?year=-216&event=battle-of-cannae&lang=vi`. `src/components/shell/UrlSync.tsx` áp tham số khi mở trang (tham số sai bị bỏ qua từng cái) và cập nhật địa chỉ bằng `history.replaceState`: ngay khi chọn sự kiện hay đổi ngôn ngữ, sau 400 ms năm đứng yên khi đổi năm. Tham số lạ khác trên link được giữ nguyên.
+- **Phát tự động:** đang phát mà năm bị đổi từ nơi khác (kéo, phím, nút của gia sư) hoặc có sự kiện được chọn thì dừng phát.
 - **Phím tắt** (`src/components/shell/keyboard.ts`): Space phát hoặc tạm dừng, ←/→ đổi 1 năm (Shift: 10 năm), Home/End về hai đầu, `/` vào ô hỏi gia sư, Esc rời ô nhập, `?` mở bảng phím tắt. Mỗi phần tự đăng ký phím của mình bằng `useShortcuts`; phím tắt không chạy khi đang gõ chữ, đang giữ Ctrl/Alt/Cmd, đang dùng bộ gõ, đang mở hộp thoại, focus ở trên bản đồ, hoặc Space khi focus ở một nút.
 
 ## AI tutor (giai đoạn 4)
