@@ -20,7 +20,7 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 | Ai | Sở hữu |
 |---|---|
 | Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/` |
-| Lane 2 | `src/components/map/`, `public/map/` |
+| Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/` |
 | Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |
 
@@ -29,6 +29,8 @@ Quy tắc cho lane:
 - Chỉ sửa file trong vùng mình sở hữu. Cần đổi file ngoài vùng (kiểu dữ liệu, store, thêm thư viện) thì không tự sửa: ghi đề nghị vào mục "Kết quả" của file task.
 - Ngoại lệ: được thêm khoá vào `src/lib/i18n/messages.ts`, chỉ với tiền tố của mảng mình (`timeline.*`, `events.*`, `tutor.*`, `map.*`), và phải thêm cho cả `en` lẫn `vi`.
 - Timeline, bản đồ và tutor chỉ giao tiếp qua `useAppStore`. Không import component của mảng khác.
+- Khung chat và route của tutor chỉ giao tiếp qua hợp đồng trong `src/lib/tutor.ts`.
+- Không bao giờ đưa khoá API vào code, commit, log hay tài liệu. Khoá chỉ nằm trong `.env.local`. Khi phát triển, dùng `TUTOR_MOCK=1`.
 
 ## Quy ước code
 

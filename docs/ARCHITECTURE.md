@@ -87,6 +87,18 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 
 ## AI tutor (giai đoạn 4)
 
-- Gọi Claude API từ route phía server, khoá API không ra trình duyệt.
-- Model `claude-opus-5-5`, effort `high`, lên `xhigh` cho câu hỏi nặng. Có streaming.
-- Mỗi yêu cầu gửi kèm ngữ cảnh lấy từ store: năm, vùng nhìn, sự kiện đang chọn, và các sự kiện liên quan từ bộ dữ liệu.
+Hợp đồng nằm ở `src/lib/tutor.ts`. Chỉ phiên chính được sửa file này.
+
+```
+Khung chat (Lane 1)                         Route /api/tutor (Lane 2)                  Claude API
+src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --stream-->  claude-opus-5-5
+                        <--NDJSON TutorStreamEvent--  src/server/tutor/      <----------
+```
+
+- **Yêu cầu:** `POST /api/tutor` với `{ messages, depth }`. Mỗi tin nhắn của người dùng mang theo `context` (năm, ngôn ngữ, vùng bản đồ, sự kiện đang chọn) **chụp lại lúc gửi**. Khung chat giữ nguyên các tin nhắn cũ cùng `context` của chúng và gửi lại y hệt ở các lần sau; không sửa hay chèn thêm gì vào tin nhắn cũ.
+- **Phản hồi:** NDJSON, mỗi dòng một `TutorStreamEvent`: nhiều sự kiện `text`, kết thúc bằng `done`; hoặc một `error` với mã trong `TutorErrorCode`.
+- **Khoá API** chỉ nằm ở server, đọc từ biến môi trường `ANTHROPIC_API_KEY` trong `.env.local` (không bao giờ commit). Xem `.env.example`.
+- **Chế độ giả lập:** `TUTOR_MOCK=1` khiến route trả câu trả lời mẫu dựng từ yêu cầu, không gọi API, không tốn tiền. Dùng khi phát triển và kiểm thử.
+- **Model:** `claude-opus-5-5`, có streaming. `depth: "standard"` dùng effort `high`, `depth: "deep"` dùng effort `xhigh`.
+- **Ngữ cảnh cho model:** phần hướng dẫn và toàn bộ dữ liệu sự kiện, thế lực nằm ở phần đầu cố định của prompt, được cache. Ngữ cảnh của từng câu hỏi (năm, vùng nhìn, sự kiện đang chọn, các sự kiện quanh năm đó) được dựng từ `context` của tin nhắn đó, cùng đầu vào thì ra cùng một đoạn chữ.
+- **Lịch sử gửi cho model** chỉ gồm phần chữ của các lượt trước; không gửi lại các khối suy luận (thinking). Cách này hợp lệ với Opus 5.5.

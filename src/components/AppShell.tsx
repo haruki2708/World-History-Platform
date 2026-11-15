@@ -19,8 +19,9 @@ const TABS: { id: PanelTab; label: "events.heading" | "tutor.heading" }[] = [
  * Page layout: header, map + side panel, timeline along the bottom.
  * Each region is owned by one lane; this file only arranges them.
  *
- * On wide screens the side panel stacks the event list above the tutor. On
- * narrow screens there is not enough height for both, so they become tabs.
+ * On wide screens the side panel stacks the event list above the tutor and
+ * splits the height between them. On narrow screens there is not enough
+ * height for both, so they become tabs.
  */
 export function AppShell() {
   const { t, locale } = useT();
@@ -85,7 +86,7 @@ export function AppShell() {
             id="panel-tutor"
             role="tabpanel"
             aria-labelledby="panel-tab-tutor"
-            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-none ${
+            className={`min-h-0 flex-1 flex-col lg:flex ${
               tab === "tutor" ? "flex" : "hidden"
             }`}
           >

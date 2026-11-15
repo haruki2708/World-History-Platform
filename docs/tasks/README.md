@@ -23,3 +23,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Xong, đã gộp 2026-11-15 |
 | [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Xong, đã gộp 2026-11-15 (phiên chính làm nốt) |
 | [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Sẵn sàng, chờ lane 3 có lại hạn mức |
+| [T-005](T-005-tutor-api.md) | 2 | Route API của gia sư AI | Sẵn sàng giao |
+| [T-006](T-006-tutor-chat.md) | 1 | Khung chat của gia sư AI | Sẵn sàng giao |
