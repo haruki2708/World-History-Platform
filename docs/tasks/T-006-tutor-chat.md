@@ -41,4 +41,70 @@ Thay khung tutor tạm bằng khung chat thật: người dùng hỏi về nhữ
 
 ## Kết quả
 
-_(Lane 1 điền khi xong.)_
+### Đã làm
+
+Mọi file nằm trong `src/components/tutor/`:
+
+- `TutorPanel.tsx`: khung chat. Gồm tiêu đề, nút "Trò chuyện mới", danh sách tin nhắn tự cuộn, vùng `aria-live` và ô nhập. Khi chưa có cuộc trò chuyện thì hiện lời giới thiệu và 3 câu hỏi gợi ý dựng từ năm và sự kiện đang chọn; bấm là gửi luôn.
+- `Composer.tsx`: ô nhập nhiều dòng tự giãn (`field-sizing: content`, tối đa ~8 dòng).
+  - Enter gửi, Shift+Enter xuống dòng. Enter dùng để xác nhận bộ gõ (IME, ví dụ bộ gõ tiếng Việt) thì không gửi.
+  - `maxLength` bằng `TUTOR_LIMITS.maxQuestionChars`, bộ đếm hiện khi gần chạm giới hạn.
+  - Nút gửi thành nút dừng khi đang trả lời.
+  - Dòng "Gửi kèm câu hỏi: [năm] [sự kiện đang chọn] + vùng bản đồ" nằm ngay trên ô nhập.
+  - Công tắc "Giải thích sâu" (`role="switch"`) kèm ghi chú "Chậm hơn nhưng kỹ hơn".
+  - Khi chạm giới hạn tin nhắn: hiện thông báo kèm nút bắt đầu cuộc trò chuyện mới, không cho gửi tiếp.
+- `ChatEntryView.tsx`: hiển thị một tin nhắn.
+  - Câu hỏi có nhãn "Hỏi khi xem năm …" lấy từ `context.year` của chính nó.
+  - Câu trả lời có chỉ báo "Đang suy nghĩ…" trước chữ đầu tiên và con trỏ nhấp nháy khi đang stream. Câu trả lời ở chế độ sâu có nhãn "Sâu". Có thêm nhãn "Đã dừng" và ghi chú khi `done.truncated`.
+  - Lỗi có hộp thông báo song ngữ; nút "Thử lại" chỉ hiện với `rate_limited`, `overloaded`, `unavailable`, và chỉ ở câu trả lời cuối.
+  - Bộ phân tích nhỏ chỉ nhận đoạn văn và dòng `- `, render thành `<p>` / `<ul>` bằng text React, không dùng `dangerouslySetInnerHTML`.
+- `useTutorChat.ts`: trạng thái cuộc trò chuyện.
+  - `context` được chụp từ `useAppStore.getState()` lúc gửi, `viewport` được sao chép. Lịch sử gửi lại giữ nguyên nội dung và `context` cũ.
+  - Dừng bằng `AbortController`; phần chữ đã nhận được giữ lại.
+  - "Thử lại" gửi lại đúng yêu cầu cũ và thay câu trả lời lỗi.
+  - Đổi ngôn ngữ giữa chừng: câu hỏi mới mang `locale` mới, câu cũ giữ `locale` cũ.
+- `tutorClient.ts`: `POST TUTOR_ENDPOINT` và đọc NDJSON theo từng dòng, chịu được dòng bị cắt giữa hai gói dữ liệu.
+  - Ánh xạ HTTP status sang `TutorErrorCode` khi body không có sự kiện `error` hợp lệ: 429 → `rate_limited`; 503/529 → `overloaded`; 400/413 → `bad_request`; còn lại → `unavailable`.
+  - Luồng đóng mà không có `done` thì báo `unavailable` và giữ phần chữ đã nhận.
+- `devMockTutor.ts`: **hàm giả lập chỉ dùng khi phát triển** (xem bên dưới).
+
+Quy tắc dựng lịch sử (`toHistory` trong `useTutorChat.ts`): mỗi lượt gồm câu hỏi và câu trả lời. Câu trả lời đã có chữ (xong, bị dừng, hoặc lỗi giữa chừng) thì gửi phần chữ đó. Lượt mà câu trả lời **không có chữ nào** (lỗi ngay hoặc dừng trước chữ đầu tiên) thì bỏ cả lượt khỏi các yêu cầu sau. Nhờ vậy lịch sử luôn xen kẽ người dùng/trợ lý, và vì luôn áp cùng một quy tắc nên lịch sử của các lần gửi sau không đổi.
+
+Chuỗi giao diện: thay các khoá `tutor.*` cũ của khung tạm (`tutor.placeholder`, `tutor.context.*`) bằng bộ khoá mới cho chat, đủ cả `en` và `vi`, gồm thông báo cho cả 8 `TutorErrorCode`. Giữ `tutor.heading` vì `AppShell` dùng.
+
+### Hàm giả lập và cách gỡ
+
+- `tutorClient.ts` luôn gọi `/api/tutor` thật trước. Chỉ khi `NODE_ENV === "development"` **và** route trả 404 (tức T-005 chưa gộp) thì mới nạp động `devMockTutor.ts` và trả lời bằng nó. Khi đó tiêu đề hiện nhãn "Câu trả lời giả lập (chỉ khi phát triển)".
+- Bản build production loại nhánh này: đã kiểm tra `.next/static` không chứa code giả lập, chỉ có chuỗi nhãn i18n.
+- Khi T-005 gộp xong, route trả lời thật nên giả lập tự không được dùng nữa. **Để gỡ hẳn:** xoá `src/components/tutor/devMockTutor.ts` và khối có comment `DEV-ONLY FALLBACK` trong `tutorClient.ts` (6 dòng). Prop `onMock` và state `usingMock` trong `useTutorChat.ts` / `TutorPanel.tsx` có thể xoá luôn hoặc để nguyên (không gây hại).
+- Câu trả lời giả lập dựng từ yêu cầu: năm, vùng bản đồ, sự kiện đang chọn, độ sâu, và **năm của các câu hỏi trước** (để nhìn thấy `context` cũ được gửi lại). Thẻ trong câu hỏi để thử trường hợp đặc biệt: `#error:<mã>`, `#miderror:<mã>`, `#truncated`, `#long`.
+
+### Đã kiểm tra
+
+- `npm run lint` và `npm run build` qua.
+- Chạy `npm run dev` và điều khiển Chrome thật bằng Playwright (script nằm ngoài repo), đọc body các `POST /api/tutor`:
+  - Bấm gợi ý "Why does Battle of Cannae matter?" sau khi chọn Cannae trên timeline: `context` = `{year: -216, selectedEventId: "battle-of-cannae", locale: "en", viewport: …}`. Chữ hiện dần (độ dài tăng theo thời gian); xong thì vùng `aria-live` có "The tutor answered: …".
+  - Lượt 2 sau khi kéo về 27 TCN: `messages[0]` giống hệt yêu cầu đầu (so sánh sâu), `messages.length = 3`, câu mới có `year: -27`. Nhãn "Asked at 216 BCE" và "Asked at 27 BCE" đúng.
+  - Shift+Enter tạo dòng mới trong ô nhập và không gửi.
+  - `#long`: khi đang stream, danh sách bám đáy (khoảng cách 0px). Người dùng cuộn lên thì nó đứng yên (`scrollTop` giữ 0). Bấm Dừng: còn phần chữ, có nhãn "Stopped". Câu tiếp theo gửi 7 tin nhắn, trong đó có câu trả lời dở dang; `context` cũ không đổi.
+  - Cả 8 mã lỗi qua `#error:<mã>`: đúng thông báo. "Thử lại" chỉ có ở 3 mã tạm thời, và gửi lại yêu cầu y hệt. `#miderror:overloaded` giữ phần chữ đã nhận rồi hiện lỗi.
+  - Công tắc sâu → `depth: "deep"`. `#truncated` → hiện ghi chú bị cắt.
+  - Đổi sang tiếng Việt giữa chừng: câu mới `locale: "vi"`, câu đầu vẫn `"en"`, câu trả lời giả lập bằng tiếng Việt.
+  - "Trò chuyện mới": về màn gợi ý, con trỏ về ô nhập.
+  - 390×844 chế độ tối, tab "Gia sư AI": gửi 20 câu (40 tin nhắn) thì hiện thông báo giới hạn, câu thứ 21 không gửi được, bấm "Trò chuyện mới" thì xoá sạch. Không cuộn ngang. Không lỗi console.
+- Đường gọi thật (không qua giả lập) với `page.route` chặn `/api/tutor`:
+  - Đoạn văn + danh sách gạch đầu dòng bị chia giữa hai sự kiện `text` hiển thị đúng `<ul>` 2 mục.
+  - 429 có dòng lỗi → `rate_limited`; 500 body HTML → `unavailable`; 529 body rỗng → `overloaded`; mã lỗi lạ → `unavailable`.
+  - Luồng 200 đứt giữa chừng → giữ chữ và báo `unavailable`. `text` rồi `error: refused` → giữ chữ và báo `refused`.
+- Chế độ sáng và tối đều đã chụp màn hình kiểm tra.
+
+### Còn lại / lưu ý
+
+- Chưa thử với route thật của lane 2 (T-005 chưa gộp vào nhánh này). Khi nối, nên chạy lại kịch bản trên với `TUTOR_MOCK=1` phía server.
+- Câu trả lời bị dừng giữa câu vẫn được gửi lại làm lượt `assistant` ở các yêu cầu sau. Route cần chấp nhận điều này (về phía API thì hợp lệ).
+
+### Đề nghị ngoài phạm vi (phiên chính quyết)
+
+1. **`docs/ARCHITECTURE.md` / `src/lib/tutor.ts`**: hợp đồng chưa nói gì về lượt hỏi thất bại không có chữ. Đề nghị ghi rõ quy tắc đang dùng ở trên (bỏ cả lượt khỏi lịch sử; câu trả lời dở dang thì gửi phần chữ đã có), để route của lane 2 có thể kiểm tra `messages` xen kẽ đúng thứ tự.
+2. **`AppShell.tsx`**: chỗ cho tin nhắn khá chật. Trên màn rộng 1280×800, khung tutor chỉ cao khoảng 300px, trừ ô nhập còn khoảng 170px. Trên điện thoại 390×844, khi mở tab "Gia sư AI" còn khoảng 100–150px vì bản đồ (`min-h-64`) và timeline vẫn chiếm chỗ. Đề nghị: trên điện thoại, khi đang ở tab tutor thì thu bản đồ lại (ví dụ `min-h-40`); trên màn rộng, chia panel bên theo tỉ lệ khoảng 40/60 nghiêng về tutor khi đã có cuộc trò chuyện.
+3. Không cần thư viện mới.
