@@ -11,6 +11,7 @@
 //   overloaded_mid  some text, then an `overloaded_error` inside the stream
 //   overloaded_first  an `overloaded_error` inside the stream, before any text
 //   expensive     a short answer that reports 250 000 output tokens ($5)
+//   links         an answer ending in map-link markers, cut across deltas
 //   drop          some text, then the connection is cut
 //   hang          one piece of text, then silence until the client leaves
 //   400 401 402 403 429 500 529   that HTTP error
@@ -214,6 +215,15 @@ export function startFakeAnthropic(port = 0): Promise<FakeAnthropic> {
       case "overloaded_first":
         sendOverloaded(response);
         return void response.end();
+      case "links":
+        sendText(response, 1, [
+          "Hannibal crossed the Alps in 218 BCE",
+          " and won at Cannae two years later.\n\n[[ma",
+          "p:-218:hannibal-crosses-the-alps]]\n[[map:-",
+          "202:battle-of-zama]]\n[[map:oops]]\n",
+        ]);
+        send(response, "content_block_stop", { index: 1 });
+        return finish(response, "end_turn");
       case "expensive":
         sendText(response, 1, ["Costly."]);
         send(response, "content_block_stop", { index: 1 });
