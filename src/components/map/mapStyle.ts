@@ -1,6 +1,8 @@
 import type {
+  LayerSpecification,
   LngLatBoundsLike,
   Map as MapLibreMap,
+  SourceSpecification,
   StyleSpecification,
 } from "maplibre-gl";
 import type { MapTheme } from "./theme";
@@ -25,7 +27,21 @@ export const MIN_ZOOM = 2;
 export const MAX_ZOOM = 8;
 
 export const BASEMAP_SOURCE = "basemap";
-export const TERRITORY_SOURCE = "territories";
+
+/**
+ * Territories are drawn twice, on two layer sets that take turns: when the
+ * timeline crosses a snapshot year, the new borders fade in on one set while
+ * the old ones fade out on the other (see territoryFade.ts).
+ */
+export const TERRITORY_SLOTS = [0, 1] as const;
+export type TerritorySlot = (typeof TERRITORY_SLOTS)[number];
+
+export const territorySource = (slot: TerritorySlot) => `territories-${slot}`;
+export const territoryFillLayer = (slot: TerritorySlot) => `territory-fill-${slot}`;
+export const territoryLineLayer = (slot: TerritorySlot) => `territory-line-${slot}`;
+
+/** Opacity of each territory layer when fully shown. */
+export const TERRITORY_OPACITY = { fill: 0.45, line: 1 } as const;
 
 export const EMPTY_COLLECTION: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
@@ -40,6 +56,42 @@ export const EMPTY_COLLECTION: GeoJSON.FeatureCollection = {
  * right along a coast: whatever spills into the sea is covered.
  */
 export function buildMapStyle(theme: MapTheme): StyleSpecification {
+  const territorySources: Record<string, SourceSpecification> = {};
+  const territoryLayers: LayerSpecification[] = [];
+  for (const slot of TERRITORY_SLOTS) {
+    territorySources[territorySource(slot)] = {
+      type: "geojson",
+      data: EMPTY_COLLECTION,
+      maxzoom: MAX_ZOOM,
+    };
+    // Both sets start hidden; territoryFade.ts sets the opacity, and the
+    // length of the fade, before it shows one.
+    territoryLayers.push(
+      {
+        id: territoryFillLayer(slot),
+        type: "fill",
+        source: territorySource(slot),
+        paint: {
+          "fill-color": ["get", "color"],
+          "fill-opacity": 0,
+          "fill-opacity-transition": { duration: 0, delay: 0 },
+        },
+      },
+      {
+        id: territoryLineLayer(slot),
+        type: "line",
+        source: territorySource(slot),
+        layout: { "line-join": "round" },
+        paint: {
+          "line-color": ["get", "color"],
+          "line-width": 1.5,
+          "line-opacity": 0,
+          "line-opacity-transition": { duration: 0, delay: 0 },
+        },
+      },
+    );
+  }
+
   return {
     version: 8,
     sources: {
@@ -48,11 +100,7 @@ export function buildMapStyle(theme: MapTheme): StyleSpecification {
         data: BASEMAP_URL,
         maxzoom: MAX_ZOOM,
       },
-      [TERRITORY_SOURCE]: {
-        type: "geojson",
-        data: EMPTY_COLLECTION,
-        maxzoom: MAX_ZOOM,
-      },
+      ...territorySources,
     },
     layers: [
       {
@@ -60,25 +108,7 @@ export function buildMapStyle(theme: MapTheme): StyleSpecification {
         type: "background",
         paint: { "background-color": theme.land },
       },
-      {
-        id: "territory-fill",
-        type: "fill",
-        source: TERRITORY_SOURCE,
-        paint: {
-          "fill-color": ["get", "color"],
-          "fill-opacity": 0.45,
-        },
-      },
-      {
-        id: "territory-line",
-        type: "line",
-        source: TERRITORY_SOURCE,
-        layout: { "line-join": "round" },
-        paint: {
-          "line-color": ["get", "color"],
-          "line-width": 1.5,
-        },
-      },
+      ...territoryLayers,
       {
         id: "rivers",
         type: "line",

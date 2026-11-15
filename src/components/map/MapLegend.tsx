@@ -49,11 +49,6 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
                   {formatYear(source.year, locale)}
                 </span>
               </p>
-              {source.isFixture && (
-                <p className="font-medium text-accent">
-                  {t("map.legend.testData")}
-                </p>
-              )}
               <ul className="mt-1.5 space-y-1">
                 {territories.polityIds.map((id) => {
                   const polity = getPolity(id);

@@ -1,4 +1,4 @@
-import { borderSnapshots, getBorderSnapshot, getPolity, polities } from "@/data";
+import { getBorderSnapshot, getPolity, polities } from "@/data";
 import type { Year } from "@/lib/types";
 
 type BorderGeometry = GeoJSON.Polygon | GeoJSON.MultiPolygon;
@@ -14,8 +14,6 @@ export interface BorderSource {
   key: string;
   /** The borders are shown as of this year. */
   year: Year;
-  /** True for the rough development fixtures, never for real data. */
-  isFixture: boolean;
   load: () => Promise<BorderCollection>;
 }
 
@@ -38,48 +36,24 @@ async function fetchBorderFile(file: string): Promise<BorderCollection> {
   return (await response.json()) as BorderCollection;
 }
 
-/**
- * Rough hand-drawn borders used only while Lane 3 has not delivered real
- * snapshots (task T-004): `next dev` with an empty border-snapshots.json.
- * They are never loaded in a production build.
- */
-const fixtureSources: BorderSource[] =
-  process.env.NODE_ENV === "development" && borderSnapshots.length === 0
-    ? [
-        { year: -500, load: () => import("./__fixtures__/-500.json") },
-        { year: -264, load: () => import("./__fixtures__/-264.json") },
-        { year: -146, load: () => import("./__fixtures__/-146.json") },
-      ].map(({ year, load }) => ({
-        key: `fixture:${year}`,
-        year,
-        isFixture: true,
-        load: async () => (await load()).default as unknown as BorderCollection,
-      }))
-    : [];
-
-const realSources = new Map<string, BorderSource>();
+const sources = new Map<string, BorderSource>();
 
 /**
  * The border source in effect for `year`: the latest snapshot at or before
  * it. Returns the same object for every year served by the same snapshot.
  */
 export function getBorderSource(year: Year): BorderSource | undefined {
-  if (fixtureSources.length > 0) {
-    return fixtureSources.findLast((source) => source.year <= year);
-  }
-
   const snapshot = getBorderSnapshot(year);
   if (!snapshot) return undefined;
 
-  let source = realSources.get(snapshot.file);
+  let source = sources.get(snapshot.file);
   if (!source) {
     source = {
       key: snapshot.file,
       year: snapshot.year,
-      isFixture: false,
       load: () => fetchBorderFile(snapshot.file),
     };
-    realSources.set(snapshot.file, source);
+    sources.set(snapshot.file, source);
   }
   return source;
 }
