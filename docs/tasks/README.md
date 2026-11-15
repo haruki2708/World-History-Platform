@@ -25,5 +25,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Đang làm đợt 1 (giao 2026-11-16) |
 | [T-005](T-005-tutor-api.md) | 2 | Route API của gia sư AI | Xong, đã gộp 2026-11-15 |
 | [T-006](T-006-tutor-chat.md) | 1 | Khung chat của gia sư AI | Xong, đã gộp 2026-11-15 |
-| [T-007](T-007-tutor-hardening.md) | 2 | Gia cố route của gia sư AI: giới hạn, trần chi phí, giữ kết nối | Sẵn sàng giao |
-| [T-008](T-008-desktop-ux.md) | 1 | Trải nghiệm trên máy tính: link chia sẻ, nhớ ngôn ngữ, phím tắt | Sẵn sàng giao |
+| [T-007](T-007-tutor-hardening.md) | 2 | Gia cố route của gia sư AI: giới hạn, trần chi phí, giữ kết nối | Xong, đã gộp 2026-11-16 |
+| [T-008](T-008-desktop-ux.md) | 1 | Trải nghiệm trên máy tính: link chia sẻ, nhớ ngôn ngữ, phím tắt | Xong, đã gộp 2026-11-16 |
