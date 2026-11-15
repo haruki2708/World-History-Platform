@@ -14,6 +14,11 @@ export interface AppState {
   /** Written by the map on every move; read by the tutor for context. */
   viewport: MapViewport;
   selectedEventId: string | null;
+  /**
+   * Goes up by one every time an event is selected, even the one already
+   * selected, so the map can fly back to it (e.g. from a tutor map link).
+   */
+  focusRequest: number;
   locale: Locale;
 
   setYear: (year: Year) => void;
@@ -33,15 +38,16 @@ export const useAppStore = create<AppState>()((set) => ({
   year: YEAR_MIN,
   viewport: INITIAL_VIEWPORT,
   selectedEventId: null,
+  focusRequest: 0,
   locale: "en",
 
   setYear: (year) => set({ year: clampYear(year) }),
   setViewport: (viewport) => set({ viewport }),
   selectEvent: (id, year) =>
-    set(
-      year === undefined
-        ? { selectedEventId: id }
-        : { selectedEventId: id, year: clampYear(year) },
-    ),
+    set((state) => ({
+      selectedEventId: id,
+      ...(year === undefined ? {} : { year: clampYear(year) }),
+      ...(id === null ? {} : { focusRequest: state.focusRequest + 1 }),
+    })),
   setLocale: (locale) => set({ locale }),
 }));

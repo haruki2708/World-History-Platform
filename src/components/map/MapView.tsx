@@ -26,6 +26,9 @@ export function MapView() {
   const map = handle?.map ?? null;
   const territory = useTerritories(map);
   const selectedEventId = useAppStore((state) => state.selectedEventId);
+  // Changes on every selection, also when the same event is selected again
+  // (a tutor map link to the event already selected flies back to it).
+  const focusRequest = useAppStore((state) => state.focusRequest);
 
   // Fly to the selected event, wherever the selection came from.
   useEffect(() => {
@@ -36,7 +39,7 @@ export function MapView() {
       center: [location.lng, location.lat],
       zoom: Math.max(map.getZoom(), EVENT_ZOOM),
     });
-  }, [map, selectedEventId]);
+  }, [map, selectedEventId, focusRequest]);
 
   return (
     <section
