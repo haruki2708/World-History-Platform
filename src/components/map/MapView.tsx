@@ -6,6 +6,7 @@ import { getEvent } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
 import { EventMarkers } from "./EventMarkers";
+import { TerritoryLabels } from "./labels/TerritoryLabels";
 import { MapControls } from "./MapControls";
 import { MapLegend } from "./MapLegend";
 import { useMapInstance } from "./useMapInstance";
@@ -47,6 +48,11 @@ export function MapView() {
 
       {handle ? (
         <>
+          <TerritoryLabels
+            map={handle.map}
+            MarkerClass={handle.lib.Marker}
+            shown={territory.shown}
+          />
           <EventMarkers map={handle.map} MarkerClass={handle.lib.Marker} />
           <MapControls map={handle.map} />
           <MapLegend territory={territory} />
