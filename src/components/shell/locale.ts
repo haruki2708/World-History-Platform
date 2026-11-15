@@ -1,7 +1,12 @@
 import type { Locale } from "@/lib/types";
 
-/** localStorage key for the language the user picked with the switch. */
-const STORAGE_KEY = "whp.locale";
+/**
+ * localStorage key for the language the user picked with the switch. Also
+ * read by the inline script in src/app/layout.tsx, which repeats the order of
+ * `resolveInitialLocale` below; keep the two in step.
+ */
+export const LOCALE_STORAGE_KEY = "whp.locale";
+const STORAGE_KEY = LOCALE_STORAGE_KEY;
 
 export function isLocale(value: unknown): value is Locale {
   return value === "en" || value === "vi";

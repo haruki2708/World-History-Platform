@@ -37,6 +37,22 @@ Tạo 12–15 mốc biên giới cho vùng Địa Trung Hải trong 509–27 TCN
 - Đã xem từng mốc trên bản đồ của app (`npm run dev`) và kéo thanh thời gian qua cả thời kỳ.
 - `docs/data/SOURCES.md` ghi đủ nguồn và giấy phép cho từng mốc.
 
+## Quyết định sau đợt 1 (phiên chính, 2026-11-16)
+
+Đợt 1 đã được duyệt và gộp vào `main`. Nhánh `lane3/T-004-borders-data` đã được cập nhật theo `main`. Người dùng đã chọn:
+
+1. **Thêm Đế quốc Ba Tư và các vương quốc lớn** đang để trống: `achaemenid-empire`, cùng Armenia, Bithynia, Cappadocia, Mauretania. Thêm vương quốc khác nếu nó chiếm một vùng lớn ở một mốc nào đó và để trống thì người xem dễ hiểu nhầm là đất vô chủ (ví dụ Thrace, Galatia, Nabataea); danh sách cuối do lane quyết, ghi lý do vào `docs/data/BORDERS.md`. Mỗi thế lực mới có tên song ngữ và `startYear`/`endYear`. Cập nhật luôn mốc 509 (thêm Ba Tư).
+2. **Nới quy tắc kiểm tra:** một thế lực hợp lệ nếu được ít nhất một sự kiện **hoặc** một file biên giới dùng. Sửa `scripts/validate-data.mjs`, kèm một trường hợp thử.
+3. **Màu:**
+   - Đồng minh Ý (`italian-allies`) giờ là đỏ nhạt `#d98a80`, cùng tông với La Mã: phiên chính đã đổi khi gộp. Không vẽ `latins` và `italian-allies` trong cùng một mốc, vì hai màu gần giống nhau.
+   - Năm 146, Numidia (`#9a9440`) và Ai Cập Ptolemaios (`#e6cf3a`) nằm cạnh nhau mà khó phân biệt ở chế độ tối: đổi màu Numidia.
+   - Quy tắc chung: hai thế lực có chung đường biên ở bất kỳ mốc nào phải phân biệt rõ ở cả chế độ sáng lẫn tối.
+4. **Đợt 2:** làm 11 mốc còn lại theo danh sách đề xuất (338, 290, 241, 218, 201, 168, 129, 88, 63, 50, 30). Commit sau mỗi vài mốc.
+5. **Ghi công:** chú giải bản đồ và `README.md` đã ghi công Cliopatria (CC BY 4.0). Nếu dùng thêm nguồn có giấy phép yêu cầu ghi công, ghi vào `docs/data/SOURCES.md` và báo trong mục "Kết quả" để phiên chính cập nhật chú giải.
+6. Đã có lệnh `npm run borders` (chạy `scripts/build-borders.mjs`).
+
+Lane 2 đang làm T-009 song song (nhãn tên thế lực trên bản đồ, chuyển cảnh giữa các mốc). Lane 2 không sửa dữ liệu; lane 3 không sửa `src/components/map/`.
+
 ## Kết quả
 
 ### Đợt 1 (2026-11-16): xong 3 mốc 509, 264, 146 TCN. Chờ phiên chính duyệt hướng làm trước khi làm đợt 2.

@@ -29,7 +29,13 @@ export function AppShell() {
   const [tab, setTab] = useState<PanelTab>("events");
 
   useEffect(() => {
-    document.documentElement.lang = locale;
+    const root = document.documentElement;
+    root.lang = locale;
+    // The inline script in layout.tsx hides the page until it is in the
+    // language it predicted; show it once that language is applied.
+    if (root.dataset.localePending === locale) {
+      delete root.dataset.localePending;
+    }
   }, [locale]);
 
   return (

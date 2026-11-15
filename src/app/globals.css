@@ -42,6 +42,12 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Set by the inline script in layout.tsx until the page is in the right
+   language; removed by AppShell (or after 2 s at the latest). */
+html[data-locale-pending] body {
+  visibility: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

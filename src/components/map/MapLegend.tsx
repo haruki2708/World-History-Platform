@@ -101,8 +101,31 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
             />
           </ul>
 
-          <p className="border-t border-line pt-2 text-muted">
-            {t("map.legend.basemap")}
+          {/* Attribution required by the CC BY 4.0 licence of Cliopatria; the
+              full credits are in docs/data/SOURCES.md and the README. */}
+          <p className="space-y-1 border-t border-line pt-2 text-muted">
+            <span className="block">
+              {t("map.legend.bordersCredit")}{" "}
+              <a
+                href="https://github.com/Seshat-Global-History-Databank/cliopatria"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-line underline-offset-2 hover:text-foreground"
+              >
+                Cliopatria
+              </a>{" "}
+              (
+              <a
+                href="https://creativecommons.org/licenses/by/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-line underline-offset-2 hover:text-foreground"
+              >
+                CC BY 4.0
+              </a>
+              ).
+            </span>
+            <span className="block">{t("map.legend.basemap")}</span>
           </p>
         </div>
       )}

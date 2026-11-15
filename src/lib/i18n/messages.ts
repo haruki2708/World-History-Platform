@@ -51,6 +51,8 @@ const en = {
   "map.legend.eventActive": "Event in this year",
   "map.legend.eventNearby": "Event in nearby years",
   "map.legend.approximate": "Approximate location",
+  "map.legend.bordersCredit":
+    "Borders are approximate, redrawn after Shepherd's Historical Atlas and",
   "map.legend.basemap": "Present-day coastlines and rivers (Natural Earth).",
   "events.heading": "Events",
   "events.empty": "No events recorded yet.",
@@ -157,6 +159,8 @@ const vi: Record<MessageKey, string> = {
   "map.legend.eventActive": "Sự kiện trong năm này",
   "map.legend.eventNearby": "Sự kiện ở các năm lân cận",
   "map.legend.approximate": "Vị trí ước lượng",
+  "map.legend.bordersCredit":
+    "Biên giới là ước lượng, vẽ lại theo Historical Atlas của Shepherd và",
   "map.legend.basemap": "Đường bờ biển và sông ngày nay (Natural Earth).",
   "events.heading": "Các sự kiện",
   "events.empty": "Chưa có sự kiện nào trong dữ liệu.",

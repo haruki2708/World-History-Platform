@@ -66,6 +66,9 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - **Không cần vẽ bám bờ biển.** Bản đồ vẽ biển và hồ đè lên lớp lãnh thổ, nên phần polygon tràn ra biển bị che đi. Chỉ cần đúng ở phần đất liền và ở đường ranh giới giữa các thế lực.
 - Vùng bản đồ: kinh độ −40 đến 80, vĩ độ 5 đến 70. Toạ độ ngoài vùng này không hiển thị được.
 - Feature có `polityId` không có trong `polities.json` bị bỏ qua (kèm cảnh báo ở console). `npm run validate` bắt lỗi này.
+- Một thế lực trong `polities.json` phải được ít nhất một sự kiện hoặc một file biên giới dùng (quyết định 2026-11-16; có những thế lực chỉ xuất hiện trên bản đồ, như Ba Tư).
+- Màu: đồng minh Ý cùng tông đỏ với La Mã (đỏ nhạt), để cả bán đảo đọc là vùng của La Mã nhưng vẫn phân biệt công dân với đồng minh. Hai thế lực chung đường biên phải phân biệt rõ ở cả chế độ sáng lẫn tối.
+- Biên giới được vẽ tay theo bản đồ Shepherd (phạm vi công cộng) và Cliopatria (CC BY 4.0). Giấy phép CC BY 4.0 bắt buộc ghi công: dòng ghi công nằm ở chú giải bản đồ và ở `README.md`; không được gỡ. Phương pháp và căn cứ từng mốc: `docs/data/BORDERS.md`. Dựng lại file: `npm run borders`.
 - Khi `border-snapshots.json` còn rỗng và chạy `npm run dev`, bản đồ dùng ba mốc thử vẽ thô trong `src/components/map/__fixtures__/` (chú giải ghi "Dữ liệu thử"). Có mốc thật là dữ liệu thử tự tắt; bản build chính thức không bao giờ chứa chúng.
 
 ### Bản đồ nền
@@ -85,7 +88,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - Chuỗi giao diện: thêm khoá vào `src/lib/i18n/messages.ts` (cả `en` và `vi`), dùng qua `const { t, locale } = useT()`.
 - Nội dung lịch sử: `LocalizedText`, lấy bằng `event.title[locale]`.
 - Ngôn ngữ khi mở trang, theo thứ tự ưu tiên: tham số `lang` trên link, lựa chọn đã lưu (`localStorage`, khoá `whp.locale`), ngôn ngữ của trình duyệt (bắt đầu bằng `vi` thì tiếng Việt), cuối cùng là tiếng Anh. Chỉ lựa chọn bằng nút ở header mới được lưu; mở link của người khác không ghi đè.
-- Trang được dựng sẵn bằng tiếng Anh, nên người dùng tiếng Việt thấy tiếng Anh trong khoảnh khắc trước khi JavaScript chạy.
+- Trang được dựng sẵn bằng tiếng Anh. Với người dùng sẽ xem bằng tiếng Việt, một script nhỏ trong `src/app/layout.tsx` chạy trước khi trang hiện ra, ẩn trang (thuộc tính `data-locale-pending` trên `<html>`) cho tới khi `AppShell` đã áp tiếng Việt, thường dưới 0,1 giây; quá 2 giây thì trang tự hiện. Script này lặp lại thứ tự ưu tiên của `resolveInitialLocale` trong `src/components/shell/locale.ts`; sửa một bên thì sửa cả hai.
 
 ## Link chia sẻ và phím tắt
 
