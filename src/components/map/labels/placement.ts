@@ -59,6 +59,7 @@ export function placeLabels(
   project: (lng: number, lat: number) => { x: number; y: number },
   zoom: number,
 ): Map<string, LabelLayout> {
+  // Keyed by spot key.
   const placed: Box[] = [];
   const result = new Map<string, LabelLayout>();
   for (const spot of spots) {
@@ -79,7 +80,7 @@ export function placeLabels(
       };
       if (placed.some((other) => overlaps(box, other))) continue;
       placed.push(box);
-      result.set(spot.polityId, layout);
+      result.set(spot.key, layout);
       break;
     }
   }

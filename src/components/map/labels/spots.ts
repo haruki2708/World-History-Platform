@@ -11,13 +11,28 @@ import {
 } from "./grid";
 import type { LandMask } from "./landMask";
 
-/** Where a polity's label goes in one border snapshot. */
+/**
+ * Where a polity's label goes in one border snapshot. A polity whose land
+ * falls into several large separate pieces gets a spot in each of them.
+ */
 export interface LabelSpot {
+  /** `polityId` for the main spot, `polityId#2`, `#3` for further pieces. */
+  id: string;
+  /**
+   * The id and the position. Two snapshots that put the same label in the
+   * same place share it, so the label stays put while the borders change.
+   */
+  key: string;
   polityId: string;
-  /** The point of the territory farthest from its edges and the sea. */
+  /** The main spot sits in the piece with the most room for a label. */
+  main: boolean;
+  /** The point of the piece farthest from its edges and the sea. */
   lng: number;
   lat: number;
-  /** Visible (land) area of the territory, in world units²; ranks labels. */
+  /**
+   * Visible (land) area, in world units²: of the whole territory for a main
+   * spot, of the piece otherwise. Ranks labels.
+   */
   area: number;
   /** The same point in grid coordinates (cell centre). */
   column: number;
@@ -92,7 +107,46 @@ function distanceField(inside: Uint8Array, width: number, height: number): Float
   return field;
 }
 
-function spotFor(polityId: string, polygons: GridRing[][], land: LandMask): LabelSpot | null {
+/** A further piece gets its own label if it is at least this share of the largest. */
+const MIN_PIECE_SHARE = 0.25;
+/** Most labels for one polity. */
+const MAX_SPOTS_PER_POLITY = 3;
+
+interface Piece {
+  cells: number;
+  /** Index of the cell farthest from the piece's edges. */
+  best: number;
+}
+
+/** Connected pieces of the inside cells (8-neighbour), with their best cell. */
+function findPieces(inside: Uint8Array, field: Float64Array, width: number): Piece[] {
+  const label = new Int32Array(inside.length);
+  const pieces: Piece[] = [];
+  const stack: number[] = [];
+  for (let start = 0; start < inside.length; start++) {
+    if (!inside[start] || label[start]) continue;
+    const piece: Piece = { cells: 0, best: start };
+    label[start] = pieces.length + 1;
+    stack.push(start);
+    while (stack.length > 0) {
+      const i = stack.pop()!;
+      piece.cells++;
+      if (field[i] > field[piece.best]) piece.best = i;
+      // The window has an outside border, so neighbours never wrap around.
+      for (const step of [-width - 1, -width, -width + 1, -1, 1, width - 1, width, width + 1]) {
+        const j = i + step;
+        if (j >= 0 && j < inside.length && inside[j] && !label[j]) {
+          label[j] = pieces.length + 1;
+          stack.push(j);
+        }
+      }
+    }
+    pieces.push(piece);
+  }
+  return pieces;
+}
+
+function spotsFor(polityId: string, polygons: GridRing[][], land: LandMask): LabelSpot[] {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -113,7 +167,7 @@ function spotFor(polityId: string, polygons: GridRing[][], land: LandMask): Labe
   const y0 = Math.max(-1, Math.floor(minY) - 1);
   const x1 = Math.min(GRID_COLUMNS, Math.ceil(maxX) + 1);
   const y1 = Math.min(GRID_ROWS, Math.ceil(maxY) + 1);
-  if (x1 - x0 < 3 || y1 - y0 < 3) return null;
+  if (x1 - x0 < 3 || y1 - y0 < 3) return [];
   const window: Window = { x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1 };
 
   const inside = new Uint8Array(window.width * window.height);
@@ -132,20 +186,45 @@ function spotFor(polityId: string, polygons: GridRing[][], land: LandMask): Labe
       else inside[i] = 0;
     }
   }
-  if (cells === 0) return null;
+  if (cells === 0) return [];
 
   const field = distanceField(inside, window.width, window.height);
-  let best = 0;
-  for (let i = 1; i < field.length; i++) if (field[i] > field[best]) best = i;
+  const pieces = findPieces(inside, field, window.width);
+  // The main label goes where there is the most room; then the other large
+  // pieces, largest first.
+  const main = pieces.reduce((a, b) => (field[b.best] > field[a.best] ? b : a));
+  const largest = Math.max(...pieces.map((piece) => piece.cells));
+  const chosen = [
+    main,
+    ...pieces
+      .filter((piece) => piece !== main && piece.cells >= MIN_PIECE_SHARE * largest)
+      .sort((a, b) => b.cells - a.cells),
+  ].slice(0, MAX_SPOTS_PER_POLITY);
 
-  const column = window.x + (best % window.width) + 0.5;
-  const row = window.y + Math.floor(best / window.width) + 0.5;
-  const [lng, lat] = fromGrid(column, row);
-  return { polityId, lng, lat, area: cells * CELL * CELL, column, row, window, inside };
+  return chosen.map((piece, index) => {
+    const column = window.x + (piece.best % window.width) + 0.5;
+    const row = window.y + Math.floor(piece.best / window.width) + 0.5;
+    const [lng, lat] = fromGrid(column, row);
+    const id = index === 0 ? polityId : `${polityId}#${index + 1}`;
+    return {
+      id,
+      key: `${id}@${column},${row}`,
+      polityId,
+      main: index === 0,
+      lng,
+      lat,
+      area: (index === 0 ? cells : piece.cells) * CELL * CELL,
+      column,
+      row,
+      window,
+      inside,
+    };
+  });
 }
 
 /**
- * One label spot per polity of a snapshot, largest territory first. Runs
+ * Label spots of a snapshot, in order of priority: the main spot of every
+ * polity, largest territory first, then the spots of further pieces. Runs
  * once per snapshot: a few tens of milliseconds for a full Mediterranean.
  */
 export function computeLabelSpots(territories: Territories, land: LandMask): LabelSpot[] {
@@ -161,10 +240,9 @@ export function computeLabelSpots(territories: Territories, land: LandMask): Lab
 
   const spots: LabelSpot[] = [];
   for (const [polityId, polygons] of byPolity) {
-    const spot = spotFor(polityId, polygons, land);
-    if (spot) spots.push(spot);
+    spots.push(...spotsFor(polityId, polygons, land));
   }
-  return spots.sort((a, b) => b.area - a.area);
+  return spots.sort((a, b) => Number(b.main) - Number(a.main) || b.area - a.area);
 }
 
 /** Share of the label box that must lie on the polity's own land. */

@@ -25,7 +25,7 @@ import { computeLabelSpots, type LabelSpot } from "./spots";
 
 /** Text style of a label; the measuring copies use it too. */
 const LABEL_TEXT =
-  "block w-max whitespace-nowrap text-center text-[11px] font-semibold uppercase leading-[1.3] tracking-[0.08em] text-foreground [text-shadow:0_0_2px_var(--background),0_0_2px_var(--background),0_0_4px_var(--background)]";
+  "block w-max whitespace-nowrap text-center text-[11px] font-semibold uppercase leading-[1.3] tracking-[0.04em] text-foreground [text-shadow:0_0_2px_var(--background),0_0_2px_var(--background),0_0_4px_var(--background)]";
 
 /** Spots of the last few snapshots, so scrubbing back and forth is free. */
 const SPOT_CACHE_SIZE = 4;
@@ -136,26 +136,24 @@ export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProp
     setSizes({ locale, byPolity });
   }, [polityIds, locale, fontsReady]);
 
-  // Which labels show, and how, at the current zoom.
+  // Which labels show, and how, at the current zoom. Keyed by spot key, and
+  // kept until the next placement, so a label that the new snapshot puts in
+  // the same place stays visible throughout.
   const current = sets.findLast((set) => !set.leaving);
-  const [layouts, setLayouts] = useState<{ setId: number; byPolity: Map<string, LabelLayout> }>();
+  const [layouts, setLayouts] = useState<Map<string, LabelLayout>>(() => new Map());
 
   useEffect(() => {
     if (!current || sizes?.locale !== locale) return;
     let frame = 0;
     const update = () => {
       frame = 0;
-      const byPolity = placeLabels(
+      const next = placeLabels(
         current.spots,
         (polityId) => sizes.byPolity.get(polityId),
         (lng, lat) => map.project([lng, lat]),
         map.getZoom(),
       );
-      setLayouts((previous) =>
-        previous?.setId === current.id && sameLayouts(previous.byPolity, byPolity)
-          ? previous
-          : { setId: current.id, byPolity },
-      );
+      setLayouts((previous) => (sameLayouts(previous, next) ? previous : next));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -167,6 +165,12 @@ export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProp
       cancelAnimationFrame(frame);
     };
   }, [map, current, sizes, locale]);
+
+  // One label per key: a newer snapshot's label replaces an older one.
+  const labels = new Map<string, { spot: LabelSpot; current: boolean }>();
+  for (const set of sets) {
+    for (const spot of set.spots) labels.set(spot.key, { spot, current: set === current });
+  }
 
   return (
     <>
@@ -195,22 +199,16 @@ export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProp
         })}
       </div>
 
-      {sets.map((set) =>
-        set.spots.map((spot) => (
-          <PolityLabel
-            key={`${set.id}:${spot.polityId}`}
-            map={map}
-            MarkerClass={MarkerClass}
-            spot={spot}
-            name={polityName(spot.polityId, locale)}
-            layout={
-              !set.leaving && layouts?.setId === set.id
-                ? layouts.byPolity.get(spot.polityId)
-                : undefined
-            }
-          />
-        )),
-      )}
+      {[...labels.values()].map(({ spot, current: isCurrent }) => (
+        <PolityLabel
+          key={spot.key}
+          map={map}
+          MarkerClass={MarkerClass}
+          spot={spot}
+          name={polityName(spot.polityId, locale)}
+          layout={isCurrent ? layouts.get(spot.key) : undefined}
+        />
+      ))}
     </>
   );
 }
