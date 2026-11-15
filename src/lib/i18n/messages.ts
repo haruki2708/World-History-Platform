@@ -8,6 +8,61 @@ const en = {
   "app.title": "World History Platform",
   "app.subtitle": "The Roman Republic, 509–27 BCE",
   "locale.switch": "Language",
+  "about.button": "About",
+  "about.title": "About this app",
+  "about.close": "Close",
+  "about.newTab": "opens in a new tab",
+  "about.hint.lead": "New here?",
+  "about.hint.open": "See what this app does",
+  "about.hint.dismiss": "Dismiss this tip",
+  "about.what.heading": "What this is",
+  "about.what.body":
+    "Explore the Roman Republic and the Mediterranean world, {range}, through a timeline, a map and an AI tutor. The app holds {events} events and {snapshots} border snapshots, in English and Vietnamese.",
+  "about.use.heading": "How to use it",
+  "about.use.timeline":
+    "Drag the timeline at the bottom of the page, or press play to watch the years go by. The borders on the map follow the year.",
+  "about.use.events":
+    "Click an event in the list, on the map or on the timeline to read its summary and sources. The map flies to where it happened.",
+  "about.use.tutor":
+    "Ask the AI tutor about what you are looking at. Every question is sent with the year and the part of the map in view.",
+  "about.use.links":
+    "An answer can come with buttons that take you to the year and the event it mentions.",
+  "about.use.share":
+    "Share copies a link that opens the app on the same year, event and language.",
+  "about.use.shortcuts": "Show keyboard shortcuts",
+  "about.accuracy.heading": "How far to trust it",
+  "about.accuracy.borders":
+    "Borders are estimates, redrawn by hand from historical atlases and data sets: right in broad outline, not in every detail. Each border snapshot holds until the next one, so changes between two snapshots do not show.",
+  "about.accuracy.blank":
+    "Land left uncoloured belonged to peoples and states that are not yet in the data set.",
+  "about.accuracy.coast":
+    "Coastlines and rivers are today's. In some places, such as the Po and Nile deltas, they differ noticeably from ancient times.",
+  "about.accuracy.dates":
+    "Many dates of the early Republic are traditional rather than certain; an event's summary says so when its date is traditional or disputed. Sites that are uncertain are marked as approximate on the map.",
+  "about.accuracy.tutor":
+    "The AI tutor can be wrong. Check what it says against the sources listed under each event.",
+  "about.credits.heading": "Sources and credits",
+  "about.credits.borders":
+    "Borders are redrawn by hand, with these references:",
+  "about.credits.shepherd":
+    "W. R. Shepherd, {title} (1911 and 1923), public domain.",
+  "about.credits.cliopatria":
+    "Cliopatria v0.2.1, by the Seshat Global History Databank: {citation}. Licensed under {license}. Simplified and redrawn, not copied.",
+  "about.credits.etAl": "et al.",
+  "about.credits.data": "Data",
+  "about.credits.paper": "Paper",
+  "about.credits.basemap":
+    "Base map (sea, lakes and rivers): {link}, public domain.",
+  "about.credits.events":
+    "Events: summaries written for this project. Each event cites its own sources, mostly ancient authors such as Livy, Polybius, Plutarch and Appian, most with a link to a translation or reference page online.",
+  "about.tutor.heading": "About the AI tutor",
+  "about.tutor.model": "The tutor uses Claude, an AI model made by Anthropic.",
+  "about.tutor.context":
+    "Each question is sent with the year, the selected event, the part of the map in view and the interface language, together with the earlier questions and answers of the conversation.",
+  "about.tutor.storage":
+    "The app does not save conversations. The chat lives only in this page and is gone when you reload it or start a new chat.",
+  "about.tutor.limits":
+    "To prevent abuse, the number of questions per minute and per day is limited.",
   "timeline.label": "Year",
   "timeline.play": "Play",
   "timeline.pause": "Pause",
@@ -119,6 +174,60 @@ const vi: Record<MessageKey, string> = {
   "app.title": "World History Platform",
   "app.subtitle": "Cộng hoà La Mã, 509–27 TCN",
   "locale.switch": "Ngôn ngữ",
+  "about.button": "Giới thiệu",
+  "about.title": "Giới thiệu",
+  "about.close": "Đóng",
+  "about.newTab": "mở trong thẻ mới",
+  "about.hint.lead": "Lần đầu ghé thăm?",
+  "about.hint.open": "Xem app này làm được gì",
+  "about.hint.dismiss": "Đóng gợi ý",
+  "about.what.heading": "App này là gì",
+  "about.what.body":
+    "Khám phá Cộng hoà La Mã và thế giới Địa Trung Hải, {range}, qua dòng thời gian, bản đồ và gia sư AI. Dữ liệu gồm {events} sự kiện và {snapshots} mốc biên giới, bằng tiếng Anh và tiếng Việt.",
+  "about.use.heading": "Cách dùng",
+  "about.use.timeline":
+    "Kéo thanh thời gian ở cuối trang, hoặc bấm phát để xem các năm trôi qua. Biên giới trên bản đồ đổi theo năm.",
+  "about.use.events":
+    "Bấm một sự kiện trong danh sách, trên bản đồ hoặc trên dòng thời gian để đọc tóm tắt và nguồn. Bản đồ bay tới nơi diễn ra sự kiện.",
+  "about.use.tutor":
+    "Hỏi gia sư AI về những gì bạn đang xem. Mỗi câu hỏi luôn được gửi kèm năm và vùng bản đồ đang xem.",
+  "about.use.links":
+    "Câu trả lời có thể kèm nút đưa bạn tới đúng năm và sự kiện được nhắc tới.",
+  "about.use.share":
+    "Nút Chia sẻ chép một link mở app ở đúng năm, sự kiện và ngôn ngữ bạn đang xem.",
+  "about.use.shortcuts": "Xem phím tắt",
+  "about.accuracy.heading": "Độ chính xác",
+  "about.accuracy.borders":
+    "Biên giới là ước lượng, được vẽ lại bằng tay theo các tập bản đồ và bộ dữ liệu lịch sử: đúng về đại thể, không đúng từng chi tiết. Mỗi mốc biên giới được giữ cho tới mốc sau, nên những thay đổi giữa hai mốc không hiện ra.",
+  "about.accuracy.blank":
+    "Vùng đất không tô màu thuộc về những dân tộc và vương quốc chưa có trong dữ liệu.",
+  "about.accuracy.coast":
+    "Bờ biển và sông là của ngày nay. Ở một số nơi, như châu thổ sông Po và sông Nile, chúng khác đáng kể so với thời cổ đại.",
+  "about.accuracy.dates":
+    "Nhiều mốc năm thời đầu Cộng hoà là theo truyền thống, chưa chắc chắn; phần tóm tắt của sự kiện nói rõ khi mốc năm theo truyền thống hoặc còn tranh cãi. Địa điểm chưa chắc chắn được đánh dấu là vị trí ước lượng trên bản đồ.",
+  "about.accuracy.tutor":
+    "Gia sư AI có thể sai. Hãy đối chiếu với các nguồn ghi ở từng sự kiện.",
+  "about.credits.heading": "Nguồn và ghi công",
+  "about.credits.borders": "Biên giới được vẽ tay, tham chiếu:",
+  "about.credits.shepherd":
+    "W. R. Shepherd, {title} (1911 và 1923), phạm vi công cộng.",
+  "about.credits.cliopatria":
+    "Cliopatria v0.2.1 của Seshat Global History Databank: {citation}. Giấy phép {license}. Đã đơn giản hoá và vẽ lại, không sao chép nguyên.",
+  "about.credits.etAl": "và cộng sự",
+  "about.credits.data": "Dữ liệu",
+  "about.credits.paper": "Bài báo",
+  "about.credits.basemap":
+    "Bản đồ nền (biển, hồ, sông): {link}, phạm vi công cộng.",
+  "about.credits.events":
+    "Sự kiện: tóm tắt tự viết cho dự án. Mỗi sự kiện dẫn nguồn riêng, chủ yếu là sử liệu cổ như Livy, Polybius, Plutarch, Appian; phần lớn có link tới bản dịch hoặc bài tham khảo trực tuyến.",
+  "about.tutor.heading": "Về gia sư AI",
+  "about.tutor.model": "Gia sư dùng Claude, mô hình AI của Anthropic.",
+  "about.tutor.context":
+    "Mỗi câu hỏi được gửi kèm năm, sự kiện đang chọn, vùng bản đồ đang xem và ngôn ngữ giao diện, cùng các câu hỏi và trả lời trước đó trong cuộc trò chuyện.",
+  "about.tutor.storage":
+    "App không lưu cuộc trò chuyện. Lịch sử chỉ nằm trong trang này và mất khi bạn tải lại trang hoặc bắt đầu cuộc trò chuyện mới.",
+  "about.tutor.limits":
+    "Để tránh lạm dụng, số câu hỏi mỗi phút và mỗi ngày có giới hạn.",
   "timeline.label": "Năm",
   "timeline.play": "Phát",
   "timeline.pause": "Tạm dừng",

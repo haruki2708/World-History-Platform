@@ -15,8 +15,15 @@ interface ModalProps {
   title: string;
   /** Label of the close button (already translated). */
   closeLabel: string;
+  /** "md" for short dialogs; "lg" for reading text, such as About. */
+  size?: "md" | "lg";
   children: ReactNode;
 }
+
+const WIDTH = {
+  md: "w-[min(30rem,calc(100%-2rem))]",
+  lg: "w-[min(42rem,calc(100%-2rem))]",
+} as const;
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -28,7 +35,14 @@ const FOCUSABLE =
  * `data-autofocus` gets focus on opening; otherwise the browser picks the
  * first focusable one (the close button).
  */
-export function Modal({ open, onClose, title, closeLabel, children }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  closeLabel,
+  size = "md",
+  children,
+}: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -87,10 +101,11 @@ export function Modal({ open, onClose, title, closeLabel, children }: ModalProps
       onClose={handleClose}
       onKeyDown={handleKeyDown}
       onClick={handleClick}
-      className="m-auto w-[min(30rem,calc(100%-2rem))] rounded-lg border border-line bg-background p-0 text-foreground shadow-xl backdrop:bg-background/70 backdrop:backdrop-blur-[2px]"
+      className={`m-auto ${WIDTH[size]} overflow-hidden rounded-lg border border-line bg-background p-0 text-foreground shadow-xl backdrop:bg-background/70 backdrop:backdrop-blur-[2px]`}
     >
-      <div className="max-h-[calc(100dvh-4rem)] overflow-y-auto p-4">
-        <div className="mb-3 flex items-start gap-3">
+      {/* The title row stays put; only the content below it scrolls. */}
+      <div className="flex max-h-[calc(100dvh-4rem)] flex-col">
+        <div className="flex shrink-0 items-start gap-3 px-4 pt-4 pb-3">
           <h2 id={titleId} className="min-w-0 flex-1 text-base font-semibold">
             {title}
           </h2>
@@ -106,7 +121,10 @@ export function Modal({ open, onClose, title, closeLabel, children }: ModalProps
             </svg>
           </button>
         </div>
-        {children}
+        {/* `relative` keeps absolutely positioned children (sr-only text in
+            links) inside this scroller; otherwise they overflow the <dialog>
+            itself and give it a second scrollbar. */}
+        <div className="relative min-h-0 overflow-y-auto px-4 pb-4">{children}</div>
       </div>
     </dialog>
   );
