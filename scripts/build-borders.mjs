@@ -13,7 +13,11 @@
 //   - no two territories overlap on land (overlaps at sea are hidden by the
 //     water layer and are allowed);
 //   - every polity exists in polities.json and existed in the snapshot year;
-//   - every snapshot lists at least one source.
+//   - every snapshot lists at least one source;
+//   - any two polities that share a border on land differ enough in colour:
+//     CIE76 ΔE of at least MIN_DELTA_E between their fills as the map draws
+//     them (polity colour at the territory fill opacity over the land colour),
+//     in both the light and the dark theme.
 // No dependencies.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -27,6 +31,8 @@ const bordersDir = join(root, "public", "data", "borders");
 const catalogPath = join(root, "src", "data", "border-snapshots.json");
 const basemapPath = join(root, "public", "map", "basemap.json");
 const politiesPath = join(root, "src", "data", "polities.json");
+const themePath = join(root, "src", "app", "globals.css");
+const mapStylePath = join(root, "src", "components", "map", "mapStyle.ts");
 
 /** Decimal places kept in the output (0.001° is about 100 m). */
 const PRECISION = 3;
@@ -36,6 +42,8 @@ const CELL = 0.05;
 const ISLAND_TOLERANCE = 0.004;
 /** A `coast` end point must lie this close to the base map's coastline. */
 const COAST_SNAP = 0.05;
+/** Smallest colour difference (CIE76 ΔE) allowed between neighbours. */
+const MIN_DELTA_E = 12;
 /** [west, south, east, north] of the base map. */
 const REGION = [-40, 5, 80, 70];
 
@@ -309,6 +317,24 @@ function checkLandOverlaps(where, features, water) {
   for (const [key, clash] of clashes) {
     fail(where, `${key} overlap on land in ${clash.count} cells, e.g. at ${clash.at}`);
   }
+  // Polities whose land cells touch, diagonals included.
+  const neighbours = new Set();
+  const polityOf = (cell) => parts[owner[cell]].split("#")[0];
+  for (let cell = 0; cell < owner.length; cell++) {
+    if (owner[cell] === -1) continue;
+    const here = polityOf(cell);
+    const column = cell % cols;
+    const up = cell + cols < owner.length;
+    const east = column < cols - 1 ? cell + 1 : -1;
+    const north = up ? cell + cols : -1;
+    const northEast = up && column < cols - 1 ? cell + cols + 1 : -1;
+    const northWest = up && column > 0 ? cell + cols - 1 : -1;
+    for (const next of [east, north, northEast, northWest]) {
+      if (next === -1 || owner[next] === -1) continue;
+      const there = polityOf(next);
+      if (there !== here) neighbours.add([here, there].sort().join("|"));
+    }
+  }
   // Land area per polity, as a rough sanity figure (cells of CELL degrees).
   const area = new Map();
   for (let cell = 0; cell < owner.length; cell++) {
@@ -318,7 +344,78 @@ function checkLandOverlaps(where, features, water) {
     const km2 = (CELL * 111.32) ** 2 * Math.cos((lat * Math.PI) / 180);
     area.set(polityId, (area.get(polityId) ?? 0) + km2);
   }
-  return area;
+  return { area, neighbours };
+}
+
+// ---------------------------------------------------------------------------
+// Colour check
+
+function hexToRgb(hex) {
+  const value = Number.parseInt(hex.slice(1), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+}
+
+/** sRGB (0–255) to CIE L*a*b* (D65). */
+function rgbToLab(rgb) {
+  const [r, g, b] = rgb.map((channel) => {
+    const c = channel / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const xyz = [
+    (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047,
+    (0.2126 * r + 0.7152 * g + 0.0722 * b) / 1.0,
+    (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883,
+  ];
+  const [fx, fy, fz] = xyz.map((t) => (t > 216 / 24389 ? Math.cbrt(t) : (841 / 108) * t + 4 / 29));
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+/** The land colours of the themes and the fill opacity, read from the app. */
+function readMapPaint() {
+  const css = readFileSync(themePath, "utf8");
+  const lands = [
+    ...new Set([...css.matchAll(/--map-land:\s*(#[0-9a-f]{6})/gi)].map((m) => m[1].toLowerCase())),
+  ];
+  const style = readFileSync(mapStylePath, "utf8");
+  const opacity = Number(/TERRITORY_OPACITY\s*=\s*\{\s*fill:\s*([0-9.]+)/.exec(style)?.[1]);
+  if (lands.length < 2 || !(opacity > 0 && opacity <= 1)) {
+    fail("colour check", "cannot read --map-land (light and dark) or TERRITORY_OPACITY.fill");
+  }
+  return { lands, opacity };
+}
+
+const paint = readMapPaint();
+const filled = new Map();
+function filledLab(color, land) {
+  const key = `${color}${land}`;
+  if (!filled.has(key)) {
+    const top = hexToRgb(color);
+    const bottom = hexToRgb(land);
+    const mixed = top.map((c, i) => paint.opacity * c + (1 - paint.opacity) * bottom[i]);
+    filled.set(key, rgbToLab(mixed));
+  }
+  return filled.get(key);
+}
+
+const colourPairs = new Map();
+function checkColours(where, neighbours) {
+  for (const pair of neighbours) {
+    const [a, b] = pair.split("|");
+    const colorA = polities.get(a)?.color;
+    const colorB = polities.get(b)?.color;
+    if (!colorA || !colorB) continue;
+    for (const land of paint.lands) {
+      const [l1, a1, b1] = filledLab(colorA, land);
+      const [l2, a2, b2] = filledLab(colorB, land);
+      const deltaE = Math.hypot(l1 - l2, a1 - a2, b1 - b2);
+      const key = `${pair}|${land}`;
+      if (!colourPairs.has(key)) colourPairs.set(key, { deltaE, years: [] });
+      colourPairs.get(key).years.push(where.replace("snapshot ", ""));
+      if (deltaE < MIN_DELTA_E) {
+        fail(where, `${a} and ${b} share a border but differ by ΔE ${deltaE.toFixed(1)} on land ${land} (need ${MIN_DELTA_E})`);
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -358,7 +455,8 @@ for (const snapshot of [...snapshots].sort((a, b) => a.year - b.year)) {
     };
   });
 
-  const area = checkLandOverlaps(where, features, water);
+  const { area, neighbours } = checkLandOverlaps(where, features, water);
+  checkColours(where, neighbours);
   const file = `${snapshot.year}.geojson`;
   catalog.push({ year: snapshot.year, file, sources: snapshot.sources });
   const text = `{"type":"FeatureCollection","features":[\n${features
@@ -371,6 +469,15 @@ for (const snapshot of [...snapshots].sort((a, b) => a.year - b.year)) {
     .map(([id, km2]) => `${id} ${Math.round(km2).toLocaleString("en")}`)
     .join(", ");
   console.log(`${snapshot.year}: ${(text.length / 1024).toFixed(1)} KB; land km²: ${summary}`);
+}
+
+const pairCount = new Set([...colourPairs.keys()].map((key) => key.split("|").slice(0, 2).join("|"))).size;
+const [closestKey, closest] = [...colourPairs].sort((x, y) => x[1].deltaE - y[1].deltaE)[0] ?? [];
+if (closest) {
+  const [a, b, land] = closestKey.split("|");
+  console.log(
+    `Colours: ${pairCount} pairs of neighbours; smallest ΔE ${closest.deltaE.toFixed(1)} (${a} / ${b} on land ${land}, in ${closest.years.join(", ")}).`,
+  );
 }
 
 if (errors.length > 0) {
