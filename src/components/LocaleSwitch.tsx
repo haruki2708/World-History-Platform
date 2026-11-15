@@ -3,6 +3,7 @@
 import { LOCALES } from "@/lib/i18n/messages";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
+import { storeLocale } from "./shell/locale";
 
 export function LocaleSwitch() {
   const { t, locale } = useT();
@@ -19,7 +20,12 @@ export function LocaleSwitch() {
           key={code}
           type="button"
           aria-pressed={locale === code}
-          onClick={() => setLocale(code)}
+          onClick={() => {
+            setLocale(code);
+            // Only an explicit choice is remembered, not a language that
+            // arrived through a shared link.
+            storeLocale(code);
+          }}
           className={
             locale === code
               ? "bg-accent px-3 py-1.5 font-medium text-on-accent"
