@@ -29,4 +29,6 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-008](T-008-desktop-ux.md) | 1 | Trải nghiệm trên máy tính: link chia sẻ, nhớ ngôn ngữ, phím tắt | Xong, đã gộp 2026-11-16 |
 | [T-009](T-009-map-labels.md) | 2 | Nhãn tên thế lực trên bản đồ, chuyển cảnh giữa các mốc | Xong, đã gộp 2026-11-16 |
 | [T-010](T-010-tutor-map-links.md) | 1 | Nút "xem trên bản đồ" trong câu trả lời của gia sư (giao diện) | Xong, đã gộp 2026-11-16 |
-| [T-011](T-011-tutor-map-links-server.md) | 2 | Server tạo nút "xem trên bản đồ" từ câu trả lời của Claude | Sẵn sàng giao |
+| [T-011](T-011-tutor-map-links-server.md) | 2 | Server tạo nút "xem trên bản đồ" từ câu trả lời của Claude | Đang làm (giao 2026-11-16) |
+| [T-012](T-012-borders-review.md) | 3 | Soát lại các mốc biên giới của đợt 2 | Đang làm (giao 2026-11-16) |
+| [T-013](T-013-about.md) | 1 | Giới thiệu, cách dùng và ghi công | Đang làm (giao 2026-11-16) |
