@@ -28,6 +28,21 @@ const AGER_ROMANUS_NORTH_B = [
   [12.95, 44.05],
 ];
 
+// The Apennine watershed and the Rubicon, split where the land of the Senones
+// (the coast from Ariminum to Ancona, Gallic until 283 BCE) begins.
+const RUBICON_WEST = [
+  [10.95, 44.08],
+  [11.3, 44.1],
+  [11.7, 43.95],
+  [12.05, 43.85],
+  [12.25, 43.98],
+];
+const RUBICON_EAST = [
+  [12.25, 43.98],
+  [12.4, 44.17],
+  [12.6, 44.45],
+];
+
 export const arcs = {
   // ---------------------------------------------------------------- Italy
 
@@ -97,14 +112,18 @@ export const arcs = {
   // Roman Italy's northern limit in 264 BCE: the Apennine watershed, then the
   // Rubicon to the Adriatic (Shepherd, "Roman territory at the beginning of
   // the 1st Punic War").
-  "rubicon-line": [
-    [10.95, 44.08],
-    [11.3, 44.1],
-    [11.7, 43.95],
-    [12.05, 43.85],
+  "rubicon-line": [...RUBICON_WEST, ...RUBICON_EAST.slice(1)],
+  "rubicon-west": RUBICON_WEST,
+  // Inland edge of the Senones' coast between Ariminum and the Aesis, by
+  // Ancona (Gallic until 283 BCE; Wikipedia "Senones", "Picentes").
+  senones: [
     [12.25, 43.98],
-    [12.4, 44.17],
-    [12.6, 44.45],
+    [12.42, 43.75],
+    [12.7, 43.52],
+    [13.0, 43.42],
+    [13.25, 43.5],
+    [13.35, 43.63],
+    [13.6, 43.85],
   ],
   // Roman citizen territory (ager Romanus) against the allies, 264 and 146 BCE,
   // generalised from Shepherd's "Growth of Roman Power in Italy": the belt from
@@ -229,6 +248,18 @@ export const arcs = {
     [18.8, 30.2],
     [19.0, 30.7],
   ],
+  // Mauretania against Numidia after the Jugurthine War (105 BCE) until 46
+  // BCE, at Saldae, after Cliopatria (−91 to −43); Iol, the eastern capital of
+  // Mauretania in 49 BCE, lies west of it.
+  saldae: [
+    [5.45, 37.0],
+    [5.41, 36.74],
+    [5.42, 36.35],
+    [5.36, 35.64],
+    [5.44, 35.39],
+    [5.29, 35.13],
+    [5.3, 34.62],
+  ],
   // The Fossa Regia, Thabraca to Thaenae, dug after 146 BCE between the
   // province of Africa and Numidia.
   "fossa-regia": [
@@ -339,6 +370,25 @@ export const arcs = {
     [27.64, 38.67],
     [27.31, 38.48],
     [26.85, 38.6],
+  ],
+  // Attalus I's realm (about 223–189 BCE), after Cliopatria "Kingdom of
+  // Pergamon" (−223 to −189): from the Gulf of Adramyttium to Ephesus.
+  "pergamon-attalid": [
+    [26.85, 39.5],
+    [27.24, 39.51],
+    [27.41, 39.71],
+    [27.97, 39.84],
+    [28.84, 39.84],
+    [29.3, 39.71],
+    [29.32, 39.0],
+    [29.21, 38.67],
+    [28.96, 38.55],
+    [28.86, 38.29],
+    [28.53, 38.03],
+    [28.14, 38.09],
+    [27.97, 37.9],
+    [27.65, 37.84],
+    [27.26, 37.86],
   ],
   // Pontus against the Seleucid realm (264 BCE).
   "pontus-264": [
