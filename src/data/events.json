@@ -1,0 +1,199 @@
+[
+  {
+    "id": "founding-of-the-republic",
+    "year": -509,
+    "title": {
+      "en": "Founding of the Roman Republic",
+      "vi": "Thành lập Cộng hoà La Mã"
+    },
+    "summary": {
+      "en": "According to Roman tradition, the last king, Tarquinius Superbus, was expelled and the monarchy was replaced by two annually elected consuls. The date is traditional rather than firmly documented.",
+      "vi": "Theo truyền thống La Mã, vị vua cuối cùng là Tarquinius Superbus bị trục xuất, và chế độ quân chủ được thay bằng hai chấp chính quan bầu hằng năm. Mốc năm này là theo truyền thống chứ không có tư liệu chắc chắn."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4964,
+      "lat": 41.9028
+    },
+    "polityIds": ["rome", "etruscans"],
+    "category": "political",
+    "importance": 3,
+    "sources": [{ "title": "Livy, Ab Urbe Condita, Books 1–2" }]
+  },
+  {
+    "id": "gallic-sack-of-rome",
+    "year": -390,
+    "title": {
+      "en": "Gallic sack of Rome",
+      "vi": "Người Gaul cướp phá Roma"
+    },
+    "summary": {
+      "en": "A Gallic war band under Brennus defeated the Roman army at the river Allia and sacked the city. The traditional date is 390 BCE; many modern historians prefer 387 BCE.",
+      "vi": "Một đạo quân Gaul do Brennus chỉ huy đánh bại quân La Mã ở sông Allia rồi cướp phá thành phố. Mốc truyền thống là năm 390 TCN; nhiều sử gia hiện đại nghiêng về năm 387 TCN."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4964,
+      "lat": 41.9028
+    },
+    "polityIds": ["rome", "gauls"],
+    "category": "military",
+    "importance": 2,
+    "sources": [{ "title": "Livy, Ab Urbe Condita, Book 5" }]
+  },
+  {
+    "id": "first-punic-war",
+    "year": -264,
+    "endYear": -241,
+    "title": {
+      "en": "First Punic War",
+      "vi": "Chiến tranh Punic lần thứ nhất"
+    },
+    "summary": {
+      "en": "A dispute over Messana drew Rome and Carthage into a long war for Sicily. Rome built its first large fleet and, after its victory, took Sicily as its first overseas province.",
+      "vi": "Tranh chấp quanh Messana kéo La Mã và Carthage vào một cuộc chiến dài giành Sicilia. La Mã xây dựng hạm đội lớn đầu tiên và sau chiến thắng đã lấy Sicilia làm tỉnh hải ngoại đầu tiên."
+    },
+    "location": {
+      "name": { "en": "Messana (Messina)", "vi": "Messana (Messina)" },
+      "lng": 15.554,
+      "lat": 38.1938
+    },
+    "polityIds": ["rome", "carthage"],
+    "category": "military",
+    "importance": 3,
+    "sources": [{ "title": "Polybius, Histories, Book 1" }]
+  },
+  {
+    "id": "battle-of-cannae",
+    "year": -216,
+    "title": {
+      "en": "Battle of Cannae",
+      "vi": "Trận Cannae"
+    },
+    "summary": {
+      "en": "During the Second Punic War, Hannibal encircled and destroyed a much larger Roman army in Apulia. It was one of Rome's worst defeats, yet Rome refused to make peace.",
+      "vi": "Trong Chiến tranh Punic lần thứ hai, Hannibal bao vây và tiêu diệt một đạo quân La Mã đông hơn nhiều ở Apulia. Đây là một trong những thất bại nặng nề nhất của La Mã, nhưng La Mã vẫn không chịu cầu hoà."
+    },
+    "location": {
+      "name": { "en": "Cannae", "vi": "Cannae" },
+      "lng": 16.1519,
+      "lat": 41.3064
+    },
+    "polityIds": ["rome", "carthage"],
+    "category": "military",
+    "importance": 3,
+    "sources": [{ "title": "Polybius, Histories, Book 3" }]
+  },
+  {
+    "id": "battle-of-zama",
+    "year": -202,
+    "title": {
+      "en": "Battle of Zama",
+      "vi": "Trận Zama"
+    },
+    "summary": {
+      "en": "Scipio Africanus defeated Hannibal in North Africa, ending the Second Punic War. Carthage lost its overseas territories and its standing as a great power. The exact site of the battle is uncertain.",
+      "vi": "Scipio Africanus đánh bại Hannibal ở Bắc Phi, kết thúc Chiến tranh Punic lần thứ hai. Carthage mất các lãnh thổ hải ngoại và vị thế cường quốc. Vị trí chính xác của trận đánh chưa được xác định."
+    },
+    "location": {
+      "name": { "en": "Zama (approximate)", "vi": "Zama (ước lượng)" },
+      "lng": 9.45,
+      "lat": 36.3,
+      "approximate": true
+    },
+    "polityIds": ["rome", "carthage"],
+    "category": "military",
+    "importance": 3,
+    "sources": [{ "title": "Polybius, Histories, Book 15" }]
+  },
+  {
+    "id": "destruction-of-carthage",
+    "year": -146,
+    "title": {
+      "en": "Destruction of Carthage",
+      "vi": "Carthage bị huỷ diệt"
+    },
+    "summary": {
+      "en": "After a three-year siege in the Third Punic War, Scipio Aemilianus captured and destroyed Carthage, and its territory became the Roman province of Africa. In the same year Rome destroyed Corinth in Greece.",
+      "vi": "Sau ba năm vây hãm trong Chiến tranh Punic lần thứ ba, Scipio Aemilianus chiếm và phá huỷ Carthage, lãnh thổ của nó trở thành tỉnh Africa của La Mã. Cùng năm đó, La Mã phá huỷ Corinth ở Hy Lạp."
+    },
+    "location": {
+      "name": { "en": "Carthage", "vi": "Carthage" },
+      "lng": 10.3233,
+      "lat": 36.8528
+    },
+    "polityIds": ["rome", "carthage", "greek-city-states"],
+    "category": "military",
+    "importance": 3,
+    "sources": [{ "title": "Appian, Roman History: The Punic Wars" }]
+  },
+  {
+    "id": "assassination-of-caesar",
+    "year": -44,
+    "title": {
+      "en": "Assassination of Julius Caesar",
+      "vi": "Julius Caesar bị ám sát"
+    },
+    "summary": {
+      "en": "On the Ides of March, a group of senators killed Julius Caesar, who had recently been named dictator for life. Instead of restoring the Republic, the murder opened a new round of civil wars.",
+      "vi": "Vào ngày 15 tháng 3, một nhóm nguyên lão sát hại Julius Caesar, người vừa được phong độc tài quan trọn đời. Thay vì khôi phục nền Cộng hoà, vụ ám sát mở ra một loạt nội chiến mới."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4964,
+      "lat": 41.9028
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 3,
+    "sources": [
+      { "title": "Suetonius, The Twelve Caesars: Divus Julius" },
+      { "title": "Plutarch, Parallel Lives: Caesar" }
+    ]
+  },
+  {
+    "id": "battle-of-actium",
+    "year": -31,
+    "title": {
+      "en": "Battle of Actium",
+      "vi": "Trận Actium"
+    },
+    "summary": {
+      "en": "Octavian's fleet, commanded by Agrippa, defeated Mark Antony and Cleopatra off the coast of western Greece. Egypt fell to Rome the following year, leaving Octavian without a rival.",
+      "vi": "Hạm đội của Octavian do Agrippa chỉ huy đánh bại Marcus Antonius và Cleopatra ngoài khơi miền tây Hy Lạp. Năm sau Ai Cập rơi vào tay La Mã, và Octavian không còn đối thủ."
+    },
+    "location": {
+      "name": { "en": "Actium", "vi": "Actium" },
+      "lng": 20.72,
+      "lat": 38.95
+    },
+    "polityIds": ["rome", "ptolemaic-egypt"],
+    "category": "military",
+    "importance": 3,
+    "sources": [{ "title": "Cassius Dio, Roman History, Book 50" }]
+  },
+  {
+    "id": "octavian-becomes-augustus",
+    "year": -27,
+    "title": {
+      "en": "Octavian becomes Augustus",
+      "vi": "Octavian trở thành Augustus"
+    },
+    "summary": {
+      "en": "The Senate granted Octavian the name Augustus and a set of powers that made him ruler in all but name. This settlement is the conventional end of the Republic and start of the Principate.",
+      "vi": "Viện Nguyên lão trao cho Octavian danh hiệu Augustus cùng những quyền lực khiến ông trở thành người cai trị trên thực tế. Sự dàn xếp này thường được coi là điểm kết thúc nền Cộng hoà và mở đầu thời Nguyên thủ."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4964,
+      "lat": 41.9028
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 3,
+    "sources": [
+      { "title": "Augustus, Res Gestae Divi Augusti, 34" },
+      { "title": "Cassius Dio, Roman History, Book 53" }
+    ]
+  }
+]

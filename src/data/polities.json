@@ -1,0 +1,37 @@
+[
+  {
+    "id": "rome",
+    "name": { "en": "Roman Republic", "vi": "Cộng hoà La Mã" },
+    "color": "#b3261e",
+    "startYear": -509,
+    "endYear": -27
+  },
+  {
+    "id": "carthage",
+    "name": { "en": "Carthage", "vi": "Carthage" },
+    "color": "#7b4fa3",
+    "endYear": -146
+  },
+  {
+    "id": "etruscans",
+    "name": { "en": "Etruscan city-states", "vi": "Các thành bang Etruscan" },
+    "color": "#c98a2b"
+  },
+  {
+    "id": "gauls",
+    "name": { "en": "Gallic tribes", "vi": "Các bộ lạc Gaul" },
+    "color": "#4f8a4b"
+  },
+  {
+    "id": "greek-city-states",
+    "name": { "en": "Greek city-states", "vi": "Các thành bang Hy Lạp" },
+    "color": "#2f6fb0"
+  },
+  {
+    "id": "ptolemaic-egypt",
+    "name": { "en": "Ptolemaic Egypt", "vi": "Ai Cập thời Ptolemaios" },
+    "color": "#c9a227",
+    "startYear": -305,
+    "endYear": -30
+  }
+]

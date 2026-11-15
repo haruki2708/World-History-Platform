@@ -1,0 +1,25 @@
+# Quy trình task
+
+Mỗi task là một file `T-XXX-ten-ngan.md` trong thư mục này, do phiên chính viết.
+
+## Lane nhận task
+
+1. Đọc `CLAUDE.md`, `docs/ARCHITECTURE.md` và file task được giao.
+2. Làm trên nhánh của mình, tên nhánh ghi trong file task. Không commit thẳng vào `main`.
+3. Chỉ sửa file trong mục "Phạm vi file" của task.
+4. Trước khi báo xong: `npm run lint` và `npm run build` phải qua, và tự chạy thử phần mình làm trong trình duyệt.
+5. Điền mục "Kết quả" ở cuối file task: đã làm gì, đã kiểm tra thế nào, còn gì chưa xong, và các đề nghị thay đổi ngoài phạm vi (kiểu dữ liệu, store, thư viện mới).
+6. Commit trên nhánh của mình rồi báo người dùng. Không tự gộp vào `main`.
+
+## Phiên chính
+
+Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ liệu lịch sử, rồi gộp vào `main` sau khi người dùng duyệt.
+
+## Danh sách
+
+| Task | Lane | Nội dung | Trạng thái |
+|---|---|---|---|
+| [T-001](T-001-timeline.md) | 1 | Dòng thời gian và panel sự kiện | Chờ giao |
+| [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Chờ giao |
+| [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Chờ giao |
+| [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Chờ giao, sau T-003 |
