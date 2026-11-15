@@ -5,9 +5,9 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | Giai đoạn | Nội dung | Ai làm | Xong khi | Trạng thái |
 |---|---|---|---|---|
 | 0. Khung | Project, layout các vùng, store chung, hợp đồng dữ liệu, tài liệu | Phiên chính | Trang chạy được ở local, store nối đủ ba vùng | Xong, đã duyệt 2026-11-15 |
-| 1. Timeline | Dòng thời gian đầy đủ, panel sự kiện | Lane 1 (T-001) | Kéo thanh thì sự kiện đổi theo | Sẵn sàng giao |
-| 2. Bản đồ | Bản đồ nền, lớp lãnh thổ theo mốc, điểm sự kiện | Lane 2 (T-002) | Kéo thanh thì biên giới đổi theo | Sẵn sàng giao |
-| 3. Dữ liệu | 40–60 sự kiện, 12–15 mốc biên giới | Lane 3 (T-003, T-004) | Xem trọn thời kỳ không bị trống | Sẵn sàng giao |
+| 1. Timeline | Dòng thời gian đầy đủ, panel sự kiện | Lane 1 (T-001) | Kéo thanh thì sự kiện đổi theo | Đang làm (giao 2026-11-15) |
+| 2. Bản đồ | Bản đồ nền, lớp lãnh thổ theo mốc, điểm sự kiện | Lane 2 (T-002) | Kéo thanh thì biên giới đổi theo | Đang làm (giao 2026-11-15) |
+| 3. Dữ liệu | 40–60 sự kiện, 12–15 mốc biên giới | Lane 3 (T-003, T-004) | Xem trọn thời kỳ không bị trống | Đang làm (giao 2026-11-15) |
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 1 + Lane 2 | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Chưa bắt đầu |
 | 5. Hoàn thiện | Chuyển cảnh mượt, mobile, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Chưa bắt đầu |
 | 6. Mở rộng | Tutor điều khiển bản đồ, quiz, thời kỳ mới | Chốt sau | | |

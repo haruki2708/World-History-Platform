@@ -19,7 +19,7 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 
 | Task | Lane | Nội dung | Trạng thái |
 |---|---|---|---|
-| [T-001](T-001-timeline.md) | 1 | Dòng thời gian và panel sự kiện | Sẵn sàng giao |
-| [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Sẵn sàng giao |
-| [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Sẵn sàng giao |
+| [T-001](T-001-timeline.md) | 1 | Dòng thời gian và panel sự kiện | Đang làm (giao 2026-11-15) |
+| [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Đang làm (giao 2026-11-15) |
+| [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Đang làm (giao 2026-11-15) |
 | [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Chờ giao, sau T-003 |
