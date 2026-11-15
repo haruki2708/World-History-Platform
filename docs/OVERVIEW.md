@@ -19,6 +19,7 @@ Làm trọn vẹn một thời kỳ trước khi mở rộng:
 - **Các thế lực:** La Mã, Carthage, Etruscan, các thành bang Hy Lạp, Macedonia và các vương quốc Hy Lạp hoá.
 - **Dữ liệu:** 12–15 mốc biên giới và 40–60 sự kiện, mỗi sự kiện có năm, toạ độ, tóm tắt và nguồn.
 - **Ngôn ngữ:** tiếng Anh và tiếng Việt, cho cả giao diện lẫn nội dung lịch sử.
+- **Thiết bị:** web app chạy trong trình duyệt, ưu tiên máy tính. Mở trên điện thoại vẫn dùng được, nhưng không làm tính năng riêng cho điện thoại.
 
 Để sau MVP: quiz do AI tạo, cá nhân hoá học tập, tài khoản người dùng, các nền văn minh và thời kỳ khác.
 

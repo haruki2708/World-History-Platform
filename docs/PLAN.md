@@ -1,6 +1,6 @@
 # Kế hoạch
 
-Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 509–27 TCN, vùng Địa Trung Hải; song ngữ Anh/Việt; tutor dùng `claude-opus-5-5`.
+Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 509–27 TCN, vùng Địa Trung Hải; song ngữ Anh/Việt; tutor dùng `claude-opus-5-5`. Ngày 2026-11-16: ưu tiên máy tính, điện thoại chỉ cần dùng được.
 
 | Giai đoạn | Nội dung | Ai làm | Xong khi | Trạng thái |
 |---|---|---|---|---|
@@ -9,7 +9,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 2. Bản đồ | Bản đồ nền, lớp lãnh thổ theo mốc, điểm sự kiện | Lane 2 (T-002) | Kéo thanh thì biên giới đổi theo | Xong, đã gộp 2026-11-15. Biên giới thật chờ T-004 |
 | 3. Dữ liệu | 40–60 sự kiện, 12–15 mốc biên giới | Lane 3 (T-003, T-004) | Xem trọn thời kỳ không bị trống | Sự kiện xong (59 sự kiện, T-003). Biên giới (T-004) chờ lane 3 có lại hạn mức |
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
-| 5. Hoàn thiện | Chuyển cảnh mượt, mobile, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Chưa bắt đầu |
+| 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Chưa bắt đầu |
 | 6. Mở rộng | Tutor điều khiển bản đồ, quiz, thời kỳ mới | Chốt sau | | |
 
 ## Nhật ký
@@ -21,15 +21,18 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 
 ## Việc để giai đoạn 5
 
-- Trục thời gian ở màn hẹp gộp khoảng một phần ba số sự kiện vào chip "+n"; cân nhắc cho phóng to trục.
 - Chuyển cảnh mượt khi đổi mốc biên giới.
 - Nhãn chữ trên bản đồ (tên thế lực, địa danh) cần file font glyph cho MapLibre.
 - Thống nhất cách viết tên riêng tiếng Việt (dạng Latinh, Hy Lạp hay tiếng Anh quen dùng).
 - Lưu lựa chọn ngôn ngữ giữa các lần tải trang.
 - Route của gia sư: xác thực hoặc giới hạn tần suất trước khi đưa ra Internet; `maxDuration` khi deploy; cân nhắc gửi sự kiện "đang suy nghĩ" ngay từ đầu, vì hiện phản hồi chỉ bắt đầu khi model viết chữ đầu tiên.
 - Khi chạy thật: kiểm tra cache có trúng (`cacheReadTokens` > 0 từ câu thứ hai), đo chi phí thật mỗi câu hỏi, đọc thử câu trả lời ở hai ngôn ngữ và hai độ sâu rồi chỉnh prompt.
-- Trên điện thoại, chú giải bản đồ nếu đang mở sẽ che gần hết bản đồ khi bản đồ thu nhỏ ở tab gia sư.
 - Gỡ dữ liệu biên giới thử của lane 2 (`src/components/map/__fixtures__/`) sau khi T-004 xong.
+
+## Không làm (điện thoại chỉ cần dùng được)
+
+- Phóng to trục thời gian trên màn hẹp (hiện khoảng một phần ba sự kiện bị gộp vào chip "+n" ở bề ngang 390px).
+- Chú giải bản đồ che gần hết bản đồ khi bản đồ thu nhỏ ở tab gia sư trên điện thoại.
 
 ## Để sau MVP
 

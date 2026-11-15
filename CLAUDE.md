@@ -37,7 +37,8 @@ Quy tắc cho lane:
 - TypeScript strict. Component tương tác là Client Component (`"use client"`).
 - Năm là số nguyên, âm là TCN (509 TCN = `-509`). Hiển thị năm luôn qua `formatYear` / `formatYearRange` trong `src/lib/years.ts`.
 - Mọi chuỗi người dùng nhìn thấy đều song ngữ: chuỗi giao diện qua `useT()`, nội dung lịch sử qua `LocalizedText` (`{ en, vi }`).
-- Màu dùng token trong `src/app/globals.css` (`bg-surface`, `text-muted`, `border-line`, `text-accent`...), không viết mã màu trực tiếp. Giao diện phải dùng được ở bề ngang 390px và ở cả chế độ sáng lẫn tối.
+- Màu dùng token trong `src/app/globals.css` (`bg-surface`, `text-muted`, `border-line`, `text-accent`...), không viết mã màu trực tiếp. Giao diện phải đúng ở cả chế độ sáng lẫn tối.
+- **Ưu tiên máy tính.** Thiết kế và kiểm tra chính ở màn hình máy tính (từ 1280×800). Trên điện thoại chỉ cần dùng được: trang không vỡ, không cuộn ngang (kiểm tra nhanh ở bề ngang 390px). Không làm tính năng hay tinh chỉnh riêng cho điện thoại.
 - Code và comment viết bằng tiếng Anh. Tài liệu trong `docs/` viết bằng tiếng Việt.
 
 ## Lệnh
