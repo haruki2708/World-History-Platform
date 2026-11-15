@@ -8,6 +8,11 @@
   --muted: #6b655a;
   --accent: #9b2c1f;
   --on-accent: #ffffff;
+  /* Map base layers (read at runtime by src/components/map/theme.ts). */
+  --map-land: #ebe4d3;
+  --map-water: #c6d6da;
+  --map-coast: #a8a08c;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +24,10 @@
     --muted: #a39c8e;
     --accent: #e0705f;
     --on-accent: #1c1a17;
+    --map-land: #2a2620;
+    --map-water: #121a1d;
+    --map-coast: #4a4438;
+    color-scheme: dark;
   }
 }
 

@@ -15,9 +15,7 @@ const en = {
   "timeline.speedUnit": "yrs/s",
   "timeline.markers": "Events on the timeline",
   "timeline.cluster": "{count} more events around {year}",
-  "map.placeholder": "The historical map is built in phase 2.",
-  "map.center": "Map centre",
-  "map.zoom": "Zoom",
+  "panel.tabs": "Side panel",
   "map.label": "Historical map",
   "map.loading": "Loading map…",
   "map.error": "The map could not be loaded.",
@@ -44,6 +42,8 @@ const en = {
   "tutor.context": "Context the tutor will receive",
   "tutor.context.year": "Year",
   "tutor.context.event": "Selected event",
+  "tutor.context.view": "Map view",
+  "tutor.context.zoom": "zoom",
   "tutor.context.none": "none",
 } as const;
 
@@ -60,9 +60,7 @@ const vi: Record<MessageKey, string> = {
   "timeline.speedUnit": "năm/giây",
   "timeline.markers": "Các sự kiện trên dòng thời gian",
   "timeline.cluster": "Thêm {count} sự kiện quanh năm {year}",
-  "map.placeholder": "Bản đồ lịch sử sẽ làm ở giai đoạn 2.",
-  "map.center": "Tâm bản đồ",
-  "map.zoom": "Mức phóng",
+  "panel.tabs": "Bảng bên",
   "map.label": "Bản đồ lịch sử",
   "map.loading": "Đang tải bản đồ…",
   "map.error": "Không tải được bản đồ.",
@@ -89,6 +87,8 @@ const vi: Record<MessageKey, string> = {
   "tutor.context": "Ngữ cảnh gia sư sẽ nhận được",
   "tutor.context.year": "Năm",
   "tutor.context.event": "Sự kiện đang chọn",
+  "tutor.context.view": "Vùng bản đồ",
+  "tutor.context.zoom": "mức phóng",
   "tutor.context.none": "chưa chọn",
 };
 

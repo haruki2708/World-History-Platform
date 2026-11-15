@@ -10,9 +10,9 @@ export interface MapTheme {
 }
 
 const TOKENS: Record<keyof MapTheme, string> = {
-  land: "--surface",
-  water: "--background",
-  coast: "--line",
+  land: "--map-land",
+  water: "--map-water",
+  coast: "--map-coast",
 };
 
 export function readMapTheme(): MapTheme {

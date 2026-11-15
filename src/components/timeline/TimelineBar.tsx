@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getEvent } from "@/data";
+import { getEvent, isEventActive } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import { formatYear } from "@/lib/years";
 import { useAppStore } from "@/store/useAppStore";
@@ -19,6 +19,10 @@ export function TimelineBar() {
   const year = useAppStore((state) => state.year);
   const selectedEventId = useAppStore((state) => state.selectedEventId);
   const selectedEvent = selectedEventId ? getEvent(selectedEventId) : undefined;
+  // Name the selected event next to the year only while it is under way, so
+  // the header never reads as if an event happened in the wrong year.
+  const currentEvent =
+    selectedEvent && isEventActive(selectedEvent, year) ? selectedEvent : undefined;
 
   const [speed, setSpeed] = useState<PlaybackSpeed>(10);
   const { playing, toggle, pause } = usePlayback(speed);
@@ -31,9 +35,9 @@ export function TimelineBar() {
           <span className="shrink-0 text-lg font-semibold tabular-nums">
             {formatYear(year, locale)}
           </span>
-          {selectedEvent && (
+          {currentEvent && (
             <span className="truncate text-sm text-muted">
-              {selectedEvent.title[locale]}
+              {currentEvent.title[locale]}
             </span>
           )}
         </p>

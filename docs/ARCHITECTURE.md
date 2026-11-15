@@ -26,7 +26,11 @@ src/
   store/
     useAppStore.ts     trạng thái chung
 public/data/borders/   file GeoJSON biên giới, Lane 3
+public/map/            bản đồ nền (Natural Earth), Lane 2
+scripts/               script kiểm tra dữ liệu, Lane 3
 ```
+
+Trên màn hẹp (dưới 1024px), panel bên chia thành hai tab "Sự kiện" và "Gia sư AI". Trên màn rộng hai phần xếp chồng.
 
 ## Trạng thái chung: `useAppStore`
 
@@ -58,6 +62,18 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - Đường dẫn: `public/data/borders/<năm>.geojson`, ví dụ `-264.geojson`.
 - Nội dung: GeoJSON `FeatureCollection`, toạ độ WGS84. Mỗi feature là `Polygon` hoặc `MultiPolygon` và có `properties.polityId` khớp với một `id` trong `polities.json`.
 - Bản đồ hiển thị mốc gần nhất tại hoặc trước năm đang xem (`getBorderSnapshot(year)`).
+- **Không cần vẽ bám bờ biển.** Bản đồ vẽ biển và hồ đè lên lớp lãnh thổ, nên phần polygon tràn ra biển bị che đi. Chỉ cần đúng ở phần đất liền và ở đường ranh giới giữa các thế lực.
+- Vùng bản đồ: kinh độ −40 đến 80, vĩ độ 5 đến 70. Toạ độ ngoài vùng này không hiển thị được.
+- Feature có `polityId` không có trong `polities.json` bị bỏ qua (kèm cảnh báo ở console). `npm run validate` bắt lỗi này.
+- Khi `border-snapshots.json` còn rỗng và chạy `npm run dev`, bản đồ dùng ba mốc thử vẽ thô trong `src/components/map/__fixtures__/` (chú giải ghi "Dữ liệu thử"). Có mốc thật là dữ liệu thử tự tắt; bản build chính thức không bao giờ chứa chúng.
+
+### Bản đồ nền
+
+`public/map/basemap.json`: biển, hồ và sông từ Natural Earth (phạm vi công cộng), không có yếu tố hiện đại. Nguồn và cách tạo lại xem `public/map/README.md`. Màu đất, biển và đường bờ lấy từ token `--map-land`, `--map-water`, `--map-coast` trong `globals.css`.
+
+### Kiểm tra dữ liệu
+
+`npm run validate` (script `scripts/validate-data.mjs`) kiểm tra sự kiện, thế lực và các file biên giới. Phải qua trước khi gộp mọi thay đổi về dữ liệu.
 
 ### Hàm truy vấn (`src/data/index.ts`)
 

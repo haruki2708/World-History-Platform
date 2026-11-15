@@ -20,7 +20,7 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 | Ai | Sở hữu |
 |---|---|
 | Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/` |
-| Lane 2 | `src/components/map/` |
+| Lane 2 | `src/components/map/`, `public/map/` |
 | Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |
 
@@ -43,6 +43,7 @@ Quy tắc cho lane:
 ```
 npm run dev      # chạy local tại http://localhost:3000
 npm run lint
+npm run validate # kiểm tra dữ liệu lịch sử (src/data, public/data/borders)
 npm run build    # phải qua trước khi báo xong task
 ```
 

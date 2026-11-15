@@ -7,7 +7,7 @@ Mỗi task là một file `T-XXX-ten-ngan.md` trong thư mục này, do phiên c
 1. Đọc `CLAUDE.md`, `docs/ARCHITECTURE.md` và file task được giao.
 2. Làm trên nhánh của mình, tên nhánh ghi trong file task. Không commit thẳng vào `main`.
 3. Chỉ sửa file trong mục "Phạm vi file" của task.
-4. Trước khi báo xong: `npm run lint` và `npm run build` phải qua, và tự chạy thử phần mình làm trong trình duyệt.
+4. Trước khi báo xong: `npm run lint` và `npm run build` phải qua (thêm `npm run validate` nếu đụng tới dữ liệu), và tự chạy thử phần mình làm trong trình duyệt.
 5. Điền mục "Kết quả" ở cuối file task: đã làm gì, đã kiểm tra thế nào, còn gì chưa xong, và các đề nghị thay đổi ngoài phạm vi (kiểu dữ liệu, store, thư viện mới).
 6. Commit trên nhánh của mình rồi báo người dùng. Không tự gộp vào `main`.
 
@@ -19,7 +19,7 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 
 | Task | Lane | Nội dung | Trạng thái |
 |---|---|---|---|
-| [T-001](T-001-timeline.md) | 1 | Dòng thời gian và panel sự kiện | Đang làm (giao 2026-11-15) |
-| [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Đang làm (giao 2026-11-15) |
-| [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Đang làm (giao 2026-11-15) |
-| [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Chờ giao, sau T-003 |
+| [T-001](T-001-timeline.md) | 1 | Dòng thời gian và panel sự kiện | Xong, đã gộp 2026-11-15 |
+| [T-002](T-002-map.md) | 2 | Bản đồ lịch sử | Xong, đã gộp 2026-11-15 |
+| [T-003](T-003-events-data.md) | 3 | Dữ liệu sự kiện và thế lực, script kiểm tra | Xong, đã gộp 2026-11-15 (phiên chính làm nốt) |
+| [T-004](T-004-borders-data.md) | 3 | Dữ liệu biên giới | Sẵn sàng, chờ lane 3 có lại hạn mức |

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/useT";
 import { LocaleSwitch } from "./LocaleSwitch";
 import { MapView } from "./map/MapView";
@@ -8,12 +8,23 @@ import { EventPanel } from "./panel/EventPanel";
 import { TimelineBar } from "./timeline/TimelineBar";
 import { TutorPanel } from "./tutor/TutorPanel";
 
+type PanelTab = "events" | "tutor";
+
+const TABS: { id: PanelTab; label: "events.heading" | "tutor.heading" }[] = [
+  { id: "events", label: "events.heading" },
+  { id: "tutor", label: "tutor.heading" },
+];
+
 /**
  * Page layout: header, map + side panel, timeline along the bottom.
  * Each region is owned by one lane; this file only arranges them.
+ *
+ * On wide screens the side panel stacks the event list above the tutor. On
+ * narrow screens there is not enough height for both, so they become tabs.
  */
 export function AppShell() {
   const { t, locale } = useT();
+  const [tab, setTab] = useState<PanelTab>("events");
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -36,8 +47,50 @@ export function AppShell() {
           <MapView />
         </main>
         <aside className="flex min-h-0 flex-1 flex-col border-t border-line lg:w-96 lg:flex-none lg:border-l lg:border-t-0">
-          <EventPanel />
-          <TutorPanel />
+          <div
+            role="tablist"
+            aria-label={t("panel.tabs")}
+            className="flex shrink-0 border-b border-line lg:hidden"
+          >
+            {TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                id={`panel-tab-${id}`}
+                aria-selected={tab === id}
+                aria-controls={`panel-${id}`}
+                onClick={() => setTab(id)}
+                className={`flex-1 border-b-2 px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
+                  tab === id
+                    ? "border-accent text-foreground"
+                    : "border-transparent text-muted hover:text-foreground"
+                }`}
+              >
+                {t(label)}
+              </button>
+            ))}
+          </div>
+          <div
+            id="panel-events"
+            role="tabpanel"
+            aria-labelledby="panel-tab-events"
+            className={`min-h-0 flex-1 flex-col lg:flex ${
+              tab === "events" ? "flex" : "hidden"
+            }`}
+          >
+            <EventPanel />
+          </div>
+          <div
+            id="panel-tutor"
+            role="tabpanel"
+            aria-labelledby="panel-tab-tutor"
+            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-none ${
+              tab === "tutor" ? "flex" : "hidden"
+            }`}
+          >
+            <TutorPanel />
+          </div>
         </aside>
       </div>
 
