@@ -1,42 +1,45 @@
 "use client";
 
+import { useState } from "react";
+import { getEvent } from "@/data";
 import { useT } from "@/lib/i18n/useT";
-import { YEAR_MAX, YEAR_MIN, formatYear } from "@/lib/years";
+import { formatYear } from "@/lib/years";
 import { useAppStore } from "@/store/useAppStore";
+import { PlayButton, SpeedSelect } from "./PlaybackControls";
+import { TimelineTrack } from "./TimelineTrack";
+import { usePlayback, type PlaybackSpeed } from "./usePlayback";
 
 /**
- * Placeholder slider. Lane 1 replaces this with the full timeline (task T-001).
- * Contract: read `year` from the store and change it only with `setYear`.
+ * The timeline along the bottom of the page: current year, playback controls
+ * and the track with event markers. Talks to the rest of the app only through
+ * `useAppStore` (`year`, `setYear`, `selectedEventId`, `selectEvent`).
  */
 export function TimelineBar() {
-  const { t, locale } = useT();
+  const { locale } = useT();
   const year = useAppStore((state) => state.year);
-  const setYear = useAppStore((state) => state.setYear);
+  const selectedEventId = useAppStore((state) => state.selectedEventId);
+  const selectedEvent = selectedEventId ? getEvent(selectedEventId) : undefined;
+
+  const [speed, setSpeed] = useState<PlaybackSpeed>(10);
+  const { playing, toggle, pause } = usePlayback(speed);
 
   return (
-    <div className="flex flex-col gap-1 px-4 py-3">
+    <div className="flex flex-col gap-1 px-4 pt-2 pb-1">
       <div className="flex items-center gap-3">
-        <span className="shrink-0 text-xs text-muted tabular-nums">
-          {formatYear(YEAR_MIN, locale)}
-        </span>
-        <input
-          type="range"
-          min={YEAR_MIN}
-          max={YEAR_MAX}
-          step={1}
-          value={year}
-          onChange={(event) => setYear(Number(event.target.value))}
-          aria-label={t("timeline.label")}
-          aria-valuetext={formatYear(year, locale)}
-          className="min-w-0 flex-1 accent-accent"
-        />
-        <span className="shrink-0 text-xs text-muted tabular-nums">
-          {formatYear(YEAR_MAX, locale)}
-        </span>
+        <PlayButton playing={playing} onToggle={toggle} />
+        <p className="flex min-w-0 flex-1 items-baseline gap-2">
+          <span className="shrink-0 text-lg font-semibold tabular-nums">
+            {formatYear(year, locale)}
+          </span>
+          {selectedEvent && (
+            <span className="truncate text-sm text-muted">
+              {selectedEvent.title[locale]}
+            </span>
+          )}
+        </p>
+        <SpeedSelect speed={speed} onChange={setSpeed} />
       </div>
-      <p className="text-center text-xs text-muted">
-        {t("timeline.placeholder")}
-      </p>
+      <TimelineTrack onUserSeek={pause} />
     </div>
   );
 }
