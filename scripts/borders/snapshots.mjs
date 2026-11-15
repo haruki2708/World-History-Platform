@@ -2324,6 +2324,15 @@ const RHODIAN_PERAEA = [
   [28.75, 37.6],
   [28.45, 38.05],
 ];
+/** Caria, part of the province of Asia from 129; Lycia stays free (Wikipedia "Asia (Roman province)"). */
+const CARIA = [
+  { coast: [[27.26, 37.86], [28.85, 36.72]] },
+  [29.25, 37.0],
+  [29.65, 37.15],
+  [28.75, 37.6],
+  [28.45, 38.05],
+];
+const WIKI_ASIA = wiki("Asia (Roman province): its regions in 129 BC", "Asia_(Roman_province)");
 /**
  * Pompey's Pontus (63): the Black Sea coast from Amastris to Trapezus, joined
  * to Bithynia; the interior was left to client kings (Cliopatria "Kingdom of
@@ -2776,7 +2785,7 @@ const GREEK_NORTH = [BYZANTIUM, BLACK_SEA_WEST, OLBIA, CHERSONESOS, HERACLEA_PON
 
 const bce129 = {
   year: -129,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
+  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_ASIA, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
   features: [
     {
       polityId: "rome",
@@ -2790,6 +2799,7 @@ const bce129 = {
         ISLANDS.euboea,
         ISLANDS.corcyra,
         PERGAMON_146,
+        CARIA,
       ],
     },
     { polityId: "italian-allies", polygons: [ITALY_NORTH_146, ALLIES_SOUTH] },
@@ -2818,6 +2828,7 @@ const bce88 = {
     WIKI_CAPPADOCIA,
     WIKI_ARMENIA,
     WIKI_TIGRANES,
+    WIKI_ASIA,
     WIKI_PARTHIA,
     WIKI_MAURETANIA,
     CLIOPATRIA,
@@ -2852,7 +2863,7 @@ const bce88 = {
       // Galatia and the Roman province of Asia, overrun in 89–88, and his
       // Black Sea possessions in the Crimea.
       polityId: "pontus",
-      polygons: [PONTUS_146, BITHYNIA_146, CAPPADOCIA_146, GALATIA_146, PERGAMON_146, CHERSONESOS, BOSPORUS],
+      polygons: [PONTUS_146, BITHYNIA_146, CAPPADOCIA_146, GALATIA_146, PERGAMON_146, CARIA, CHERSONESOS, BOSPORUS],
     },
     { polityId: "armenia", polygons: [ARMENIA_88] },
   ],
@@ -2872,12 +2883,25 @@ const ROME_63 = [
   ISLANDS.euboea,
   ISLANDS.corcyra,
   PERGAMON_146,
+  CARIA,
   BITHYNIA_146,
   PONTUS_COAST,
   CILICIA,
   SYRIA,
 ];
-const SOURCES_LATE = [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_PONTUS_PROVINCE, WIKI_ILLYRICUM, WIKI_ARMENIA, WIKI_CAPPADOCIA, WIKI_GALATIA, WIKI_PARTHIA, WIKI_MAURETANIA, CLIOPATRIA];
+const SOURCES_LATE = [
+  WIKI_PROVINCES,
+  SHEPHERD_ROMAN,
+  WIKI_ASIA,
+  WIKI_PONTUS_PROVINCE,
+  WIKI_ILLYRICUM,
+  WIKI_ARMENIA,
+  WIKI_CAPPADOCIA,
+  WIKI_GALATIA,
+  WIKI_PARTHIA,
+  WIKI_MAURETANIA,
+  CLIOPATRIA,
+];
 
 const bce63 = {
   year: -63,
