@@ -1,6 +1,6 @@
 # Dữ liệu biên giới
 
-Cập nhật: 2026-11-16 (T-004, đợt 1: các mốc 509, 264 và 146 TCN).
+Cập nhật: 2026-11-16. Đợt 1 (lane 3): các mốc 509, 264 và 146 TCN. Đợt 2 (phiên chính, vì lane 3 hết hạn mức): 11 mốc còn lại và 6 thế lực mới, xem mục "Đợt 2" ở cuối.
 
 ## Cách dựng
 
@@ -94,3 +94,56 @@ Script build kiểm tra: không có hai lãnh thổ nào chồng nhau trên đ�
 - Biên giới trong lục địa (Gaul, nội địa Tây Ban Nha và Numidia, phía đông Đế quốc Seleukos) chỉ là ước lượng.
 - Ranh giới giữa ager Romanus và đồng minh đã được khái quát mạnh: các thuộc địa nhỏ và đất bị tịch thu rải rác không được vẽ.
 - Thuộc địa Hy Lạp vẽ thành dải ven biển rộng khoảng 0,2–0,4°, rộng hơn lãnh thổ thật để còn nhìn thấy ở mức zoom của bản đồ.
+
+## Đợt 2 (phiên chính, 2026-11-16)
+
+### Cách làm
+
+Cùng phương pháp và cùng script với đợt 1. Mốc nào có đường biên không đổi thì dùng lại nguyên hình của đợt 1 (hàm `polygonOf` trong `snapshots.mjs` lấy hình theo thế lực và thứ tự, kèm kiểm tra điểm đầu để không lấy nhầm). Các đường biên mới được khái quát từ các bài Wikipedia ghi trong `sources` của từng mốc (đọc ngày 2026-11-16) và hiểu biết lịch sử phổ thông. Chúng **không** được đối chiếu từng nét với các bản đồ của Shepherd như đợt 1, nên độ chính xác thấp hơn đợt 1; nên được soát lại khi có thời gian.
+
+### Thế lực mới
+
+| Thế lực | Năm | Ghi chú |
+|---|---|---|
+| Đế quốc Ba Tư (`achaemenid-empire`) | 550–330 | Có ở 509 và 338: Tiểu Á cùng các đảo phía đông Aegean, Cận Đông, Ai Cập, Lưỡng Hà, Iran tới sông Ấn; năm 509 thêm Cyprus và dải Thrace ven biển (sau chiến dịch năm 513) |
+| Vương quốc Armenia | từ 331 | Orontid tự chủ từ 331, nhà Artaxias từ 189; một hình từ 290 tới 201, một hình khác từ 168 |
+| Vương quốc Bithynia | 297–74 | Tây bắc Tiểu Á, phía đông eo Bosporus; năm 88 bị Mithridates chiếm (tính vào Pontus); năm 74 để lại cho La Mã |
+| Vương quốc Cappadocia | từ 331 | Có ở 290 và từ 241; năm 264 vẫn theo đợt 1 (thuộc Seleukos); năm 88 bị Pontus chiếm |
+| Người Galatia | 275–25 | Quanh Ancyra, Pessinus, Tavium; năm 88 bị Pontus chiếm |
+| Vương quốc Mauretania | — | Từ Đại Tây Dương tới sông Mulucha (201–129); từ 88 thêm miền tây Numidia (sau Jugurtha); năm 30 do La Mã trực tiếp cai quản (33–25), tô màu La Mã |
+
+Không thêm Thrace (chia nhỏ sau thế kỷ 4; năm 338 thuộc Macedonia) và Nabataea (nằm ở rìa bản đồ). Màu Numidia đổi sang `#5f9e6e` để tách khỏi Ai Cập.
+
+### Các mốc
+
+| Năm | Điểm chính |
+|---|---|
+| 509 (sửa) | Thêm Ba Tư |
+| 338 | La Mã sau Chiến tranh Latinh (nam Etruria, Latium, bắc Campania); Etruria, Samnium; Macedonia của Philip II gồm cả Thrace và Thessaly; Syracuse ở đông Sicily, Carthage ở tây (ranh giới sông Halycus); Ba Tư |
+| 290 | La Mã thêm xứ Sabine tới Adriatic; đồng minh: Etruria, Umbria, Picenum, Samnium, Campania, Apulia; Lucania và Bruttium để trống; Tiểu Á phía tây (của Lysimachus) để trống; Seleukos từ Syria tới Ấn Độ |
+| 264 (sửa) | Thêm Bithynia, Galatia, Armenia vào các khoảng trống |
+| 241 | La Mã có Sicily trừ vương quốc Syracuse; Carthage mất Sicily, vẫn giữ Sardinia và Corsica; Parthia tách khỏi Seleukos; Cyrenaica về lại Ai Cập |
+| 218 | La Mã có Sardinia, Corsica, Corcyra, Gaul trong dãy Alps; Tây Ban Nha của nhà Barca tới sông Ebro |
+| 201 | Sau Zama: La Mã có cả Sicily, Tây Ban Nha; Carthage chỉ còn vùng lõi và các thành Syrtis; Numidia của Masinissa; Mauretania |
+| 168 | Sau Pydna: Macedonia để trống (bốn nước cộng hoà dưới quyền bảo trợ của La Mã); Thessaly tính vào các thành bang Hy Lạp; Pergamon lớn sau hoà ước Apamea; Seleukos mất Tiểu Á nhưng có Coele-Syria |
+| 146 (sửa) | Thêm Bithynia, Galatia, Cappadocia, Armenia, Mauretania |
+| 129 | Tỉnh Asia; Tây Ban Nha gần hết bán đảo; Seleukos chỉ còn Syria; Parthia có Lưỡng Hà |
+| 88 | Cả nước Ý là La Mã (sau Chiến tranh Đồng minh); Gallia Narbonensis; Pontus của Mithridates chiếm Bithynia, Cappadocia, Galatia, tỉnh Asia, Chersonesos và Bosporus; Cyrenaica để trống (các thành tự do, 96–74) |
+| 63 | Sau Pompey: La Mã có Bithynia và Pontus, Cilicia, Syria (gồm Judaea), Crete, Cyrenaica; Armenia, Cappadocia, Galatia là vương quốc chư hầu (vẫn tô màu riêng) |
+| 50 | Toàn bộ Gaul và Cyprus thuộc La Mã |
+| 30 | Ai Cập, Numidia, Mauretania, Massalia thuộc La Mã |
+
+### Đơn giản hoá đã biết
+
+- Gaul trong dãy Alps (Cisalpina) tô theo hình năm 146 từ năm 218, dù người Gaul nổi dậy trong Chiến tranh Punic lần hai và chỉ bị khuất phục hẳn khoảng năm 191. Liguria cũng tô từ 218, dù bị chinh phục dần trong thế kỷ 2.
+- Tây Ban Nha của La Mã năm 201 và 168 dùng lại hình năm 146.
+- Pergamon từ 241 tới 201 dùng lại hình nhỏ năm 264, dù Attalus I có lúc nắm vùng rộng hơn.
+- Năm 88, Armenia dùng hình năm 146; đế quốc lớn nhất của Tigranes (gồm cả Syria) là từ năm 83.
+- Năm 63 trở đi, toàn bộ hình Pontus năm 146 tô màu La Mã, kể cả phần phía đông được giao cho các vua chư hầu.
+- Judaea (nhà Hasmonean, tự chủ khoảng 140–63) nằm trong hình Syria; Commagene, Osroene, Atropatene, Nabataea, Illyria, Thrace để trống hoặc gộp vào nước lớn bên cạnh.
+
+### Kiểm tra
+
+- `node scripts/build-borders.mjs`: 14 mốc, không chồng lấn trên đất liền; diện tích tính ra hợp lý (Ba Tư năm 509 khoảng 5,3 triệu km², La Mã năm 290 khoảng 19 nghìn km², Pontus năm 88 khoảng 430 nghìn km², La Mã năm 30 khoảng 3,1 triệu km²).
+- Độ chênh màu giữa mọi cặp thế lực có chung đường biên (59 cặp, cả hai chế độ sáng và tối, màu tô 45% trên nền đất): ΔE nhỏ nhất 13,5 (các thành bang Hy Lạp và Syracuse).
+- Đã xem bản đồ trong app ở 12 năm.

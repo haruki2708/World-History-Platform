@@ -180,12 +180,12 @@ for (let i = 1; i < marks.length; i++) {
   }
 }
 
-for (const id of polityIds) {
-  if (!usedPolities.has(id)) fail(`polity ${id}`, "is not used by any event");
-}
-
 // ---------------------------------------------------------------------------
 // Border snapshots
+//
+// A polity must be used by at least one event or at least one border file
+// (some, such as Persia, appear only on the map); checked once the border
+// files have been read, below.
 
 const snapshots = readJson(join(dataDir, "border-snapshots.json")) ?? [];
 const listedFiles = new Set();
@@ -242,6 +242,7 @@ for (const snapshot of snapshots) {
     const at = `${where}, feature ${index}`;
     const polityId = feature?.properties?.polityId;
     if (!polityIds.has(polityId)) fail(at, `unknown polityId "${polityId}"`);
+    usedPolities.add(polityId);
     const geometry = feature?.geometry;
     if (geometry?.type === "Polygon") {
       geometry.coordinates.forEach((ring) => checkRing(at, ring));
@@ -260,6 +261,12 @@ if (existsSync(bordersDir)) {
     if (file.endsWith(".geojson") && !listedFiles.has(file)) {
       fail(`public/data/borders/${file}`, "is not listed in border-snapshots.json");
     }
+  }
+}
+
+for (const id of polityIds) {
+  if (!usedPolities.has(id)) {
+    fail(`polity ${id}`, "is not used by any event or border file");
   }
 }
 

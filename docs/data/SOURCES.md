@@ -55,6 +55,19 @@ Giấy phép dưới đây đọc trực tiếp từ trang hoặc file giấy ph
 | W. R. Shepherd, *Historical Atlas* (Henry Holt, New York, 1911 và 1923), bản quét trên Wikimedia Commons (từ Perry-Castañeda Library, University of Texas) | Các bản đồ: [Growth of Roman Power in Italy](https://commons.wikimedia.org/wiki/File:Rome_power_italy_500_100.jpg) (lãnh thổ La Mã khoảng 500, 338 và 100 TCN, thuộc địa Latinh, đồng minh); [Greek and Phoenician Settlements about 550 B.C.](https://commons.wikimedia.org/wiki/File:Shepherd-c-012.jpg); [Roman territory from 264 B.C. to Diocletian](https://commons.wikimedia.org/wiki/File:Roman_expansion_264_BC_Shepherd.jpg); [Kingdoms of the Diadochi 301 and 200 B.C.](https://commons.wikimedia.org/wiki/File:Diadochi_kingdoms_301_200.jpg) | Ảnh bản đồ, có lưới kinh vĩ tuyến. Bản đồ Ý được gắn toạ độ bằng 15 giao điểm kinh vĩ tuyến (sai số dưới 4 px, khoảng 0,015°) để đọc vị trí | **Phạm vi công cộng**: trường giấy phép của từng file trên Commons ("Public domain"); xuất bản ở Mỹ năm 1911 và 1923 | **Có**: tham chiếu chính để vẽ tay nước Ý, các thuộc địa Hy Lạp và lãnh thổ La Mã năm 146 |
 | Digital Atlas of the Roman Empire (DARE, J. Åhlfeldt) | Địa danh và nền bản đồ thời Đế chế | Dựa trên Barrington Atlas | **Chưa đọc được:** tên miền chính thức `dare.ht.lu.se` không còn phân giải (2026-11-16); trang `imperium.ahlfeldt.se` không ghi giấy phép | **Không** |
 
+### Nguồn thêm cho đợt 2 (đọc ngày 2026-11-16)
+
+Các bài Wikipedia dùng để kiểm tra mốc thời gian và phạm vi của các thế lực mới và các tỉnh La Mã. Dự án chỉ dẫn link và tự vẽ, không sao chép nội dung hay bản đồ.
+
+- [Achaemenid Empire](https://en.wikipedia.org/wiki/Achaemenid_Empire): Thrace (513), Macedonia chư hầu, Ai Cập và Cyprus (từ 525), chiếm lại Ai Cập (343).
+- [Kingdom of Armenia (antiquity)](https://en.wikipedia.org/wiki/Kingdom_of_Armenia_(antiquity)): tự chủ từ 331, nhà Artaxias từ 189, Tigranes vào Syria năm 83, chư hầu La Mã từ 66.
+- [Cappadocia (Roman province)](https://en.wikipedia.org/wiki/Cappadocia_(Roman_province)): nhà Ariarathes 331–95, bị Mithridates chiếm 89–85, chư hầu sau 63.
+- [Galatia](https://en.wikipedia.org/wiki/Galatia): người Gaul định cư sau năm 275 (hoặc 269), thành tỉnh La Mã năm 25.
+- [Kingdom of Bithynia](https://en.wikipedia.org/wiki/Kingdom_of_Bithynia): vương quốc từ 297, bị Mithridates chiếm 90 và 88, để lại cho La Mã năm 74.
+- [Mauretania](https://en.wikipedia.org/wiki/Mauretania): tới sông Moulouya (Mulucha) thời Baga (khoảng 225); Bocchus I nhận miền tây Numidia; La Mã cai quản trực tiếp 33–25.
+- [Roman province](https://en.wikipedia.org/wiki/Roman_province): năm lập các tỉnh thời Cộng hoà.
+- [Parthian Empire](https://en.wikipedia.org/wiki/Parthian_Empire): Arsaces I (247), Media (148/147), Lưỡng Hà (141), Antiochus VII tử trận (129).
+
 ### Ghi chú về Cliopatria
 
 - Trích dẫn: Bennett J. S. và cộng sự, "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE", *Scientific Data* 12, 247 (2025), doi:[10.1038/s41597-025-04516-9](https://doi.org/10.1038/s41597-025-04516-9).
