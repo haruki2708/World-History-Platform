@@ -39,4 +39,49 @@ Tạo 12–15 mốc biên giới cho vùng Địa Trung Hải trong 509–27 TCN
 
 ## Kết quả
 
-_(Lane 3 điền khi xong.)_
+### Đợt 1 (2026-11-16): xong 3 mốc 509, 264, 146 TCN. Chờ phiên chính duyệt hướng làm trước khi làm đợt 2.
+
+**Đã làm**
+
+- Khảo sát 7 nguồn, giấy phép đọc trực tiếp từ trang của nguồn, ghi ở `docs/data/SOURCES.md`. Dùng: Shepherd *Historical Atlas* (phạm vi công cộng), Cliopatria v0.2.1 (CC BY 4.0), Natural Earth (phạm vi công cộng). **Không dùng** historical-basemaps (GPL-3.0) và AWMC (ODbL), vì cả hai buộc dữ liệu dẫn xuất theo cùng giấy phép; DARE cũng không dùng vì không đọc được giấy phép. Không có nguồn nào giấy phép không rõ mà vẫn dùng.
+- Biên giới **vẽ tay**, không ghép thẳng polygon của bộ nào. Polygon Cliopatria hụt bờ biển 0,1–0,3° và xê dịch giữa các năm khung, nên ghép vào thì bờ biển lộ dải trống và đường biên nhảy qua lại giữa các mốc. Cách làm: đường ranh giới dùng chung vẽ một lần trong `scripts/borders/arcs.mjs`, từng mốc trong `scripts/borders/snapshots.mjs`, đảo và vài đoạn bờ ở eo hẹp lấy đúng từ bản đồ nền. Chi tiết và lựa chọn của từng mốc: `docs/data/BORDERS.md`.
+- `scripts/build-borders.mjs` (không cần thư viện) ghi `public/data/borders/*.geojson` và `src/data/border-snapshots.json`, đồng thời kiểm tra: không chồng lấn trên đất liền, thế lực còn tồn tại ở năm của mốc, mốc có nguồn.
+- Kích thước file: 509 là 15 KB, 264 là 38 KB, 146 là 37 KB.
+
+**Đã kiểm tra**
+
+- `node scripts/build-borders.mjs --check`, `npm run validate` (59 sự kiện, 17 thế lực, 3 mốc), `npm run lint`, `npm run build`: đều qua.
+- Chạy `npm run dev` và chụp app bằng Edge headless ở các năm −509, −400, −264, −200, −146, −100, −27, và ở mức zoom 5.5 khi chọn các sự kiện "Founding of the Roman Republic", "First Punic War", "Destruction of Carthage", "Sack of Corinth". Chú giải hiện đúng "Borders as of 509/264/146 BCE"; dữ liệu thử của lane 2 đã tự tắt; console không có cảnh báo `polityId`; bờ biển không lộ dải trống. Các năm giữa hai mốc hiện mốc trước đó (đúng như thiết kế, đợt 2 sẽ thêm mốc).
+- Diện tích đối chiếu: năm 264 lãnh thổ công dân La Mã 26 nghìn km², đồng minh 104 nghìn km²; Seleukos, Ptolemaios, Pergamon gần với số của Cliopatria.
+- Cả 12 link nguồn trong `border-snapshots.json` đều phản hồi.
+
+**Cần phiên chính quyết định**
+
+1. **Thiếu Ba Tư.** `polities.json` không có Đế quốc Achaemenid, nên năm 509 toàn bộ Tiểu Á, Cận Đông và Ai Cập để trống (Ionia và Cyprus cũng trống). Nếu đợt 2 có mốc 338 thì càng cần. Đề nghị thêm thế lực `achaemenid-empire`, chỉ dùng trên bản đồ. Muốn vậy thì phải nới quy tắc của `validate-data.mjs` "thế lực nào cũng phải được ít nhất một sự kiện dùng", hoặc thêm một sự kiện dùng nó (ví dụ trận Marathon 490). Lane 3 chưa tự làm, vì `events.json` nằm ngoài phạm vi T-004 và nới quy tắc là việc của phiên chính. Câu hỏi tương tự với các thế lực chỉ có trên bản đồ ở các mốc sau (Bithynia, Cappadocia, Armenia, Mauretania): thêm, hay để trống như hiện nay?
+2. **La Mã và đồng minh tách màu** (264, 146): đỏ là lãnh thổ công dân, xám là `italian-allies`. Đúng sử hơn và khớp với sự kiện Chiến tranh Đồng minh (năm 88 đồng minh nhập vào La Mã), nhưng năm 264 nước Ý trông "phần lớn không phải La Mã". Nếu muốn cả bán đảo một màu thì chỉ cần đổi gán vùng trong `snapshots.mjs`.
+3. Vài lựa chọn khác với Cliopatria, có ghi lý do trong `BORDERS.md`: năm 146 không tính Dalmatia, ven biển Thrace, Lycia và Caria là của La Mã; năm 264 Cilicia của Ptolemaios chỉ giữ dải ven biển; năm 264 Cyrenaica để trống (vương quốc riêng của Magas theo Cliopatria); năm 264 Euboea thuộc Macedonia (theo Cliopatria).
+
+**Đề nghị ngoài phạm vi**
+
+- **Ghi công trên giao diện** (lane 2 hoặc phiên chính): CC BY 4.0 của Cliopatria yêu cầu ghi công ở chỗ người dùng nhìn thấy. Chú giải bản đồ hiện chỉ ghi Natural Earth. Đề nghị thêm một dòng, ví dụ "Borders: drawn after Shepherd's Historical Atlas and Cliopatria (CC BY 4.0)" và bản tiếng Việt.
+- `package.json`: thêm `"borders": "node scripts/build-borders.mjs"`. Cân nhắc cho `npm run validate` gọi luôn `build-borders.mjs --check`.
+- Gỡ `src/components/map/__fixtures__/` (đã có trong PLAN).
+
+**Đề xuất cho đợt 2** (tổng cộng 14 mốc; mốc đánh dấu ✓ đã xong)
+
+| Năm | Lý do |
+|---|---|
+| 509 ✓ | Lập Cộng hoà |
+| 338 | Kết thúc Chiến tranh Latinh, giải thể Liên minh Latinh; Macedonia của Philip II |
+| 290 | Kết thúc Chiến tranh Samnite lần ba, sáp nhập xứ Sabine |
+| 264 ✓ | Ý thống nhất dưới La Mã, mở đầu Chiến tranh Punic lần một |
+| 241 | Sicily thành tỉnh đầu tiên |
+| 218 | Trước Chiến tranh Punic lần hai: Tây Ban Nha của nhà Barca; Sardinia, Corsica, Gaul trong dãy Alps đã thuộc La Mã |
+| 201 | Sau Zama: Tây Ban Nha, vương quốc Numidia của Masinissa |
+| 168 | Pydna, Macedonia chấm dứt; sau hoà ước Apamea (188) |
+| 146 ✓ | Carthage và Corinth bị phá |
+| 129 | Tỉnh Asia (di sản Pergamon); Narbonensis sau đó ít lâu |
+| 88 | Chiến tranh Đồng minh kết thúc (đồng minh nhập vào La Mã), Pontus của Mithridates bành trướng |
+| 63 | Pompey sắp xếp lại phương Đông: Syria, Pontus, Bithynia; Seleukos chấm dứt |
+| 50 | Caesar chinh phục xong Gaul |
+| 30 | Ai Cập bị sáp nhập sau Actium |
