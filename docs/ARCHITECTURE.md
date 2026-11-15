@@ -10,7 +10,7 @@ src/
   components/
     AppShell.tsx       sắp xếp các vùng: header, bản đồ, panel, timeline
     LocaleSwitch.tsx
-    shell/             Lane 1: link chia sẻ, nhớ ngôn ngữ, phím tắt, hộp thoại
+    shell/             Lane 1: link chia sẻ, nhớ ngôn ngữ, phím tắt, hộp thoại, giới thiệu
     map/               Lane 2
     timeline/          Lane 1
     panel/             Lane 1 (danh sách và chi tiết sự kiện)
@@ -69,7 +69,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - Feature có `polityId` không có trong `polities.json` bị bỏ qua (kèm cảnh báo ở console). `npm run validate` bắt lỗi này.
 - Một thế lực trong `polities.json` phải được ít nhất một sự kiện hoặc một file biên giới dùng (quyết định 2026-11-16; có những thế lực chỉ xuất hiện trên bản đồ, như Ba Tư).
 - Màu: đồng minh Ý cùng tông đỏ với La Mã (đỏ nhạt), để cả bán đảo đọc là vùng của La Mã nhưng vẫn phân biệt công dân với đồng minh. Hai thế lực chung đường biên phải phân biệt rõ ở cả chế độ sáng lẫn tối.
-- Biên giới được vẽ tay theo bản đồ Shepherd (phạm vi công cộng) và Cliopatria (CC BY 4.0). Giấy phép CC BY 4.0 bắt buộc ghi công: dòng ghi công nằm ở chú giải bản đồ và ở `README.md`; không được gỡ. Phương pháp và căn cứ từng mốc: `docs/data/BORDERS.md`. Dựng lại file: `npm run borders`.
+- Biên giới được vẽ tay theo bản đồ Shepherd (phạm vi công cộng) và Cliopatria (CC BY 4.0). Giấy phép CC BY 4.0 bắt buộc ghi công: dòng ghi công nằm ở chú giải bản đồ, ở hộp thoại Giới thiệu và ở `README.md`; không được gỡ. Phương pháp và căn cứ từng mốc: `docs/data/BORDERS.md`. Dựng lại file: `npm run borders`.
 - Bản đồ ghi tên thế lực ở điểm sâu nhất trong phần đất liền của lãnh thổ, ẩn nhãn không đủ chỗ ở mức phóng hiện tại, và chuyển cảnh mờ dần 400 ms giữa hai mốc (`src/components/map/labels/`, `territoryFade.ts`).
 
 ### Bản đồ nền
@@ -91,10 +91,11 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 - Ngôn ngữ khi mở trang, theo thứ tự ưu tiên: tham số `lang` trên link, lựa chọn đã lưu (`localStorage`, khoá `whp.locale`), ngôn ngữ của trình duyệt (bắt đầu bằng `vi` thì tiếng Việt), cuối cùng là tiếng Anh. Chỉ lựa chọn bằng nút ở header mới được lưu; mở link của người khác không ghi đè.
 - Trang được dựng sẵn bằng tiếng Anh. Với người dùng sẽ xem bằng tiếng Việt, một script nhỏ trong `src/app/layout.tsx` chạy trước khi trang hiện ra, ẩn trang (thuộc tính `data-locale-pending` trên `<html>`) cho tới khi `AppShell` đã áp tiếng Việt, thường dưới 0,1 giây; quá 2 giây thì trang tự hiện. Script này lặp lại thứ tự ưu tiên của `resolveInitialLocale` trong `src/components/shell/locale.ts`; sửa một bên thì sửa cả hai.
 
-## Link chia sẻ và phím tắt
+## Link chia sẻ, giới thiệu và phím tắt
 
 - **Địa chỉ trang** phản ánh trạng thái đang xem: `/?year=-216&event=battle-of-cannae&lang=vi`. `src/components/shell/UrlSync.tsx` áp tham số khi mở trang (tham số sai bị bỏ qua từng cái) và cập nhật địa chỉ bằng `history.replaceState`: ngay khi chọn sự kiện hay đổi ngôn ngữ, sau 400 ms năm đứng yên khi đổi năm. Tham số lạ khác trên link được giữ nguyên.
 - **Phát tự động:** đang phát mà năm bị đổi từ nơi khác (kéo, phím, nút của gia sư) hoặc có sự kiện được chọn thì dừng phát.
+- **Giới thiệu** (`src/components/shell/AboutDialog.tsx`, mở bằng nút ở header): app là gì, cách dùng, độ chính xác, nguồn và ghi công, cách gia sư hoạt động. Nguồn, giấy phép và trích dẫn ở đây phải khớp với `README.md` (mục "Data credits") và `docs/data/SOURCES.md`; đổi một chỗ thì đổi cả ba. Lần đầu mở app, header có một gợi ý mời xem phần này; đóng gợi ý hoặc mở Giới thiệu thì ghi `localStorage` khoá `whp.aboutSeen` và gợi ý không hiện lại.
 - **Phím tắt** (`src/components/shell/keyboard.ts`): Space phát hoặc tạm dừng, ←/→ đổi 1 năm (Shift: 10 năm), Home/End về hai đầu, `/` vào ô hỏi gia sư, Esc rời ô nhập, `?` mở bảng phím tắt. Mỗi phần tự đăng ký phím của mình bằng `useShortcuts`; phím tắt không chạy khi đang gõ chữ, đang giữ Ctrl/Alt/Cmd, đang dùng bộ gõ, đang mở hộp thoại, focus ở trên bản đồ, hoặc Space khi focus ở một nút.
 
 ## AI tutor (giai đoạn 4)
@@ -115,7 +116,7 @@ src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --s
 - **Ngữ cảnh cho model:** phần hướng dẫn và toàn bộ dữ liệu sự kiện, thế lực nằm ở phần đầu cố định của prompt, được cache. Ngữ cảnh của từng câu hỏi (năm, vùng nhìn, sự kiện đang chọn, các sự kiện quanh năm đó) được dựng từ `context` của tin nhắn đó, cùng đầu vào thì ra cùng một đoạn chữ.
 - **Lịch sử gửi cho model** chỉ gồm phần chữ của các lượt trước; không gửi lại các khối suy luận (thinking). Cách này hợp lệ với Opus 5.5.
 - **Lượt hỏi thất bại:** lượt nào câu trả lời không có chữ nào (lỗi ngay, hoặc dừng trước chữ đầu tiên) thì khung chat bỏ cả lượt khỏi các yêu cầu sau. Câu trả lời dở dang (bị dừng hoặc lỗi giữa chừng) thì gửi phần chữ đã có. Route cũng tự bỏ lượt trợ lý rỗng và gộp các lượt cùng vai liền nhau, nên lịch sử gửi cho model luôn xen kẽ người dùng và trợ lý.
-- **Nút xem trên bản đồ:** câu trả lời có thể kèm tối đa 3 sự kiện `map_link` (`{ year, eventId }`), đến xen giữa các `text`. Khung chat hiện chúng thành nút dưới câu trả lời; bấm thì thanh thời gian (và bản đồ, nếu có sự kiện) đi tới đó. Chữ trên nút do khung chat dựng từ dữ liệu, theo ngôn ngữ đang chọn. Model yêu cầu nút bằng ký hiệu trong câu trả lời; server tách ký hiệu ra khỏi chữ và kiểm tra từng nút (T-011). Chế độ giả lập gửi nút mẫu; thẻ `#nolinks` tắt chúng. Lịch sử gửi lên server chỉ gồm phần chữ, không kèm nút.
+- **Nút xem trên bản đồ:** câu trả lời có thể kèm tối đa 3 sự kiện `map_link` (`{ year, eventId }`), đến xen giữa các `text`. Khung chat hiện chúng thành nút dưới câu trả lời; bấm thì thanh thời gian (và bản đồ, nếu có sự kiện) đi tới đó. Chữ trên nút do khung chat dựng từ dữ liệu, theo ngôn ngữ đang chọn. Model yêu cầu nút bằng ký hiệu ở cuối câu trả lời, `[[map:-216:battle-of-cannae]]` cho một sự kiện hay `[[map:-218]]` cho một năm (hướng dẫn nằm trong phần prompt cố định). Server (`src/server/tutor/mapLinks.ts`) tách ký hiệu ra khỏi luồng chữ, kể cả khi ký hiệu bị cắt giữa hai mẩu, kiểm tra từng nút và bỏ lặng lẽ nút sai, nút trùng, nút thứ tư trở đi và nút trỏ đúng vào năm cùng sự kiện người dùng đang xem. Log chỉ ghi số nút đã gửi và đã bỏ (`[tutor] map links`). Chế độ giả lập gửi nút mẫu; thẻ `#nolinks` tắt chúng. Lịch sử gửi lên server chỉ gồm phần chữ, không kèm nút.
 - **Mã HTTP** khi lỗi là toàn bộ phản hồi: `bad_request` 400 (403 khi yêu cầu đến từ trang khác), `refused` 422, `rate_limited` và `limit_reached` 429, `unavailable` 502; `not_configured`, `invalid_key`, `no_credits`, `overloaded` là 503. Lỗi đến sau khi phản hồi đã bắt đầu (sau `ping` hoặc `text`) thì vẫn là 200.
 - **`rate_limited` và `limit_reached`:** `rate_limited` là tạm thời (hỏi quá nhanh, hoặc Claude API báo quá tải yêu cầu), thử lại sau ít phút được. `limit_reached` là đã hết lượt của app (số câu mỗi ngày của một người, hoặc trần chi phí mỗi ngày của cả app), thử lại ngay không được.
 - **Thẻ thử lỗi trong chế độ giả lập:** câu hỏi chứa `#error:<mã>` trả lỗi đó ngay; `#error:midstream` gửi vài mẩu chữ rồi báo `unavailable`; `#truncated` kết thúc bằng `done` với `truncated: true`; `#slow` (hoặc `#slow:<giây>`, tối đa 120) chờ trước chữ đầu tiên, để thấy `ping`.
