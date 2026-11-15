@@ -7,18 +7,234 @@
       "vi": "Thành lập Cộng hoà La Mã"
     },
     "summary": {
-      "en": "According to Roman tradition, the last king, Tarquinius Superbus, was expelled and the monarchy was replaced by two annually elected consuls. The date is traditional rather than firmly documented.",
-      "vi": "Theo truyền thống La Mã, vị vua cuối cùng là Tarquinius Superbus bị trục xuất, và chế độ quân chủ được thay bằng hai chấp chính quan bầu hằng năm. Mốc năm này là theo truyền thống chứ không có tư liệu chắc chắn."
+      "en": "According to Roman tradition, the last king, Tarquinius Superbus, was driven out and the monarchy was replaced by two annually elected consuls, the first being Brutus and Collatinus. Polybius dates Rome's first treaty with Carthage to the same year. The date is traditional, and modern historians doubt much of the detail in the story.",
+      "vi": "Theo truyền thống La Mã, vị vua cuối cùng là Tarquinius Superbus bị trục xuất, và chế độ quân chủ được thay bằng hai chấp chính quan bầu hằng năm, đầu tiên là Brutus và Collatinus. Polybius xếp hiệp ước đầu tiên giữa La Mã và Carthage vào chính năm này. Mốc năm là theo truyền thống, và các sử gia hiện đại nghi ngờ nhiều chi tiết của câu chuyện."
     },
     "location": {
       "name": { "en": "Rome", "vi": "Roma" },
-      "lng": 12.4964,
-      "lat": 41.9028
+      "lng": 12.4913,
+      "lat": 41.89
     },
-    "polityIds": ["rome", "etruscans"],
+    "polityIds": ["rome", "carthage"],
     "category": "political",
     "importance": 3,
-    "sources": [{ "title": "Livy, Ab Urbe Condita, Books 1–2" }]
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 1.59–60",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_1"
+      },
+      {
+        "title": "Polybius, Histories 3.22",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+      }
+    ]
+  },
+  {
+    "id": "first-secession-of-the-plebs",
+    "year": -494,
+    "title": {
+      "en": "First secession of the plebs",
+      "vi": "Cuộc ly khai đầu tiên của giới bình dân"
+    },
+    "summary": {
+      "en": "Crushed by debt and shut out of government, the plebeians walked out of Rome and camped on the Sacred Mount outside the city. They came back after winning officials of their own, the tribunes of the plebs, whose persons were inviolable. Livy places this in 494 BCE and notes a rival tradition that the plebs withdrew to the Aventine instead.",
+      "vi": "Bị nợ nần đè nặng và không có tiếng nói trong chính quyền, giới bình dân rời bỏ Roma và hạ trại trên Núi Thiêng ở ngoài thành. Họ chỉ trở về sau khi giành được chức quan của riêng mình là các hộ dân quan, những người bất khả xâm phạm. Livy xếp sự kiện vào năm 494 TCN và ghi nhận một truyền thống khác cho rằng giới bình dân rút lên đồi Aventine."
+    },
+    "location": {
+      "name": { "en": "Sacred Mount (Mons Sacer)", "vi": "Núi Thiêng (Mons Sacer)" },
+      "lng": 12.5345,
+      "lat": 41.9333,
+      "approximate": true
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 2.32–33",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_2"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-himera",
+    "year": -480,
+    "title": {
+      "en": "Battle of Himera",
+      "vi": "Trận Himera"
+    },
+    "summary": {
+      "en": "A Carthaginian army under Hamilcar landed in Sicily and was destroyed outside Himera by Gelon of Syracuse and Theron of Akragas. Ancient writers tied the victory to the Greek stand against Persia in the same year; Diodorus even puts it on the same day as Thermopylae, a coincidence modern scholars reject. Carthage's power in Sicily was crippled for decades.",
+      "vi": "Một đạo quân Carthage do Hamilcar chỉ huy đổ bộ lên Sicilia và bị Gelon của Syracuse cùng Theron của Akragas tiêu diệt bên ngoài Himera. Các tác giả cổ đại gắn chiến thắng này với cuộc kháng cự của người Hy Lạp trước Ba Tư trong cùng năm; Diodorus còn xếp nó vào đúng ngày diễn ra trận Thermopylae, một sự trùng hợp mà giới nghiên cứu hiện đại bác bỏ. Thế lực của Carthage ở Sicilia suy yếu trong nhiều thập kỷ."
+    },
+    "location": {
+      "name": { "en": "Himera", "vi": "Himera" },
+      "lng": 13.8223,
+      "lat": 37.9698
+    },
+    "polityIds": ["carthage", "syracuse", "greek-city-states"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Diodorus Siculus, Library of History 11.20–26",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/11B*.html"
+      },
+      {
+        "title": "Livius.org, \"Himera (480 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/himera-480-bce/"
+      }
+    ]
+  },
+  {
+    "id": "dictatorship-of-cincinnatus",
+    "year": -458,
+    "title": {
+      "en": "Dictatorship of Cincinnatus",
+      "vi": "Cincinnatus làm độc tài quan"
+    },
+    "summary": {
+      "en": "With a consul and his army trapped by the Aequi on Mount Algidus, the Senate named Lucius Quinctius Cincinnatus dictator; tradition says the envoys found him at work on his farm. He rescued the army and resigned on the sixteenth day. Later Romans held him up as a model of civic virtue, and the story has clearly been embellished.",
+      "vi": "Khi một chấp chính quan cùng đạo quân của ông bị người Aequi vây trên núi Algidus, Viện Nguyên lão cử Lucius Quinctius Cincinnatus làm độc tài quan; theo truyền thống, sứ giả tìm thấy ông đang làm ruộng. Ông giải vây cho đạo quân rồi từ chức vào ngày thứ mười sáu. Người La Mã đời sau coi ông là tấm gương về đức hạnh công dân, và câu chuyện rõ ràng đã được tô điểm thêm."
+    },
+    "location": {
+      "name": { "en": "Mount Algidus", "vi": "Núi Algidus" },
+      "lng": 12.7694,
+      "lat": 41.7231,
+      "approximate": true
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 3.26–29",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_3"
+      }
+    ]
+  },
+  {
+    "id": "twelve-tables",
+    "year": -451,
+    "endYear": -449,
+    "title": {
+      "en": "Law of the Twelve Tables",
+      "vi": "Luật Mười hai bảng"
+    },
+    "summary": {
+      "en": "After long plebeian pressure for published law, a board of ten men (decemviri) drew up ten tables of laws in 451 BCE, and a second board added two more the following year. Once the decemvirs had been overthrown, the Twelve Tables were engraved in bronze and displayed in public. They were Rome's first written code and the starting point of Roman law; the dates follow Livy's traditional chronology.",
+      "vi": "Sau thời gian dài giới bình dân đòi công bố luật thành văn, một hội đồng mười người (decemviri) soạn mười bảng luật vào năm 451 TCN, và hội đồng thứ hai bổ sung hai bảng nữa vào năm sau. Khi các decemviri bị lật đổ, Luật Mười hai bảng được khắc lên đồng và trưng bày công khai. Đây là bộ luật thành văn đầu tiên của La Mã và là điểm khởi đầu của luật La Mã; các mốc năm theo niên đại truyền thống của Livy."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 3.33–37, 3.57",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_3"
+      },
+      {
+        "title": "Livius.org, \"Roman Law\"",
+        "url": "https://www.livius.org/articles/concept/roman-law/"
+      }
+    ]
+  },
+  {
+    "id": "peloponnesian-war",
+    "year": -431,
+    "endYear": -404,
+    "title": {
+      "en": "Peloponnesian War",
+      "vi": "Chiến tranh Peloponnesus"
+    },
+    "summary": {
+      "en": "Athens and its naval empire fought Sparta and the Peloponnesian League for supremacy in Greece. After twenty-seven years, and with Persian support behind Sparta, Athens surrendered in 404 BCE, giving up its fleet and pulling down its Long Walls. The war exhausted the Greek cities at a time when Rome was still a regional power in central Italy.",
+      "vi": "Athens cùng đế chế hải quân của mình giao chiến với Sparta và Liên minh Peloponnesus để giành quyền bá chủ Hy Lạp. Sau hai mươi bảy năm, khi Sparta có Ba Tư hậu thuẫn, Athens đầu hàng vào năm 404 TCN, giao nộp hạm đội và phá bỏ Trường Thành. Cuộc chiến làm các thành bang Hy Lạp kiệt quệ, vào lúc La Mã vẫn chỉ là một thế lực khu vực ở miền trung nước Ý."
+    },
+    "location": {
+      "name": { "en": "Athens", "vi": "Athens" },
+      "lng": 23.7281,
+      "lat": 37.9842
+    },
+    "polityIds": ["greek-city-states"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Thucydides, History of the Peloponnesian War, Book 2",
+        "url": "https://en.wikisource.org/wiki/History_of_the_Peloponnesian_War/Book_2"
+      },
+      {
+        "title": "Xenophon, Hellenica 2.2",
+        "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0206%3Abook%3D2%3Achapter%3D2"
+      }
+    ]
+  },
+  {
+    "id": "sicilian-expedition",
+    "year": -415,
+    "endYear": -413,
+    "title": {
+      "en": "Athenian expedition to Sicily",
+      "vi": "Athens viễn chinh Sicilia"
+    },
+    "summary": {
+      "en": "In the middle of the Peloponnesian War, Athens sent a great fleet to conquer Syracuse. Alcibiades, one of its commanders, was recalled early, the Spartan officer Gylippus stiffened the defence, and the whole Athenian force was destroyed; the survivors were held in the stone quarries of Syracuse. The disaster crippled Athens and confirmed Syracuse as the strongest Greek city in Sicily.",
+      "vi": "Giữa Chiến tranh Peloponnesus, Athens phái một hạm đội lớn đi chinh phục Syracuse. Alcibiades, một trong các chỉ huy, sớm bị triệu hồi, viên tướng Sparta là Gylippus củng cố việc phòng thủ, và toàn bộ lực lượng Athens bị tiêu diệt; những người sống sót bị giam trong các mỏ đá của Syracuse. Thảm bại này làm Athens suy yếu nghiêm trọng và khẳng định Syracuse là thành bang Hy Lạp mạnh nhất ở Sicilia."
+    },
+    "location": {
+      "name": { "en": "Syracuse", "vi": "Syracuse" },
+      "lng": 15.2875,
+      "lat": 37.0692
+    },
+    "polityIds": ["greek-city-states", "syracuse"],
+    "category": "military",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Thucydides, History of the Peloponnesian War, Book 6",
+        "url": "https://en.wikisource.org/wiki/History_of_the_Peloponnesian_War/Book_6"
+      },
+      {
+        "title": "Thucydides, History of the Peloponnesian War, Book 7",
+        "url": "https://en.wikisource.org/wiki/History_of_the_Peloponnesian_War/Book_7"
+      }
+    ]
+  },
+  {
+    "id": "capture-of-veii",
+    "year": -396,
+    "title": {
+      "en": "Rome captures Veii",
+      "vi": "La Mã chiếm Veii"
+    },
+    "summary": {
+      "en": "Rome took the Etruscan city of Veii, its nearest rival, after a siege that tradition stretches to ten years. Livy says the dictator Camillus sent men through a tunnel into the citadel, and that the cult of Juno was then moved from Veii to Rome. The date is traditional and much of the siege narrative is legendary in tone.",
+      "vi": "La Mã chiếm thành Veii của người Etruscan, đối thủ gần nhất của mình, sau một cuộc vây hãm mà truyền thống kéo dài tới mười năm. Livy kể rằng độc tài quan Camillus cho quân theo một đường hầm đột nhập vào thành, và sau đó việc thờ nữ thần Juno được dời từ Veii về Roma. Mốc năm là theo truyền thống, và phần lớn câu chuyện vây hãm mang màu sắc truyền thuyết."
+    },
+    "location": {
+      "name": { "en": "Veii", "vi": "Veii" },
+      "lng": 12.3905,
+      "lat": 42.0213
+    },
+    "polityIds": ["rome", "etruscans"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 5.19–22",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_5"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Camillus 5",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Camillus*.html"
+      }
+    ]
   },
   {
     "id": "gallic-sack-of-rome",
@@ -28,18 +244,331 @@
       "vi": "Người Gaul cướp phá Roma"
     },
     "summary": {
-      "en": "A Gallic war band under Brennus defeated the Roman army at the river Allia and sacked the city. The traditional date is 390 BCE; many modern historians prefer 387 BCE.",
-      "vi": "Một đạo quân Gaul do Brennus chỉ huy đánh bại quân La Mã ở sông Allia rồi cướp phá thành phố. Mốc truyền thống là năm 390 TCN; nhiều sử gia hiện đại nghiêng về năm 387 TCN."
+      "en": "A Gallic war band under Brennus routed the Roman army at the river Allia and sacked the city; tradition says only the Capitol held out until the Gauls were bought off with gold. The traditional (Varronian) date is 390 BCE, but Polybius synchronises the sack with events of 387/386 BCE, the date most modern historians prefer.",
+      "vi": "Một đạo quân Gaul do Brennus chỉ huy đánh tan quân La Mã ở sông Allia rồi cướp phá thành phố; theo truyền thống, chỉ có đồi Capitol đứng vững cho đến khi người Gaul nhận vàng chuộc và rút đi. Mốc truyền thống (niên đại Varro) là năm 390 TCN, nhưng Polybius xếp vụ cướp phá trùng với các sự kiện năm 387/386 TCN, mốc mà phần lớn sử gia hiện đại tán thành."
     },
     "location": {
       "name": { "en": "Rome", "vi": "Roma" },
-      "lng": 12.4964,
-      "lat": 41.9028
+      "lng": 12.4913,
+      "lat": 41.89
     },
     "polityIds": ["rome", "gauls"],
     "category": "military",
     "importance": 2,
-    "sources": [{ "title": "Livy, Ab Urbe Condita, Book 5" }]
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 5.35–49",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_5"
+      },
+      {
+        "title": "Polybius, Histories 1.6",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/1*.html"
+      },
+      {
+        "title": "Livius.org, \"Allia (390 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/allia/"
+      }
+    ]
+  },
+  {
+    "id": "licinian-sextian-laws",
+    "year": -367,
+    "title": {
+      "en": "Licinian-Sextian laws",
+      "vi": "Các đạo luật Licinius–Sextius"
+    },
+    "summary": {
+      "en": "After years of deadlock, the tribunes Gaius Licinius Stolo and Lucius Sextius carried laws on debt relief, a 500-iugera limit on holdings of public land, and the opening of the consulship to plebeians. Sextius himself became the first plebeian consul. The date is traditional and the exact content of the laws is debated.",
+      "vi": "Sau nhiều năm bế tắc, hai hộ dân quan Gaius Licinius Stolo và Lucius Sextius thông qua các đạo luật về giảm nợ, giới hạn 500 iugera đối với đất công mỗi người được giữ, và mở chức chấp chính quan cho người bình dân. Chính Sextius trở thành chấp chính quan bình dân đầu tiên. Mốc năm là theo truyền thống, và nội dung chính xác của các đạo luật còn được tranh luận."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 6.35–42",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_6"
+      }
+    ]
+  },
+  {
+    "id": "second-treaty-with-carthage",
+    "year": -348,
+    "title": {
+      "en": "Rome renews its treaty with Carthage",
+      "vi": "La Mã ký lại hiệp ước với Carthage"
+    },
+    "summary": {
+      "en": "Livy records that Carthaginian envoys came to Rome and concluded a treaty in 348 BCE. It is usually identified with the second treaty quoted by Polybius, which barred Romans from trading or founding cities in Sardinia and Africa, while Carthage agreed to hand over any town it captured in Latium. Polybius gives no date for his text, so the match is an inference.",
+      "vi": "Livy ghi rằng sứ giả Carthage đến Roma và ký một hiệp ước vào năm 348 TCN. Hiệp ước này thường được đồng nhất với bản hiệp ước thứ hai mà Polybius trích dẫn, theo đó người La Mã không được buôn bán hay lập thành ở Sardinia và châu Phi, còn Carthage cam kết giao lại mọi thị trấn mà họ chiếm được ở Latium. Polybius không ghi năm cho văn bản của mình, nên sự đồng nhất này chỉ là suy luận."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome", "carthage"],
+    "category": "political",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 7.27",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_7"
+      },
+      {
+        "title": "Polybius, Histories 3.24",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+      }
+    ]
+  },
+  {
+    "id": "latin-war",
+    "year": -340,
+    "endYear": -338,
+    "title": {
+      "en": "Latin War and the end of the Latin League",
+      "vi": "Chiến tranh Latinh và sự giải thể Liên minh Latinh"
+    },
+    "summary": {
+      "en": "Rome's Latin allies, who wanted an equal share of power, went to war with it and were defeated. In the settlement of 338 BCE Rome dissolved the Latin League and bound each town to itself separately, giving some full citizenship and others lesser rights. The prows of the captured ships of Antium were fixed to the speakers' platform in the Forum, known from then on as the Rostra.",
+      "vi": "Các đồng minh Latinh của La Mã, vốn muốn được chia quyền ngang hàng, gây chiến với La Mã và thất bại. Trong cuộc dàn xếp năm 338 TCN, La Mã giải thể Liên minh Latinh và ràng buộc riêng từng thị trấn với mình, trao quyền công dân đầy đủ cho một số nơi và quyền hạn chế cho những nơi khác. Mũi các chiến thuyền thu được của Antium được gắn lên bục diễn thuyết ở Quảng trường, từ đó bục này mang tên Rostra."
+    },
+    "location": {
+      "name": { "en": "Antium", "vi": "Antium" },
+      "lng": 12.629,
+      "lat": 41.4479
+    },
+    "polityIds": ["rome", "latins"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 8.3–14",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_8"
+      }
+    ]
+  },
+  {
+    "id": "death-of-alexander",
+    "year": -323,
+    "title": {
+      "en": "Death of Alexander the Great",
+      "vi": "Alexander Đại đế qua đời"
+    },
+    "summary": {
+      "en": "Alexander of Macedon, who had overthrown the Persian Empire in little more than a decade, died of a fever at Babylon in June 323 BCE, aged 32. He left no adult heir, and his generals were soon fighting over the empire. The kingdoms they founded, above all those of the Ptolemies, the Seleucids and the rulers of Macedon, were the powers Rome would later face in the east.",
+      "vi": "Alexander của Macedonia, người lật đổ Đế quốc Ba Tư chỉ trong hơn một thập kỷ, qua đời vì sốt ở Babylon vào tháng 6 năm 323 TCN, khi mới 32 tuổi. Ông không để lại người kế vị trưởng thành, và các tướng lĩnh của ông sớm quay sang tranh giành đế quốc. Những vương quốc họ lập nên, trước hết là của nhà Ptolemaios, nhà Seleukos và các vua Macedonia, chính là những thế lực mà La Mã về sau phải đối mặt ở phương Đông."
+    },
+    "location": {
+      "name": { "en": "Babylon", "vi": "Babylon" },
+      "lng": 44.425,
+      "lat": 32.5373
+    },
+    "polityIds": ["macedon"],
+    "category": "political",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Alexander 75–77",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Alexander*/10.html"
+      },
+      {
+        "title": "Diodorus Siculus, Library of History 17.117",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/17F*.html"
+      },
+      {
+        "title": "Livius.org, \"Alexander the Great\"",
+        "url": "https://www.livius.org/articles/person/alexander-the-great/"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-the-caudine-forks",
+    "year": -321,
+    "title": {
+      "en": "Humiliation at the Caudine Forks",
+      "vi": "Nỗi nhục ở hẻm núi Caudium"
+    },
+    "summary": {
+      "en": "During the Second Samnite War a Roman army marched into a narrow valley near Caudium and was trapped by the Samnites under Gaius Pontius. There was no battle: the consuls surrendered and the whole army was sent under the yoke, a ritual humiliation that Romans long remembered. The exact site of the pass is debated.",
+      "vi": "Trong Chiến tranh Samnite lần thứ hai, một đạo quân La Mã tiến vào một thung lũng hẹp gần Caudium và bị người Samnite do Gaius Pontius chỉ huy vây chặt. Không có trận đánh nào: các chấp chính quan đầu hàng và toàn quân phải chui qua ách, một nghi thức sỉ nhục mà người La Mã nhớ mãi. Vị trí chính xác của hẻm núi còn được tranh luận."
+    },
+    "location": {
+      "name": { "en": "Caudine Forks (approximate)", "vi": "Hẻm núi Caudium (ước lượng)" },
+      "lng": 14.5333,
+      "lat": 41.15,
+      "approximate": true
+    },
+    "polityIds": ["rome", "samnites"],
+    "category": "military",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 9.1–6",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_9"
+      }
+    ]
+  },
+  {
+    "id": "via-appia",
+    "year": -312,
+    "title": {
+      "en": "Via Appia and Rome's first aqueduct",
+      "vi": "Đường Appia và cầu dẫn nước đầu tiên của Roma"
+    },
+    "summary": {
+      "en": "As censor, Appius Claudius Caecus began the Via Appia, a stone-paved road from Rome to Capua, and the Aqua Appia, the city's first aqueduct. The road, later extended to Brundisium, tied Campania to Rome while the Samnite wars were still being fought.",
+      "vi": "Khi làm giám quan, Appius Claudius Caecus khởi công đường Appia, con đường lát đá từ Roma đến Capua, và Aqua Appia, cầu dẫn nước đầu tiên của thành phố. Con đường, về sau được kéo dài tới Brundisium, gắn vùng Campania với Roma trong lúc các cuộc chiến với người Samnite vẫn còn tiếp diễn."
+    },
+    "location": {
+      "name": { "en": "Via Appia, near Rome", "vi": "Đường Appia, gần Roma" },
+      "lng": 12.5325,
+      "lat": 41.8414
+    },
+    "polityIds": ["rome"],
+    "category": "cultural",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 9.29",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_9"
+      },
+      {
+        "title": "Diodorus Siculus, Library of History 20.36",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/20B*.html"
+      },
+      {
+        "title": "Frontinus, De Aquaeductu 1.5",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Frontinus/De_Aquis/Bennett/1*.html"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-ipsus",
+    "year": -301,
+    "title": {
+      "en": "Battle of Ipsus",
+      "vi": "Trận Ipsus"
+    },
+    "summary": {
+      "en": "At Ipsus in Phrygia a coalition of Alexander's successors, Seleucus, Lysimachus and Cassander of Macedon, defeated and killed Antigonus the One-Eyed, the last of them with a real chance of reuniting the empire. Seleucus' war elephants played a decisive part. The victors divided Antigonus' lands, fixing the pattern of separate Hellenistic kingdoms.",
+      "vi": "Tại Ipsus ở Phrygia, liên minh những người kế vị Alexander gồm Seleukos, Lysimachos và Kassandros của Macedonia đánh bại và giết Antigonos Độc Nhãn, người cuối cùng còn thực sự có cơ hội thống nhất lại đế quốc. Đàn voi chiến của Seleukos đóng vai trò quyết định. Phe thắng trận chia nhau lãnh thổ của Antigonos, định hình cục diện các vương quốc Hy Lạp hoá riêng rẽ."
+    },
+    "location": {
+      "name": { "en": "Ipsus (approximate)", "vi": "Ipsus (ước lượng)" },
+      "lng": 30.5492,
+      "lat": 38.8562,
+      "approximate": true
+    },
+    "polityIds": ["macedon", "seleucid-empire"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Demetrius 28–30",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Demetrius*.html"
+      },
+      {
+        "title": "Livius.org, \"Ipsus (301 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/ipsus/"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-sentinum",
+    "year": -295,
+    "title": {
+      "en": "Battle of Sentinum",
+      "vi": "Trận Sentinum"
+    },
+    "summary": {
+      "en": "In the Third Samnite War, Rome faced a coalition of Samnites, Gauls, Etruscans and Umbrians. At Sentinum the consuls Fabius Rullianus and Decius Mus defeated the Samnites and Gauls; Livy says Decius ritually 'devoted' himself to death to steady his wavering line. The victory broke up the coalition and opened the way to Roman control of central Italy.",
+      "vi": "Trong Chiến tranh Samnite lần thứ ba, La Mã đối mặt với một liên minh gồm người Samnite, Gaul, Etruscan và Umbria. Tại Sentinum, hai chấp chính quan Fabius Rullianus và Decius Mus đánh bại quân Samnite và Gaul; Livy kể rằng Decius đã làm lễ 'hiến mình' cho cái chết để vực dậy hàng quân đang nao núng. Chiến thắng làm liên minh tan vỡ và mở đường cho La Mã kiểm soát miền trung nước Ý."
+    },
+    "location": {
+      "name": { "en": "Sentinum", "vi": "Sentinum" },
+      "lng": 12.856,
+      "lat": 43.427
+    },
+    "polityIds": ["rome", "samnites", "gauls", "etruscans"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 10.27–30",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_10"
+      },
+      {
+        "title": "Polybius, Histories 2.19",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/2*.html"
+      }
+    ]
+  },
+  {
+    "id": "lex-hortensia",
+    "year": -287,
+    "title": {
+      "en": "Lex Hortensia",
+      "vi": "Luật Hortensius"
+    },
+    "summary": {
+      "en": "After the plebeians seceded once more, this time to the Janiculum, the dictator Quintus Hortensius passed a law making the resolutions of the plebeian assembly (plebiscita) binding on all citizens. The law is usually taken as the end of the Conflict of the Orders between patricians and plebeians. Livy's full account is lost, so the episode is known only from brief later notices.",
+      "vi": "Sau khi giới bình dân lại ly khai, lần này lên đồi Janiculum, độc tài quan Quintus Hortensius ban hành đạo luật khiến các nghị quyết của hội đồng bình dân (plebiscita) có hiệu lực với mọi công dân. Đạo luật thường được coi là điểm kết thúc cuộc Đấu tranh giữa các đẳng cấp quý tộc và bình dân. Phần tường thuật đầy đủ của Livy đã thất lạc, nên sự kiện chỉ còn được biết qua vài ghi chép ngắn của đời sau."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Periochae 11",
+        "url": "https://www.livius.org/sources/content/livy/livy-periochae-11-15/"
+      },
+      {
+        "title": "Aulus Gellius, Attic Nights 15.27",
+        "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A2007.01.0072%3Abook%3D15%3Achapter%3D27"
+      },
+      {
+        "title": "Pliny the Elder, Natural History 16.37 (Book 16, ch. 15 in the Bostock–Riley translation)",
+        "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.02.0137%3Abook%3D16%3Achapter%3D15"
+      }
+    ]
+  },
+  {
+    "id": "pyrrhic-war",
+    "year": -280,
+    "endYear": -275,
+    "title": {
+      "en": "Pyrrhic War",
+      "vi": "Chiến tranh Pyrrhus"
+    },
+    "summary": {
+      "en": "The Greek city of Tarentum called in King Pyrrhus of Epirus against Rome. He won costly battles at Heraclea and Asculum, the origin of the phrase 'Pyrrhic victory', then campaigned in Sicily against Carthage before returning to Italy. Defeated at Beneventum in 275 BCE, he went home, leaving Rome master of southern Italy.",
+      "vi": "Thành bang Hy Lạp Tarentum mời vua Pyrrhus của Epirus sang chống La Mã. Ông thắng hai trận đắt giá ở Heraclea và Asculum, nguồn gốc của cụm từ 'chiến thắng kiểu Pyrrhus', rồi sang Sicilia đánh Carthage trước khi quay lại Ý. Thua trận ở Beneventum năm 275 TCN, ông rút về nước, để lại miền nam nước Ý cho La Mã."
+    },
+    "location": {
+      "name": { "en": "Tarentum", "vi": "Tarentum" },
+      "lng": 17.233,
+      "lat": 40.4738
+    },
+    "polityIds": ["rome", "epirus", "greek-city-states", "carthage"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Pyrrhus 13–26",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Pyrrhus*.html"
+      }
+    ]
   },
   {
     "id": "first-punic-war",
@@ -50,18 +579,88 @@
       "vi": "Chiến tranh Punic lần thứ nhất"
     },
     "summary": {
-      "en": "A dispute over Messana drew Rome and Carthage into a long war for Sicily. Rome built its first large fleet and, after its victory, took Sicily as its first overseas province.",
-      "vi": "Tranh chấp quanh Messana kéo La Mã và Carthage vào một cuộc chiến dài giành Sicilia. La Mã xây dựng hạm đội lớn đầu tiên và sau chiến thắng đã lấy Sicilia làm tỉnh hải ngoại đầu tiên."
+      "en": "An appeal from the Mamertines of Messana drew Rome and Carthage into a long war for Sicily. Rome built its first large war fleet and, after heavy losses on both sides, won the decisive sea battle off the Aegates Islands in 241 BCE. Carthage evacuated Sicily and paid an indemnity, and the island became Rome's first overseas province.",
+      "vi": "Lời cầu viện của người Mamertine ở Messana kéo La Mã và Carthage vào một cuộc chiến dài giành Sicilia. La Mã đóng hạm đội chiến thuyền lớn đầu tiên và, sau những tổn thất nặng nề của cả hai bên, thắng trận hải chiến quyết định ngoài khơi quần đảo Aegates năm 241 TCN. Carthage rút khỏi Sicilia và nộp chiến phí, còn hòn đảo trở thành tỉnh hải ngoại đầu tiên của La Mã."
     },
     "location": {
       "name": { "en": "Messana (Messina)", "vi": "Messana (Messina)" },
-      "lng": 15.554,
-      "lat": 38.1938
+      "lng": 15.5542,
+      "lat": 38.1936
     },
-    "polityIds": ["rome", "carthage"],
+    "polityIds": ["rome", "carthage", "syracuse"],
     "category": "military",
     "importance": 3,
-    "sources": [{ "title": "Polybius, Histories, Book 1" }]
+    "sources": [
+      {
+        "title": "Polybius, Histories 1.10–12, 1.59–63",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/1*.html"
+      },
+      {
+        "title": "Livius.org, \"First Punic War\"",
+        "url": "https://www.livius.org/articles/concept/first-punic-war/"
+      }
+    ]
+  },
+  {
+    "id": "first-latin-play",
+    "year": -240,
+    "title": {
+      "en": "First Latin play staged in Rome",
+      "vi": "Vở kịch Latinh đầu tiên được diễn ở Roma"
+    },
+    "summary": {
+      "en": "The year after the First Punic War ended, the Greek-born writer Livius Andronicus staged a play in Latin adapted from a Greek original. Cicero dates the performance to 240 BCE, and later Romans treated it as the beginning of Latin literature. A rival ancient dating, which Cicero rejects, placed Andronicus a generation later.",
+      "vi": "Một năm sau khi Chiến tranh Punic lần thứ nhất kết thúc, nhà văn gốc Hy Lạp Livius Andronicus dàn dựng một vở kịch bằng tiếng Latinh phỏng theo nguyên tác Hy Lạp. Cicero xác định buổi diễn vào năm 240 TCN, và người La Mã đời sau coi đó là khởi đầu của văn học Latinh. Một cách tính niên đại cổ khác, bị Cicero bác bỏ, xếp Andronicus muộn hơn một thế hệ."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "cultural",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Cicero, Brutus 72–73",
+        "url": "https://www.attalus.org/cicero/brutus1.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 7.2",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_7"
+      }
+    ]
+  },
+  {
+    "id": "hannibal-crosses-the-alps",
+    "year": -218,
+    "title": {
+      "en": "Hannibal crosses the Alps",
+      "vi": "Hannibal vượt dãy Alps"
+    },
+    "summary": {
+      "en": "After his capture of Saguntum brought war with Rome, Hannibal marched from Spain through southern Gaul and led his army, elephants included, over the Alps into Italy, opening the Second Punic War on Roman soil. Polybius says the crossing took fifteen days and cost him many men and animals. Which pass he used is still debated.",
+      "vi": "Sau khi việc ông chiếm Saguntum dẫn tới chiến tranh với La Mã, Hannibal hành quân từ Tây Ban Nha qua miền nam xứ Gaul rồi đưa đạo quân của mình, kể cả đàn voi, vượt dãy Alps vào Ý, mở màn Chiến tranh Punic lần thứ hai ngay trên đất La Mã. Polybius cho biết cuộc vượt núi kéo dài mười lăm ngày và làm ông mất nhiều người và súc vật. Ông đã đi qua đèo nào đến nay vẫn còn tranh cãi."
+    },
+    "location": {
+      "name": { "en": "Western Alps (route debated)", "vi": "Tây Alps (lộ trình còn tranh cãi)" },
+      "lng": 6.8839,
+      "lat": 45.6803,
+      "approximate": true
+    },
+    "polityIds": ["carthage", "rome", "gauls"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Polybius, Histories 3.47–56",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 21.31–38",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_21"
+      }
+    ]
   },
   {
     "id": "battle-of-cannae",
@@ -71,18 +670,92 @@
       "vi": "Trận Cannae"
     },
     "summary": {
-      "en": "During the Second Punic War, Hannibal encircled and destroyed a much larger Roman army in Apulia. It was one of Rome's worst defeats, yet Rome refused to make peace.",
-      "vi": "Trong Chiến tranh Punic lần thứ hai, Hannibal bao vây và tiêu diệt một đạo quân La Mã đông hơn nhiều ở Apulia. Đây là một trong những thất bại nặng nề nhất của La Mã, nhưng La Mã vẫn không chịu cầu hoà."
+      "en": "In Apulia, Hannibal surrounded and destroyed a much larger Roman army in one of the worst defeats in Roman history. The consul Aemilius Paullus was among the dead, whom Polybius numbers at about 70,000 and Livy at nearly 50,000. Rome nevertheless refused to make peace.",
+      "vi": "Tại Apulia, Hannibal bao vây và tiêu diệt một đạo quân La Mã đông hơn nhiều, một trong những thất bại nặng nề nhất trong lịch sử La Mã. Chấp chính quan Aemilius Paullus nằm trong số người tử trận, con số mà Polybius ước khoảng 70.000 còn Livy ghi gần 50.000. Dù vậy La Mã vẫn không chịu cầu hoà."
     },
     "location": {
       "name": { "en": "Cannae", "vi": "Cannae" },
-      "lng": 16.1519,
-      "lat": 41.3064
+      "lng": 16.1518,
+      "lat": 41.2967
     },
     "polityIds": ["rome", "carthage"],
     "category": "military",
     "importance": 3,
-    "sources": [{ "title": "Polybius, Histories, Book 3" }]
+    "sources": [
+      {
+        "title": "Polybius, Histories 3.107–118",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 22.43–51",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22"
+      }
+    ]
+  },
+  {
+    "id": "fall-of-syracuse",
+    "year": -213,
+    "endYear": -212,
+    "title": {
+      "en": "Siege and fall of Syracuse",
+      "vi": "Syracuse bị vây hãm và thất thủ"
+    },
+    "summary": {
+      "en": "After the death of King Hiero II, Syracuse abandoned its Roman alliance for Carthage, and the Roman general Marcellus besieged it by land and sea. War machines designed by Archimedes held the Romans off for many months, but the city fell in 212 BCE and Archimedes was killed in the sack. Its fall secured Sicily for Rome.",
+      "vi": "Sau khi vua Hieron II qua đời, Syracuse bỏ liên minh với La Mã để theo Carthage, và tướng La Mã Marcellus vây thành cả trên bộ lẫn trên biển. Những cỗ máy chiến tranh do Archimedes thiết kế cầm chân quân La Mã suốt nhiều tháng, nhưng thành thất thủ vào năm 212 TCN và Archimedes bị giết trong cuộc cướp phá. Việc Syracuse thất thủ giúp La Mã nắm chắc Sicilia."
+    },
+    "location": {
+      "name": { "en": "Syracuse", "vi": "Syracuse" },
+      "lng": 15.2875,
+      "lat": 37.0692
+    },
+    "polityIds": ["rome", "syracuse", "carthage"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 25.23–31",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_25"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Marcellus 14–19",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Marcellus*.html"
+      },
+      {
+        "title": "Polybius, Histories 8.3–7",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/8*.html"
+      }
+    ]
+  },
+  {
+    "id": "arrival-of-magna-mater",
+    "year": -204,
+    "title": {
+      "en": "The Great Mother is brought to Rome",
+      "vi": "Rước Đại Mẫu thần về Roma"
+    },
+    "summary": {
+      "en": "Following a reading of the Sibylline Books late in the war with Hannibal, Rome brought the sacred stone of the Great Mother (Cybele) from Pessinus in Asia Minor. Livy describes how Scipio Nasica and the matrons of the city received it at Ostia, and how the Megalesia festival was founded. The goddess was housed in the temple of Victory until her own temple on the Palatine was dedicated in 191 BCE.",
+      "vi": "Theo lời sấm trong Sách Sibylla được tra cứu vào cuối cuộc chiến với Hannibal, La Mã rước hòn đá thiêng của Đại Mẫu thần (Cybele) từ Pessinus ở Tiểu Á về. Livy thuật lại việc Scipio Nasica cùng các mệnh phụ trong thành đón nhận hòn đá tại Ostia, và việc lễ hội Megalesia ra đời. Nữ thần được thờ tạm trong đền Victoria cho đến khi ngôi đền riêng trên đồi Palatine được khánh thành năm 191 TCN."
+    },
+    "location": {
+      "name": { "en": "Temple of Magna Mater, Palatine Hill, Rome", "vi": "Đền Magna Mater, đồi Palatine, Roma" },
+      "lng": 12.485,
+      "lat": 41.8895
+    },
+    "polityIds": ["rome"],
+    "category": "cultural",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 29.10–14",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_29"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 36.36",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_36"
+      }
+    ]
   },
   {
     "id": "battle-of-zama",
@@ -92,19 +765,225 @@
       "vi": "Trận Zama"
     },
     "summary": {
-      "en": "Scipio Africanus defeated Hannibal in North Africa, ending the Second Punic War. Carthage lost its overseas territories and its standing as a great power. The exact site of the battle is uncertain.",
-      "vi": "Scipio Africanus đánh bại Hannibal ở Bắc Phi, kết thúc Chiến tranh Punic lần thứ hai. Carthage mất các lãnh thổ hải ngoại và vị thế cường quốc. Vị trí chính xác của trận đánh chưa được xác định."
+      "en": "Scipio, reinforced by the Numidian cavalry of Masinissa, defeated Hannibal in North Africa and ended the Second Punic War. Under the peace terms Carthage paid 10,000 talents over fifty years and could no longer make war without Rome's consent. The battlefield has not been securely identified.",
+      "vi": "Scipio, được kỵ binh Numidia của Masinissa tăng viện, đánh bại Hannibal ở Bắc Phi và kết thúc Chiến tranh Punic lần thứ hai. Theo hoà ước, Carthage phải nộp 10.000 talent trong năm mươi năm và không còn được gây chiến nếu chưa có sự đồng ý của La Mã. Vị trí chiến trường đến nay chưa được xác định chắc chắn."
     },
     "location": {
       "name": { "en": "Zama (approximate)", "vi": "Zama (ước lượng)" },
-      "lng": 9.45,
-      "lat": 36.3,
+      "lng": 9.4492,
+      "lat": 36.2989,
       "approximate": true
     },
-    "polityIds": ["rome", "carthage"],
+    "polityIds": ["rome", "carthage", "numidia"],
     "category": "military",
     "importance": 3,
-    "sources": [{ "title": "Polybius, Histories, Book 15" }]
+    "sources": [
+      {
+        "title": "Polybius, Histories 15.5–18",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/15*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 30.29–35",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_30"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-cynoscephalae",
+    "year": -197,
+    "title": {
+      "en": "Battle of Cynoscephalae",
+      "vi": "Trận Cynoscephalae"
+    },
+    "summary": {
+      "en": "In the hills of Thessaly the legions of Titus Quinctius Flamininus broke the phalanx of Philip V of Macedon and ended the Second Macedonian War. Polybius used the battle to explain why the flexible legion beat the phalanx. The next year, at the Isthmian Games, Flamininus proclaimed the Greek cities free, a freedom that depended on Roman goodwill.",
+      "vi": "Trên vùng đồi Thessaly, các quân đoàn của Titus Quinctius Flamininus phá vỡ đội hình phalanx của Philippos V xứ Macedonia và kết thúc Chiến tranh Macedonia lần thứ hai. Polybius dùng trận này để giải thích vì sao quân đoàn linh hoạt thắng được phalanx. Năm sau, tại Đại hội Isthmia, Flamininus tuyên bố các thành bang Hy Lạp được tự do, một nền tự do phụ thuộc vào thiện chí của La Mã."
+    },
+    "location": {
+      "name": { "en": "Cynoscephalae hills (approximate)", "vi": "Dãy đồi Cynoscephalae (ước lượng)" },
+      "lng": 22.83,
+      "lat": 39.36,
+      "approximate": true
+    },
+    "polityIds": ["rome", "macedon", "greek-city-states"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Polybius, Histories 18.18–32, 18.46",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/18*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 33.7–10, 33.32",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_33"
+      },
+      {
+        "title": "Livius.org, \"Cynoscephalae (197 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/cynoscephalae-197-bce/"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-magnesia",
+    "year": -190,
+    "title": {
+      "en": "Battle of Magnesia",
+      "vi": "Trận Magnesia"
+    },
+    "summary": {
+      "en": "Near Magnesia ad Sipylum a Roman army under Lucius Scipio, fighting alongside Eumenes II of Pergamon, routed the Seleucid king Antiochus III. The battle was fought in the winter of 190/189 BCE. By the Peace of Apamea (188 BCE) Antiochus gave up Asia Minor beyond the Taurus, surrendered his elephants and warships, and paid a heavy indemnity.",
+      "vi": "Gần Magnesia ad Sipylum, một đạo quân La Mã do Lucius Scipio chỉ huy, cùng với Eumenes II của Pergamon, đánh tan quân của vua Antiochos III nhà Seleukos. Trận đánh diễn ra vào mùa đông năm 190/189 TCN. Theo Hoà ước Apamea (188 TCN), Antiochos từ bỏ phần Tiểu Á phía bên kia dãy Taurus, giao nộp voi chiến và chiến thuyền, và trả một khoản chiến phí lớn."
+    },
+    "location": {
+      "name": { "en": "Magnesia ad Sipylum", "vi": "Magnesia ad Sipylum" },
+      "lng": 27.4334,
+      "lat": 38.6126
+    },
+    "polityIds": ["rome", "seleucid-empire", "pergamon"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 37.37–44",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_37"
+      },
+      {
+        "title": "Polybius, Histories 21.42",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/21*.html"
+      },
+      {
+        "title": "Livius.org, \"Syrian War (192–188 BCE)\"",
+        "url": "https://www.livius.org/articles/concept/syrian-war-192-188/"
+      }
+    ]
+  },
+  {
+    "id": "suppression-of-the-bacchanalia",
+    "year": -186,
+    "title": {
+      "en": "Suppression of the Bacchanalia",
+      "vi": "Trấn áp lễ Bacchanalia"
+    },
+    "summary": {
+      "en": "Alarmed by reports of secret night-time rites of Bacchus, the consul Postumius opened an inquiry on the evidence of the freedwoman Hispala Faecenia; Livy says more than 7,000 people were implicated and many were executed. The Senate banned Bacchic gatherings throughout Italy unless it gave special permission. A bronze copy of the decree, found at Tiriolo in Calabria, survives.",
+      "vi": "Lo ngại trước tin báo về các nghi lễ bí mật ban đêm thờ thần Bacchus, chấp chính quan Postumius mở cuộc điều tra dựa trên lời khai của nữ nô lệ được giải phóng Hispala Faecenia; Livy cho biết hơn 7.000 người bị liên luỵ và nhiều người bị xử tử. Viện Nguyên lão cấm các cuộc tụ họp thờ Bacchus trên khắp nước Ý trừ khi được Viện cho phép riêng. Một bản sao bằng đồng của sắc lệnh, tìm thấy ở Tiriolo vùng Calabria, còn lưu lại đến nay."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 39.8–19",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_39"
+      },
+      {
+        "title": "Senatus consultum de Bacchanalibus (bronze tablet from Tiriolo, 186 BCE)"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-pydna",
+    "year": -168,
+    "title": {
+      "en": "Battle of Pydna",
+      "vi": "Trận Pydna"
+    },
+    "summary": {
+      "en": "The consul Lucius Aemilius Paullus destroyed the army of King Perseus at Pydna in June 168 BCE; a lunar eclipse the night before fixes the date. Perseus fled and surrendered on Samothrace. Rome abolished the Macedonian monarchy and split the country into four separate republics.",
+      "vi": "Chấp chính quan Lucius Aemilius Paullus tiêu diệt đạo quân của vua Perseus tại Pydna vào tháng 6 năm 168 TCN; một lần nguyệt thực vào đêm trước giúp xác định ngày tháng. Perseus bỏ chạy rồi ra hàng trên đảo Samothrace. La Mã xoá bỏ nền quân chủ Macedonia và chia đất nước này thành bốn nước cộng hoà riêng rẽ."
+    },
+    "location": {
+      "name": { "en": "Pydna", "vi": "Pydna" },
+      "lng": 22.615,
+      "lat": 40.3976
+    },
+    "polityIds": ["rome", "macedon"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Ab Urbe Condita 44.36–42",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_44"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 45.18",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_45"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Aemilius Paullus 16–26",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Aemilius*.html"
+      },
+      {
+        "title": "Livius.org, \"Pydna (168 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/pydna-168-bce/"
+      }
+    ]
+  },
+  {
+    "id": "day-of-eleusis",
+    "year": -168,
+    "title": {
+      "en": "Popillius Laenas halts Antiochus IV at Eleusis",
+      "vi": "Popillius Laenas chặn Antiochos IV ở Eleusis"
+    },
+    "summary": {
+      "en": "Antiochus IV had invaded Egypt and was closing on Alexandria when the Roman envoy Gaius Popillius Laenas met him at Eleusis, just outside the city, with the Senate's demand that he withdraw. When the king asked for time, Popillius drew a circle around him on the ground and told him to answer before stepping out of it. Antiochus evacuated Egypt and Cyprus; coming just after Pydna, the scene showed that Rome could now command Hellenistic kings without fighting.",
+      "vi": "Antiochos IV đã xâm lược Ai Cập và đang áp sát Alexandria thì sứ giả La Mã Gaius Popillius Laenas gặp ông tại Eleusis, ngay ngoài thành phố, mang theo yêu cầu rút quân của Viện Nguyên lão. Khi nhà vua xin thêm thời gian, Popillius vạch một vòng tròn quanh ông trên mặt đất và bảo ông phải trả lời trước khi bước ra. Antiochos rút khỏi Ai Cập và Síp; diễn ra ngay sau trận Pydna, cảnh tượng này cho thấy La Mã giờ đã có thể ra lệnh cho các vua Hy Lạp hoá mà không cần giao chiến."
+    },
+    "location": {
+      "name": { "en": "Eleusis, near Alexandria (approximate)", "vi": "Eleusis, gần Alexandria (ước lượng)" },
+      "lng": 29.9098,
+      "lat": 31.2014,
+      "approximate": true
+    },
+    "polityIds": ["rome", "seleucid-empire", "ptolemaic-egypt"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Polybius, Histories 29.27",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/29*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 45.12",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_45"
+      }
+    ]
+  },
+  {
+    "id": "philosophers-embassy",
+    "year": -155,
+    "title": {
+      "en": "Athenian philosophers' embassy to Rome",
+      "vi": "Phái đoàn triết gia Athens đến Roma"
+    },
+    "summary": {
+      "en": "Athens sent three leading philosophers, Carneades the Academic, Diogenes the Stoic and Critolaus the Peripatetic, to ask the Senate to reduce a fine imposed over the town of Oropus. Their public lectures drew crowds of young Romans. Plutarch says Cato the Elder, alarmed by Carneades' persuasive power, pressed the Senate to settle the matter and send them home.",
+      "vi": "Athens cử ba triết gia hàng đầu là Carneades thuộc phái Hàn lâm, Diogenes thuộc phái Khắc kỷ và Critolaus thuộc phái Tiêu dao đến xin Viện Nguyên lão giảm khoản tiền phạt liên quan đến thị trấn Oropus. Các buổi diễn thuyết công khai của họ thu hút đông đảo thanh niên La Mã. Plutarch kể rằng Cato Già, lo ngại trước tài thuyết phục của Carneades, đã thúc Viện Nguyên lão giải quyết nhanh vụ việc để tiễn họ về."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome", "greek-city-states"],
+    "category": "cultural",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Cato the Elder 22",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Cato_Major*.html"
+      },
+      {
+        "title": "Aulus Gellius, Attic Nights 6.14",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Gellius/6*.html"
+      }
+    ]
   },
   {
     "id": "destruction-of-carthage",
@@ -114,18 +993,695 @@
       "vi": "Carthage bị huỷ diệt"
     },
     "summary": {
-      "en": "After a three-year siege in the Third Punic War, Scipio Aemilianus captured and destroyed Carthage, and its territory became the Roman province of Africa. In the same year Rome destroyed Corinth in Greece.",
-      "vi": "Sau ba năm vây hãm trong Chiến tranh Punic lần thứ ba, Scipio Aemilianus chiếm và phá huỷ Carthage, lãnh thổ của nó trở thành tỉnh Africa của La Mã. Cùng năm đó, La Mã phá huỷ Corinth ở Hy Lạp."
+      "en": "After a three-year siege in the Third Punic War, Scipio Aemilianus stormed and destroyed Carthage in 146 BCE, and its territory became the Roman province of Africa. Polybius, who was with him, describes Scipio weeping and quoting Homer as he watched the city burn.",
+      "vi": "Sau ba năm vây hãm trong Chiến tranh Punic lần thứ ba, Scipio Aemilianus công phá và huỷ diệt Carthage vào năm 146 TCN, lãnh thổ của nó trở thành tỉnh Africa của La Mã. Polybius, người có mặt bên cạnh ông, thuật lại cảnh Scipio rơi lệ và ngâm thơ Homer khi nhìn thành phố bốc cháy."
     },
     "location": {
       "name": { "en": "Carthage", "vi": "Carthage" },
-      "lng": 10.3233,
-      "lat": 36.8528
+      "lng": 10.3231,
+      "lat": 36.8531
     },
-    "polityIds": ["rome", "carthage", "greek-city-states"],
+    "polityIds": ["rome", "carthage"],
     "category": "military",
     "importance": 3,
-    "sources": [{ "title": "Appian, Roman History: The Punic Wars" }]
+    "sources": [
+      {
+        "title": "Appian, Roman History: The Punic Wars 127–135",
+        "url": "https://www.livius.org/sources/content/appian/appian-the-punic-wars/appian-the-punic-wars-26/"
+      },
+      {
+        "title": "Polybius, Histories 38.19–22",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/38*.html"
+      }
+    ]
+  },
+  {
+    "id": "sack-of-corinth",
+    "year": -146,
+    "title": {
+      "en": "Sack of Corinth",
+      "vi": "Corinth bị cướp phá"
+    },
+    "summary": {
+      "en": "In the same year that Carthage fell, the consul Lucius Mummius defeated the Achaean League and took Corinth. Pausanias reports that most of the men were killed, the women and children were sold, and the finest works of art were carried off. Mainland Greece passed under Roman control.",
+      "vi": "Cùng năm Carthage sụp đổ, chấp chính quan Lucius Mummius đánh bại Liên minh Achaea và chiếm Corinth. Pausanias thuật lại rằng phần lớn đàn ông bị giết, phụ nữ và trẻ em bị bán làm nô lệ, còn những tác phẩm nghệ thuật đẹp nhất bị chở đi. Hy Lạp lục địa rơi vào vòng kiểm soát của La Mã."
+    },
+    "location": {
+      "name": { "en": "Corinth", "vi": "Corinth" },
+      "lng": 22.8786,
+      "lat": 37.9056
+    },
+    "polityIds": ["rome", "greek-city-states"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Pausanias, Description of Greece 7.16",
+        "url": "https://www.theoi.com/Text/Pausanias7A.html"
+      },
+      {
+        "title": "Livy, Periochae 52",
+        "url": "https://www.livius.org/sources/content/livy/livy-periochae-51-55/"
+      },
+      {
+        "title": "Polybius, Histories 39.2–3",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/39*.html"
+      }
+    ]
+  },
+  {
+    "id": "tribunate-of-tiberius-gracchus",
+    "year": -133,
+    "title": {
+      "en": "Tribunate of Tiberius Gracchus",
+      "vi": "Tiberius Gracchus làm hộ dân quan"
+    },
+    "summary": {
+      "en": "As tribune, Tiberius Gracchus proposed to enforce the old 500-iugera limit on public land and distribute the surplus to poor citizens. When his colleague Octavius vetoed the bill, Tiberius had the assembly depose him. A crowd of senators led by Scipio Nasica then killed Tiberius and many of his supporters, which Plutarch calls the first civil strife in Rome since the kings to end in bloodshed.",
+      "vi": "Khi làm hộ dân quan, Tiberius Gracchus đề xuất thực thi lại giới hạn cũ 500 iugera đối với đất công và chia phần dư cho công dân nghèo. Khi đồng nhiệm Octavius phủ quyết dự luật, Tiberius cho hội đồng nhân dân bãi chức ông ta. Một nhóm nguyên lão do Scipio Nasica cầm đầu sau đó giết Tiberius cùng nhiều người ủng hộ ông; Plutarch gọi đây là cuộc xung đột nội bộ đầu tiên ở Roma kể từ thời các vua kết thúc bằng đổ máu."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Tiberius Gracchus 8–20",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Tiberius_Gracchus*.html"
+      },
+      {
+        "title": "Appian, Civil Wars 1.9–17",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      }
+    ]
+  },
+  {
+    "id": "bequest-of-pergamon",
+    "year": -133,
+    "title": {
+      "en": "Attalus III bequeaths Pergamon to Rome",
+      "vi": "Attalos III di chúc để lại Pergamon cho La Mã"
+    },
+    "summary": {
+      "en": "Attalus III, the last king of Pergamon, died and left his kingdom to the Roman people. Tiberius Gracchus proposed using the royal treasure to equip his land settlers, intruding on the Senate's control of foreign affairs. After the revolt of the pretender Aristonicus was put down, the kingdom became the Roman province of Asia.",
+      "vi": "Attalos III, vị vua cuối cùng của Pergamon, qua đời và để lại vương quốc cho nhân dân La Mã. Tiberius Gracchus đề nghị dùng kho báu hoàng gia để trang bị cho những người được chia đất, qua đó lấn sang quyền kiểm soát đối ngoại của Viện Nguyên lão. Sau khi cuộc nổi dậy của kẻ tranh ngôi Aristonicus bị dập tắt, vương quốc trở thành tỉnh Asia của La Mã."
+    },
+    "location": {
+      "name": { "en": "Pergamon", "vi": "Pergamon" },
+      "lng": 27.1842,
+      "lat": 39.1325
+    },
+    "polityIds": ["rome", "pergamon"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Livy, Periochae 58–59",
+        "url": "https://www.livius.org/sources/content/livy/livy-periochae-56-60/"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Tiberius Gracchus 14",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Tiberius_Gracchus*.html"
+      },
+      {
+        "title": "Livius.org, \"Attalus III Philometor\"",
+        "url": "https://www.livius.org/articles/person/attalus-iii-philometor/"
+      }
+    ]
+  },
+  {
+    "id": "reforms-of-gaius-gracchus",
+    "year": -123,
+    "endYear": -121,
+    "title": {
+      "en": "Reforms and death of Gaius Gracchus",
+      "vi": "Cải cách và cái chết của Gaius Gracchus"
+    },
+    "summary": {
+      "en": "Tiberius' younger brother Gaius, tribune in 123 and 122 BCE, carried a much wider programme that included subsidised grain for citizens, new colonies (one of them on the site of Carthage) and changes to the courts. In 121 BCE the consul Opimius moved against him with the Senate's backing; Gaius died as his supporters were driven from the Aventine, and Plutarch says three thousand were killed.",
+      "vi": "Em trai của Tiberius là Gaius, hộ dân quan các năm 123 và 122 TCN, thông qua một chương trình rộng hơn nhiều, gồm bán ngũ cốc giá rẻ cho công dân, lập các thuộc địa mới (một trong số đó trên nền Carthage) và thay đổi hệ thống toà án. Năm 121 TCN, chấp chính quan Opimius được Viện Nguyên lão hậu thuẫn ra tay trấn áp; Gaius chết khi những người ủng hộ ông bị đánh bật khỏi đồi Aventine, và Plutarch cho biết ba nghìn người bị giết."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Gaius Gracchus",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Caius_Gracchus*.html"
+      },
+      {
+        "title": "Appian, Civil Wars 1.21–26",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      }
+    ]
+  },
+  {
+    "id": "jugurthine-war",
+    "year": -111,
+    "endYear": -105,
+    "title": {
+      "en": "Jugurthine War",
+      "vi": "Chiến tranh Jugurtha"
+    },
+    "summary": {
+      "en": "Jugurtha made himself master of Numidia and in 112 BCE took Cirta, killing his rival Adherbal and the Italian traders in the town. Rome went to war the following year, but the early campaigns stalled amid charges that Jugurtha had bribed Roman nobles, the central theme of Sallust's history. Marius eventually took over the command, and in 105 BCE King Bocchus of Mauretania handed Jugurtha over to Marius' officer Sulla.",
+      "vi": "Jugurtha thâu tóm toàn bộ Numidia và năm 112 TCN chiếm Cirta, giết đối thủ Adherbal cùng các thương nhân người Ý trong thành. La Mã tuyên chiến vào năm sau, nhưng các chiến dịch ban đầu sa lầy giữa những cáo buộc rằng Jugurtha đã mua chuộc giới quý tộc La Mã, chủ đề trung tâm trong bộ sử của Sallust. Cuối cùng Marius nắm quyền chỉ huy, và năm 105 TCN vua Bocchus của Mauretania giao nộp Jugurtha cho Sulla, sĩ quan dưới quyền Marius."
+    },
+    "location": {
+      "name": { "en": "Cirta", "vi": "Cirta" },
+      "lng": 6.6133,
+      "lat": 36.3681
+    },
+    "polityIds": ["rome", "numidia"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Sallust, The War with Jugurtha 20–27",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Sallust/Bellum_Jugurthinum/1*.html"
+      },
+      {
+        "title": "Sallust, The War with Jugurtha 102–114",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Sallust/Bellum_Jugurthinum/3*.html"
+      },
+      {
+        "title": "Livius.org, \"Jugurtha\"",
+        "url": "https://www.livius.org/articles/person/jugurtha/"
+      }
+    ]
+  },
+  {
+    "id": "marius-enrols-the-landless",
+    "year": -107,
+    "title": {
+      "en": "Marius opens the legions to the landless",
+      "vi": "Marius mở quân đoàn cho người không có tài sản"
+    },
+    "summary": {
+      "en": "Elected consul for 107 BCE to finish the war with Jugurtha, Gaius Marius enrolled volunteers from the propertyless citizens (capite censi), who had normally been kept out of the legions. He went on to hold five consulships in a row and to defeat the invading Teutones and Cimbri. The sweeping 'Marian reforms' once credited to him are now doubted by many historians, who see gradual change rather than a single programme.",
+      "vi": "Được bầu làm chấp chính quan năm 107 TCN để kết thúc cuộc chiến với Jugurtha, Gaius Marius tuyển cả những người tình nguyện thuộc tầng lớp công dân không có tài sản (capite censi), vốn thường không được vào quân đoàn. Về sau ông giữ chức chấp chính quan năm lần liên tiếp và đánh bại các đạo quân Teutones và Cimbri xâm lấn. Bộ 'cải cách của Marius' rộng lớn từng được gán cho ông nay bị nhiều sử gia nghi ngờ; họ cho rằng đó là sự thay đổi dần dần chứ không phải một chương trình duy nhất."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Sallust, The War with Jugurtha 84–86",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Sallust/Bellum_Jugurthinum/3*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Marius 9",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Marius*.html"
+      }
+    ]
+  },
+  {
+    "id": "social-war",
+    "year": -91,
+    "endYear": -87,
+    "title": {
+      "en": "Social War",
+      "vi": "Chiến tranh Đồng minh"
+    },
+    "summary": {
+      "en": "After the murder of the tribune Livius Drusus, who had championed citizenship for Rome's Italian allies, many of the allies rose in revolt, beginning at Asculum. The rebels set up a state of their own with its capital at Corfinium, renamed Italica. Rome prevailed in the field but only by granting citizenship, first to the allies who had stayed loyal; most fighting was over by 88 BCE, with holdouts until 87.",
+      "vi": "Sau vụ sát hại hộ dân quan Livius Drusus, người ủng hộ việc trao quyền công dân cho các đồng minh Ý của La Mã, nhiều đồng minh nổi dậy, bắt đầu từ Asculum. Phe nổi dậy lập một nhà nước riêng, đặt thủ đô ở Corfinium và đổi tên thành Italica. La Mã thắng trên chiến trường nhưng chỉ bằng cách trao quyền công dân, trước hết cho các đồng minh còn trung thành; phần lớn giao tranh chấm dứt vào năm 88 TCN, một số nơi cầm cự đến năm 87."
+    },
+    "location": {
+      "name": { "en": "Corfinium", "vi": "Corfinium" },
+      "lng": 13.839,
+      "lat": 42.122
+    },
+    "polityIds": ["rome", "italian-allies", "samnites"],
+    "category": "military",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 1.35–53",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      },
+      {
+        "title": "Velleius Paterculus, Roman History 2.15–16",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Velleius_Paterculus/2A*.html"
+      },
+      {
+        "title": "Livy, Periochae 71–75",
+        "url": "https://www.livius.org/sources/content/livy/livy-periochae-71-75/"
+      }
+    ]
+  },
+  {
+    "id": "asiatic-vespers",
+    "year": -88,
+    "title": {
+      "en": "Mithridates' massacre of Romans in Asia",
+      "vi": "Mithridates thảm sát người La Mã ở Tiểu Á"
+    },
+    "summary": {
+      "en": "Having overrun the Roman province of Asia, Mithridates VI of Pontus secretly ordered its cities to kill every Roman and Italian among them on a single appointed day. Ancient figures for the dead range from 80,000 to 150,000. The massacre, known today as the Asiatic Vespers, bound the cities to his cause and opened the First Mithridatic War, which Sulla ended with the Peace of Dardanus.",
+      "vi": "Sau khi tràn ngập tỉnh Asia của La Mã, Mithridates VI của Pontus bí mật ra lệnh cho các thành phố giết mọi người La Mã và người Ý ở đó vào cùng một ngày định sẵn. Các con số cổ đại về số người chết dao động từ 80.000 đến 150.000. Cuộc thảm sát, ngày nay gọi là 'Kinh chiều Tiểu Á', buộc các thành phố gắn số phận với ông và mở đầu Chiến tranh Mithridates lần thứ nhất, cuộc chiến mà Sulla kết thúc bằng Hoà ước Dardanus."
+    },
+    "location": {
+      "name": { "en": "Ephesus", "vi": "Ephesus" },
+      "lng": 27.3424,
+      "lat": 37.9402
+    },
+    "polityIds": ["rome", "pontus"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Appian, Roman History: The Mithridatic Wars 22–23",
+        "url": "https://www.livius.org/sources/content/appian/appian-the-mithridatic-wars/appian-the-mithridatic-wars-5/"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Sulla 24",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Sulla*.html"
+      },
+      {
+        "title": "Livius.org, \"Mithridates VI Eupator\"",
+        "url": "https://www.livius.org/articles/person/mithridates/"
+      }
+    ]
+  },
+  {
+    "id": "sullas-march-on-rome",
+    "year": -88,
+    "title": {
+      "en": "Sulla marches on Rome",
+      "vi": "Sulla tiến quân vào Roma"
+    },
+    "summary": {
+      "en": "When the tribune Sulpicius had the command against Mithridates transferred from the consul Sulla to Marius, Sulla led six legions from Nola against Rome and took the city by force. It was the first time a Roman general had marched on Rome with his army. Sulpicius was killed and Marius fled; Sulla then left for the East, but the precedent remained.",
+      "vi": "Khi hộ dân quan Sulpicius chuyển quyền chỉ huy cuộc chiến chống Mithridates từ chấp chính quan Sulla sang cho Marius, Sulla dẫn sáu quân đoàn từ Nola tiến về Roma và dùng vũ lực chiếm thành. Đây là lần đầu tiên một tướng La Mã đem quân tiến vào Roma. Sulpicius bị giết còn Marius bỏ trốn; sau đó Sulla lên đường sang phương Đông, nhưng tiền lệ thì đã có."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 1.55–60",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Sulla 8–10",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Sulla*.html"
+      }
+    ]
+  },
+  {
+    "id": "dictatorship-of-sulla",
+    "year": -82,
+    "endYear": -79,
+    "title": {
+      "en": "Dictatorship of Sulla",
+      "vi": "Sulla làm độc tài quan"
+    },
+    "summary": {
+      "en": "Back from the East, Sulla won a civil war against the followers of Marius and Cinna, decided at the Colline Gate in 82 BCE. Made dictator, he posted lists of 'proscribed' enemies who could be killed and their property seized, then rewrote the constitution to strengthen the Senate and curb the tribunes. He then laid down his powers of his own accord and retired, dying in 78 BCE.",
+      "vi": "Trở về từ phương Đông, Sulla thắng cuộc nội chiến với phe Marius và Cinna, ngã ngũ ở Cổng Collina năm 82 TCN. Được cử làm độc tài quan, ông niêm yết danh sách những kẻ thù 'bị đặt ngoài vòng pháp luật', ai cũng có thể giết và tịch thu tài sản, rồi sửa lại thể chế để tăng quyền cho Viện Nguyên lão và hạn chế các hộ dân quan. Sau đó ông tự nguyện từ bỏ quyền lực và lui về nghỉ, qua đời năm 78 TCN."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 1.93–104",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Sulla 29–34",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Sulla*.html"
+      }
+    ]
+  },
+  {
+    "id": "revolt-of-spartacus",
+    "year": -73,
+    "endYear": -71,
+    "title": {
+      "en": "Revolt of Spartacus",
+      "vi": "Cuộc nổi dậy của Spartacus"
+    },
+    "summary": {
+      "en": "About seventy gladiators led by the Thracian Spartacus broke out of a training school at Capua, and their band grew into an army of escaped slaves that defeated several Roman forces and ranged across Italy. Marcus Crassus finally destroyed it in 71 BCE; Appian says 6,000 captives were crucified along the road from Capua to Rome.",
+      "vi": "Khoảng bảy mươi đấu sĩ do Spartacus người Thracia cầm đầu trốn khỏi một trường huấn luyện ở Capua, và nhóm của họ lớn dần thành một đạo quân nô lệ bỏ trốn, đánh bại nhiều lực lượng La Mã và tung hoành khắp nước Ý. Cuối cùng Marcus Crassus tiêu diệt đạo quân này vào năm 71 TCN; Appian cho biết 6.000 tù binh bị đóng đinh dọc con đường từ Capua về Roma."
+    },
+    "location": {
+      "name": { "en": "Capua", "vi": "Capua" },
+      "lng": 14.25,
+      "lat": 41.0833
+    },
+    "polityIds": ["rome"],
+    "category": "social",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 1.116–120",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/1*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Crassus 8–11",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Crassus*.html"
+      },
+      {
+        "title": "Livius.org, \"Spartacus\"",
+        "url": "https://www.livius.org/articles/person/spartacus/"
+      }
+    ]
+  },
+  {
+    "id": "catilinarian-conspiracy",
+    "year": -63,
+    "title": {
+      "en": "Catilinarian conspiracy",
+      "vi": "Âm mưu của Catilina"
+    },
+    "summary": {
+      "en": "The consul Cicero exposed a plot by the noble Catiline, beaten in the consular elections, to seize power by force. Catiline fled to an army of supporters in Etruria; five leading conspirators caught in Rome were executed without trial after a Senate debate, and Catiline died fighting near Pistoria early in 62 BCE. Our accounts come from Cicero and Sallust, both hostile, and how great the danger really was is debated.",
+      "vi": "Chấp chính quan Cicero vạch trần âm mưu dùng vũ lực đoạt quyền của nhà quý tộc Catilina, kẻ vừa thất bại trong cuộc bầu chấp chính quan. Catilina trốn đến với đạo quân ủng hộ mình ở Etruria; năm kẻ chủ mưu bị bắt ở Roma bị xử tử không qua xét xử sau một cuộc tranh luận tại Viện Nguyên lão, còn Catilina tử trận gần Pistoria đầu năm 62 TCN. Các tường thuật còn lại đều của Cicero và Sallust, cả hai đều thù địch với ông, và mức độ nguy hiểm thực sự của âm mưu vẫn còn được tranh luận."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Sallust, The War with Catiline",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Sallust/Bellum_Catilinae*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Cicero 10–22",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Cicero*.html"
+      }
+    ]
+  },
+  {
+    "id": "pompeys-settlement-of-the-east",
+    "year": -63,
+    "title": {
+      "en": "Pompey reorganises the East",
+      "vi": "Pompey tổ chức lại phương Đông"
+    },
+    "summary": {
+      "en": "After driving Mithridates VI out of his kingdom, Pompey reorganised the Near East on his own authority. He ended the Seleucid monarchy and made Syria a Roman province, and in 63 BCE, the year Mithridates died, he intervened in a succession dispute in Judaea and captured Jerusalem after a siege. New provinces and dependent kings made Rome the dominant power of the eastern Mediterranean.",
+      "vi": "Sau khi đánh đuổi Mithridates VI khỏi vương quốc của ông ta, Pompey tự mình sắp đặt lại vùng Cận Đông. Ông chấm dứt nền quân chủ nhà Seleukos và biến Syria thành một tỉnh của La Mã, rồi năm 63 TCN, cũng là năm Mithridates chết, ông can thiệp vào cuộc tranh chấp ngôi vị ở Judaea và chiếm Jerusalem sau một cuộc vây hãm. Các tỉnh mới và các vua chư hầu đưa La Mã thành thế lực chi phối miền đông Địa Trung Hải."
+    },
+    "location": {
+      "name": { "en": "Jerusalem", "vi": "Jerusalem" },
+      "lng": 35.235,
+      "lat": 31.7772
+    },
+    "polityIds": ["rome", "seleucid-empire", "pontus"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Pompey 38–42",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Pompey*.html"
+      },
+      {
+        "title": "Appian, Roman History: The Syrian Wars 49–50",
+        "url": "https://www.livius.org/sources/content/appian/appian-the-syrian-wars/appian-the-syrian-wars-10/"
+      },
+      {
+        "title": "Appian, Roman History: The Mithridatic Wars 111–115",
+        "url": "https://www.livius.org/sources/content/appian/appian-the-mithridatic-wars/appian-the-mithridatic-wars-23/"
+      },
+      {
+        "title": "Cassius Dio, Roman History 37.15–16",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/37*.html"
+      }
+    ]
+  },
+  {
+    "id": "first-triumvirate",
+    "year": -60,
+    "title": {
+      "en": "First Triumvirate",
+      "vi": "Tam hùng lần thứ nhất"
+    },
+    "summary": {
+      "en": "Caesar, Pompey and Crassus made a private pact to pool their influence against their opponents in the Senate. It was never an office, and its formation is placed in late 60 or early 59 BCE. It brought Caesar his consulship and his Gallic command, and broke down after Crassus died in 53 BCE.",
+      "vi": "Caesar, Pompey và Crassus lập một thoả thuận riêng để hợp sức ảnh hưởng chống lại các đối thủ trong Viện Nguyên lão. Đây chưa bao giờ là một chức vụ chính thức, và thời điểm hình thành được xếp vào cuối năm 60 hoặc đầu năm 59 TCN. Thoả thuận đem lại cho Caesar chức chấp chính quan và quyền chỉ huy ở xứ Gaul, rồi tan vỡ sau khi Crassus chết năm 53 TCN."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Suetonius, The Twelve Caesars: Divus Julius 19",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Suetonius/12Caesars/Julius*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 37.54–57",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/37*.html"
+      },
+      {
+        "title": "Livius.org, \"Triumvir\"",
+        "url": "https://www.livius.org/articles/concept/triumvir/"
+      }
+    ]
+  },
+  {
+    "id": "gallic-wars",
+    "year": -58,
+    "endYear": -50,
+    "title": {
+      "en": "Caesar's Gallic Wars",
+      "vi": "Các cuộc chiến xứ Gaul của Caesar"
+    },
+    "summary": {
+      "en": "As governor, Julius Caesar used a migration of the Helvetii as his opening to conquer the whole of Gaul, with expeditions to Britain and across the Rhine. The great revolt led by Vercingetorix ended with his surrender at the siege of Alesia in 52 BCE. The wars, known mainly from Caesar's own account, gave him wealth, a veteran army and the standing to challenge his rivals in Rome.",
+      "vi": "Khi làm thống đốc, Julius Caesar lấy cuộc di cư của người Helvetii làm cớ để chinh phục toàn bộ xứ Gaul, kèm các cuộc viễn chinh sang Britannia và qua sông Rhine. Cuộc nổi dậy lớn do Vercingetorix lãnh đạo kết thúc khi ông ta đầu hàng trong trận vây hãm Alesia năm 52 TCN. Các cuộc chiến này, được biết chủ yếu qua lời kể của chính Caesar, đem lại cho ông của cải, một đạo quân dày dạn và vị thế để thách thức các đối thủ ở Roma."
+    },
+    "location": {
+      "name": { "en": "Alesia (siege of 52 BCE)", "vi": "Alesia (trận vây hãm năm 52 TCN)" },
+      "lng": 4.5006,
+      "lat": 47.5392
+    },
+    "polityIds": ["rome", "gauls"],
+    "category": "military",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Caesar, Gallic War 1.1–29",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/1A*.html"
+      },
+      {
+        "title": "Caesar, Gallic War 7.68–90",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/7G*.html"
+      },
+      {
+        "title": "Livius.org, \"Alesia (52 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/alesia-52-bce/"
+      }
+    ]
+  },
+  {
+    "id": "theatre-of-pompey",
+    "year": -55,
+    "title": {
+      "en": "Theatre of Pompey dedicated",
+      "vi": "Khánh thành Nhà hát Pompey"
+    },
+    "summary": {
+      "en": "In his second consulship Pompey dedicated Rome's first permanent theatre, with games that included music, athletic contests and wild-beast hunts. Until then plays had been staged in temporary structures, and Tacitus records that Pompey was criticised for giving the theatre a permanent home. A hall in the same complex later served for meetings of the Senate, and Caesar was killed there.",
+      "vi": "Trong nhiệm kỳ chấp chính quan thứ hai, Pompey khánh thành nhà hát kiên cố đầu tiên của Roma, kèm các cuộc thi âm nhạc, thể thao và săn thú dữ. Trước đó kịch chỉ được diễn trên các công trình dựng tạm, và Tacitus ghi lại rằng Pompey bị chỉ trích vì cho nhà hát một chỗ ở cố định. Một sảnh trong cùng quần thể về sau được dùng làm nơi họp của Viện Nguyên lão, và Caesar bị giết tại đó."
+    },
+    "location": {
+      "name": { "en": "Theatre of Pompey, Rome", "vi": "Nhà hát Pompey, Roma" },
+      "lng": 12.4738,
+      "lat": 41.8952
+    },
+    "polityIds": ["rome"],
+    "category": "cultural",
+    "importance": 1,
+    "sources": [
+      {
+        "title": "Cassius Dio, Roman History 39.38",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/39*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Pompey 52",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Pompey*.html"
+      },
+      {
+        "title": "Tacitus, Annals 14.20",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Tacitus/Annals/14A*.html"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-carrhae",
+    "year": -53,
+    "title": {
+      "en": "Battle of Carrhae",
+      "vi": "Trận Carrhae"
+    },
+    "summary": {
+      "en": "Crassus invaded Parthian Mesopotamia in search of a victory of his own. Near Carrhae the horse archers and armoured cavalry of the Parthian general Surena surrounded his legions; his son Publius fell in the fighting, and Crassus himself was killed during a parley. Most of the army was lost, and his death left Caesar and Pompey facing each other alone.",
+      "vi": "Crassus xâm lược vùng Lưỡng Hà của Parthia để tìm một chiến thắng cho riêng mình. Gần Carrhae, kỵ binh bắn cung và kỵ binh bọc giáp của tướng Parthia là Surena bao vây các quân đoàn của ông; con trai ông là Publius tử trận, còn chính Crassus bị giết trong một cuộc thương thuyết. Phần lớn đạo quân bị mất, và cái chết của ông để lại Caesar và Pompey một mình đối đầu nhau."
+    },
+    "location": {
+      "name": { "en": "Carrhae (Harran)", "vi": "Carrhae (Harran)" },
+      "lng": 39.0307,
+      "lat": 36.8636
+    },
+    "polityIds": ["rome", "parthia"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Crassus 23–31",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Crassus*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 40.16–27",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/40*.html"
+      },
+      {
+        "title": "Livius.org, \"Carrhae (53 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/carrhae-53-bce/"
+      }
+    ]
+  },
+  {
+    "id": "caesar-crosses-the-rubicon",
+    "year": -49,
+    "title": {
+      "en": "Caesar crosses the Rubicon",
+      "vi": "Caesar vượt sông Rubicon"
+    },
+    "summary": {
+      "en": "Ordered by the Senate to give up his army, Caesar instead led his troops across the Rubicon, the small river that marked the boundary between his province and Italy, in January 49 BCE. The sources have him say 'the die is cast'; in Plutarch it is a proverb, 'let the die be cast'. The crossing began the civil war against Pompey. Which modern stream was the Rubicon is uncertain.",
+      "vi": "Bị Viện Nguyên lão ra lệnh giao lại quân đội, Caesar lại dẫn quân vượt sông Rubicon, con sông nhỏ đánh dấu ranh giới giữa tỉnh của ông và nước Ý, vào tháng 1 năm 49 TCN. Các nguồn sử kể ông nói 'con xúc xắc đã được gieo'; theo Plutarch đó là một câu tục ngữ, 'hãy gieo xúc xắc đi'. Cuộc vượt sông mở đầu nội chiến với Pompey. Con sông ngày nay nào chính là Rubicon vẫn chưa chắc chắn."
+    },
+    "location": {
+      "name": { "en": "Rubicon (identification uncertain)", "vi": "Sông Rubicon (chưa xác định chắc chắn)" },
+      "lng": 12.3607,
+      "lat": 44.0722,
+      "approximate": true
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 3,
+    "sources": [
+      {
+        "title": "Suetonius, The Twelve Caesars: Divus Julius 31–32",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Suetonius/12Caesars/Julius*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Caesar 32",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Caesar*.html"
+      },
+      {
+        "title": "Livius.org, \"Rubico (49 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/rubico-49-bce/"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-pharsalus",
+    "year": -48,
+    "title": {
+      "en": "Battle of Pharsalus",
+      "vi": "Trận Pharsalus"
+    },
+    "summary": {
+      "en": "In Thessaly on 9 August 48 BCE Caesar's outnumbered veterans defeated Pompey's army; a reserve line of infantry that Caesar had posted against Pompey's cavalry decided the battle. Pompey fled to Egypt and was murdered as he came ashore, on the advice of the counsellors of the young Ptolemy XIII. The exact battlefield is disputed.",
+      "vi": "Tại Thessaly ngày 9 tháng 8 năm 48 TCN, các cựu binh của Caesar dù ít quân hơn vẫn đánh bại đạo quân của Pompey; một tuyến bộ binh dự bị mà Caesar bố trí để chặn kỵ binh của Pompey đã quyết định trận đánh. Pompey chạy sang Ai Cập và bị sát hại ngay khi lên bờ, theo lời khuyên của các cận thần quanh vị vua trẻ Ptolemaios XIII. Vị trí chính xác của chiến trường còn tranh cãi."
+    },
+    "location": {
+      "name": { "en": "Pharsalus (approximate)", "vi": "Pharsalus (ước lượng)" },
+      "lng": 22.2808,
+      "lat": 39.4053,
+      "approximate": true
+    },
+    "polityIds": ["rome", "ptolemaic-egypt"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Caesar, Civil War 3.85–99",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Civil_Wars/3D*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Pompey 68–80",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Pompey*.html"
+      },
+      {
+        "title": "Livius.org, \"Pharsalus (48 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/pharsalus-48-bce/"
+      }
+    ]
+  },
+  {
+    "id": "julian-calendar",
+    "year": -45,
+    "title": {
+      "en": "Julian calendar takes effect",
+      "vi": "Lịch Julius có hiệu lực"
+    },
+    "summary": {
+      "en": "The old Roman calendar had drifted far out of step with the seasons. Drawing on Alexandrian astronomy, Caesar lengthened the year 46 BCE to bring it back into line and introduced a year of 365 days with an extra day every fourth year, in force from 1 January 45 BCE. With a small correction made in 1582, it is the calendar still in use today.",
+      "vi": "Bộ lịch La Mã cũ đã lệch xa so với các mùa. Dựa vào thiên văn học Alexandria, Caesar kéo dài năm 46 TCN để đưa lịch khớp trở lại và ban hành năm 365 ngày, cứ bốn năm thêm một ngày, có hiệu lực từ ngày 1 tháng 1 năm 45 TCN. Với một hiệu chỉnh nhỏ vào năm 1582, đây vẫn là bộ lịch được dùng ngày nay."
+    },
+    "location": {
+      "name": { "en": "Rome", "vi": "Roma" },
+      "lng": 12.4913,
+      "lat": 41.89
+    },
+    "polityIds": ["rome"],
+    "category": "cultural",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Suetonius, The Twelve Caesars: Divus Julius 40",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Suetonius/12Caesars/Julius*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 43.26",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/43*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Caesar 59",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Caesar*.html"
+      }
+    ]
   },
   {
     "id": "assassination-of-caesar",
@@ -135,20 +1691,99 @@
       "vi": "Julius Caesar bị ám sát"
     },
     "summary": {
-      "en": "On the Ides of March, a group of senators killed Julius Caesar, who had recently been named dictator for life. Instead of restoring the Republic, the murder opened a new round of civil wars.",
-      "vi": "Vào ngày 15 tháng 3, một nhóm nguyên lão sát hại Julius Caesar, người vừa được phong độc tài quan trọn đời. Thay vì khôi phục nền Cộng hoà, vụ ám sát mở ra một loạt nội chiến mới."
+      "en": "On the Ides of March (15 March) a group of senators led by Brutus and Cassius stabbed Julius Caesar to death at a Senate meeting held in the hall attached to Pompey's theatre. He had recently been named dictator for life. Instead of restoring the Republic, the murder opened a new round of civil wars.",
+      "vi": "Vào ngày Ides tháng Ba (15 tháng 3), một nhóm nguyên lão do Brutus và Cassius cầm đầu đâm chết Julius Caesar trong một phiên họp Viện Nguyên lão tại sảnh gắn với nhà hát Pompey. Ông vừa được phong độc tài quan trọn đời trước đó không lâu. Thay vì khôi phục nền Cộng hoà, vụ ám sát mở ra một loạt nội chiến mới."
     },
     "location": {
-      "name": { "en": "Rome", "vi": "Roma" },
-      "lng": 12.4964,
-      "lat": 41.9028
+      "name": { "en": "Curia of Pompey, Rome", "vi": "Sảnh Curia của Pompey, Roma" },
+      "lng": 12.4769,
+      "lat": 41.8954
     },
     "polityIds": ["rome"],
     "category": "political",
     "importance": 3,
     "sources": [
-      { "title": "Suetonius, The Twelve Caesars: Divus Julius" },
-      { "title": "Plutarch, Parallel Lives: Caesar" }
+      {
+        "title": "Suetonius, The Twelve Caesars: Divus Julius 80–82",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Suetonius/12Caesars/Julius*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Caesar 57, 63–66",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Caesar*.html"
+      },
+      {
+        "title": "Appian, Civil Wars 2.111–117",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/2*.html"
+      }
+    ]
+  },
+  {
+    "id": "second-triumvirate",
+    "year": -43,
+    "title": {
+      "en": "Second Triumvirate and the proscriptions",
+      "vi": "Tam hùng lần thứ hai và các cuộc thanh trừng"
+    },
+    "summary": {
+      "en": "Antony, Lepidus and Octavian met on a river island in northern Italy (near Bononia according to Dio and Plutarch, near Mutina according to Appian) and agreed to share power. A law proposed by the tribune Titius then made them a board of three with supreme authority for five years. They began with proscriptions to remove enemies and raise money; Cicero was among those killed.",
+      "vi": "Antonius, Lepidus và Octavian gặp nhau trên một hòn đảo giữa sông ở miền bắc nước Ý (gần Bononia theo Dio và Plutarch, gần Mutina theo Appian) và thoả thuận chia nhau quyền lực. Một đạo luật do hộ dân quan Titius đề xuất sau đó lập họ thành hội đồng ba người nắm quyền tối cao trong năm năm. Họ mở đầu bằng các cuộc thanh trừng để loại kẻ thù và gom tiền; Cicero nằm trong số người bị giết."
+    },
+    "location": {
+      "name": { "en": "Near Bononia (approximate)", "vi": "Gần Bononia (ước lượng)" },
+      "lng": 11.3428,
+      "lat": 44.4939,
+      "approximate": true
+    },
+    "polityIds": ["rome"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 4.2–7",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/4*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 46.55",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/46*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Cicero 46–49",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Cicero*.html"
+      }
+    ]
+  },
+  {
+    "id": "battle-of-philippi",
+    "year": -42,
+    "title": {
+      "en": "Battles of Philippi",
+      "vi": "Các trận Philippi"
+    },
+    "summary": {
+      "en": "In two battles fought in October 42 BCE, Antony and Octavian defeated the armies of Caesar's assassins in Macedonia. Cassius killed himself after the first battle and Brutus after the second. With the republican cause destroyed, the victors divided the Roman world between them.",
+      "vi": "Trong hai trận đánh vào tháng 10 năm 42 TCN, Antonius và Octavian đánh bại quân đội của những kẻ ám sát Caesar tại Macedonia. Cassius tự sát sau trận thứ nhất, còn Brutus tự sát sau trận thứ hai. Phe cộng hoà bị tiêu diệt, những người thắng trận chia nhau thế giới La Mã."
+    },
+    "location": {
+      "name": { "en": "Philippi", "vi": "Philippi" },
+      "lng": 24.2846,
+      "lat": 41.0127
+    },
+    "polityIds": ["rome"],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Appian, Civil Wars 4.105–131",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Appian/Civil_Wars/4*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Brutus 38–53",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Brutus*.html"
+      },
+      {
+        "title": "Livius.org, \"Philippi (42 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/philippi-42-bce/"
+      }
     ]
   },
   {
@@ -159,18 +1794,65 @@
       "vi": "Trận Actium"
     },
     "summary": {
-      "en": "Octavian's fleet, commanded by Agrippa, defeated Mark Antony and Cleopatra off the coast of western Greece. Egypt fell to Rome the following year, leaving Octavian without a rival.",
-      "vi": "Hạm đội của Octavian do Agrippa chỉ huy đánh bại Marcus Antonius và Cleopatra ngoài khơi miền tây Hy Lạp. Năm sau Ai Cập rơi vào tay La Mã, và Octavian không còn đối thủ."
+      "en": "On 2 September 31 BCE Octavian's fleet, commanded by Agrippa, defeated Mark Antony and Cleopatra off Actium in western Greece. Cleopatra's squadron and then Antony broke away and fled to Egypt, abandoning the rest of their forces. The victory left Octavian without a serious rival.",
+      "vi": "Ngày 2 tháng 9 năm 31 TCN, hạm đội của Octavian do Agrippa chỉ huy đánh bại Marcus Antonius và Cleopatra ngoài khơi Actium ở miền tây Hy Lạp. Đội thuyền của Cleopatra rồi đến Antonius phá vây chạy về Ai Cập, bỏ lại phần còn lại của lực lượng. Chiến thắng khiến Octavian không còn đối thủ đáng kể nào."
     },
     "location": {
       "name": { "en": "Actium", "vi": "Actium" },
-      "lng": 20.72,
-      "lat": 38.95
+      "lng": 20.7659,
+      "lat": 38.9539
     },
     "polityIds": ["rome", "ptolemaic-egypt"],
     "category": "military",
     "importance": 3,
-    "sources": [{ "title": "Cassius Dio, Roman History, Book 50" }]
+    "sources": [
+      {
+        "title": "Cassius Dio, Roman History 50.11–35",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/50*.html"
+      },
+      {
+        "title": "Plutarch, Parallel Lives: Antony 61–68",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Antony*.html"
+      },
+      {
+        "title": "Livius.org, \"Actium (31 BCE)\"",
+        "url": "https://www.livius.org/articles/battle/actium-31-bce/"
+      }
+    ]
+  },
+  {
+    "id": "annexation-of-egypt",
+    "year": -30,
+    "title": {
+      "en": "Death of Cleopatra and annexation of Egypt",
+      "vi": "Cleopatra qua đời và Ai Cập bị sáp nhập"
+    },
+    "summary": {
+      "en": "Octavian entered Alexandria in August 30 BCE. Antony and then Cleopatra took their own lives; the famous asp is only one of the versions the ancient writers report. Caesarion, whom Cleopatra presented as Caesar's son, was put to death, and Egypt, the last of the great Hellenistic kingdoms, came under a Roman governor of equestrian rank chosen by Octavian.",
+      "vi": "Octavian tiến vào Alexandria vào tháng 8 năm 30 TCN. Antonius rồi đến Cleopatra tự kết liễu đời mình; con rắn độc nổi tiếng chỉ là một trong các dị bản mà các tác giả cổ đại thuật lại. Caesarion, người được Cleopatra coi là con trai của Caesar, bị xử tử, còn Ai Cập, vương quốc lớn cuối cùng của thời Hy Lạp hoá, được đặt dưới quyền một thống đốc La Mã thuộc hàng kỵ sĩ do Octavian chọn."
+    },
+    "location": {
+      "name": { "en": "Alexandria", "vi": "Alexandria" },
+      "lng": 29.9098,
+      "lat": 31.2014
+    },
+    "polityIds": ["rome", "ptolemaic-egypt"],
+    "category": "political",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Plutarch, Parallel Lives: Antony 76–86",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Antony*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 51.9–17",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/51*.html"
+      },
+      {
+        "title": "Livius.org, \"Cleopatra VII Philopator\"",
+        "url": "https://www.livius.org/articles/person/cleopatra-vii/"
+      }
+    ]
   },
   {
     "id": "octavian-becomes-augustus",
@@ -180,20 +1862,30 @@
       "vi": "Octavian trở thành Augustus"
     },
     "summary": {
-      "en": "The Senate granted Octavian the name Augustus and a set of powers that made him ruler in all but name. This settlement is the conventional end of the Republic and start of the Principate.",
-      "vi": "Viện Nguyên lão trao cho Octavian danh hiệu Augustus cùng những quyền lực khiến ông trở thành người cai trị trên thực tế. Sự dàn xếp này thường được coi là điểm kết thúc nền Cộng hoà và mở đầu thời Nguyên thủ."
+      "en": "In January 27 BCE Octavian declared that he was handing the state back to the Senate and people. In return the Senate gave him the name Augustus and honours such as the civic crown, while he kept command of the provinces that held most of the legions. This settlement is the conventional end of the Republic and beginning of the Principate.",
+      "vi": "Tháng 1 năm 27 TCN, Octavian tuyên bố trao lại nhà nước cho Viện Nguyên lão và nhân dân. Đáp lại, Viện Nguyên lão trao cho ông danh hiệu Augustus cùng các vinh dự như vòng hoa công dân, trong khi ông vẫn giữ quyền chỉ huy những tỉnh có phần lớn quân đoàn đóng giữ. Sự dàn xếp này thường được coi là điểm kết thúc nền Cộng hoà và mở đầu thời Nguyên thủ."
     },
     "location": {
       "name": { "en": "Rome", "vi": "Roma" },
-      "lng": 12.4964,
-      "lat": 41.9028
+      "lng": 12.4913,
+      "lat": 41.89
     },
     "polityIds": ["rome"],
     "category": "political",
     "importance": 3,
     "sources": [
-      { "title": "Augustus, Res Gestae Divi Augusti, 34" },
-      { "title": "Cassius Dio, Roman History, Book 53" }
+      {
+        "title": "Augustus, Res Gestae Divi Augusti 34",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Augustus/Res_Gestae/6*.html"
+      },
+      {
+        "title": "Cassius Dio, Roman History 53.11–16",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/53*.html"
+      },
+      {
+        "title": "Livius.org, \"Augustus\"",
+        "url": "https://www.livius.org/articles/person/augustus/"
+      }
     ]
   }
 ]
