@@ -105,8 +105,11 @@ export function TimelineTrack({ onUserSeek }: TimelineTrackProps) {
     let next: number;
     if (event.key === "Home") next = YEAR_MIN;
     else if (event.key === "End") next = YEAR_MAX;
-    else if (event.key in KEY_STEPS) next = current + KEY_STEPS[event.key];
-    else return;
+    else if (event.key in KEY_STEPS) {
+      // Shift makes the arrows take 10-year steps, like the page shortcuts.
+      const step = KEY_STEPS[event.key];
+      next = current + (event.shiftKey && Math.abs(step) === 1 ? step * 10 : step);
+    } else return;
     event.preventDefault();
     onUserSeek();
     setYear(next);

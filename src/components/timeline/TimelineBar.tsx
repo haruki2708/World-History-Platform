@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { getEvent, isEventActive } from "@/data";
 import { useT } from "@/lib/i18n/useT";
-import { formatYear } from "@/lib/years";
+import { YEAR_MAX, YEAR_MIN, formatYear } from "@/lib/years";
 import { useAppStore } from "@/store/useAppStore";
+import { useShortcuts } from "../shell/keyboard";
 import { PlayButton, SpeedSelect } from "./PlaybackControls";
 import { TimelineTrack } from "./TimelineTrack";
 import { usePlayback, type PlaybackSpeed } from "./usePlayback";
@@ -26,6 +27,7 @@ export function TimelineBar() {
 
   const [speed, setSpeed] = useState<PlaybackSpeed>(10);
   const { playing, toggle, pause } = usePlayback(speed);
+  useTimelineShortcuts(toggle, pause);
 
   return (
     <div className="flex flex-col gap-1 px-4 pt-2 pb-1">
@@ -46,4 +48,36 @@ export function TimelineBar() {
       <TimelineTrack onUserSeek={pause} />
     </div>
   );
+}
+
+/** Space plays or pauses; ←/→ step 1 year (10 with Shift); Home/End jump. */
+function useTimelineShortcuts(toggle: () => void, pause: () => void) {
+  useShortcuts((event) => {
+    const { year, setYear } = useAppStore.getState();
+    const step = event.shiftKey ? 10 : 1;
+    let target: number;
+    switch (event.key) {
+      case " ":
+        if (!event.repeat) toggle();
+        return true;
+      case "ArrowLeft":
+        target = year - step;
+        break;
+      case "ArrowRight":
+        target = year + step;
+        break;
+      case "Home":
+        target = YEAR_MIN;
+        break;
+      case "End":
+        target = YEAR_MAX;
+        break;
+      default:
+        return false;
+    }
+    // Moving the year by hand stops playback, as dragging does.
+    pause();
+    setYear(target);
+    return true;
+  });
 }

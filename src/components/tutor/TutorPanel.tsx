@@ -5,6 +5,7 @@ import { getEvent } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import { formatYear } from "@/lib/years";
 import { useAppStore } from "@/store/useAppStore";
+import { useShortcuts } from "../shell/keyboard";
 import { ChatEntryView } from "./ChatEntryView";
 import { Composer } from "./Composer";
 import { useTutorChat } from "./useTutorChat";
@@ -25,6 +26,15 @@ export function TutorPanel() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
+
+  // "/" jumps to the question box. When the box is hidden (the events tab on
+  // a narrow screen) it cannot take focus, and the key is left alone.
+  useShortcuts((event) => {
+    if (event.key !== "/") return false;
+    const input = inputRef.current;
+    input?.focus();
+    return input !== null && document.activeElement === input;
+  });
 
   // Follow new text unless the user has scrolled up to read. The empty state
   // (intro and suggestions) stays scrolled to the top.
