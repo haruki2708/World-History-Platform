@@ -16,49 +16,108 @@ function toLine(event: TutorStreamEvent): string {
   return `${JSON.stringify(event)}\n`;
 }
 
-/** A response that is a single `error` event, with a 4xx/5xx status. */
-export function errorResponse(code: TutorErrorCode): Response {
+/**
+ * A response that is a single `error` event, with a 4xx/5xx status: the one
+ * of ERROR_STATUS unless `status` is given.
+ */
+export function errorResponse(code: TutorErrorCode, status?: number): Response {
   return new Response(toLine({ type: "error", code }), {
-    status: ERROR_STATUS[code],
+    status: status ?? ERROR_STATUS[code],
     headers: HEADERS,
   });
 }
 
+export interface ResponseTiming {
+  /** How long to hold the response for the first event. */
+  firstEventWaitMs: number;
+  /** Silence after which a `ping` is sent. */
+  pingIntervalMs: number;
+}
+
+export const RESPONSE_TIMING: ResponseTiming = {
+  firstEventWaitMs: 2_000,
+  pingIntervalMs: 15_000,
+};
+
+const TIMED_OUT = Symbol("timed out");
+
+/** `promise`, or TIMED_OUT if it takes longer than `ms`. */
+async function within<T>(
+  promise: Promise<T>,
+  ms: number,
+): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), ms);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+type Next = Promise<IteratorResult<TutorStreamEvent, void>>;
+
 /**
  * Turns a stream of tutor events into the NDJSON response.
  *
- * The first event is awaited before the response is created: if the answer
- * fails before any text, the error can still be sent with a proper HTTP
- * status, as the contract asks. Everything after that is streamed with
- * status 200. Calling `abort.abort()` must make `events` stop.
+ * The first event is awaited for up to `firstEventWaitMs`: if the answer
+ * fails in that time, the error is sent with its proper HTTP status, as the
+ * contract asks. If nothing has come by then (the model is still thinking),
+ * the response starts anyway, with status 200 and a `ping`, and any later
+ * error travels in that 200 stream. While the stream is open, a `ping` goes
+ * out after every `pingIntervalMs` of silence so that proxies do not drop
+ * the connection. Calling `abort.abort()` must make `events` stop.
  */
 export async function streamResponse(
   events: AsyncGenerator<TutorStreamEvent, void, void>,
   abort: AbortController,
+  timing: ResponseTiming = RESPONSE_TIMING,
 ): Promise<Response> {
-  const first = await events.next();
-  if (first.done) {
-    // The client went away before anything was produced; nobody reads this.
-    return new Response(null, { status: 200, headers: HEADERS });
-  }
-  if (first.value.type === "error") {
-    await events.return();
-    return errorResponse(first.value.code);
+  let next: Next | undefined = events.next();
+  // Nobody may be waiting on it when the client leaves.
+  next.catch(() => undefined);
+
+  // Sent first once the response exists.
+  let queued: TutorStreamEvent | undefined;
+  const first = await within(next, timing.firstEventWaitMs);
+  if (first === TIMED_OUT) {
+    queued = { type: "ping" };
+  } else {
+    next = undefined;
+    if (first.done) {
+      // The client went away before anything was produced; nobody reads this.
+      return new Response(null, { status: 200, headers: HEADERS });
+    }
+    if (first.value.type === "error") {
+      await events.return();
+      return errorResponse(first.value.code);
+    }
+    queued = first.value;
   }
 
-  let pending: TutorStreamEvent | undefined = first.value;
   const body = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
-        let event = pending;
-        pending = undefined;
+        let event = queued;
+        queued = undefined;
         if (!event) {
-          const next = await events.next();
-          if (next.done) return controller.close();
-          event = next.value;
+          if (!next) {
+            next = events.next();
+            next.catch(() => undefined);
+          }
+          const result = await within(next, timing.pingIntervalMs);
+          if (result === TIMED_OUT) {
+            controller.enqueue(encoder.encode(toLine({ type: "ping" })));
+            return;
+          }
+          next = undefined;
+          if (result.done) return controller.close();
+          event = result.value;
         }
         controller.enqueue(encoder.encode(toLine(event)));
-        if (event.type !== "text") {
+        if (event.type === "done" || event.type === "error") {
           await events.return();
           controller.close();
         }

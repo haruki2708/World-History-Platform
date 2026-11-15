@@ -8,6 +8,7 @@ import {
   TUTOR_MODEL,
 } from "./config";
 import { isAbort, logTutorError, toTutorErrorCode } from "./errors";
+import { estimateCostUsd, mergeUsage, type TokenUsage } from "./pricing";
 import { buildMessages, buildSystem } from "./prompt";
 
 type StreamParams = Parameters<Anthropic["beta"]["messages"]["stream"]>[0];
@@ -46,12 +47,19 @@ export function buildClaudeParams(request: TutorRequest) {
  * with `error` if the call fails or the model declines. If `signal` aborts
  * (the user pressed stop or left), the API request is cancelled and the
  * generator ends without a final event.
+ *
+ * `onCost` receives the estimated cost in USD once the request is over, also
+ * when it stopped early: then it covers the usage reported so far (the input
+ * side is known from the start; output only when the API reported it).
  */
 export async function* streamClaudeAnswer(
   request: TutorRequest,
   signal: AbortSignal,
+  onCost: (usd: number) => void = () => {},
 ): AsyncGenerator<TutorStreamEvent, void, void> {
   let stream: ReturnType<Anthropic["beta"]["messages"]["stream"]> | undefined;
+  const usage: TokenUsage = {};
+  let finished = false;
   try {
     stream = getClient().beta.messages.stream(buildClaudeParams(request), {
       signal,
@@ -59,8 +67,10 @@ export async function* streamClaudeAnswer(
 
     let wroteText = false;
     for await (const event of stream) {
+      if (event.type === "message_start") mergeUsage(usage, event.message.usage);
+      else if (event.type === "message_delta") mergeUsage(usage, event.usage);
       // Thinking blocks and fallback markers are not shown; only text is.
-      if (
+      else if (
         event.type === "content_block_delta" &&
         event.delta.type === "text_delta" &&
         event.delta.text !== ""
@@ -71,7 +81,10 @@ export async function* streamClaudeAnswer(
     }
 
     const message = await stream.finalMessage();
-    const { usage } = message;
+    mergeUsage(usage, message.usage);
+    finished = true;
+    const costUsd = estimateCostUsd(usage);
+    onCost(costUsd);
     console.info("[tutor] response finished", {
       model: message.model,
       stopReason: message.stop_reason,
@@ -80,6 +93,7 @@ export async function* streamClaudeAnswer(
       cacheReadTokens: usage.cache_read_input_tokens,
       cacheWriteTokens: usage.cache_creation_input_tokens,
       outputTokens: usage.output_tokens,
+      costUsd: roundUsd(costUsd),
     });
 
     if (message.stop_reason === "refusal") {
@@ -108,5 +122,22 @@ export async function* streamClaudeAnswer(
   } finally {
     // Also runs when the consumer stops early: stop paying for output.
     stream?.abort();
+    if (!finished) {
+      const costUsd = estimateCostUsd(usage);
+      if (costUsd > 0) {
+        onCost(costUsd);
+        console.info("[tutor] response stopped early", {
+          depth: request.depth,
+          inputTokens: usage.input_tokens ?? null,
+          outputTokens: usage.output_tokens ?? null,
+          costUsd: roundUsd(costUsd),
+        });
+      }
+    }
   }
+}
+
+/** Enough digits for a fraction of a cent, without float noise in logs. */
+function roundUsd(usd: number): number {
+  return Number(usd.toFixed(6));
 }
