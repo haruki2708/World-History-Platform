@@ -79,10 +79,11 @@ export async function streamResponse(
   // Nobody may be waiting on it when the client leaves.
   next.catch(() => undefined);
 
-  let pending: TutorStreamEvent;
+  // Sent first once the response exists.
+  let queued: TutorStreamEvent | undefined;
   const first = await within(next, timing.firstEventWaitMs);
   if (first === TIMED_OUT) {
-    pending = { type: "ping" };
+    queued = { type: "ping" };
   } else {
     next = undefined;
     if (first.done) {
@@ -93,10 +94,9 @@ export async function streamResponse(
       await events.return();
       return errorResponse(first.value.code);
     }
-    pending = first.value;
+    queued = first.value;
   }
 
-  let queued: TutorStreamEvent | undefined = pending;
   const body = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
