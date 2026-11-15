@@ -538,18 +538,6 @@ const AGER_ROMANUS_290 = [
   [12.6, 41.0],
   [11.8, 41.6],
 ];
-/** Allies north of Rome in 290: Etruria, Umbria, Picenum. */
-const ALLIES_NORTH_290 = [
-  "apuan",
-  "apennine-pistoia",
-  "rubicon-line",
-  [13.5, 43.9],
-  [13.9, 42.95],
-  "-ager-romanus-north-a",
-  [10.9, 42.1],
-  [9.95, 42.6],
-  [10.0, 43.3],
-];
 /** Samnium, Campania and Apulia, allied after 290; Lucania and the south not. */
 const ALLIES_SOUTH_290 = [
   "ager-romanus-south",

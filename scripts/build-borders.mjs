@@ -8,6 +8,8 @@
 // The source describes every territory as rings built from shared, named
 // border lines ("arcs") and inline points, so a border drawn once is reused
 // by both neighbours and by every snapshot (see docs/data/BORDERS.md).
+// Touching polygons of the same polity are merged in the output, so the map
+// draws no line between them.
 //
 // Checks, using the base map (public/map/basemap.json) as the land mask:
 //   - no two territories overlap on land (overlaps at sea are hidden by the
@@ -280,6 +282,98 @@ function polygonsOf(geometry) {
   return geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
 }
 
+// ---------------------------------------------------------------------------
+// Merging the polygons of one polity
+//
+// Neighbouring polygons of the same polity share the border they were drawn
+// from (an arc, or the same points), so their union is found by dropping
+// every edge that appears once in each direction and chaining what is left.
+// The result is kept only if it covers the same cells as the parts (give or
+// take two cells on a line), so a case the edge rule cannot handle falls back
+// to the separate parts.
+
+const pointKey = ([x, y]) => `${x},${y}`;
+
+function chainRings(edges) {
+  const outgoing = new Map();
+  for (const [from, to] of edges) {
+    const key = pointKey(from);
+    if (!outgoing.has(key)) outgoing.set(key, []);
+    outgoing.get(key).push(to);
+  }
+  const rings = [];
+  for (const [startKey, targets] of outgoing) {
+    while (targets.length > 0) {
+      const start = startKey.split(",").map(Number);
+      const ring = [start];
+      let next = targets.pop();
+      for (let guard = 0; guard < edges.length + 1; guard++) {
+        ring.push(next);
+        const key = pointKey(next);
+        if (key === startKey) break;
+        const onward = outgoing.get(key);
+        if (!onward || onward.length === 0) return null;
+        next = onward.pop();
+      }
+      if (pointKey(ring[ring.length - 1]) !== startKey || ring.length < 4) return null;
+      rings.push(ring);
+    }
+  }
+  return rings;
+}
+
+function coverage(polygons) {
+  const cells = new Set();
+  for (const polygon of polygons) rasterize(polygon, (cell) => cells.add(cell));
+  return cells;
+}
+
+function mergeGeometry(geometry) {
+  const parts = polygonsOf(geometry);
+  if (parts.length < 2) return geometry;
+  const counts = new Map();
+  for (const polygon of parts) {
+    for (const ring of polygon) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const key = `${pointKey(ring[i])}>${pointKey(ring[i + 1])}`;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+    }
+  }
+  let shared = 0;
+  const edges = [];
+  for (const [key, count] of counts) {
+    const [from, to] = key.split(">");
+    const reverse = counts.get(`${to}>${from}`) ?? 0;
+    const kept = Math.max(0, count - reverse);
+    shared += count - kept;
+    for (let k = 0; k < kept; k++) {
+      edges.push([from.split(",").map(Number), to.split(",").map(Number)]);
+    }
+  }
+  if (shared === 0) return geometry;
+
+  const rings = chainRings(edges);
+  if (!rings) return geometry;
+  const outers = rings.filter((ring) => signedArea(ring) > 0).map((ring) => [ring]);
+  for (const hole of rings.filter((ring) => signedArea(ring) < 0)) {
+    const owner = outers
+      .filter(([outer]) => pointInRing(hole[0], outer))
+      .sort((a, b) => signedArea(a[0]) - signedArea(b[0]))[0];
+    if (!owner) return geometry;
+    owner.push(hole);
+  }
+  // A cell centre lying exactly on a line can flip sides; allow two of them.
+  const before = coverage(parts);
+  const after = coverage(outers);
+  const missing = [...before].filter((cell) => !after.has(cell)).length;
+  const extra = [...after].filter((cell) => !before.has(cell)).length;
+  if (missing + extra > 2) return geometry;
+  return outers.length === 1
+    ? { type: "Polygon", coordinates: outers[0] }
+    : { type: "MultiPolygon", coordinates: outers };
+}
+
 function buildWaterMask() {
   const basemap = JSON.parse(readFileSync(basemapPath, "utf8"));
   const water = new Uint8Array(cols * rows);
@@ -425,6 +519,7 @@ const polities = new Map(
 );
 const water = buildWaterMask();
 const catalog = [];
+let mergedParts = 0;
 const outputs = [];
 
 for (const snapshot of [...snapshots].sort((a, b) => a.year - b.year)) {
@@ -459,7 +554,14 @@ for (const snapshot of [...snapshots].sort((a, b) => a.year - b.year)) {
   checkColours(where, neighbours);
   const file = `${snapshot.year}.geojson`;
   catalog.push({ year: snapshot.year, file, sources: snapshot.sources });
-  const text = `{"type":"FeatureCollection","features":[\n${features
+  // The checks above run on the drawn parts; the file gets them merged.
+  const merged = features.map((feature) => ({ ...feature, geometry: mergeGeometry(feature.geometry) }));
+  mergedParts += features.reduce(
+    (sum, feature, i) =>
+      sum + polygonsOf(feature.geometry).length - polygonsOf(merged[i].geometry).length,
+    0,
+  );
+  const text = `{"type":"FeatureCollection","features":[\n${merged
     .map((feature) => JSON.stringify(feature))
     .join(",\n")}\n]}\n`;
   outputs.push({ file, text });
@@ -471,6 +573,7 @@ for (const snapshot of [...snapshots].sort((a, b) => a.year - b.year)) {
   console.log(`${snapshot.year}: ${(text.length / 1024).toFixed(1)} KB; land km²: ${summary}`);
 }
 
+console.log(`Merged ${mergedParts} touching polygons into their neighbours of the same polity.`);
 const pairCount = new Set([...colourPairs.keys()].map((key) => key.split("|").slice(0, 2).join("|"))).size;
 const [closestKey, closest] = [...colourPairs].sort((x, y) => x[1].deltaE - y[1].deltaE)[0] ?? [];
 if (closest) {
