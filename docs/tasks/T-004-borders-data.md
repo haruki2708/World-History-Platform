@@ -101,3 +101,29 @@ Lane 2 đang làm T-009 song song (nhãn tên thế lực trên bản đồ, chu
 | 63 | Pompey sắp xếp lại phương Đông: Syria, Pontus, Bithynia; Seleukos chấm dứt |
 | 50 | Caesar chinh phục xong Gaul |
 | 30 | Ai Cập bị sáp nhập sau Actium |
+
+
+### Đợt 2 (2026-11-16): phiên chính làm thay lane 3 (lane 3 hết hạn mức)
+
+**Đã làm** theo các quyết định ở mục "Quyết định sau đợt 1":
+
+- 11 mốc mới: 338, 290, 241, 218, 201, 168, 129, 88, 63, 50, 30. Tổng cộng 14 mốc.
+- 6 thế lực mới: Ba Tư (`achaemenid-empire`), Armenia, Bithynia, Cappadocia, Galatia, Mauretania. Không thêm Thrace và Nabataea (lý do trong `docs/data/BORDERS.md`).
+- Sửa 3 mốc của đợt 1: 509 thêm Ba Tư; 264 thêm Bithynia, Galatia, Armenia; 146 thêm Bithynia, Galatia, Cappadocia, Armenia, Mauretania. Hình của các thế lực có sẵn không đổi.
+- Màu Numidia đổi `#9a9440` → `#5f9e6e`; màu cũ dùng cho Cappadocia.
+- `scripts/validate-data.mjs`: một thế lực hợp lệ nếu được ít nhất một sự kiện **hoặc** một file biên giới dùng.
+- `scripts/borders/arcs.mjs`: tách `ager-romanus-north` thành hai đoạn để mốc 290 dùng được nửa đầu; hình của 264 và 146 không đổi.
+- `docs/data/BORDERS.md` (mục "Đợt 2": cách làm, từng mốc, các đơn giản hoá) và `docs/data/SOURCES.md` (các bài Wikipedia đã đọc).
+
+**Đã kiểm tra**
+
+- `node scripts/build-borders.mjs`: 14 mốc, không chồng lấn trên đất liền, mỗi thế lực tồn tại đúng năm của mốc.
+- `npm run validate`: 59 sự kiện, 23 thế lực, 14 mốc. Đã thử thêm một thế lực không ai dùng: script báo lỗi đúng.
+- Màu: 59 cặp thế lực có chung đường biên, ΔE nhỏ nhất 13,5 ở cả chế độ sáng và tối.
+- `npm run lint`, `npm run build` qua. Xem bản đồ trong app ở 12 năm, không có lỗi console.
+
+**Hạn chế**
+
+- Các đường biên mới của đợt 2 được khái quát từ các bài Wikipedia đã ghi và hiểu biết lịch sử phổ thông, không đối chiếu từng nét với bản đồ Shepherd như đợt 1. Nên soát lại khi có thời gian.
+- Danh sách các đơn giản hoá cụ thể nằm ở `docs/data/BORDERS.md`.
+- Khi xem trong app có một đường mảnh nằm ngang qua vùng giữa Ai Cập và vịnh Ba Tư, ở mọi năm. Đường này không có trong dữ liệu (đã kiểm tra các file biên giới và bản đồ nền); nhiều khả năng là đường nối giữa các ô khi MapLibre tô lớp lãnh thổ. Việc của lane 2.

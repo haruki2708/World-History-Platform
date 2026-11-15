@@ -78,7 +78,7 @@
   {
     "id": "numidia",
     "name": { "en": "Kingdom of Numidia", "vi": "Vương quốc Numidia" },
-    "color": "#9a9440"
+    "color": "#5f9e6e"
   },
   {
     "id": "pontus",
@@ -97,5 +97,43 @@
     "name": { "en": "Parthian Empire", "vi": "Đế quốc Parthia" },
     "color": "#a04a7a",
     "startYear": -247
+  },
+  {
+    "id": "achaemenid-empire",
+    "name": { "en": "Achaemenid Persian Empire", "vi": "Đế quốc Ba Tư (nhà Achaemenes)" },
+    "color": "#b4532a",
+    "startYear": -550,
+    "endYear": -330
+  },
+  {
+    "id": "armenia",
+    "name": { "en": "Kingdom of Armenia", "vi": "Vương quốc Armenia" },
+    "color": "#8c6b4a",
+    "startYear": -331
+  },
+  {
+    "id": "bithynia",
+    "name": { "en": "Kingdom of Bithynia", "vi": "Vương quốc Bithynia" },
+    "color": "#9b7fd4",
+    "startYear": -297,
+    "endYear": -74
+  },
+  {
+    "id": "cappadocia",
+    "name": { "en": "Kingdom of Cappadocia", "vi": "Vương quốc Cappadocia" },
+    "color": "#9a9440",
+    "startYear": -331
+  },
+  {
+    "id": "galatia",
+    "name": { "en": "Galatians", "vi": "Người Galatia" },
+    "color": "#7fb2e5",
+    "startYear": -275,
+    "endYear": -25
+  },
+  {
+    "id": "mauretania",
+    "name": { "en": "Kingdom of Mauretania", "vi": "Vương quốc Mauretania" },
+    "color": "#c49a5a"
   }
 ]

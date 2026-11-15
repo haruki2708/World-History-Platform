@@ -5,6 +5,29 @@
 // Lines start and end at sea where they meet a coast: the water layer hides
 // whatever a territory spills into the sea. See docs/data/BORDERS.md.
 
+// The ager Romanus line north of Rome, in two parts: (a) southern Etruria and
+// the Sabine country to the Praetuttii, Roman by 290 BCE; (b) on through
+// Picenum to the ager Gallicus, Roman by 264 BCE.
+const AGER_ROMANUS_NORTH_A = [
+  [11.4, 42.15],
+  [11.75, 42.2],
+  [12.05, 42.25],
+  [12.3, 42.17],
+  [12.5, 42.3],
+  [12.75, 42.5],
+  [13.05, 42.75],
+  [13.15, 42.95],
+];
+const AGER_ROMANUS_NORTH_B = [
+  [13.15, 42.95],
+  [12.95, 43.25],
+  [12.75, 43.45],
+  [12.6, 43.7],
+  [12.55, 43.95],
+  [12.68, 44.03],
+  [12.95, 44.05],
+];
+
 export const arcs = {
   // ---------------------------------------------------------------- Italy
 
@@ -87,22 +110,8 @@ export const arcs = {
   // generalised from Shepherd's "Growth of Roman Power in Italy": the belt from
   // southern Etruria and Latium to Campania, and across the Sabine country to
   // Picenum and the ager Gallicus on the Adriatic.
-  "ager-romanus-north": [
-    [11.4, 42.15],
-    [11.75, 42.2],
-    [12.05, 42.25],
-    [12.3, 42.17],
-    [12.5, 42.3],
-    [12.75, 42.5],
-    [13.05, 42.75],
-    [13.15, 42.95],
-    [12.95, 43.25],
-    [12.75, 43.45],
-    [12.6, 43.7],
-    [12.55, 43.95],
-    [12.68, 44.03],
-    [12.95, 44.05],
-  ],
+  "ager-romanus-north": [...AGER_ROMANUS_NORTH_A, ...AGER_ROMANUS_NORTH_B.slice(1)],
+  "ager-romanus-north-a": AGER_ROMANUS_NORTH_A,
   "ager-romanus-south": [
     [14.3, 42.7],
     [14.02, 42.6],
