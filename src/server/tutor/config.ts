@@ -39,6 +39,7 @@ export const ERROR_STATUS: Record<TutorErrorCode, number> = {
   bad_request: 400,
   refused: 422,
   rate_limited: 429,
+  limit_reached: 429,
   unavailable: 502,
   not_configured: 503,
   invalid_key: 503,

@@ -19,7 +19,7 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 
 | Ai | Sở hữu |
 |---|---|
-| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/` |
+| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx` |
 | Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/` |
 | Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |

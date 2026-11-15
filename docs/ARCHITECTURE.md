@@ -96,15 +96,16 @@ src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --s
 ```
 
 - **Yêu cầu:** `POST /api/tutor` với `{ messages, depth }`. Mỗi tin nhắn của người dùng mang theo `context` (năm, ngôn ngữ, vùng bản đồ, sự kiện đang chọn) **chụp lại lúc gửi**. Khung chat giữ nguyên các tin nhắn cũ cùng `context` của chúng và gửi lại y hệt ở các lần sau; không sửa hay chèn thêm gì vào tin nhắn cũ.
-- **Phản hồi:** NDJSON, mỗi dòng một `TutorStreamEvent`: nhiều sự kiện `text`, kết thúc bằng `done`; hoặc một `error` với mã trong `TutorErrorCode`.
+- **Phản hồi:** NDJSON, mỗi dòng một `TutorStreamEvent`: nhiều sự kiện `text`, kết thúc bằng `done`; hoặc một `error` với mã trong `TutorErrorCode`. Trong lúc model còn suy nghĩ, server có thể gửi `ping` (không mang dữ liệu) để bắt đầu phản hồi sớm và giữ kết nối; khung chat bỏ qua `ping`.
 - **Khoá API** chỉ nằm ở server, đọc từ biến môi trường `ANTHROPIC_API_KEY` trong `.env.local` (không bao giờ commit). Xem `.env.example`.
 - **Chế độ giả lập:** `TUTOR_MOCK=1` khiến route trả câu trả lời mẫu dựng từ yêu cầu, không gọi API, không tốn tiền. Dùng khi phát triển và kiểm thử.
 - **Model:** `claude-opus-5-5`, có streaming. `depth: "standard"` dùng effort `high`, `depth: "deep"` dùng effort `xhigh`.
 - **Ngữ cảnh cho model:** phần hướng dẫn và toàn bộ dữ liệu sự kiện, thế lực nằm ở phần đầu cố định của prompt, được cache. Ngữ cảnh của từng câu hỏi (năm, vùng nhìn, sự kiện đang chọn, các sự kiện quanh năm đó) được dựng từ `context` của tin nhắn đó, cùng đầu vào thì ra cùng một đoạn chữ.
 - **Lịch sử gửi cho model** chỉ gồm phần chữ của các lượt trước; không gửi lại các khối suy luận (thinking). Cách này hợp lệ với Opus 5.5.
 - **Lượt hỏi thất bại:** lượt nào câu trả lời không có chữ nào (lỗi ngay, hoặc dừng trước chữ đầu tiên) thì khung chat bỏ cả lượt khỏi các yêu cầu sau. Câu trả lời dở dang (bị dừng hoặc lỗi giữa chừng) thì gửi phần chữ đã có. Route cũng tự bỏ lượt trợ lý rỗng và gộp các lượt cùng vai liền nhau, nên lịch sử gửi cho model luôn xen kẽ người dùng và trợ lý.
-- **Mã HTTP** khi lỗi là toàn bộ phản hồi: `bad_request` 400, `refused` 422, `rate_limited` 429, `unavailable` 502; `not_configured`, `invalid_key`, `no_credits`, `overloaded` là 503. Lỗi sau khi đã có chữ thì vẫn là 200.
+- **Mã HTTP** khi lỗi là toàn bộ phản hồi: `bad_request` 400, `refused` 422, `rate_limited` và `limit_reached` 429, `unavailable` 502; `not_configured`, `invalid_key`, `no_credits`, `overloaded` là 503. Lỗi đến sau khi phản hồi đã bắt đầu (sau `ping` hoặc `text`) thì vẫn là 200.
+- **`rate_limited` và `limit_reached`:** `rate_limited` là tạm thời (hỏi quá nhanh, hoặc Claude API báo quá tải yêu cầu), thử lại sau ít phút được. `limit_reached` là đã hết lượt của app (số câu mỗi ngày của một người, hoặc trần chi phí mỗi ngày của cả app), thử lại ngay không được.
 - **Thẻ thử lỗi trong chế độ giả lập:** câu hỏi chứa `#error:<mã>` trả lỗi đó ngay; `#error:midstream` gửi vài mẩu chữ rồi báo `unavailable`; `#truncated` kết thúc bằng `done` với `truncated: true`.
 - **Tham số gọi API** (`src/server/tutor/config.ts`): `max_tokens` 16 000 (standard) và 32 000 (deep), tính cả phần suy luận; fallback phía server bật (`fallbacks: "default"`), nên khi bộ lọc an toàn từ chối, API tự chạy lại trên model dự phòng.
 - **Kiểm tra:** `npm run tutor:check` chạy bộ tự kiểm tra của route (giả lập và một máy chủ Claude giả, không gọi API thật); `npm run tutor:prompt` in prompt đầy đủ cho một yêu cầu mẫu.
-- **Chưa có:** xác thực và giới hạn tần suất. Ai gọi được route là tiêu được tiền của tài khoản API, nên chưa được đưa ra Internet trước giai đoạn 5.
+- **Giới hạn và xác thực:** chưa có xác thực người dùng. Giới hạn theo người dùng và trần chi phí mỗi ngày đang làm ở T-007. Route chưa được đưa ra Internet trước khi T-007 xong.

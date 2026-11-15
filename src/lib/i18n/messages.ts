@@ -75,6 +75,8 @@ const en = {
     "The tutor is not available right now: the AI account has run out of credit.",
   "tutor.error.rate_limited":
     "Too many questions in a short time. Wait a moment, then try again.",
+  "tutor.error.limit_reached":
+    "The tutor has reached its question limit for now. Please come back later.",
   "tutor.error.overloaded":
     "The AI service is busy right now. Try again in a moment.",
   "tutor.error.refused":
@@ -158,6 +160,8 @@ const vi: Record<MessageKey, string> = {
     "Gia sư tạm thời chưa dùng được: tài khoản AI đã hết tín dụng.",
   "tutor.error.rate_limited":
     "Bạn hỏi quá nhiều trong thời gian ngắn. Chờ một lát rồi thử lại.",
+  "tutor.error.limit_reached":
+    "Gia sư đã hết lượt hỏi cho lúc này. Hãy quay lại sau.",
   "tutor.error.overloaded":
     "Dịch vụ AI đang quá tải. Hãy thử lại sau ít phút.",
   "tutor.error.refused":

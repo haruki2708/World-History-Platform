@@ -49,6 +49,11 @@ export type TutorErrorCode =
   | "no_credits"
   /** Too many requests; try again shortly. */
   | "rate_limited"
+  /**
+   * A usage limit of this app was reached (questions per person per day, or
+   * the daily spending cap); trying again soon will not help.
+   */
+  | "limit_reached"
   /** The API is overloaded or down; try again shortly. */
   | "overloaded"
   /** The model declined to answer. */
@@ -62,9 +67,14 @@ export type TutorErrorCode =
  * The response is newline-delimited JSON (`application/x-ndjson`): one
  * TutorStreamEvent per line. A successful answer is any number of `text`
  * events followed by one `done`. A failure is a single `error` event, either
- * on its own (with a 4xx/5xx status) or after some `text` (status 200).
+ * on its own (with a 4xx/5xx status) or later in a 200 stream.
+ *
+ * `ping` carries nothing: the server sends it while the model is still
+ * thinking, to start the response early and keep the connection alive.
+ * Clients ignore it.
  */
 export type TutorStreamEvent =
+  | { type: "ping" }
   | { type: "text"; text: string }
   | { type: "done"; truncated: boolean }
   | { type: "error"; code: TutorErrorCode };

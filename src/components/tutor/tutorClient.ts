@@ -20,6 +20,7 @@ const ERROR_CODES: readonly TutorErrorCode[] = [
   "invalid_key",
   "no_credits",
   "rate_limited",
+  "limit_reached",
   "overloaded",
   "refused",
   "bad_request",
