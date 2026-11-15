@@ -28,6 +28,10 @@ const SHEPHERD_ROMAN = {
     'W. R. Shepherd, Historical Atlas (1923): "Roman territory from the beginning of the 1st Punic War (264 B.C.)"',
   url: "https://commons.wikimedia.org/wiki/File:Roman_expansion_264_BC_Shepherd.jpg",
 };
+const SHEPHERD_MACEDONIA = {
+  title: 'W. R. Shepherd, Historical Atlas (1911): "The Macedonian Empire, 336–323 B.C."',
+  url: "https://commons.wikimedia.org/wiki/File:Shepherd-c-018-019.jpg",
+};
 const SHEPHERD_DIADOCHI = {
   title: 'W. R. Shepherd, Historical Atlas (1923): "Kingdoms of the Diadochi, 301 and 200 B.C."',
   url: "https://commons.wikimedia.org/wiki/File:Diadochi_kingdoms_301_200.jpg",
@@ -2249,6 +2253,7 @@ const PARTHIA_146 = polygonOf(bce146, "parthia", 0, "-zagros-146");
 // (docs/data/BORDERS.md, "Soát lại đợt 2").
 
 const WIKI_SENONES = wiki("Senones: the Adriatic coast from Ariminum to Ancona, subdued in 283 BC", "Senones");
+const WIKI_UMBRI = wiki("Umbri: Roman conquest completed about 260 BC", "Umbri");
 const WIKI_PICENTES = wiki("Picentes: treaty with Rome in 299 BC", "Picentes");
 const WIKI_ETRUSCAN_WARS = wiki(
   "Roman–Etruscan Wars: Etruria conquered in 265–264 BC",
@@ -2332,6 +2337,7 @@ const CARIA = [
   [28.75, 37.6],
   [28.45, 38.05],
 ];
+const WIKI_ANTIOCHUS7 = wiki("Antiochus VII Sidetes: the siege of Jerusalem in 134 BC", "Antiochus_VII_Sidetes");
 const WIKI_ASIA = wiki("Asia (Roman province): its regions in 129 BC", "Asia_(Roman_province)");
 /**
  * Pompey's Pontus (63): the Black Sea coast from Amastris to Trapezus, joined
@@ -2478,7 +2484,7 @@ const SOURCES_EAST = [WIKI_PARTHIA, WIKI_GALATIA, WIKI_BITHYNIA, WIKI_CAPPADOCIA
 
 const bce338 = {
   year: -338,
-  sources: [WIKI_ACHAEMENID, SHEPHERD_ITALY, SHEPHERD_COLONIES, WIKI_SENONES, CLIOPATRIA],
+  sources: [WIKI_ACHAEMENID, SHEPHERD_MACEDONIA, SHEPHERD_ITALY, SHEPHERD_COLONIES, WIKI_SENONES, CLIOPATRIA],
   features: [
     { polityId: "rome", polygons: [ROME_338] },
     { polityId: "etruscans", polygons: [ETRURIA_338] },
@@ -2530,6 +2536,7 @@ const bce290 = {
     SHEPHERD_ITALY,
     WIKI_ETRUSCAN_WARS,
     WIKI_PICENTES,
+    WIKI_UMBRI,
     WIKI_SENONES,
     SHEPHERD_DIADOCHI,
     WIKI_BITHYNIA,
@@ -2785,7 +2792,7 @@ const GREEK_NORTH = [BYZANTIUM, BLACK_SEA_WEST, OLBIA, CHERSONESOS, HERACLEA_PON
 
 const bce129 = {
   year: -129,
-  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_ASIA, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
+  sources: [WIKI_PROVINCES, SHEPHERD_ROMAN, WIKI_ASIA, WIKI_ANTIOCHUS7, WIKI_PARTHIA, WIKI_MAURETANIA, ...SOURCES_EAST.slice(1), CLIOPATRIA],
   features: [
     {
       polityId: "rome",

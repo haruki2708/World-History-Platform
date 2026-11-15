@@ -52,7 +52,7 @@ Giấy phép dưới đây đọc trực tiếp từ trang hoặc file giấy ph
 | [AWMC geodata](https://github.com/AWMC/geodata) (Ancient World Mapping Center) | Bờ biển, sông, đường, cống dẫn nước cổ; `Cultural-Data/political_shading` chỉ có vài mốc: `roman_empire_bce_60`, `roman_empire_ce_117_extent`, `roman_empire_ce_200_*`, `alexanders_empire`, `persian_extent`, `hasmonean`, `herod`… | Dựa trên Barrington Atlas, chi tiết cao | **ODbL 1.0**: README và `LICENSE.txt`. Điều 4.4 buộc cơ sở dữ liệu dẫn xuất công bố công khai phải theo ODbL | **Không.** Điều khoản chia sẻ tương tự sẽ buộc các file biên giới theo ODbL; lại chỉ có một mốc thời Cộng hoà (60 TCN) |
 | [Pleiades](https://pleiades.stoa.org/) | Danh bạ địa danh cổ (gazetteer) | Chủ yếu là điểm, không có polygon lãnh thổ | **CC BY 3.0**: trang [Downloads](https://pleiades.stoa.org/downloads) và [Credits](https://pleiades.stoa.org/credits) ("Sharing and remixing permitted under terms of the Creative Commons Attribution 3.0 License") | Không dùng ở đợt 1 |
 | [Natural Earth](https://www.naturalearthdata.com/) | Bờ biển, sông, hồ ngày nay | 1:10m | **Phạm vi công cộng**: trang [Terms of Use](https://www.naturalearthdata.com/about/terms-of-use/) ("All versions of Natural Earth raster + vector map data found on this website are in the public domain") | **Có**: bản đồ nền; với biên giới thì lấy đường bờ của các đảo và vài đoạn bờ ở eo hẹp, kiểm tra chồng lấn trên đất liền |
-| W. R. Shepherd, *Historical Atlas* (Henry Holt, New York, 1911 và 1923), bản quét trên Wikimedia Commons (từ Perry-Castañeda Library, University of Texas) | Các bản đồ: [Growth of Roman Power in Italy](https://commons.wikimedia.org/wiki/File:Rome_power_italy_500_100.jpg) (lãnh thổ La Mã khoảng 500, 338 và 100 TCN, thuộc địa Latinh, đồng minh); [Greek and Phoenician Settlements about 550 B.C.](https://commons.wikimedia.org/wiki/File:Shepherd-c-012.jpg); [Roman territory from 264 B.C. to Diocletian](https://commons.wikimedia.org/wiki/File:Roman_expansion_264_BC_Shepherd.jpg); [Kingdoms of the Diadochi 301 and 200 B.C.](https://commons.wikimedia.org/wiki/File:Diadochi_kingdoms_301_200.jpg) | Ảnh bản đồ, có lưới kinh vĩ tuyến. Bản đồ Ý được gắn toạ độ bằng 15 giao điểm kinh vĩ tuyến (sai số dưới 4 px, khoảng 0,015°) để đọc vị trí | **Phạm vi công cộng**: trường giấy phép của từng file trên Commons ("Public domain"); xuất bản ở Mỹ năm 1911 và 1923 | **Có**: tham chiếu chính để vẽ tay nước Ý, các thuộc địa Hy Lạp và lãnh thổ La Mã năm 146 |
+| W. R. Shepherd, *Historical Atlas* (Henry Holt, New York, 1911 và 1923), bản quét trên Wikimedia Commons (từ Perry-Castañeda Library, University of Texas) | Các bản đồ: [Growth of Roman Power in Italy](https://commons.wikimedia.org/wiki/File:Rome_power_italy_500_100.jpg) (lãnh thổ La Mã khoảng 500, 338 và 100 TCN, thuộc địa Latinh, đồng minh); [Greek and Phoenician Settlements about 550 B.C.](https://commons.wikimedia.org/wiki/File:Shepherd-c-012.jpg); [Roman territory from 264 B.C. to Diocletian](https://commons.wikimedia.org/wiki/File:Roman_expansion_264_BC_Shepherd.jpg); [Kingdoms of the Diadochi 301 and 200 B.C.](https://commons.wikimedia.org/wiki/File:Diadochi_kingdoms_301_200.jpg); từ T-012 thêm [The Macedonian Empire, 336–323 B.C.](https://commons.wikimedia.org/wiki/File:Shepherd-c-018-019.jpg) | Ảnh bản đồ, có lưới kinh vĩ tuyến. Bản đồ Ý được gắn toạ độ bằng 15 giao điểm kinh vĩ tuyến (sai số dưới 4 px, khoảng 0,015°) để đọc vị trí | **Phạm vi công cộng**: trường giấy phép của từng file trên Commons ("Public domain"); xuất bản ở Mỹ năm 1911 và 1923 | **Có**: tham chiếu chính để vẽ tay nước Ý, các thuộc địa Hy Lạp và lãnh thổ La Mã năm 146 |
 | Digital Atlas of the Roman Empire (DARE, J. Åhlfeldt) | Địa danh và nền bản đồ thời Đế chế | Dựa trên Barrington Atlas | **Chưa đọc được:** tên miền chính thức `dare.ht.lu.se` không còn phân giải (2026-11-16); trang `imperium.ahlfeldt.se` không ghi giấy phép | **Không** |
 
 ### Nguồn thêm cho đợt 2 (đọc ngày 2026-11-16)
@@ -68,6 +68,27 @@ Các bài Wikipedia dùng để kiểm tra mốc thời gian và phạm vi của
 - [Roman province](https://en.wikipedia.org/wiki/Roman_province): năm lập các tỉnh thời Cộng hoà.
 - [Parthian Empire](https://en.wikipedia.org/wiki/Parthian_Empire): Arsaces I (247), Media (148/147), Lưỡng Hà (141), Antiochus VII tử trận (129).
 
+### Nguồn thêm cho T-012 (soát lại đợt 2, đọc ngày 2026-11-16)
+
+- **Shepherd, "The Macedonian Empire, 336–323 B.C."** (cùng atlas, trang 18–19): dùng để soát Macedonia năm 338. Giấy phép: trường giấy phép của file trên Wikimedia Commons ghi "Public domain" (đọc ngày 2026-11-16), giống các bản đồ Shepherd khác.
+- **Cliopatria v0.2.1** (CC BY 4.0, như trên): thêm các dòng Etruscans (−291 đến −272), Kingdom of Pergamon (−223 đến −189), Rhodes (−170 đến −165), Seleucid Empire và Judea (−91 đến −78), Kingdom of Armenia (−91 đến −88), Mauretania và Kingdom of Numidia (−91 đến −43), Kingdom of Pontus (−63 đến −26).
+- **Wikipedia**, chỉ để kiểm chứng mốc thời gian và phạm vi; dự án dẫn link và tự vẽ, không chép văn bản hay bản đồ. Giấy phép văn bản đọc ở chân trang bài viết: "Text is available under the Creative Commons Attribution-ShareAlike 4.0 License". Vì không sao chép nội dung, điều khoản chia sẻ tương tự không áp dụng cho dữ liệu của dự án. Các bài đã dùng:
+  - [Senones](https://en.wikipedia.org/wiki/Senones): bờ Adriatic từ Ariminum tới Ancona, bị khuất phục năm 283.
+  - [Picentes](https://en.wikipedia.org/wiki/Picentes): hiệp ước với La Mã năm 299.
+  - [Umbri](https://en.wikipedia.org/wiki/Umbri): La Mã chinh phục xong Umbria khoảng năm 260.
+  - [Roman–Etruscan Wars](https://en.wikipedia.org/wiki/Roman%E2%80%93Etruscan_Wars): chinh phục Etruria xong năm 265–264.
+  - [Cisalpine Gaul](https://en.wikipedia.org/wiki/Cisalpine_Gaul): người Boii và Insubres nổi dậy năm 218, La Mã trở lại sau năm 202, chinh phục xong năm 191.
+  - [Ligures](https://en.wikipedia.org/wiki/Ligures): khuất phục từ năm 187 tới 155.
+  - [Illyrian Wars](https://en.wikipedia.org/wiki/Illyrian_Wars): vùng bảo hộ năm 229, chiến tranh năm 168.
+  - [Celtiberian Wars](https://en.wikipedia.org/wiki/Celtiberian_Wars): hai tỉnh Tây Ban Nha sau năm 201, hoà ước năm 179.
+  - [Treaty of Apamea](https://en.wikipedia.org/wiki/Treaty_of_Apamea): Antiochus giữ Cilicia, Lycia và Caria về Rhodes.
+  - [Asia (Roman province)](https://en.wikipedia.org/wiki/Asia_(Roman_province)): các vùng của tỉnh năm 129.
+  - [Antiochus VII Sidetes](https://en.wikipedia.org/wiki/Antiochus_VII_Sidetes): vây Jerusalem năm 134.
+  - [Tigranes the Great](https://en.wikipedia.org/wiki/Tigranes_the_Great): "bảy mươi thung lũng" nhường cho Parthia.
+  - [Mauretania](https://en.wikipedia.org/wiki/Mauretania): Iol là kinh đô phía đông năm 49, Bocchus II mở tới sông Ampsaga năm 46.
+  - [Bithynia et Pontus](https://en.wikipedia.org/wiki/Bithynia_et_Pontus): tỉnh của Pompey, phần phía đông Pontus là nước chư hầu.
+  - [Illyricum (Roman province)](https://en.wikipedia.org/wiki/Illyricum_(Roman_province)): vùng chỉ huy của Caesar từ năm 59, thành tỉnh năm 27.
+
 ### Ghi chú về Cliopatria
 
 - Trích dẫn: Bennett J. S. và cộng sự, "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE", *Scientific Data* 12, 247 (2025), doi:[10.1038/s41597-025-04516-9](https://doi.org/10.1038/s41597-025-04516-9).
@@ -77,7 +98,7 @@ Các bài Wikipedia dùng để kiểm tra mốc thời gian và phạm vi của
 
 ### Nguồn văn bản cho biên giới
 
-Chỉ dẫn link, không chép: Polybius 3.22–23 (LacusCurtius), Livius.org "Sicily (5)" (biên giới sông Halycus), Wikipedia: "Etruscan civilization", "First Punic War", "Hiero II of Syracuse", "Fossa regia", "Hispania Citerior". Cả 12 link nguồn trong `border-snapshots.json` đều phản hồi bình thường (kiểm tra ngày 2026-11-16).
+Chỉ dẫn link, không chép: Polybius 3.22–23 (LacusCurtius), Livius.org "Sicily (5)" (biên giới sông Halycus), Wikipedia: "Etruscan civilization", "First Punic War", "Hiero II of Syracuse", "Fossa regia", "Hispania Citerior". Cả 35 link nguồn trong `border-snapshots.json` (sau T-012) đều phản hồi bình thường (kiểm tra ngày 2026-11-16).
 
 ### Cách dựng và lựa chọn cho từng mốc
 

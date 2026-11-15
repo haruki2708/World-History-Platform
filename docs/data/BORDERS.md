@@ -1,6 +1,6 @@
 # Dữ liệu biên giới
 
-Cập nhật: 2026-11-16. Đợt 1 (lane 3): các mốc 509, 264 và 146 TCN. Đợt 2 (phiên chính, vì lane 3 hết hạn mức): 11 mốc còn lại và 6 thế lực mới, xem mục "Đợt 2" ở cuối.
+Cập nhật: 2026-11-16. Đợt 1 (lane 3): các mốc 509, 264 và 146 TCN. Đợt 2 (phiên chính, vì lane 3 hết hạn mức): 11 mốc còn lại và 6 thế lực mới, xem mục "Đợt 2". Soát lại đợt 2 (lane 3, T-012): xem mục "Soát lại đợt 2" ở cuối.
 
 ## Cách dựng
 
@@ -21,11 +21,19 @@ Nguồn vẽ nằm ở `scripts/borders/`:
 Tạo lại file:
 
 ```
-node scripts/build-borders.mjs          # ghi public/data/borders/*.geojson và src/data/border-snapshots.json
+npm run borders                         # ghi public/data/borders/*.geojson và src/data/border-snapshots.json
 node scripts/build-borders.mjs --check  # chỉ kiểm tra, không ghi
 ```
 
-Script build kiểm tra: không có hai lãnh thổ nào chồng nhau trên đất liền (quét lưới 0,05°, dùng mặt nạ đất của bản đồ nền; chồng nhau ngoài biển thì cho phép), mỗi `polityId` có trong `polities.json` và còn tồn tại ở năm của mốc, mỗi mốc có ít nhất một nguồn. Script in kèm diện tích đất của từng thế lực để soát. Sau đó vẫn chạy `npm run validate`.
+Script build kiểm tra:
+
+- Không có hai lãnh thổ nào chồng nhau trên đất liền (quét lưới 0,05°, dùng mặt nạ đất của bản đồ nền; chồng nhau ngoài biển thì cho phép).
+- Mỗi `polityId` có trong `polities.json` và còn tồn tại ở năm của mốc; mỗi mốc có ít nhất một nguồn.
+- **Màu** (từ T-012): hai thế lực có đất liền chạm nhau ở một mốc (kể cả chạm chéo ô lưới) phải chênh màu CIE76 ΔE từ 12 trở lên. Màu đem so là màu bản đồ thực vẽ: màu thế lực ở độ mờ của lớp tô (`TERRITORY_OPACITY.fill` trong `src/components/map/mapStyle.ts`) đè lên màu đất `--map-land` của cả chế độ sáng lẫn tối (đọc từ `src/app/globals.css`). Script in số cặp láng giềng và cặp có ΔE nhỏ nhất.
+
+Script in kèm diện tích đất của từng thế lực để soát. Sau đó vẫn chạy `npm run validate`.
+
+**Gộp polygon** (từ T-012): khi ghi file, các polygon chạm nhau của cùng một thế lực được gộp làm một, để bản đồ không vẽ đường kẻ giữa chúng (ví dụ các tỉnh La Mã từ năm 241). Cách gộp: bỏ các cạnh xuất hiện ở cả hai chiều (đường biên chung vẽ từ cùng một arc hay cùng các điểm), rồi nối phần còn lại thành vòng. Kết quả chỉ được dùng nếu phủ đúng các ô lưới như các mảnh rời (chênh tối đa 2 ô có tâm nằm đúng trên đường kẻ); nếu không, giữ các mảnh rời. Các kiểm tra ở trên chạy trên các mảnh như đã vẽ.
 
 ## Quy ước chung
 
@@ -147,3 +155,55 @@ Không thêm Thrace (chia nhỏ sau thế kỷ 4; năm 338 thuộc Macedonia) v�
 - `node scripts/build-borders.mjs`: 14 mốc, không chồng lấn trên đất liền; diện tích tính ra hợp lý (Ba Tư năm 509 khoảng 5,3 triệu km², La Mã năm 290 khoảng 19 nghìn km², Pontus năm 88 khoảng 430 nghìn km², La Mã năm 30 khoảng 3,1 triệu km²).
 - Độ chênh màu giữa mọi cặp thế lực có chung đường biên (59 cặp, cả hai chế độ sáng và tối, màu tô 45% trên nền đất): ΔE nhỏ nhất 13,5 (các thành bang Hy Lạp và Syracuse).
 - Đã xem bản đồ trong app ở 12 năm.
+
+## Soát lại đợt 2 (T-012, lane 3, 2026-11-16)
+
+### Cách soát
+
+- Mỗi mốc được chồng lên dòng Cliopatria chứa năm của mốc (ảnh so sánh: tô màu là dữ liệu dự án, nét đứt là Cliopatria), và đối chiếu với các bản đồ Shepherd đã dùng ở đợt 1, thêm bản đồ "The Macedonian Empire, 336–323 B.C." cùng atlas. Chỗ nào hai bên khác nhau thì tra bài Wikipedia tương ứng (link nằm trong `sources` của mốc; chỉ dẫn link, không chép).
+- Ưu tiên vùng Địa Trung Hải trước, rồi tới Tiểu Á và phía đông.
+- Mọi đường biên mới vẽ theo phương pháp cũ: đường dùng chung đặt trong `arcs.mjs` (`senones`, `rubicon-west`, `saldae`, `pergamon-attalid`), các hình mới nằm trong khối "T-012" của `snapshots.mjs`.
+
+### Kết quả từng mốc
+
+| Năm | Kết quả | Căn cứ |
+|---|---|---|
+| 509 | Đã soát, giữ nguyên. Ba Tư khớp Cliopatria ở Tiểu Á và Cận Đông. Cliopatria vẽ theo năm khung −530 nên Ai Cập còn độc lập; ở đây Ai Cập thuộc Ba Tư từ 525 như đợt 2 đã ghi | Cliopatria; Wikipedia "Achaemenid Empire" |
+| 338 | **Sửa:** người Senones giữ bờ Adriatic từ Ariminum tới Ancona (sông Aesis), tô màu Gaul liền với Gaul trong dãy Alps. Phần còn lại giữ nguyên: Macedonia gồm Thrace tới dãy Haemus và Thessaly khớp bản đồ Shepherd năm 336 | Wikipedia "Senones" (định cư giữa Ariminum và Ancona, bị khuất phục năm 283); Shepherd "The Macedonian Empire, 336–323 B.C." |
+| 290 | **Sửa:** Etruria (từ đất La Mã tới sông Arno) tô Etruscan thay vì đồng minh; Picenum là đồng minh; Umbria để trống; người Senones như năm 338. Phía đông giữ nguyên | Wikipedia "Roman–Etruscan Wars" (chinh phục Etruria xong năm 265–264), "Picentes" (hiệp ước năm 299), "Umbri" (chinh phục xong khoảng năm 260); Cliopatria "Etruscans" (−291 đến −272) |
+| 264 | Đã soát phần đợt 2 thêm (Bithynia, Galatia, Armenia): khớp Cliopatria (−279 đến −257). Giữ nguyên | Cliopatria |
+| 241 | Đã soát, giữ nguyên. Pergamon vẫn là hình nhỏ: Attalus I mới lên ngôi năm 241, và Cliopatria (−279 đến −226) cũng vẽ nhỏ. Cyrenaica về lại Ai Cập và Parthia tách riêng khớp Cliopatria (−247 đến −240) | Cliopatria |
+| 218 | **Sửa:** Gaul trong dãy Alps tô màu Gaul (người Cenomani vẫn theo La Mã nhưng không vẽ tách riêng); Liguria để trống; thêm vùng bảo hộ của La Mã ở nam Illyria (Apollonia, Epidamnus, người Parthini và Atintani, từ năm 229); Pergamon của Attalus I theo Cliopatria (−223 đến −213), từ vịnh Adramyttium tới Ephesus. Giữ nguyên Tây Ban Nha của nhà Barca: Cliopatria vẽ rộng hơn vào nội địa, nhưng chưa nguồn văn bản nào đã đọc cho ranh giới, nên giữ hình khái quát | Wikipedia "Cisalpine Gaul" (năm 218 người Boii và Insubres theo Carthage, La Mã bỏ Cisalpina tới sau năm 202, chinh phục xong năm 191), "Ligures" (khuất phục 187–155), "Illyrian Wars"; Cliopatria |
+| 201 | **Sửa:** Gaul trong dãy Alps, Liguria, Illyria như năm 218; Pergamon theo Cliopatria (−212 đến −189); Tây Ban Nha của La Mã bỏ thung lũng thượng Ebro, phần còn lại giữ hình năm 146 | Wikipedia "Celtiberian Wars" (sau năm 201 hai tỉnh ứng với Aragon, Catalonia, Valencia và Andalusia; thượng Ebro giành được trong chiến tranh 181–179); Shepherd (vùng "acquired up to the end of the 2nd Punic War") |
+| 168 | **Sửa:** Rhodes giữ Caria phía nam sông Maeander và Lycia (tô màu thành bang Hy Lạp); Seleukos giữ Cilicia; vùng bảo hộ Illyria mở tới Lissus. Giữ nguyên: Tây Ban Nha hình năm 146 (hoà ước của Gracchus năm 179 đem lại 24 năm yên ổn); Macedonia để trống; Liguria là đồng minh (kháng cự chính chấm dứt năm 175) | Wikipedia "Treaty of Apamea" (Antiochus giữ Cilicia, phần lớn Lycia và Caria về Rhodes), "Illyrian Wars", "Celtiberian Wars", "Ligures"; Cliopatria "Rhodes" (−170 đến −165) |
+| 146 | Đã soát phần đợt 2 thêm (Bithynia, Galatia, Cappadocia, Armenia, Mauretania): khớp Cliopatria. Giữ nguyên | Cliopatria |
+| 129 | **Sửa:** Caria thuộc tỉnh Asia (Lycia vẫn tự do). Giữ nguyên: Judaea trong hình Syria (Antiochus VII vây Jerusalem năm 134; nhà Hasmonean nộp tiền và gửi quân theo ông); Đại Phrygia được giao cho Pontus năm 129–116, nhưng các nguồn đã đọc không cho ranh giới để vẽ | Wikipedia "Asia (Roman province)", "Antiochus VII Sidetes" |
+| 88 | **Sửa:** Judaea nhà Hasmonean để trống; Seleukos chỉ còn Syria và Phoenicia; Armenia nhỏ lại ở phía đông; ranh giới Mauretania–Numidia dời về Saldae (khoảng 5,3° Đông); Caria thuộc Pontus cùng tỉnh Asia. Ranh giới Mauretania–Numidia là **lỗi rõ ràng**: đường cũ ở khoảng 1,5° Đông đặt Iol, kinh đô phía đông của Mauretania năm 49, sang phía Numidia | Cliopatria (Judea, Seleukos −91 đến −78; Armenia −91 đến −88; Mauretania và Numidia −91 đến −43); Wikipedia "Tigranes the Great" (nhường "bảy mươi thung lũng" ở Caspiane cho Parthia, là chư hầu Parthia tới cuối thập niên 80), "Mauretania" |
+| 63 | **Sửa:** chỉ dải bờ Pontus là của La Mã, nội địa để trống (vua chư hầu); Caria thuộc La Mã; ranh giới Mauretania–Numidia như năm 88 | Wikipedia "Bithynia et Pontus" (phần phía đông là nước chư hầu của Deiotarus); Cliopatria "Kingdom of Pontus" (−63 đến −26) |
+| 50 | **Sửa:** thêm Illyricum (bờ Dalmatia từ sông Timavus tới Lissus); Pontus, Caria, Mauretania như năm 63 | Wikipedia "Illyricum (Roman province)" (vùng chỉ huy của Caesar từ năm 59); Shepherd (Dalmatia tô màu "up to the death of Caesar"); Cliopatria |
+| 30 | **Sửa:** Illyricum, Pontus, Caria như năm 50 | Như năm 50 |
+
+### Các đơn giản hoá của đợt 2
+
+| Đơn giản hoá | Kết quả |
+|---|---|
+| Gaul trong dãy Alps tô theo hình năm 146 từ năm 218; Liguria tô từ năm 218 | Đã sửa (218, 201). Từ năm 168: Gaul bên này sông Po là của La Mã, bên kia sông Po và Liguria là đồng minh, như đợt 1 |
+| Tây Ban Nha của La Mã năm 201 và 168 dùng lại hình năm 146 | 201: đã sửa. 168: giữ nguyên (hoà ước năm 179) |
+| Pergamon từ 241 tới 201 dùng hình nhỏ năm 264 | 218, 201: đã sửa. 241: giữ nguyên (Attalus I mới lên ngôi) |
+| Armenia năm 88 dùng hình năm 146 | Đã sửa, nhưng theo hướng ngược lại: năm 88 Armenia **nhỏ hơn** năm 146 (đã nhường bảy mươi thung lũng); đế quốc lớn của Tigranes là từ năm 83, không có mốc nào trùng |
+| Từ năm 63, toàn bộ hình Pontus tô màu La Mã | Đã sửa |
+| Judaea nằm trong hình Syria | 88: đã sửa. 129, 63, 50, 30: giữ nguyên (chư hầu của Seleukos, rồi của La Mã) |
+| Commagene, Osroene, Atropatene, Nabataea, Thrace để trống | Giữ nguyên: không có trong `polities.json` |
+| Illyria để trống | Đã sửa: vùng bảo hộ năm 218–168, Illyricum năm 50 và 30. Năm 146–63 nam Illyria vẫn nằm trong Macedonia như đợt 1 |
+
+### Còn lại
+
+- Gaul trong dãy Alps bị La Mã chinh phục năm 222 rồi mất năm 218. Không có mốc nào giữa 241 và 218, nên giai đoạn 222–218 không hiện trên bản đồ.
+- Tây Ban Nha của nhà Barca năm 218 và Đại Phrygia năm 129 (xem bảng trên).
+- Người Veneti để trống tới năm 168, như đợt 1 đã vẽ; chưa đối chiếu thời điểm họ thành đồng minh.
+
+### Kiểm tra
+
+- `npm run borders`: 14 mốc, không chồng lấn trên đất liền; 54 cặp thế lực có đất liền chạm nhau, ΔE nhỏ nhất 13,5 (thành bang Hy Lạp và Syracuse, năm 338 và 290); 61 polygon được gộp vào mảnh cùng thế lực bên cạnh; mỗi file 19–45 KB.
+- Cả 35 link nguồn trong `border-snapshots.json` đều phản hồi (kiểm tra ngày 2026-11-16).
+- Đã xem cả 14 mốc trên app (`npm run dev`, chế độ tối, 1440×900): chú giải đúng từng năm, console không có cảnh báo, không còn đường kẻ bên trong lãnh thổ La Mã.
