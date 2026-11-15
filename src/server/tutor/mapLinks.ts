@@ -49,6 +49,9 @@ export class MapLinkStream {
   private pendingSpace = "";
   /** A marker was just removed; the whitespace around it is merged. */
   private afterMarker = false;
+  /** Whitespace before the removed marker(s), and whitespace since then. */
+  private spaceBefore = "";
+  private spaceAfter = "";
   private wroteText = false;
   private out: TutorStreamEvent[] = [];
   /** finish() has run; later calls do nothing. */
@@ -139,8 +142,11 @@ export class MapLinkStream {
     let text = raw;
     if (text === "") return;
     if (this.afterMarker) {
+      // The whitespace after a marker may come in several pieces ("\n", then
+      // "\n"): add it up before comparing it with the whitespace before.
       const leading = /^\s*/.exec(text)![0];
-      this.pendingSpace = widerSpace(this.pendingSpace, leading);
+      this.spaceAfter += leading;
+      this.pendingSpace = widerSpace(this.spaceBefore, this.spaceAfter);
       text = text.slice(leading.length);
       if (text === "") return;
       this.afterMarker = false;
@@ -162,6 +168,11 @@ export class MapLinkStream {
   }
 
   private marker(markup: string): void {
+    // Markers in a row ("[[…]]\n[[…]]") count as one gap in the text.
+    this.spaceBefore = this.afterMarker
+      ? widerSpace(this.spaceBefore, this.spaceAfter)
+      : this.pendingSpace;
+    this.spaceAfter = "";
     this.afterMarker = true;
     const link = this.toLink(markup);
     if (link) {

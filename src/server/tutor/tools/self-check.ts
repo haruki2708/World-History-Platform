@@ -660,6 +660,16 @@ await check("links: a marker inside a paragraph leaves no double space", () => {
   assert.equal(extract(["[[map:-218]]\n\nStarts with a marker."]).text, "Starts with a marker.");
 });
 
+await check("links: the gap after a marker survives being cut into pieces", () => {
+  const answer = "One. [[map:-218]]\n\nTwo.\n\n[[map:-202]]\n[[map:-200]]\n\nThree.";
+  const expected = "One.\n\nTwo.\n\nThree.";
+  for (let cut = 0; cut <= answer.length; cut++) {
+    const text = extract([answer.slice(0, cut), answer.slice(cut)]).text;
+    assert.equal(text, expected, `cut at ${cut}`);
+  }
+  assert.equal(extract([...answer]).text, expected);
+});
+
 await check("links: [[ in ordinary text is kept as written", () => {
   const cases: [string, string][] = [
     ["Arrays look like [[1, 2], [3]] in code.", "Arrays look like [[1, 2], [3]] in code."],
