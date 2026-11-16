@@ -24,6 +24,19 @@ export type UnitClip = (typeof UNIT_CLIPS)[number];
 /** Mesh names inside a unit model, from most to least detailed. */
 export const UNIT_LODS = ["LOD0", "LOD1", "LOD2"] as const;
 
+/**
+ * public/battles/models/index.json lists the unit models that exist. The
+ * scene requests only these and draws placeholders for the rest, so a model
+ * not yet built costs no request. Lane 1's export scripts keep it current;
+ * `npm run validate` checks it against the files in the folder.
+ */
+export const MODEL_INDEX_URL = "/battles/models/index.json";
+
+export interface ModelIndex {
+  /** File stems, e.g. "roman-legionary" for roman-legionary.glb. */
+  models: string[];
+}
+
 /** What a unit is doing during a phase; the engine picks clips from it. */
 export type UnitAction =
   | "stand"
@@ -181,6 +194,12 @@ export interface Battle {
   origin: { lng: number; lat: number };
   /** e.g. "2 August 216 BCE (Roman calendar)". */
   date: LocalizedText;
+  /**
+   * Day of the solar year, 1–366 (proleptic Gregorian), for the sun's path.
+   * The Roman calendar date often differs, so the data notes how it was
+   * converted. Optional: without it the scene assumes a summer day.
+   */
+  dayOfYear?: number;
   sides: BattleSide[];
   units: BattleUnit[];
   /** Clock time at the start, in hours. */

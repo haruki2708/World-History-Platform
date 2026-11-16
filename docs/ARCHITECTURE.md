@@ -172,10 +172,17 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `LOD0`: tối đa 8 000 tam giác;
   - `LOD1`: tối đa 1 500;
   - `LOD2`: tối đa 300.
-- **Vật liệu:** một vật liệu với một ảnh màu gộp, tối đa 2048×2048. Ảnh pháp tuyến nếu có thì tối đa 1024×1024.
+- **Danh sách mô hình đã có:** `public/battles/models/index.json` (`ModelIndex`, đường dẫn `MODEL_INDEX_URL` trong `src/lib/battle.ts`). Cảnh chỉ tải các mô hình có trong danh sách, còn lại vẽ hình tạm, nên console không có lỗi 404. Script xuất của lane 1 tự cập nhật file này; `npm run validate` kiểm tra danh sách khớp với các file `.glb` trong thư mục.
+- **Vật liệu:** một vật liệu.
+  - Ảnh màu gộp, tối đa 2048×2048, đã nhân độ che khuất môi trường (AO).
+  - Ảnh pháp tuyến nếu có, tối đa 1024×1024.
+  - Ảnh độ nhám và kim loại nếu có (`metallicRoughnessTexture` của glTF: kênh G là độ nhám, kênh B là kim loại), tối đa 1024×1024. Dùng để đồng và sắt trông như kim loại.
 - **Hoạt hình:** đặt tên theo `UNIT_CLIPS`.
   - Bắt buộc: `idle`, `walk`, `attack`.
   - Nên có: `run`, `die`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
+  - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó. Mỗi file ghi độ dài một vòng `walk` trong `art/README.md` (lính La Mã: 1,08 m).
+  - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
+- **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
 - **File gốc:** các file tải từ Sketchfab để ngoài repo, ở `E:\World_History_Platform_assets\sources\`. Trong repo chỉ có script `art/blender/` và file `.glb` đã xuất. Chạy lại script bằng Blender 5.2.2 không giao diện là dựng lại được mô hình.
 - **Giấy phép và ghi công:**
@@ -194,7 +201,8 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Trang thử `/battle-lab`:** chỉ chạy với `npm run dev`. Gồm cảnh, nút phát và thanh tua. Tham số:
   - `?battle=<id>`: chọn trận;
   - `?stats=1`: hiện số khung hình/giây và số hình lính;
-  - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng.
+  - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng;
+  - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt.
 
 ### Các đợt làm
 

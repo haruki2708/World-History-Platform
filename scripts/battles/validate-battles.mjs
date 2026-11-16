@@ -256,6 +256,27 @@ for (const file of battleFiles) {
   }
 }
 
+// --- Model index (public/battles/models/index.json) -------------------------
+// Lists the .glb files that exist, so the scene never requests a missing one.
+
+const modelsDir = join(root, "public", "battles", "models");
+const indexPath = join(modelsDir, "index.json");
+if (existsSync(indexPath)) {
+  const where = "public/battles/models/index.json";
+  const index = readJson(indexPath);
+  const listed = Array.isArray(index.models) ? index.models : [];
+  if (!Array.isArray(index.models)) fail(where, "needs a `models` array");
+  const files = new Set(readdirSync(modelsDir).filter((f) => f.endsWith(".glb")).map((f) => f.slice(0, -4)));
+  const known = new Set([...unitTypes.values()].map((type) => type.model));
+  for (const model of listed) {
+    if (!files.has(model)) fail(where, `lists ${model} but ${model}.glb is missing`);
+    if (!known.has(model)) warn(where, `${model} is not the model of any unit type`);
+  }
+  for (const model of files) if (!listed.includes(model)) fail(where, `${model}.glb is not listed`);
+} else if (existsSync(modelsDir) && readdirSync(modelsDir).some((f) => f.endsWith(".glb"))) {
+  fail("public/battles/models/", "has .glb files but no index.json");
+}
+
 for (const w of warnings) console.warn(`warning: ${w}`);
 if (errors.length > 0) {
   console.error("Battle data is invalid:");

@@ -16,7 +16,7 @@ const DEFAULT_BATTLE = "battle-of-cannae";
 
 const noSubscribe = () => () => {};
 
-/** ?battle=<event id>&stats=1&stress=<figures> */
+/** ?battle=<event id>&stats=1&stress=<figures>&lang=vi */
 function useLabParams() {
   const search = useSyncExternalStore(
     noSubscribe,
@@ -29,6 +29,7 @@ function useLabParams() {
     battleId: params.get("battle") ?? DEFAULT_BATTLE,
     showStats: params.get("stats") === "1",
     stressFigures: Number.isInteger(stress) && stress > 0 ? stress : undefined,
+    locale: params.get("lang") === "vi" ? ("vi" as const) : ("en" as const),
   };
 }
 
@@ -40,7 +41,9 @@ function formatHour(hour: number): string {
 }
 
 export function BattleLab() {
-  const { battleId, showStats, stressFigures } = useLabParams();
+  const { battleId, showStats, stressFigures, locale } = useLabParams();
+  const setLocale = useAppStore((s) => s.setLocale);
+  useEffect(() => setLocale(locale), [locale, setLocale]);
   const [battle, setBattle] = useState<Battle | null>(null);
   const [missing, setMissing] = useState(false);
   const [playing, setPlaying] = useState(false);
