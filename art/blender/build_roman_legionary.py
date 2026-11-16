@@ -22,16 +22,18 @@ import numpy as np  # noqa: E402
 import roman_anims  # noqa: E402
 import roman_fit  # noqa: E402
 import roman_hands  # noqa: E402
+import roman_lod  # noqa: E402
 import roman_helmet  # noqa: E402
 import roman_mail  # noqa: E402
 import roman_shield  # noqa: E402
 import roman_source  # noqa: E402
 import whp_anim  # noqa: E402
+import whp_export  # noqa: E402
 import whp_materials  # noqa: E402
 import whp_skeleton  # noqa: E402
 import whp_skin  # noqa: E402
 from roman_fit import FINAL_SCALE  # noqa: E402
-from whp_common import BUILD_DIR, log, mesh_objects, open_blend, reset_scene, save_blend, script_args  # noqa: E402
+from whp_common import BUILD_DIR, MODELS_DIR, log, mesh_objects, open_blend, reset_scene, save_blend, script_args  # noqa: E402
 from whp_mesh import get_coords, set_coords  # noqa: E402
 from whp_render import render_views  # noqa: E402
 
@@ -80,6 +82,11 @@ def stage_kit(args):
     roman_hands.seat_sword(objs["Sword2_1"])
     roman_source.scabbard_to_right_hip(objs["Scabbard"])
     build_kit(2)
+    # Game-resolution copies of the generated kit: the LOD stage uses them
+    # as the low meshes and bakes the detailed kit onto them.
+    for obj in build_kit(0, ".low"):
+        obj.hide_render = True
+        log(f"{obj.name}: {obj.data.polygons.__len__()} faces")
 
 
 # Parts that follow one bone without bending.
@@ -163,12 +170,41 @@ def stage_anim(args):
     scene.frame_set(0)
 
 
+def stage_lod(args):
+    roman_lod.build()
+
+
+CLIPS = ("idle", "walk", "attack")
+LODS = ("LOD0", "LOD1", "LOD2")
+GLB = os.path.join(MODELS_DIR, f"{MODEL}.glb")
+
+
+def stage_export(args):
+    armature = bpy.data.objects[whp_skeleton.RIG_NAME]
+    meshes = [bpy.data.objects[name] for name in LODS]
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    whp_export.export_glb(GLB, armature, meshes, CLIPS)
+
+
+def check_model():
+    """Read the exported file back; fail loudly if it breaks the contract."""
+    problems = whp_export.check_glb(GLB, LODS, roman_lod.LIMITS, CLIPS, bone_count=67)
+    problems += whp_export.reimport(GLB, LODS)
+    if problems:
+        for problem in problems:
+            log("PROBLEM:", problem)
+        raise SystemExit(1)
+    log("check passed")
+
+
 STAGES = [
     ("source", stage_source),
     ("strip", stage_strip),
     ("kit", stage_kit),
     ("rig", stage_rig),
     ("anim", stage_anim),
+    ("lod", stage_lod),
+    ("export", stage_export),
 ]
 
 
@@ -206,8 +242,12 @@ def main():
     parser.add_argument("--from", dest="first", choices=names, default=names[0])
     parser.add_argument("--to", dest="last", choices=names, default=names[-1])
     parser.add_argument("--preview", action="store_true")
+    parser.add_argument("--check", action="store_true", help="only check the exported .glb")
     args = parser.parse_args(script_args())
 
+    if args.check:
+        check_model()
+        return
     first, last = names.index(args.first), names.index(args.last)
     if first > last:
         parser.error("--from comes after --to")
@@ -224,6 +264,8 @@ def main():
         save_blend(stage_file(index))
         if args.preview:
             preview(f"{index + 1}-{name}")
+    if names[last] == "export":
+        check_model()        # empties the scene: runs after the last save
     log("done")
 
 

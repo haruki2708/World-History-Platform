@@ -85,7 +85,7 @@ def build(detail, materials, name="Scutum"):
     """Slots: 0 painted face, 1 iron binding, 2 wood, 3 iron boss plate."""
     mats = [materials["shield"], materials["iron"], materials["wood"], materials["iron"]]
     b = Builder()
-    segments = {0: 16, 1: 28, 2: 72}[detail]
+    segments = {0: 24, 1: 32, 2: 72}[detail]
     rings = {0: [0.45, 0.80, 1.0], 1: [0.3, 0.6, 0.85, 1.0], 2: [i / 14 for i in range(1, 15)]}[detail]
     if detail == 2:
         rings = rings[:-1] + [1.0 - BINDING_WIDTH / (WIDTH / 2), 1.0]

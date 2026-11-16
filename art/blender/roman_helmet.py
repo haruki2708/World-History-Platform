@@ -36,7 +36,7 @@ KNOB_LOW = [1, 3, 4]
 NECK_GUARD_OUT = 0.034
 NECK_GUARD_DROP = 0.016
 
-SEGMENTS = {0: 14, 1: 24, 2: 56}
+SEGMENTS = {0: 18, 1: 24, 2: 56}
 
 
 def _interp(points, x):

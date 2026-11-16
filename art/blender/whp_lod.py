@@ -21,7 +21,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-from whp_common import deselect_all, duplicate_object, ensure_dir, join_objects, log, select_only, triangle_count
+from whp_common import deselect_all, duplicate_object, ensure_dir, join_objects, log, select_only, triangle_count  # noqa: F401
 
 UV_NAME = "atlas"
 UV_WEIGHT = "whp_uv_weight"
@@ -56,15 +56,22 @@ def _tree(objs):
     return BVHTree.FromPolygons(verts, polys)
 
 
-def remove_covered(obj, covers, reach=0.03):
-    """Delete the faces of `obj` that lie under the `covers` objects: every
-    corner sees one of them within `reach` along its normal."""
+def remove_covered(obj, covers, reach=0.03, poke=0.012):
+    """Delete the faces of `obj` that lie under the `covers` objects. A
+    corner is hidden when, along its normal, it sees a cover within `reach`
+    in front of it, or lies less than `poke` outside a cover's surface (it
+    pokes through a layer it should be under: an arm through a sleeve).
+    A face goes when all its corners are hidden."""
     tree = _tree(covers)
     mesh = obj.data
     hidden = np.zeros(len(mesh.vertices), dtype=bool)
     for v in mesh.vertices:
         hit = tree.ray_cast(v.co + v.normal * 0.0005, v.normal, reach)
-        hidden[v.index] = hit[0] is not None
+        if hit[0] is not None:
+            hidden[v.index] = True
+            continue
+        back = tree.ray_cast(v.co + v.normal * 0.0005, -v.normal, poke)
+        hidden[v.index] = back[0] is not None and back[1].dot(v.normal) > 0.0
     bm = bmesh.new()
     bm.from_mesh(mesh)
     gone = [f for f in bm.faces if all(hidden[v.index] for v in f.verts)]
@@ -75,11 +82,16 @@ def remove_covered(obj, covers, reach=0.03):
     return len(gone)
 
 
-def wrap_over(obj, covers, reach=0.035, clearance=0.0015):
-    """Push the vertices of `obj` out along their normals to the outermost
-    surface of `covers` within `reach` (the leg swallows the sandal)."""
+def wrap_over(obj, covers, reach=0.035, clearance=0.0005, where=None):
+    """Push vertices of `obj` out along their normals to the outermost
+    surface of `covers` within `reach`. `where(co, normal)` picks the
+    vertices to move (default: all). Used to bring the sole of the foot
+    down to the sole of the sandal."""
     tree = _tree(covers)
+    moved = 0
     for v in obj.data.vertices:
+        if where is not None and not where(v.co, v.normal):
+            continue
         origin = v.co - v.normal * 0.002
         travelled, far = 0.0, None
         while travelled < reach:
@@ -91,7 +103,9 @@ def wrap_over(obj, covers, reach=0.035, clearance=0.0015):
             origin = hit[0] + v.normal * 1e-4
         if far is not None:
             v.co = far + v.normal * clearance
+            moved += 1
     obj.data.update()
+    return moved
 
 
 def decimate(obj, triangles):
@@ -140,40 +154,68 @@ def single_material(obj, material):
 # UV atlas
 # --------------------------------------------------------------------------
 
-def unwrap_atlas(parts, angle=62.0, margin=0.004):
-    """One UV layout for all parts. Returns the parts, separated again."""
+def project_uvs(obj, angle=66.0):
+    """Smart UV projection of one object into the "atlas" layer. Run it on
+    the dense mesh, before decimation: smooth surfaces give large islands,
+    and the collapse decimator keeps UV seams."""
+    mesh = obj.data
+    for layer in list(mesh.uv_layers):
+        mesh.uv_layers.remove(layer)
+    mesh.uv_layers.new(name=UV_NAME)
+    select_only(obj)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=0.002, area_weight=0.0,
+                             correct_aspect=True, scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def _uv_and_face_areas(mesh):
+    """UV area and 3D area of each triangle (the mesh must be triangulated)."""
+    n = len(mesh.polygons)
+    areas = np.empty(n, dtype=np.float64)
+    mesh.polygons.foreach_get("area", areas)
+    uv = np.empty(len(mesh.loops) * 2, dtype=np.float64)
+    mesh.uv_layers[UV_NAME].data.foreach_get("uv", uv)
+    uv = uv.reshape(-1, 3, 2)
+    d1 = uv[:, 1] - uv[:, 0]
+    d2 = uv[:, 2] - uv[:, 0]
+    uv_areas = 0.5 * np.abs(d1[:, 0] * d2[:, 1] - d1[:, 1] * d2[:, 0])
+    return uv_areas, areas
+
+
+def normalise_density(obj):
+    """Scale an object's UVs so that UV area per square metre is the same in
+    every part, times the square of each face's UV weight."""
+    mesh = obj.data
+    uv_areas, areas = _uv_and_face_areas(mesh)
+    scale = math.sqrt(areas.sum() / max(uv_areas.sum(), 1e-12))
+    weights = np.empty(len(mesh.polygons), dtype=np.float64)
+    mesh.attributes[UV_WEIGHT].data.foreach_get("value", weights)
+    uv = np.empty(len(mesh.loops) * 2, dtype=np.float64)
+    mesh.uv_layers[UV_NAME].data.foreach_get("uv", uv)
+    uv = uv.reshape(-1, 2) * (scale * np.repeat(weights, 3))[:, None]
+    mesh.uv_layers[UV_NAME].data.foreach_set("uv", uv.ravel())
+
+
+def unwrap_atlas(parts, margin=0.003):
+    """Pack the parts' UV islands into one atlas. Each part already has its
+    islands (project_uvs). Returns the parts, separated again."""
     names = [p.name for p in parts]
     tags = []
     for part in parts:
+        triangulate(part)
+        normalise_density(part)
         tag = bpy.data.materials.new(f"part:{part.name}")
         single_material(part, tag)
         tags.append(tag)
     joined = join_objects(parts, "atlas-work")
-    mesh = joined.data
-    mesh.uv_layers.new(name=UV_NAME)
 
     select_only(joined)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0,
-                             correct_aspect=True, scale_to_bounds=False)
-    bpy.ops.object.mode_set(mode="OBJECT")
-
-    # Texel density: scale each face's UVs by its weight, then repack.
-    weights = np.empty(len(mesh.polygons), dtype=np.float32)
-    mesh.attributes[UV_WEIGHT].data.foreach_get("value", weights)
-    uv = np.empty(len(mesh.loops) * 2, dtype=np.float32)
-    mesh.uv_layers[UV_NAME].data.foreach_get("uv", uv)
-    uv = uv.reshape(-1, 2)
-    loop_total = np.empty(len(mesh.polygons), dtype=np.int32)
-    mesh.polygons.foreach_get("loop_total", loop_total)
-    uv *= np.repeat(weights, loop_total)[:, None]
-    mesh.uv_layers[UV_NAME].data.foreach_set("uv", uv.ravel())
-
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.select_all(action="SELECT")
-    bpy.ops.uv.pack_islands(rotate=True, margin=margin)
+    bpy.ops.uv.pack_islands(rotate=True, scale=True, margin=margin)
     bpy.ops.mesh.separate(type="MATERIAL")
     bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -326,17 +368,16 @@ def downsample(a, factor):
 
 
 def save_image(name, rgb, path, srgb):
-    """8-bit image from an (h, w, 3) array of display-ready values."""
+    """8-bit image from an (h, w, 3) array of values as they are to be
+    stored (already sRGB-encoded for a colour image): the pixels of a byte
+    image are its raw bytes / 255, whatever its colour space."""
     old = bpy.data.images.get(name)
     if old is not None:
         bpy.data.images.remove(old)
     h, w = rgb.shape[:2]
     image = bpy.data.images.new(name, w, h, alpha=False)
     image.colorspace_settings.name = "sRGB" if srgb else "Non-Color"
-    rgba = np.concatenate([rgb, np.ones((h, w, 1))], axis=2).astype(np.float32)
-    if srgb:
-        # Blender stores pixels of an sRGB byte image in display space already.
-        pass
+    rgba = np.concatenate([np.clip(rgb, 0.0, 1.0), np.ones((h, w, 1))], axis=2).astype(np.float32)
     image.pixels.foreach_set(rgba.ravel())
     ensure_dir(os.path.dirname(path))
     image.filepath_raw = path
