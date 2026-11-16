@@ -32,6 +32,11 @@ Cập nhật: 2026-11-16 (T-016). Chỉ tìm và đánh giá, chưa tải file n
 - **Kết luận:** lưới gốc có giấy phép rõ ràng (CC BY), nên không cần bỏ ứng viên này. Một bản dẫn xuất không thể gỡ nghĩa vụ ghi công của lưới gốc, nên coi cả mô hình là **CC BY**: ghi công Tarnyloo (lưới) và fdoss001 (khung xương, hoạt hình, CC0) trong `art/CREDITS.md`. Khi có file, so lưới của hai mô hình để xác nhận lời bình luận; nếu 28627 hoá ra là lưới khác thì vẫn ghi công cả hai, không hại gì.
 - **Vì sao không chọn #4 hay #2/#3:** #1 là mô hình duy nhất có đủ các dáng đi cần cho `walk` và `run`, lại cùng phong cách tả thực; #4 nhẹ nhưng chỉ có 4 hoạt hình chưa rõ tên, #2/#3 chỉ có một hoạt hình.
 - **Tải về:** cả hai trang bắt đăng nhập ("Sign in to download"). Người dùng tự tải, đặt vào `E:\World_History_Platform_assets\sources\horse-fdoss001\` và `...\horse-tarnyloo\`; nguồn ghi trong `README.txt` của thư mục đó.
+- **Đã kiểm tra khi có file (2026-11-17):**
+  - Trong file zip của Tarnyloo có tệp giấy phép `83562 - LICENSE.html`, ghi "Released under Creative Commons Attribution 3.0". Vậy lưới là **CC BY 3.0**.
+  - Lưới trong file của fdoss001 có cùng số đỉnh, số mặt với lưới của Tarnyloo, và sau khi khớp tỉ lệ thì lệch nhau nhiều nhất 1,2% kích thước. Lời bình luận đúng: đây là lưới của Tarnyloo, sửa rất ít.
+  - File của fdoss001 có gói kèm ảnh vật liệu của các add-on thương mại ("Extreme PBR", "materialiq") và một ảnh mắt không rõ nguồn. Không dùng ảnh nào: màu ngựa tự tô, rồi bake.
+  - Ngựa đã dựng ở T-020: xem `art/README.md`, mục "Ngựa".
 
 **Đề xuất ở T-016:** thử #1 trước (đủ dáng, CC0) nếu giấy phép của lưới gốc Tarnyloo ổn; nếu không, #4 (nhẹ, 4 hoạt hình) hoặc #2/#3 (đẹp hơn, ít hoạt hình). Với mô hình CC BY: ghi công tác giả, link mô hình, link giấy phép và ghi rõ đã sửa gì trong `art/CREDITS.md`.
 
