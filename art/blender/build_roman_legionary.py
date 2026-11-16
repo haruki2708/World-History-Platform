@@ -17,14 +17,20 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bpy  # noqa: E402
 
+import numpy as np  # noqa: E402
+
+import roman_fit  # noqa: E402
 import roman_hands  # noqa: E402
 import roman_helmet  # noqa: E402
 import roman_mail  # noqa: E402
 import roman_shield  # noqa: E402
 import roman_source  # noqa: E402
 import whp_materials  # noqa: E402
+import whp_skeleton  # noqa: E402
+import whp_skin  # noqa: E402
 from roman_fit import FINAL_SCALE  # noqa: E402
 from whp_common import BUILD_DIR, log, mesh_objects, open_blend, reset_scene, save_blend, script_args  # noqa: E402
+from whp_mesh import get_coords, set_coords  # noqa: E402
 from whp_render import render_views  # noqa: E402
 
 MODEL = "roman-legionary"
@@ -74,10 +80,77 @@ def stage_kit(args):
     build_kit(2)
 
 
+# Parts that follow one bone without bending.
+RIGID = {
+    "Helmet": "head",
+    "Helmet_cheeks": "head",
+    "Helmet_crest": "head",
+    "New_eye": "head",
+    "New_eye_2": "head",
+    "Scutum": "hand_l",
+    "Sword2_1": "hand_r",
+    "Scabbard": "pelvis",
+    "Mail_hook": "spine_03",
+}
+# Rounds of weight smoothing; cloth and mail get more than skin.
+SMOOTHING = {"Tunic_1": 12, "Mail": 12, "Mail_yoke": 12, "Belt": 8}
+DEFAULT_SMOOTHING = 3
+
+# Poses that show whether the skin deforms properly. Rotations are about
+# the figure's axes: X to its left, -Y forwards, Z up.
+TEST_POSES = {
+    "arms-up": [("upperarm_l", "Y", -80), ("upperarm_r", "Y", 80), ("lowerarm_r", "Y", 40)],
+    "step": [("thigh_l", "X", -45), ("calf_l", "X", 55), ("thigh_r", "X", 22), ("calf_r", "X", 12),
+             ("upperarm_r", "X", -30), ("upperarm_l", "X", 25)],
+    "bend": [("spine_01", "X", 18), ("spine_02", "X", 16), ("spine_03", "X", 14), ("neck_01", "X", -20),
+             ("head", "Z", 35), ("upperarm_l", "Y", 30), ("upperarm_r", "Y", -30)],
+}
+
+
+def base_name(obj):
+    """Object name without the ".low" suffix of the game-resolution kit."""
+    return obj.name.split(".")[0]
+
+
+def stage_rig(args):
+    meshes = mesh_objects()
+    celt = whp_skeleton.load_celt()
+    names = celt.bone_names
+    index = {name: i for i, name in enumerate(names)}
+    log("fit of the source model to the rig:")
+    matrices = roman_fit.build(names, celt.joints, report=log)
+
+    # The Celt's body brought into the source model's pose, to copy weights from.
+    inverse = np.linalg.inv(matrices)
+    source = whp_skin.WeightSource(whp_skin.blend(celt.coords, celt.weights, inverse), celt.triangles, celt.weights, names)
+    fingers = {f"hand_{side}": [f"{finger}_0{n}_{side}" for finger in ("thumb", "index", "middle", "ring", "pinky")
+                                for n in (1, 2, 3)] for side in ("l", "r")}
+
+    for obj in meshes:
+        coords = get_coords(obj)
+        bone = RIGID.get(base_name(obj))
+        if bone:
+            weights = whp_skin.rigid(len(coords), len(names), index[bone])
+        else:
+            weights = source.sample(coords)
+            # The fists are closed for good: fingers move with the hand.
+            weights = whp_skin.merge_bones(weights, index, fingers)
+            weights = whp_skin.smooth(weights, whp_skin.mesh_edges(obj.data), SMOOTHING.get(base_name(obj), DEFAULT_SMOOTHING))
+            weights = whp_skin.prune(weights)
+        set_coords(obj, whp_skin.blend(coords, weights, matrices))
+        whp_skin.write_groups(obj, weights, names)
+        log(f"skinned {obj.name}: {len(coords)} vertices, {int((weights.max(axis=0) > 0).sum())} bones")
+
+    whp_skeleton.to_canonical(celt.armature, meshes)
+    for obj in meshes:
+        whp_skeleton.bind(obj, celt.armature)
+
+
 STAGES = [
     ("source", stage_source),
     ("strip", stage_strip),
     ("kit", stage_kit),
+    ("rig", stage_rig),
 ]
 
 
@@ -89,6 +162,14 @@ def preview(name):
     scene = bpy.context.scene
     objs = [o for o in mesh_objects(scene) if not o.hide_render and not o.name.startswith("whp-")]
     render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{{view}}.png"))
+    armature = bpy.data.objects.get(whp_skeleton.RIG_NAME)
+    if armature is not None and name.endswith("rig"):
+        for pose_name, pose in TEST_POSES.items():
+            whp_skeleton.reset_pose(armature)
+            whp_skeleton.apply_pose(armature, pose)
+            render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{pose_name}-{{view}}.png"),
+                         views=("front34", "back34"))
+        whp_skeleton.reset_pose(armature)
 
 
 def main():

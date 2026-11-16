@@ -16,6 +16,7 @@ from whp_common import (
     import_fbx,
     log,
     mesh_objects,
+    select_only,
     triangle_count,
 )
 
@@ -95,6 +96,10 @@ def import_roman():
                 _rebuild_material(mat, obj.name, ROMAN_TEXTURES)
         for poly in obj.data.polygons:
             poly.use_smooth = True
+        # The file's stored normals would go stale once the mesh is re-posed.
+        if obj.data.has_custom_normals:
+            select_only(obj)
+            bpy.ops.mesh.customdata_custom_splitnormals_clear()
         log(f"imported {obj.name}: {triangle_count(obj)} triangles")
     # Drop the placeholder images the importer made for the missing files.
     for image in list(bpy.data.images):
