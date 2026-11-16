@@ -37,3 +37,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-016](T-016-cannae-data.md) | 2 | Trận đánh 3D: dữ liệu trận Cannae, địa hình, tìm mô hình ngựa và hoạt hình | Xong, đã gộp 2026-11-16 |
 | [T-017](T-017-legend-labels.md) | 2 | Chú giải bản đồ không che nhãn tên thế lực | Đang làm (giao 2026-11-16) |
 | [T-018](T-018-battle-scene-polish.md) | 3 | Cảnh 3D: góc nhìn đầu, nhãn địa danh, danh sách mô hình, vật liệu kim loại | Đang làm (giao 2026-11-16) |
+| [T-019](T-019-animations-hastatus.md) | 1 | Trận đánh 3D: thư viện hoạt hình dùng chung, nâng lính La Mã, thêm hastatus | Đang làm (giao 2026-11-16) |
+| [T-020](T-020-horse.md) | 2 | Trận đánh 3D: ngựa cho kỵ binh, chỉnh dữ liệu Cannae trong cảnh thật | Chờ (giao sau khi T-017 gộp) |

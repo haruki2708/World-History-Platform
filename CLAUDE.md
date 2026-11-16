@@ -19,8 +19,8 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 
 | Ai | Sở hữu |
 |---|---|
-| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx`; trận đánh 3D: `art/` (script Blender), `public/battles/models/` |
-| Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/`; trận đánh 3D: `src/data/battles/`, `public/data/terrain/`, `scripts/battles/`, `docs/data/battles/` |
+| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx`; trận đánh 3D: `art/` (script Blender, trừ các file ngựa của Lane 2), `public/battles/models/` |
+| Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/`; trận đánh 3D: `src/data/battles/`, `public/data/terrain/`, `scripts/battles/`, `docs/data/battles/`; ngựa: `art/blender/horse_*.py`, `art/renders/horse/` (chỉ import các module `whp_*.py` của Lane 1, không sửa) |
 | Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` (trừ các thư mục trận đánh của Lane 2); trận đánh 3D: `src/components/battle/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |
 
