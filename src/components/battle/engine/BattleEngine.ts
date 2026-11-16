@@ -25,6 +25,7 @@ import { createFigureMaterials, type FigureMaterials, type FigureShared } from "
 import { type FramedBlock, frameBlocks, mainForces } from "./framing";
 import { buildUnitModel, type UnitModel } from "./figures/model";
 import { createPlaceholderSource } from "./figures/placeholder";
+import { hidden, type Occluder } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { loadHeights, Terrain } from "./terrain";
@@ -135,6 +136,8 @@ export class BattleEngine {
   private autoLowerAllowed = true;
 
   private readonly scratch = new Vector3();
+  /** The blocks of troops as boxes, this frame: what may hide a place from view. */
+  private readonly occluders: Occluder[] = [];
 
   constructor(
     private readonly container: HTMLElement,
@@ -215,15 +218,24 @@ export class BattleEngine {
 
   /**
    * Where a field point is on screen, in CSS pixels from the top left of the
-   * container. Returns false when the point is behind the camera.
+   * container. Returns false when the point cannot be seen: behind the
+   * camera, or hidden by a hill or a body of troops in front of it.
    */
   project(point: FieldPoint, out: { x: number; y: number }): boolean {
     if (!this.terrain) return false;
-    const v = this.scratch.set(point.x, this.terrain.heightAt(point.x, point.y), -point.y);
+    const ground = this.terrain.heightAt(point.x, point.y);
+    const v = this.scratch.set(point.x, ground, -point.y);
     v.project(this.camera);
     out.x = (v.x * 0.5 + 0.5) * this.width;
     out.y = (-v.y * 0.5 + 0.5) * this.height;
-    return v.z > -1 && v.z < 1;
+    if (!(v.z > -1 && v.z < 1)) return false;
+    const eye = this.camera.position;
+    return !hidden(
+      { x: eye.x, y: -eye.z, h: eye.y },
+      { x: point.x, y: point.y, h: ground + 1 },
+      this.terrain.heightAt,
+      this.occluders,
+    );
   }
 
   dispose(): void {
@@ -445,6 +457,7 @@ export class BattleEngine {
 
     this.shared.uTime.value = seconds;
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
+    this.crowd.occluders(time, terrain.heightAt, this.occluders);
     const counts = this.crowd.selectLods(
       this.camera,
       this.height,

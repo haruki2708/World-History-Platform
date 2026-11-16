@@ -25,6 +25,7 @@ import {
 } from "three";
 import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
+import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
 import { DYING, formationPoint, GONE, type UnitTrack } from "./timeline";
 
@@ -642,6 +643,36 @@ export class Crowd {
       }
     }
     return meshes;
+  }
+
+  /**
+   * The blocks with men standing at `time`, as boxes that hide what lies
+   * behind them (see occlusion.ts). Written into `out`.
+   */
+  occluders(time: number, heightAt: HeightAt, out: Occluder[]): void {
+    out.length = 0;
+    for (const block of this.blocks) {
+      if (block.standing === 0) continue;
+      const f = block.track.formationAt(time);
+      const sin = Math.sin(f.facing);
+      const cos = Math.cos(f.facing);
+      // A bulge pushes the middle of the line up to `bulge` forward.
+      const shift = f.bulge / 2;
+      const x = f.center.x + sin * shift;
+      const y = f.center.y + cos * shift;
+      const bottom = heightAt(x, y);
+      out.push({
+        x,
+        y,
+        sin,
+        cos,
+        halfAcross: f.frontage / 2,
+        halfDepth: f.depth / 2 + Math.abs(f.bulge) / 2,
+        bottom,
+        // Up to the shoulders: a crest or a spear point hides nothing.
+        top: bottom + block.model.height * FIGURE_SCALE * 0.85,
+      });
+    }
   }
 
   dispose(): void {
