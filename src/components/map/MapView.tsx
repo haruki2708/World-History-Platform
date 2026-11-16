@@ -9,6 +9,7 @@ import { EventMarkers } from "./EventMarkers";
 import { TerritoryLabels } from "./labels/TerritoryLabels";
 import { MapControls } from "./MapControls";
 import { MapLegend } from "./MapLegend";
+import { useBattleFlight } from "./useBattleFlight";
 import { useMapInstance } from "./useMapInstance";
 import { useTerritories } from "./useTerritories";
 
@@ -25,6 +26,8 @@ export function MapView() {
   const { containerRef, handle, failed } = useMapInstance();
   const map = handle?.map ?? null;
   const territory = useTerritories(map);
+  // Flies to a battlefield before a battle opens, and back when it closes.
+  const flyingToBattle = useBattleFlight(map);
   const selectedEventId = useAppStore((state) => state.selectedEventId);
   // Changes on every selection, also when the same event is selected again
   // (a tutor map link to the event already selected flies back to it).
@@ -72,6 +75,11 @@ export function MapView() {
           </p>
         )
       )}
+
+      {/* The battle opens a moment after its button is pressed; say why. */}
+      <p role="status" className="sr-only">
+        {flyingToBattle ? t("map.flyingToBattle") : ""}
+      </p>
 
       {failed && (
         <p

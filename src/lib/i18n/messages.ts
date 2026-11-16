@@ -108,6 +108,7 @@ const en = {
   "map.legend.bordersCredit":
     "Borders are approximate, redrawn after Shepherd's Historical Atlas and",
   "map.legend.basemap": "Present-day coastlines and rivers (Natural Earth).",
+  "map.flyingToBattle": "Flying to the battlefield…",
   "events.heading": "Events",
   "events.empty": "No events recorded yet.",
   "events.now": "Now",
@@ -328,6 +329,7 @@ const vi: Record<MessageKey, string> = {
   "map.legend.bordersCredit":
     "Biên giới là ước lượng, vẽ lại theo Historical Atlas của Shepherd và",
   "map.legend.basemap": "Đường bờ biển và sông ngày nay (Natural Earth).",
+  "map.flyingToBattle": "Đang bay tới chiến trường…",
   "events.heading": "Các sự kiện",
   "events.empty": "Chưa có sự kiện nào trong dữ liệu.",
   "events.now": "Đang diễn ra",
