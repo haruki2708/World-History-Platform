@@ -1,6 +1,14 @@
 "use client";
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { createPortal } from "react-dom";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import { getPolity } from "@/data";
@@ -12,7 +20,9 @@ import { loadLandMask, type LandMask } from "./landMask";
 import {
   placeLabels,
   splitName,
+  type Box,
   type LabelLayout,
+  type LabelPlacement,
   type LabelSizes,
 } from "./placement";
 import { computeLabelSpots, type LabelSpot } from "./spots";
@@ -20,7 +30,8 @@ import { computeLabelSpots, type LabelSpot } from "./spots";
 /*
  * Polity names on the map, drawn as HTML so that they use Inter (with every
  * Vietnamese diacritic) and the colour tokens. They sit under the event
- * markers and let every pointer event through to the map.
+ * markers and let every pointer event through to the map, and keep clear of
+ * the panels drawn over the map (the legend and the zoom buttons).
  */
 
 /** Text style of a label; the measuring copies use it too. */
@@ -61,9 +72,11 @@ interface TerritoryLabelsProps {
   MarkerClass: typeof Marker;
   /** The snapshot appearing or shown on the map. */
   shown: FadeTarget | null;
+  /** Elements drawn over the map that no label may go under. */
+  obstacles: RefObject<HTMLElement | null>[];
 }
 
-export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProps) {
+export function TerritoryLabels({ map, MarkerClass, shown, obstacles }: TerritoryLabelsProps) {
   const { locale } = useT();
   const [land, setLand] = useState<LandMask | null>(null);
   const [sets, setSets] = useState<LabelSet[]>([]);
@@ -136,35 +149,63 @@ export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProp
     setSizes({ locale, byPolity });
   }, [polityIds, locale, fontsReady]);
 
-  // Which labels show, and how, at the current zoom. Keyed by spot key, and
-  // kept until the next placement, so a label that the new snapshot puts in
-  // the same place stays visible throughout.
+  // Which labels show, where and how, in the current view. Keyed by spot
+  // key, and kept until the next placement, so a label that the new snapshot
+  // puts in the same place stays visible throughout.
   const current = sets.findLast((set) => !set.leaving);
-  const [layouts, setLayouts] = useState<Map<string, LabelLayout>>(() => new Map());
+  const [layouts, setLayouts] = useState<Map<string, LabelPlacement>>(() => new Map());
+  const lastLayouts = useRef(layouts);
 
   useEffect(() => {
     if (!current || sizes?.locale !== locale) return;
+    const container = map.getContainer();
     let frame = 0;
     const update = () => {
       frame = 0;
+      const origin = container.getBoundingClientRect();
+      const boxes: Box[] = [];
+      for (const { current: element } of obstacles) {
+        if (!element) continue;
+        const rect = element.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) continue;
+        boxes.push({
+          left: rect.left - origin.left,
+          right: rect.right - origin.left,
+          top: rect.top - origin.top,
+          bottom: rect.bottom - origin.top,
+        });
+      }
       const next = placeLabels(
         current.spots,
         (polityId) => sizes.byPolity.get(polityId),
         (lng, lat) => map.project([lng, lat]),
         map.getZoom(),
+        boxes,
+        { left: 0, top: 0, right: origin.width, bottom: origin.height },
+        lastLayouts.current,
       );
-      setLayouts((previous) => (sameLayouts(previous, next) ? previous : next));
+      if (!sameLayouts(lastLayouts.current, next)) {
+        lastLayouts.current = next;
+        setLayouts(next);
+      }
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
     schedule();
-    map.on("zoom", schedule);
+    // The obstacles stay put on screen while the map moves under them, and
+    // change size when the legend opens, closes or gets other content.
+    map.on("move", schedule);
+    map.on("resize", schedule);
+    const observer = new ResizeObserver(schedule);
+    for (const { current: element } of obstacles) if (element) observer.observe(element);
     return () => {
-      map.off("zoom", schedule);
+      map.off("move", schedule);
+      map.off("resize", schedule);
+      observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [map, current, sizes, locale]);
+  }, [map, current, sizes, locale, obstacles]);
 
   // One label per key: a newer snapshot's label replaces an older one.
   const labels = new Map<string, { spot: LabelSpot; current: boolean }>();
@@ -213,9 +254,15 @@ export function TerritoryLabels({ map, MarkerClass, shown }: TerritoryLabelsProp
   );
 }
 
-function sameLayouts(a: Map<string, LabelLayout>, b: Map<string, LabelLayout>): boolean {
+function sameLayouts(
+  a: Map<string, LabelPlacement>,
+  b: Map<string, LabelPlacement>,
+): boolean {
   if (a.size !== b.size) return false;
-  for (const [key, value] of a) if (b.get(key) !== value) return false;
+  for (const [key, value] of a) {
+    const other = b.get(key);
+    if (other?.layout !== value.layout || other.point !== value.point) return false;
+  }
   return true;
 }
 
@@ -224,30 +271,41 @@ interface PolityLabelProps {
   MarkerClass: typeof Marker;
   spot: LabelSpot;
   name: string;
-  /** Undefined: hidden (it fades out, keeping its last layout). */
-  layout: LabelLayout | undefined;
+  /** Undefined: hidden (it fades out, keeping its last layout and point). */
+  layout: LabelPlacement | undefined;
 }
 
 function PolityLabel({ map, MarkerClass, spot, name, layout }: PolityLabelProps) {
   // MapLibre positions this element; React renders the text into it.
-  const [element] = useState(() => {
+  const [marker] = useState(() => {
     const div = document.createElement("div");
     div.setAttribute("aria-hidden", "true");
     div.style.pointerEvents = "none";
-    return div;
-  });
-  const [textLayout, setTextLayout] = useState<LabelLayout>(layout ?? "one");
-  if (layout && layout !== textLayout) setTextLayout(layout);
-
-  const { lng, lat } = spot;
-  useEffect(() => {
-    const marker = new MarkerClass({ element }).setLngLat([lng, lat]).addTo(map);
+    const created = new MarkerClass({ element: div });
     // Under the event markers (z-index 1 to 3).
-    marker.getElement().style.zIndex = "0";
+    created.getElement().style.zIndex = "0";
+    return created;
+  });
+  const [shown, setShown] = useState<LabelPlacement>(
+    () => layout ?? { layout: "one", point: spot },
+  );
+  if (layout && (layout.layout !== shown.layout || layout.point !== shown.point)) {
+    setShown(layout);
+  }
+  const textLayout: LabelLayout = shown.layout;
+  const { lng, lat } = shown.point;
+
+  // Declared first so the marker has its position before it joins the map.
+  useEffect(() => {
+    marker.setLngLat([lng, lat]);
+  }, [marker, lng, lat]);
+
+  useEffect(() => {
+    marker.addTo(map);
     return () => {
       marker.remove();
     };
-  }, [MarkerClass, map, element, lng, lat]);
+  }, [marker, map]);
 
   const lines = textLayout === "two" ? splitName(name) : null;
   return createPortal(
@@ -266,6 +324,6 @@ function PolityLabel({ map, MarkerClass, spot, name, layout }: PolityLabelProps)
         name
       )}
     </span>,
-    element,
+    marker.getElement(),
   );
 }

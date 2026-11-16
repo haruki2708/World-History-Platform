@@ -1,5 +1,6 @@
 "use client";
 
+import type { Ref } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useT } from "@/lib/i18n/useT";
 import { INITIAL_VIEWPORT } from "@/store/useAppStore";
@@ -8,11 +9,14 @@ const BUTTON_CLASS =
   "flex size-8 cursor-pointer items-center justify-center text-base leading-none text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent";
 
 /** Zoom and reset buttons, drawn with the app's own tokens and strings. */
-export function MapControls({ map }: { map: MapLibreMap }) {
+export function MapControls({ map, ref }: { map: MapLibreMap; ref?: Ref<HTMLDivElement> }) {
   const { t } = useT();
 
   return (
-    <div className="absolute right-2 top-2 z-10 flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-background shadow-sm">
+    <div
+      ref={ref}
+      className="absolute right-2 top-2 z-10 flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-background shadow-sm"
+    >
       <button
         type="button"
         className={BUTTON_CLASS}

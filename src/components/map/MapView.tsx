@@ -1,7 +1,7 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { getEvent } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
@@ -29,6 +29,10 @@ export function MapView() {
   // Changes on every selection, also when the same event is selected again
   // (a tutor map link to the event already selected flies back to it).
   const focusRequest = useAppStore((state) => state.focusRequest);
+  // Panels over the map that polity labels keep clear of.
+  const legendRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const obstacles = useMemo(() => [legendRef, controlsRef], []);
 
   // Fly to the selected event, wherever the selection came from.
   useEffect(() => {
@@ -55,10 +59,11 @@ export function MapView() {
             map={handle.map}
             MarkerClass={handle.lib.Marker}
             shown={territory.shown}
+            obstacles={obstacles}
           />
           <EventMarkers map={handle.map} MarkerClass={handle.lib.Marker} />
-          <MapControls map={handle.map} />
-          <MapLegend territory={territory} />
+          <MapControls ref={controlsRef} map={handle.map} />
+          <MapLegend ref={legendRef} territory={territory} />
         </>
       ) : (
         !failed && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type Ref } from "react";
 import { getPolity } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import { formatYear } from "@/lib/years";
@@ -10,8 +10,19 @@ import type { TerritoryState } from "./useTerritories";
 /**
  * Legend for the polities on the map and the event marker styles. Starts
  * collapsed on narrow screens, where the map area is small.
+ *
+ * Polity labels keep clear of it (see labels/TerritoryLabels.tsx). On a
+ * map too short for all of it, the polity list scrolls on its own, so the
+ * marker key and the credits (required by the Cliopatria licence) always
+ * stay in view.
  */
-export function MapLegend({ territory }: { territory: TerritoryState }) {
+export function MapLegend({
+  territory,
+  ref,
+}: {
+  territory: TerritoryState;
+  ref?: Ref<HTMLDivElement>;
+}) {
   const { t, locale } = useT();
   const bodyId = useId();
   // Rendered only once the map has loaded in the browser, so `window` exists.
@@ -22,7 +33,10 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
   const { status, source, territories } = territory;
 
   return (
-    <div className="absolute bottom-2 left-2 z-10 flex max-h-[calc(100%-1rem)] max-w-[calc(100%-4rem)] flex-col rounded-md border border-line bg-background text-xs shadow-sm">
+    <div
+      ref={ref}
+      className="absolute bottom-2 left-2 z-10 flex max-h-[calc(100%-1rem)] max-w-[calc(100%-4rem)] flex-col rounded-md border border-line bg-background text-xs shadow-sm"
+    >
       <button
         type="button"
         aria-expanded={open}
@@ -39,17 +53,17 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
       {open && (
         <div
           id={bodyId}
-          className="min-h-0 w-56 max-w-full space-y-2 overflow-y-auto border-t border-line px-2.5 py-2"
+          className="flex min-h-0 w-56 max-w-full flex-col gap-2 overflow-y-auto border-t border-line px-2.5 py-2"
         >
           {territories && source ? (
-            <div>
-              <p className="text-muted">
+            <div className="flex min-h-14 flex-col">
+              <p className="shrink-0 text-muted">
                 {t("map.legend.bordersAsOf")}{" "}
                 <span className="tabular-nums">
                   {formatYear(source.year, locale)}
                 </span>
               </p>
-              <ul className="mt-1.5 space-y-1">
+              <ul className="mt-1.5 min-h-0 space-y-1 overflow-y-auto">
                 {territories.polityIds.map((id) => {
                   const polity = getPolity(id);
                   if (!polity) return null;
@@ -68,7 +82,7 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
             </div>
           ) : (
             status !== "loading" && (
-              <p className="text-muted">
+              <p className="shrink-0 text-muted">
                 {t(
                   status === "error"
                     ? "map.legend.bordersError"
@@ -78,7 +92,7 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
             )
           )}
 
-          <ul className="space-y-1 border-t border-line pt-2">
+          <ul className="shrink-0 space-y-1 border-t border-line pt-2">
             <LegendDot
               label={t("map.legend.eventActive")}
               active
@@ -98,7 +112,7 @@ export function MapLegend({ territory }: { territory: TerritoryState }) {
 
           {/* Attribution required by the CC BY 4.0 licence of Cliopatria; the
               full credits are in docs/data/SOURCES.md and the README. */}
-          <p className="space-y-1 border-t border-line pt-2 text-muted">
+          <p className="shrink-0 space-y-1 border-t border-line pt-2 text-muted">
             <span className="block">
               {t("map.legend.bordersCredit")}{" "}
               <a
