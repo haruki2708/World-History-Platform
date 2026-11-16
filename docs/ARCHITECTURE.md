@@ -181,8 +181,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Bắt buộc: `idle`, `walk`, `attack`.
   - Nên có: `run`, `die`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
-  - Độ dài một vòng `walk` và `run` ghi trong `art/README.md`. Các mô hình dùng thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương): một vòng `walk` dài 1,333 s và đi được 1,00 m; một vòng `run` dài 0,933 s và đi được 1,99 m. Cảnh chỉnh tốc độ phát theo tốc độ di chuyển của khối quân để chân không trượt.
-  - `idle`, `walk`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối.
+  - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
+    - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
+    - Số đo của lane 3 (T-023) với thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương): một vòng `walk` dài 1,333 s, đi được 1,31 m; một vòng `run` dài 0,933 s, đi được 5,5 m, gần với chạy nước rút. `art/README.md` đang ghi 1,00 m và 1,99 m; lane 1 cần đối chiếu.
+  - `idle`, `walk`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối, và lính ngã nằm lại đến hết trận.
   - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
 - **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
@@ -212,6 +214,9 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Hiện:** khi `battleId` khác `null`, `AppShell` nạp `BattleViewer` (`src/components/battle/BattleViewer.tsx`) bằng `next/dynamic` với `ssr: false`. three.js chỉ tải khi người dùng mở trận lần đầu.
 - **Khung:** `BattleViewer` phủ kín trang, nằm trong một `<dialog>` mở bằng `showModal()`. Nhờ vậy các phím tắt chung của trang (`src/components/shell/keyboard.ts`) tự đứng ngoài khi trận đang mở; khung xem trận tự xử lý phím của nó. Esc hoặc nút đóng gọi `closeBattle()`, và focus trở về nút đã mở trận.
 - **Thời gian:** khung xem trận là nơi duy nhất ghi `battleTime` trong app chính (phát, tua, chuyển giai đoạn). Trang `/battle-lab` vẫn tự ghi như trước.
+- **Bố cục** (T-023): cảnh và thanh điều khiển bên trái; khung bên 360 px bên phải, thu gọn được, có hai tab "Lời dẫn" và "Thông tin trận" (hai bên, nguồn, ghi công). Ở bề ngang hẹp, khung bên nằm dưới cảnh.
+- **Ghi công trong khung:** `src/components/battle/viewer/credits.ts`. Phải khớp với README ("Data credits") và `art/CREDITS.md`. Thêm mô hình mới (T-021, T-022) thì thêm dòng ở cả ba chỗ.
+- **Lớp phủ:** phần tử nào của khung nằm đè lên cảnh thì có thuộc tính `data-battle-overlay`; nhãn địa danh của cảnh tránh các phần tử này.
 
 ### Các đợt làm
 

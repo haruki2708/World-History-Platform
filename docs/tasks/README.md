@@ -41,4 +41,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-020](T-020-horse.md) | 2 | Trận đánh 3D: ngựa cho kỵ binh, chỉnh dữ liệu Cannae trong cảnh thật | Đang làm (giao 2026-11-16) |
 | [T-021](T-021-infantry-models.md) | 1 | Trận đánh 3D: sáu loại bộ binh còn lại, kim loại sáng đúng trong cảnh | Đang làm (giao 2026-11-16) |
 | T-022 | 1 | Trận đánh 3D: ba loại kỵ binh (người cưỡi trên ngựa của T-020) | Chờ (sau T-020 và T-021) |
-| [T-023](T-023-battle-viewer.md) | 3 | Trận đánh 3D: khung xem trận trong app chính, mở từ panel sự kiện | Đang làm (giao 2026-11-16) |
+| [T-023](T-023-battle-viewer.md) | 3 | Trận đánh 3D: khung xem trận trong app chính, mở từ panel sự kiện | Xong, đã gộp 2026-11-17 (phiên chính làm nốt) |
