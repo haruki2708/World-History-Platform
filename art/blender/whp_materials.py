@@ -5,8 +5,11 @@ and one baked metallicRoughness map, so these materials only have to look
 right as plain colour plus bump, plus a roughness and a metalness each: the
 bakes read whatever feeds "Base Color", the shading normal, and the
 Principled BSDF's Roughness and Metallic values (whp_lod.SurfaceSwap).
-Colours are linear RGB; for the metals the base colour is the colour of
-the metal's reflection.
+Colours are linear RGB. For the metals the base colour is the colour of
+the metal's reflection (glTF metallic-roughness), so it is light: polished
+iron reflects about sRGB (196, 197, 199), copper (250, 209, 194), and tin
+bronze lies between copper and gold. The "dark" partner of each colour is
+the tarnish mixed in by noise, not a shadow.
 """
 
 import math
@@ -14,10 +17,16 @@ import math
 import bpy
 import numpy as np
 
-BRONZE = (0.44, 0.235, 0.06)
-BRONZE_DARK = (0.16, 0.08, 0.02)
-IRON = (0.23, 0.24, 0.26)
-IRON_DARK = (0.09, 0.09, 0.10)
+# Bronze is kept saturated: in the battle scene the metal mirrors a pale
+# blue sky, which washes out a paler gold until it reads as silver.
+BRONZE = (0.80, 0.47, 0.17)         # sRGB about (231, 182, 115)
+BRONZE_DARK = (0.52, 0.27, 0.08)
+IRON = (0.56, 0.57, 0.59)           # sRGB about (197, 198, 201)
+IRON_DARK = (0.34, 0.34, 0.35)
+# Roughness: polished bronze 0.3-0.45, iron a little rougher, mail 0.5-0.6.
+BRONZE_ROUGHNESS = 0.40
+IRON_ROUGHNESS = 0.42
+MAIL_ROUGHNESS = 0.55
 LEATHER = (0.16, 0.085, 0.04)
 LEATHER_DARK = (0.07, 0.04, 0.02)
 WOOD = (0.30, 0.19, 0.10)
@@ -77,13 +86,13 @@ def _noise_mix(tree, bsdf, color_a, color_b, scale, detail=4.0, contrast=(0.35, 
 
 
 def bronze():
-    mat, tree, bsdf = _new("whp-bronze", 0.38, metallic=1.0)
+    mat, tree, bsdf = _new("whp-bronze", BRONZE_ROUGHNESS, metallic=1.0)
     _noise_mix(tree, bsdf, BRONZE, BRONZE_DARK, 30.0, contrast=(0.2, 0.75), bump=0.08)
     return mat
 
 
 def iron():
-    mat, tree, bsdf = _new("whp-iron", 0.45, metallic=1.0)
+    mat, tree, bsdf = _new("whp-iron", IRON_ROUGHNESS, metallic=1.0)
     _noise_mix(tree, bsdf, IRON, IRON_DARK, 45.0, contrast=(0.25, 0.6), bump=0.15)
     return mat
 
@@ -101,9 +110,29 @@ def wood():
     return mat
 
 
-def shield_paint():
+def shield_paint(color=SHIELD_RED, dark=SHIELD_RED_DARK):
+    """Paint on a shield face; red unless a model asks for another colour."""
     mat, tree, bsdf = _new("whp-shield-paint", 0.7)
-    _noise_mix(tree, bsdf, SHIELD_RED, SHIELD_RED_DARK, 9.0, detail=6.0, contrast=(0.3, 0.75), bump=0.1)
+    _noise_mix(tree, bsdf, color, dark, 9.0, detail=6.0, contrast=(0.3, 0.75), bump=0.1)
+    return mat
+
+
+def plain(name, color, dark, roughness=0.8, scale=40.0, bump=0.2):
+    """A non-metal of one colour with a little noise: rawhide, cord, cloth."""
+    mat, tree, bsdf = _new("whp-" + name, roughness)
+    _noise_mix(tree, bsdf, color, dark, scale, contrast=(0.3, 0.7), bump=bump)
+    return mat
+
+
+FUR = (0.20, 0.155, 0.11)
+FUR_DARK = (0.055, 0.045, 0.035)
+
+
+def fur():
+    """A wolf's pelt: grey-brown, in coarse streaks along the hair."""
+    mat, tree, bsdf = _new("whp-fur", 0.95)
+    _noise_mix(tree, bsdf, FUR, FUR_DARK, 1.0, detail=8.0, contrast=(0.25, 0.75), bump=0.6,
+               stretch=(140.0, 140.0, 22.0))
     return mat
 
 
@@ -149,7 +178,7 @@ def _mail_images():
     shade = 0.14 + 0.86 * height ** 1.2
     color = np.empty((n, n, 4))
     for i, channel in enumerate(IRON):
-        color[..., i] = (channel * 1.45) * shade
+        color[..., i] = channel * shade
     color[..., 3] = 1.0
     grey = np.repeat(height[..., None], 4, axis=2)
     grey[..., 3] = 1.0
@@ -169,7 +198,7 @@ def _image(name, pixels, non_color):
 
 
 def mail():
-    mat, tree, bsdf = _new("whp-mail", 0.5, metallic=0.85)
+    mat, tree, bsdf = _new("whp-mail", MAIL_ROUGHNESS, metallic=0.85)
     color, height = _mail_images()
     scale = 1.0 / (MAIL_PITCH * MAIL_RINGS)
     vector = _object_coords(tree, scale)

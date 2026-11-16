@@ -194,3 +194,101 @@ def build_crest(detail, materials, scale=1.0, name="Helmet_crest"):
         b.grid(front)
         b.grid(back, flip=True)
     return b.object(name, [materials["feather"]])
+
+
+# --------------------------------------------------------------------------
+# Wolf skin over a plain helmet (velites)
+# --------------------------------------------------------------------------
+
+# Polybius 6.22.3: the velites wear a plain helmet, sometimes covered with a
+# wolf's skin or the like, so that their officers can tell them apart. The
+# pelt here is the scalp of the skin pulled over the bowl, with the ears up
+# and a flap of hide down the nape (cut short: it is fixed to the head).
+PELT_OFFSET = 0.011           # fur thickness over the bowl
+PELT_FLAP = 0.13              # how far the flap hangs below the rim at the back
+PELT_FLAP_HALF = math.radians(58)   # half its width, as an angle round the back
+EARS = [(math.radians(-90 + 38), 0.62), (math.radians(-90 - 38), 0.62)]   # angle round the bowl, height fraction
+
+
+def build_pelt(detail, materials, name="Pelt"):
+    b = Builder()
+    segments = SEGMENTS[detail]
+    rows = []
+    rows.append(_ring(b, segments, RIM_Z - 0.012, offset=PELT_OFFSET * 0.7,
+                      guard_out=NECK_GUARD_OUT, guard_drop=NECK_GUARD_DROP))
+    bowl = BOWL if detail > 0 else [BOWL[i] for i in BOWL_LOW]
+    for t, fraction in bowl:
+        rows.append(_ring(b, segments, RIM_Z + 0.004 + (BOWL_HEIGHT - 0.004) * t, fraction,
+                          offset=PELT_OFFSET * (1.0 + 0.4 * t)))
+    b.grid(rows, close_u=True)
+    top = RIM_Z + BOWL_HEIGHT + KNOB_HEIGHT + 0.012     # over the knob
+    b.fan(b.vert((CENTER[0], CENTER[1], top)), rows[-1])
+
+    # The flap: a strip of hide hanging from the rim at the back, closing in
+    # on the nape as it goes down.
+    columns = {0: 4, 1: 6, 2: 14}[detail]
+    steps = {0: 2, 1: 3, 2: 7}[detail]
+    # Two sheets 5 mm apart, outer and inner, so the hide shows from below.
+    # Rows run down, columns round the back: unflipped faces face inwards.
+    for inset, flip in ((0.0, True), (0.005, False)):
+        flap = []
+        for k in range(steps + 1):
+            t = k / steps
+            z = RIM_Z - 0.010 - PELT_FLAP * t
+            row = []
+            for c in range(columns + 1):
+                a = math.pi / 2 + PELT_FLAP_HALF * (2.0 * c / columns - 1.0) * (1.0 - 0.35 * t)
+                rx = (RADIUS[0] + PELT_OFFSET + NECK_GUARD_OUT * 0.6) * (1.0 - 0.32 * t) - inset
+                ry = (RADIUS[1] + PELT_OFFSET + NECK_GUARD_OUT) * (1.0 - 0.38 * t) - inset
+                row.append(b.vert((CENTER[0] + rx * math.cos(a), CENTER[1] + ry * math.sin(a), z)))
+            flap.append(row)
+        b.grid(flap, flip=flip)
+
+    # Ears: small pyramids standing on the bowl.
+    for angle, frac in EARS:
+        t = frac
+        r = _interp(BOWL, t)
+        z = RIM_Z + BOWL_HEIGHT * t
+        cx = CENTER[0] + (RADIUS[0] * r + PELT_OFFSET) * math.cos(angle)
+        cy = CENTER[1] + (RADIUS[1] * r + PELT_OFFSET) * math.sin(angle)
+        out = (math.cos(angle), math.sin(angle))
+        side = (-out[1], out[0])
+        base = [b.vert((cx + side[0] * s * 0.024 + out[0] * o * 0.012, cy + side[1] * s * 0.024 + out[1] * o * 0.012,
+                        z - 0.004)) for s, o in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        tip_co = (cx + out[0] * 0.020, cy + out[1] * 0.020, z + 0.055)
+        tip = b.vert(tip_co)
+        centre = np.array((cx, cy, z + 0.012))
+        for i in range(4):
+            j = (i + 1) % 4
+            p0, p1, p2 = (np.array(b.verts[k]) for k in (tip, base[i], base[j]))
+            facing = np.dot(np.cross(p1 - p0, p2 - p0), (p0 + p1 + p2) / 3 - centre)
+            b.face([tip, base[i], base[j]], flip=facing < 0)
+    return b.object(name, [materials["fur"]], smooth=detail > 0)
+
+
+# --------------------------------------------------------------------------
+# Sinew cap (Iberians)
+# --------------------------------------------------------------------------
+
+# Strabo 3.3.6: most Lusitanians wear helmets made of sinews (a few, chain
+# cuirasses and helmets with three crests). A close round cap of hardened
+# sinew and hide, lower than the bronze bowl, with a thick rolled edge.
+CAP_HEIGHT = 0.112
+CAP_OFFSET = 0.004
+
+
+def build_cap(detail, materials, name="Cap"):
+    b = Builder()
+    segments = SEGMENTS[detail]
+    rows = []
+    if detail > 0:
+        rows.append(_ring(b, segments, RIM_Z - 0.006, offset=-0.002))
+    rows.append(_ring(b, segments, RIM_Z - 0.010, offset=CAP_OFFSET + 0.004))
+    rows.append(_ring(b, segments, RIM_Z + 0.004, offset=CAP_OFFSET + 0.005))
+    bowl = BOWL if detail > 0 else [BOWL[i] for i in BOWL_LOW]
+    for t, fraction in bowl[1:]:
+        rows.append(_ring(b, segments, RIM_Z + 0.008 + (CAP_HEIGHT - 0.008) * t, fraction ** 0.8,
+                          offset=CAP_OFFSET))
+    b.grid(rows, close_u=True)
+    b.fan(b.vert((CENTER[0], CENTER[1], RIM_Z + CAP_HEIGHT + 0.006)), rows[-1])
+    return b.object(name, [materials["sinew"]], smooth=detail > 0)

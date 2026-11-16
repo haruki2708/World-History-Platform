@@ -172,6 +172,8 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
         verts = sum(_accessor_count(doc, p["attributes"]["POSITION"]) for p in mesh["primitives"])
         attrs = sorted(mesh["primitives"][0]["attributes"])
         log(f"  {name}: {tris} triangles, {verts} vertices, {len(mesh['primitives'])} primitive(s), {attrs}")
+        if any(a.startswith("COLOR_") for a in attrs):
+            problems.append(f"{name} has vertex colours (three.js would multiply them into the material)")
         if tris > limit:
             problems.append(f"{name} has {tris} triangles, over {limit}")
         if "skin" not in node:

@@ -10,6 +10,7 @@ u across the width, v along the length, w out of the face; the origin is
 the middle of the grip. `place` then moves it into the left fist.
 """
 
+import contextlib
 import math
 
 import numpy as np
@@ -40,6 +41,28 @@ BINDING_WIDTH = 0.022
 # Rotation about the grip, degrees: lifts the end towards the elbow so the
 # board clears the forearm (the wrist bends by as much when it is carried).
 TILT = 15.0
+
+
+# The long flat shield of the Gauls and Iberians (Polybius 3.114.2: "the
+# shields of the Iberians and Celts were very similar"): the La Tene type,
+# a tall oval board almost flat, a wooden spine swelling into a spindle
+# boss under an iron band across it, no metal edging.
+OVAL_SHIELD = dict(LENGTH=1.10, WIDTH=0.58, CURVE_RADIUS=2.2, OVAL=2.1, BINDING=0.0,
+                   BOSS_HALF_LENGTH=0.13, BOSS_HALF_WIDTH=0.050, BOSS_HEIGHT=0.052,
+                   PLATE_HALF=(0.16, 0.050))
+
+
+@contextlib.contextmanager
+def variant(**dims):
+    """Build another shape with this module's code: the given dimensions
+    replace the scutum's (the module constants) for the duration."""
+    g = globals()
+    old = {key: g[key] for key in dims}
+    g.update(dims)
+    try:
+        yield
+    finally:
+        g.update(old)
 
 
 def _sag(u):

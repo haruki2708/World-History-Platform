@@ -44,9 +44,10 @@ LODS = ("LOD0", "LOD1", "LOD2")
 class Figure:
     """One copy of the imported model: its armature and LOD meshes."""
 
-    def __init__(self, armature, meshes):
+    def __init__(self, armature, meshes, actions=None):
         self.armature = armature
         self.meshes = meshes          # name -> object
+        self.actions = actions or {}  # clip -> this model's action (names clash between imports)
 
     def visible(self):
         return [m for m in self.meshes.values() if not m.hide_render]
@@ -54,6 +55,7 @@ class Figure:
 
 def import_model(path):
     before = set(bpy.data.objects)
+    before_actions = set(bpy.data.actions)
     bpy.context.scene.render.fps = whp_anim.FPS      # the importer maps seconds to frames at this rate
     bpy.ops.import_scene.gltf(filepath=path)
     new = [o for o in bpy.data.objects if o not in before]
@@ -67,7 +69,8 @@ def import_model(path):
         obj.hide_set(True)
     # Imported LOD names may carry a suffix when a second model is imported.
     meshes = {name.split(".")[0]: obj for name, obj in meshes.items()}
-    return Figure(armature, meshes)
+    actions = {a.name.split(".")[0]: a for a in bpy.data.actions if a not in before_actions}
+    return Figure(armature, meshes, actions)
 
 
 def place(template, location=(0.0, 0.0, 0.0), turn=0.0, lod="LOD0"):
@@ -92,7 +95,7 @@ def place(template, location=(0.0, 0.0, 0.0), turn=0.0, lod="LOD0"):
             if mod.type == "ARMATURE":
                 mod.object = armature
         meshes[name] = obj
-    figure = Figure(armature, meshes)
+    figure = Figure(armature, meshes, template.actions)
     still(figure)
     return figure
 
@@ -113,7 +116,7 @@ def still(figure):
 def play(figure, clip, clip_frame):
     """Show frame `clip_frame` of a clip at scene frame FRAME."""
     still(figure)
-    action = bpy.data.actions[clip]
+    action = figure.actions.get(clip) or bpy.data.actions[clip]
     ad = figure.armature.animation_data
     track = ad.nla_tracks.new()
     strip = track.strips.new(clip, FRAME - int(clip_frame), action)
@@ -474,6 +477,31 @@ def render_model(model, only=None):
 
 
 # --------------------------------------------------------------------------
+# All the infantry in a row
+# --------------------------------------------------------------------------
+
+LINEUP = ["roman-velites", "roman-hastatus", "roman-legionary", "roman-triarii",
+          "libyan-infantry", "iberian-infantry", "gallic-infantry", "balearic-slinger"]
+
+
+def lineup():
+    """The infantry models side by side, front view, standing (idle, frame 0):
+    art/renders/infantry-lineup.jpg."""
+    reset_scene()
+    figures = []
+    for i, model in enumerate(LINEUP):
+        template = import_model(whp_build.glb_path(model))
+        f = place(template, (1.15 * i, 0.0, 0.0), 0.0)
+        play(f, "idle", 0)
+        figures.append(f)
+    scene = stage(2600, 900)
+    lo, hi = bounds_of(figures)
+    aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.03)
+    render_jpeg(scene, os.path.join(RENDER_DIR, "infantry-lineup.jpg"), quality=85)
+    log("lineup:", ", ".join(LINEUP))
+
+
+# --------------------------------------------------------------------------
 # The library's other attacks, on a model's build file
 # --------------------------------------------------------------------------
 
@@ -514,8 +542,11 @@ def main():
     parser.add_argument("--model", default="roman-legionary", choices=whp_build.unit_ids())
     parser.add_argument("--only", nargs="*", choices=sorted(IMAGES), default=None)
     parser.add_argument("--attack-styles", action="store_true")
+    parser.add_argument("--lineup", action="store_true", help="the infantry models in a row")
     args = parser.parse_args(script_args())
-    if args.attack_styles:
+    if args.lineup:
+        lineup()
+    elif args.attack_styles:
         attack_styles(args.model)
     else:
         render_model(args.model, args.only)

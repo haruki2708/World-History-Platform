@@ -29,6 +29,9 @@ be re-run alone (--from). A unit module provides:
     KIT                 whp_clips.Kit
     PARTS, LOD2         see whp_unit_lod
     REVIEW              names of the review images (render_review.py)
+    GROUND_CHECKS       optional: poses checked against the ground after the
+                        export, if not whp_export.GROUND_CHECKS (a spear
+                        held upright stands higher than a man)
 """
 
 import argparse
@@ -195,7 +198,8 @@ def check_model(model):
     if not os.path.isfile(path):
         return [f"{path} does not exist"]
     problems = whp_export.check_glb(path, LODS, LIMITS, CLIPS, bone_count=BONES)
-    problems += whp_export.reimport(path, LODS)
+    ground = getattr(load_unit(model), "GROUND_CHECKS", whp_export.GROUND_CHECKS)
+    problems += whp_export.reimport(path, LODS, ground)
     with open(INDEX, encoding="utf-8") as f:
         if model not in json.load(f).get("models", []):
             problems.append(f"{model} is not listed in {INDEX}")
