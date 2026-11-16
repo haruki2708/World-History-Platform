@@ -73,7 +73,7 @@ Như `roman-legionary`: **"Roman Soldier - T pose - free download"** và khung x
    - hai tấm che ống chân bằng đồng, ôm cẳng chân, hở phía sau;
    - hai cây *pilum* dài khoảng 2 m (một cây to: cán gỗ có khối vuông ở đầu, thân sắt chuôi dẹt; một cây mảnh: mũi sắt có ống tra cán), cầm dựng đứng trong tay trái sau khiên.
 3. **Sửa** các phần giữ lại, **đổi tư thế và tỉ lệ**, **gắn khung xương**, **giảm chi tiết**, **ảnh vật liệu**: như `roman-legionary` (mục 3–7); áo tunic lộ hoàn toàn nên giữ nhiều tam giác hơn.
-4. **Hoạt hình:** năm clip như `roman-legionary`.
+4. **Hoạt hình:** năm clip như `roman-legionary`. Trong `attack` và `die` không còn hai cây *pilum* (đã phóng trước khi đánh kiếm; T-024).
 
 ### Dòng ghi công gợi ý
 

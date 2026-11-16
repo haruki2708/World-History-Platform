@@ -114,7 +114,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 
 1. Tải mô hình nền về `%WHP_ASSETS%\sources\<tên>\`, ghi nguồn và giấy phép vào `README.txt` của thư mục đó.
 2. Tạo `art/blender/unit_<id>.py`, chép từ mô hình gần nhất. Mô hình nền khác thì viết lại `build_source()` và `fit()` (ma trận đưa thân về khung xương: xem `roman_fit.py`; mô hình Celt đã đứng đúng khung nên `celt_source.build` trả ma trận đơn vị). Cùng mô hình nền La Mã thì dùng lại `roman_kit.py` (mũ, khiên, cất kiếm vào bao), `roman_weapons.py` (giáo, lao), `roman_source.recolour`/`tint` (nhuộm áo, màu da), `roman_faces.py` (râu, tóc).
-3. Đặt `KIT = whp_clips.Kit(shield=..., attack=..., carry=..., lie_flat=..., sling=...)`. Kiểu tấn công có sẵn: `sword-thrust`, `spear-thrust`, `javelin-throw`, `sling`, `sword-slash` (xem dưới). `carry=whp_clips.SPEAR_CARRY` cho giáo dài cầm dựng đứng, `lie_flat=True` để giáo nằm ngang khi ngã. Tay phải cầm vũ khí thì `rig_extras()` phải ghi `whp_weapon_axis`; tay trái cầm khiên thì ghi `whp_shield_down`, `whp_shield_out` (xem `roman_kit.rig_extras`, có tham số `weapon=` và `shield=`).
+3. Đặt `KIT = whp_clips.Kit(shield=..., attack=..., carry=..., lie_flat=..., sling=..., spare=...)`. Kiểu tấn công có sẵn: `sword-thrust`, `spear-thrust`, `javelin-throw`, `sling`, `sword-slash` (xem dưới). `carry=whp_clips.SPEAR_CARRY` cho giáo dài cầm dựng đứng, `lie_flat=True` để giáo nằm ngang khi ngã. Tay phải cầm vũ khí thì `rig_extras()` phải ghi `whp_weapon_axis`; tay trái cầm khiên thì ghi `whp_shield_down`, `whp_shield_out` (xem `roman_kit.rig_extras`, có tham số `weapon=` và `shield=`).
 4. Khai báo `PARTS` và `LOD2`, chạy `build_model.py -- --model <id> --preview`, chỉnh ngân sách tam giác cho tới khi bước kiểm tra qua.
 5. Chạy `render_review.py -- --model <id>`, ghi công vào `art/CREDITS.md`.
 
@@ -168,6 +168,8 @@ Muốn đi nhanh hơn thì cảnh tăng tốc độ phát clip theo tỉ lệ: t
 
 **Giáo dài** (`SPEAR_CARRY`): khi không đánh, cánh tay phải giải bằng IK, cẳng tay đưa ra trước, giáo dựng đứng cạnh đùi, đế giáo cách đất vài cm, mũi giáo cao khoảng 2,4 m.
 
+**Vật cầm thêm trong tay trái** (`Kit(spare=True)`, T-024): hai cây *pilum* của hastatus. Ở giai đoạn `rig`, vật được khớp tư thế theo `hand_l` rồi gắn vào xương `ik_hand_l` (`RIGID = {"Pila": ("hand_l", whp_clips.SPARE_BONE)}`; xương IK không lưới nào khác dùng). Trong mọi clip xương này theo bàn tay trái; riêng `attack` và `die` nó thu nhỏ còn 1% quanh cổ tay (`SPARE_GONE`, `SPARE_SCALE`), tức *pilum* biến vào trong nắm tay. Lý do: hastati phóng *pilum* rồi mới rút kiếm (Caesar, *Gallic War* 1.25 tả rõ nhất), mà cảnh chỉ có một clip `attack` cho mỗi mô hình, nên không thể vừa phóng lao vừa đâm kiếm. Giấu *pilum* sau khiên không được: *pilum* dài khoảng 2 m, khiên cao 1,2 m; dựng đứng thì nhô lên trên, nằm ngang thì đâm vào hàng sau. Xương này có vị trí, góc quay và tỉ lệ trong clip. Khi cảnh chuyển từ đi sang đánh (0,35 s), *pilum* thu nhỏ dần trong khoảng đó.
+
 **Dây ném đá co giãn** (`balearic_kit.py`, `whp_clips.SlingCord`): túi và hòn đá gắn vào xương `ik_hand_gun` của khung (xương IK không lưới nào dùng); hai sợi dây có trọng số chuyển dần từ bàn tay (ở nắm tay) sang xương đó (ở túi). Mọi clip đặt xương này vào chỗ hòn đá: treo dưới tay khi đứng, đi, chạy; nằm dọc mặt đất khi ngã; quay quanh đầu và văng ra khi ném. Xương này có cả vị trí lẫn góc quay trong clip.
 
 Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Dash`...) có chém vòng, xoay người, nhảy, không hợp với lính giữ đội hình, nên không dùng.
@@ -208,6 +210,7 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 - **Vật liệu:** ảnh màu (đã nhân AO), ảnh pháp tuyến, ảnh độ nhám và kim loại. Màu gốc của kim loại là màu phản xạ của kim loại (T-021: đồng khoảng sRGB (231, 182, 115), sắt khoảng (197, 198, 201), độ nhám đồng 0,40, sắt 0,42, giáp lưới 0,55). Ảnh so sánh trong cảnh three.js: `art/renders/roman-legionary/15-scene-metal-before-after.jpg`.
 - **Cao nhất:** mũi giáo của triarii cao khoảng 2,4 m khi đứng (các mô hình khác dưới 2,25 m).
 - **Lính Baleares:** xương `ik_hand_gun` có vị trí và góc quay trong mọi clip (túi đá của dây ném). Cảnh phải phát kênh của mọi xương, không chỉ các xương thân.
+- **Hastatus:** hai cây *pilum* gắn vào xương `ik_hand_l`, có cả tỉ lệ trong clip: 1 khi đứng, đi, chạy; 0,01 trong `attack` và `die` (*pilum* đã phóng). Cảnh phải nướng cả tỉ lệ của xương (cảnh hiện nướng `matrixWorld`, nên đã có).
 - **Tâm hình lính:** đứng giữa gốc toạ độ; khiên ở bên trái của người lính, tức phía +X trong glTF (lính nhìn về +Z, trục Y hướng lên).
 
 ## Các file script
@@ -265,6 +268,7 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `12-metal-before-after.jpg` | Trái: vật liệu không có ảnh độ nhám/kim loại (như T-014). Phải: như đã xuất. |
 | `13-compare-source.jpg` | Mô hình gốc 07 như khi tải về; mô hình mới ở tư thế gốc; mô hình mới đứng. |
 | `14-test-poses.jpg` | Tư thế thử khung xương: giơ tay, bước dài, cúi người. |
+| `16-foot-slip-before-after.jpg` | Biểu đồ (T-024, `art/tools/gait_check.py`): độ trượt của chân trụ trong từng khung `walk` và `run`, trước (nét đứt) và sau khi khoá chân. |
 
 ### `art/renders/roman-hastatus/`
 
@@ -280,6 +284,7 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `13-chest-pilum.jpg` | Trái: cận ngực, tấm đồng và dây da. Phải: hai cây *pilum* trong tay trái sau khiên, nhìn từ sau. |
 | `14-beside-roman-legionary.jpg` | `roman-legionary` và `roman-hastatus`: nhìn trước, rồi nhìn nghiêng. |
 | `15-test-poses.jpg` | Tư thế thử khung xương. |
+| `16-pila-before-after.jpg` | T-024. Hàng trên: trước; hàng dưới: sau. Đứng (`idle`), đầu và lúc đâm của `attack`, nằm (`die`): sau khi sửa, *pilum* chỉ còn khi đứng, đi, chạy. |
 
 `roman-legionary/15-scene-metal-before-after.jpg`: ảnh chụp cảnh three.js (`/battle-lab`, Cannae), hàng đầu quân La Mã lúc 08:00 (hai hàng trên: trước, sau) và lúc 12:00 (trái: trước, phải: sau), trước và sau khi đổi màu kim loại ở T-021.
 
@@ -297,6 +302,10 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `07-anim-idle.jpg` … `11-anim-die.jpg` | Ba khung hình mỗi clip; `10-anim-attack.jpg` là kiểu tấn công của mô hình. |
 | `12-beside-roman-legionary.jpg` | Đứng cạnh `roman-legionary`: nhìn trước, rồi nhìn nghiêng. |
 | `13-test-poses.jpg` | Tư thế thử khung xương. |
+
+Ảnh trước và sau của T-024 (hàng trên: trước; hàng dưới: sau; `render_review.py --before`):
+- `gallic-infantry/14-fists-before-after.jpg`: tay trái cầm khiên (nhìn từ sau khiên), tay phải cầm kiếm (hai góc), tay phải lúc giơ kiếm;
+- `roman-velites/14-skirt-before-after.jpg`, `balearic-slinger/14-skirt-before-after.jpg`: hông và đùi ở bốn khung `attack` quanh lúc bước tới (40–70% clip) và hai khung `run`, nhìn chéch từ phía tay phải.
 
 ### `art/renders/infantry-lineup.jpg`
 

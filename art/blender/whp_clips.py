@@ -70,9 +70,14 @@ class Kit:
     sling:   name of the mesh of a sling in the right fist whose pouch
              follows the bone SLING_BONE (balearic_kit): every clip then
              places that bone where the stone is.
+    spare:   True if what the left fist holds besides the shield (the
+             hastatus's pila) is skinned to SPARE_BONE: it follows the left
+             hand, except in the clips in SPARE_GONE, where it shrinks to
+             nothing inside the fist (the pila were thrown before the sword
+             fight).
     """
 
-    def __init__(self, shield=True, attack="sword-thrust", carry=None, lie_flat=False, sling=None):
+    def __init__(self, shield=True, attack="sword-thrust", carry=None, lie_flat=False, sling=None, spare=False):
         if attack not in ATTACKS:
             raise ValueError(f"unknown attack {attack!r}; choose one of {', '.join(ATTACKS)}")
         self.shield = shield
@@ -80,6 +85,7 @@ class Kit:
         self.carry = carry or WEAPON_CARRY
         self.lie_flat = lie_flat
         self.sling = sling
+        self.spare = spare
 
 
 def _vec(v):
@@ -133,6 +139,13 @@ SPEAR_CARRY = dict(wrist=(-0.24, -0.17, -0.43), elbow=(-0.6, 0.8, -0.2),
 SLING_CARRY = dict(aim=(0.0, -0.15, -1.0), up=(-1.0, 0.0, 0.0), follow=0.6)
 SLING_BONE = "ik_hand_gun"          # a bone no mesh uses otherwise
 SLING_T = "whp_sling_t"             # point attribute: 0 at the fist, 1 at the pouch
+
+# What the left fist holds besides the shield (Kit.spare) hangs from another
+# bone no mesh uses, so that a clip can take it away: in SPARE_GONE it is
+# scaled down to SPARE_SCALE about the wrist, inside the hand.
+SPARE_BONE = "ik_hand_l"
+SPARE_GONE = ("attack", "die")
+SPARE_SCALE = 0.01
 
 
 def blend_carry(a, b, t):
@@ -442,12 +455,16 @@ class Builder:
         self.lying_lift = 0.0       # how much "die" was lifted at the end
         self._soles = None
         self.sling = None
-        self.keyed, self.located = list(KEYED), ("pelvis",)
+        self.keyed, self.located, self.scaled = list(KEYED), ("pelvis",), ()
         if kit.sling:
             import bpy
             self.sling = SlingCord(self.poser, bpy.data.objects[kit.sling])
             self.keyed.append(SLING_BONE)
             self.located = ("pelvis", SLING_BONE)
+        if kit.spare:
+            self.keyed.append(SPARE_BONE)
+            self.located += (SPARE_BONE,)
+            self.scaled = (SPARE_BONE,)
 
     def retarget(self, pack):
         if pack not in self.targets:
@@ -460,9 +477,20 @@ class Builder:
         action = new_action(self.armature, name)
         for frame in range(frames + 1):
             pose_at(frame % frames if loop else frame)
-            self.poser.key(frame, self.keyed, located=self.located)
+            if self.kit.spare:
+                self.spare(name in SPARE_GONE)
+            self.poser.key(frame, self.keyed, located=self.located, scaled=self.scaled)
         finish_action(self.armature, action, frames, loop=loop)
         return action
+
+    def spare(self, gone=False):
+        """SPARE_BONE follows the left hand; `gone`, it is shrunk inside it."""
+        p = self.poser
+        m = p.matrix["hand_l"] @ p.rest["hand_l"].inverted() @ p.rest[SPARE_BONE]
+        if gone:
+            wrist = p.head("hand_l")
+            m = Matrix.Translation(wrist) @ Matrix.Scale(SPARE_SCALE, 4) @ Matrix.Translation(-wrist) @ m
+        p.matrix[SPARE_BONE] = m
 
     @property
     def soles(self):

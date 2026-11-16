@@ -195,8 +195,10 @@ class Poser:
 
     # -- keyframes ----------------------------------------------------------
 
-    def key(self, frame, bones, located=("pelvis",)):
-        """Write the current pose of `bones` to the pose bones and key it."""
+    def key(self, frame, bones, located=("pelvis",), scaled=()):
+        """Write the current pose of `bones` to the pose bones and key it:
+        rotation, plus location for the bones in `located` and scale for
+        those in `scaled`."""
         pose = self.armature.pose.bones
         for name in self.names:
             if name not in bones:
@@ -209,7 +211,7 @@ class Poser:
             basis = base.inverted() @ self.matrix[name]
             pb = pose[name]
             pb.rotation_mode = "QUATERNION"
-            q = basis.to_quaternion()
+            q = basis.to_3x3().normalized().to_quaternion() if name in scaled else basis.to_quaternion()
             last = self._last.get(name)
             if last is not None and last.dot(q) < 0.0:
                 q.negate()                     # stay on the same side: no flips between keys
@@ -219,6 +221,9 @@ class Poser:
             if name in located:
                 pb.location = basis.to_translation()
                 pb.keyframe_insert("location", frame=frame)
+            if name in scaled:
+                pb.scale = basis.to_scale()
+                pb.keyframe_insert("scale", frame=frame)
 
 
 def new_action(armature, name):
