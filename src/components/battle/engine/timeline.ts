@@ -20,6 +20,19 @@ import { createRng, hashString } from "./rng";
 
 const DEG = Math.PI / 180;
 
+/**
+ * A change of facing this large between two keyframes is an about-face: the
+ * men turn round where they stand, and the rear rank becomes the front,
+ * instead of the whole block swinging round its centre (a block 800 m wide
+ * would sweep across the field). It applies whether or not the block also
+ * moves: a body of troops that turns to flee turns about, then goes.
+ */
+const ABOUT_FACE = 135 * DEG;
+/** Share of the phase over which each man turns about. */
+const TURN_SPAN = 0.08;
+/** The men do not all turn at once: up to this share of the phase apart. */
+const TURN_STAGGER = 0.08;
+
 export interface UnitKey {
   center: { x: number; y: number };
   frontage: number;
@@ -53,12 +66,32 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-/** Interpolates an angle along the shorter way round. */
-function lerpAngle(a: number, b: number, t: number): number {
+/** From angle a to angle b the shorter way round, in (-π, π]. */
+function angleDelta(a: number, b: number): number {
   let delta = (b - a) % (2 * Math.PI);
   if (delta > Math.PI) delta -= 2 * Math.PI;
-  if (delta < -Math.PI) delta += 2 * Math.PI;
-  return a + delta * t;
+  if (delta <= -Math.PI) delta += 2 * Math.PI;
+  return delta;
+}
+
+/** Interpolates an angle along the shorter way round. */
+function lerpAngle(a: number, b: number, t: number): number {
+  return a + angleDelta(a, b) * t;
+}
+
+/** 0 → 1 with a gentle start and end. */
+function smoothstep(t: number): number {
+  const c = Math.min(Math.max(t, 0), 1);
+  return c * c * (3 - 2 * c);
+}
+
+/**
+ * The same formation seen from behind: facing turned half round, the bulge
+ * the other way. Slot (u, v) of the original is slot (-u, 1 - v) of this one,
+ * at the same point on the field.
+ */
+function reversed(key: UnitKey): UnitKey {
+  return { ...key, center: { ...key.center }, facing: key.facing + Math.PI, bulge: -key.bulge };
 }
 
 /** Battle time (in phases) to seconds of playback at normal speed. */
@@ -112,6 +145,12 @@ export class UnitTrack {
 
   /** Per keyframe: u (across, -0.5..0.5) and v (front 0 to rear 1) per figure. */
   private readonly slots: Float32Array[];
+  /**
+   * Per phase k (keyframe k to k + 1) that is an about-face: the end keyframe
+   * seen from behind (`reversed`), its slots to match, and which way the men
+   * turn (+1 clockwise, -1 the other way). Null for an ordinary phase.
+   */
+  private readonly aboutFace: ({ to: UnitKey; slots: Float32Array; turn: number } | null)[];
   private readonly deathSeconds: Float32Array;
   private readonly deathX: Float32Array;
   private readonly deathY: Float32Array;
@@ -215,6 +254,19 @@ export class UnitTrack {
       return slots;
     });
 
+    // About-faces: the end of the phase in the frame of its start.
+    this.aboutFace = this.keys.slice(1).map((to, k) => {
+      const delta = angleDelta(this.keys[k].facing, to.facing);
+      if (Math.abs(delta) < ABOUT_FACE) return null;
+      const from = this.slots[k + 1];
+      const slots = new Float32Array(n * 2);
+      for (let i = 0; i < n; i++) {
+        slots[i * 2] = -from[i * 2];
+        slots[i * 2 + 1] = 1 - from[i * 2 + 1];
+      }
+      return { to: reversed(to), slots, turn: delta >= 0 ? 1 : -1 };
+    });
+
     // Where and when each fallen figure lies.
     for (let i = 0; i < n; i++) {
       const t = this.deathTime[i];
@@ -236,14 +288,26 @@ export class UnitTrack {
     return this.keys[phase].action;
   }
 
-  /** The formation at `time`, interpolated; the result is reused between calls. */
+  /**
+   * The formation at `time`, interpolated; the result is reused between calls.
+   * During an about-face it is the formation of the start of the phase, moving
+   * towards the end one seen from behind: the same ground, without the swing.
+   */
   formationAt(time: number): UnitKey {
     const last = this.keys.length - 1;
     const t = Math.min(Math.max(time, 0), last);
     const k = Math.min(Math.floor(t), Math.max(last - 1, 0));
-    const a = this.keys[k];
-    const b = this.keys[Math.min(k + 1, last)];
     const s = t - k;
+    // At the very end of the battle, the last keyframe as it is.
+    const turning = s < 1 ? this.aboutFace[k] : null;
+    return this.interpolate(k, s, turning?.to ?? null);
+  }
+
+  /** Keyframe k towards keyframe k + 1 (or `to` in its place) by s. */
+  private interpolate(k: number, s: number, to: UnitKey | null): UnitKey {
+    const last = this.keys.length - 1;
+    const a = this.keys[k];
+    const b = to ?? this.keys[Math.min(k + 1, last)];
     const out = this.scratch;
     out.center.x = lerp(a.center.x, b.center.x, s);
     out.center.y = lerp(a.center.y, b.center.y, s);
@@ -266,9 +330,12 @@ export class UnitTrack {
     const t = Math.min(Math.max(time, 0), last);
     const k = Math.min(Math.floor(t), Math.max(last - 1, 0));
     const s = t - k;
+    const turning = this.aboutFace[k] ?? null;
     const from = this.slots[k];
-    const to = this.slots[Math.min(k + 1, last)];
-    const f = this.formationAt(t);
+    const to = turning ? turning.slots : this.slots[Math.min(k + 1, last)];
+    // In an about-face the whole phase, its end included, is drawn in the
+    // frame of its start: the slots above are in that frame.
+    const f = this.interpolate(k, s, turning?.to ?? null);
     const now = this.clock.seconds(t);
     // The same placement as formationPoint, with the trigonometry hoisted
     // out of the loop: this runs for every figure on every frame of playback.
@@ -302,10 +369,19 @@ export class UnitTrack {
       const forward = f.depth * (0.5 - v) + f.bulge * (1 - 4 * u * u);
       this.x[i] = f.center.x + cos * across + sin * forward;
       this.y[i] = f.center.y - sin * across + cos * forward;
+      // Each man turns about on his own, early in the phase, a moment
+      // before or after his neighbours.
+      const turned = turning
+        ? smoothstep((s - this.seed[i] * TURN_STAGGER) / TURN_SPAN)
+        : 0;
       this.heading[i] =
-        f.facing + (curve === 0 ? 0 : Math.atan(curve * u)) + (this.seed[i] - 0.5) * 0.25;
+        f.facing +
+        (turning ? turning.turn * Math.PI * turned : 0) +
+        (curve === 0 ? 0 : Math.atan(curve * u)) +
+        (this.seed[i] - 0.5) * 0.25;
       this.status[i] = ALIVE;
-      this.rank[i] = v;
+      // Once turned, the rear of the old formation is the front.
+      this.rank[i] = turned > 0.5 ? 1 - v : v;
       standing++;
     }
     return standing;

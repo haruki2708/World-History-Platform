@@ -14,6 +14,7 @@ import {
   PCFShadowMap,
   PerspectiveCamera,
   Scene,
+  Spherical,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -25,6 +26,7 @@ import { createFigureMaterials, type FigureMaterials, type FigureShared } from "
 import { type FramedBlock, frameBlocks, mainForces } from "./framing";
 import { buildUnitModel, type UnitModel } from "./figures/model";
 import { createPlaceholderSource } from "./figures/placeholder";
+import { hidden, type Occluder } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { loadHeights, Terrain } from "./terrain";
@@ -68,7 +70,19 @@ export interface EngineOptions {
   onQualityLowered?: () => void;
   /** After every frame, e.g. to move labels that follow points on the field. */
   onFrame?: () => void;
+  /**
+   * Open with the camera high above the field, looking straight down with
+   * north up, as the map left it, and bring it down to the opening view.
+   * Skipped when the user asks for reduced motion.
+   */
+  introFromAbove?: boolean;
 }
+
+/** The opening move of the camera, milliseconds. */
+const INTRO_MS = 1600;
+/** It starts this many times further out than the opening view, looking down. */
+const INTRO_HEIGHT = 1.7;
+const INTRO_POLAR = 0.02;
 
 const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
   high: {
@@ -135,6 +149,13 @@ export class BattleEngine {
   private autoLowerAllowed = true;
 
   private readonly scratch = new Vector3();
+  /** The blocks of troops as boxes, this frame: what may hide a place from view. */
+  private readonly occluders: Occluder[] = [];
+  /** The opening move of the camera while it lasts (see introFromAbove). */
+  private intro: { from: Spherical; to: Spherical; start: number } | null = null;
+  private readonly stopIntro = (): void => {
+    this.intro = null;
+  };
 
   constructor(
     private readonly container: HTMLElement,
@@ -183,6 +204,8 @@ export class BattleEngine {
     this.controls.zoomSpeed = 1.6;
     this.controls.minDistance = 10;
     this.controls.maxPolarAngle = (86 * Math.PI) / 180;
+    // Any drag, turn or zoom by the user ends the opening move of the camera.
+    this.controls.addEventListener("start", this.stopIntro);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(container);
@@ -215,15 +238,24 @@ export class BattleEngine {
 
   /**
    * Where a field point is on screen, in CSS pixels from the top left of the
-   * container. Returns false when the point is behind the camera.
+   * container. Returns false when the point cannot be seen: behind the
+   * camera, or hidden by a hill or a body of troops in front of it.
    */
   project(point: FieldPoint, out: { x: number; y: number }): boolean {
     if (!this.terrain) return false;
-    const v = this.scratch.set(point.x, this.terrain.heightAt(point.x, point.y), -point.y);
+    const ground = this.terrain.heightAt(point.x, point.y);
+    const v = this.scratch.set(point.x, ground, -point.y);
     v.project(this.camera);
     out.x = (v.x * 0.5 + 0.5) * this.width;
     out.y = (-v.y * 0.5 + 0.5) * this.height;
-    return v.z > -1 && v.z < 1;
+    if (!(v.z > -1 && v.z < 1)) return false;
+    const eye = this.camera.position;
+    return !hidden(
+      { x: eye.x, y: -eye.z, h: eye.y },
+      { x: point.x, y: point.y, h: ground + 1 },
+      this.terrain.heightAt,
+      this.occluders,
+    );
   }
 
   dispose(): void {
@@ -232,6 +264,7 @@ export class BattleEngine {
     this.abort.abort();
     cancelAnimationFrame(this.frameHandle);
     this.resizeObserver.disconnect();
+    this.controls.removeEventListener("start", this.stopIntro);
     this.controls.dispose();
     this.crowd.dispose();
     for (const materials of this.materials) materials.dispose();
@@ -337,6 +370,7 @@ export class BattleEngine {
     await this.compileShaders();
     if (this.disposed) return;
     this.startedAt = performance.now();
+    this.startIntro(this.startedAt);
     this.lastFrame = this.startedAt;
     this.statSince = this.startedAt;
     this.settleUntil = this.startedAt + 3000;
@@ -400,6 +434,39 @@ export class BattleEngine {
   }
 
   /**
+   * Starts the opening move: from straight above the point the opening view
+   * looks at, north up (the camera a hair south of it), down to that view.
+   */
+  private startIntro(now: number): void {
+    if (!this.options.introFromAbove) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const to = new Spherical().setFromVector3(
+      this.scratch.subVectors(this.camera.position, this.controls.target),
+    );
+    const from = new Spherical(to.radius * INTRO_HEIGHT, INTRO_POLAR, 0);
+    this.controls.maxDistance = Math.max(this.controls.maxDistance, from.radius);
+    this.intro = { from, to, start: now };
+    this.placeIntroCamera(0);
+  }
+
+  /** The camera at fraction k (0..1) of the opening move. */
+  private placeIntroCamera(k: number): void {
+    const intro = this.intro;
+    if (!intro) return;
+    const e = k * k * (3 - 2 * k);
+    const { from, to } = intro;
+    let turn = (to.theta - from.theta) % (2 * Math.PI);
+    if (turn > Math.PI) turn -= 2 * Math.PI;
+    if (turn < -Math.PI) turn += 2 * Math.PI;
+    const at = new Spherical(
+      from.radius + (to.radius - from.radius) * e,
+      from.phi + (to.phi - from.phi) * e,
+      from.theta + turn * e,
+    );
+    this.camera.position.setFromSpherical(at).add(this.controls.target);
+  }
+
+  /**
    * Compiles every shader the troops may need while the scene still shows
    * that it is loading; the detailed material would otherwise compile, and
    * stall a frame, on the first zoom onto a block.
@@ -435,6 +502,11 @@ export class BattleEngine {
     }
     const playing = now - this.lastTimeChange < 250;
 
+    if (this.intro) {
+      const k = Math.min((now - this.intro.start) / INTRO_MS, 1);
+      this.placeIntroCamera(k);
+      if (k >= 1) this.intro = null;
+    }
     this.updateCamera(terrain);
     this.sky.setHour(hourAt(this.battle, time));
     const distance = this.camera.position.distanceTo(this.controls.target);
@@ -445,6 +517,7 @@ export class BattleEngine {
 
     this.shared.uTime.value = seconds;
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
+    this.crowd.occluders(time, terrain.heightAt, this.occluders);
     const counts = this.crowd.selectLods(
       this.camera,
       this.height,

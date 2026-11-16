@@ -113,7 +113,18 @@ function pointsAlong(points: FieldPoint[], shares: number[]): FieldPoint[] {
  * The 3D scene of a battle. Reads the battle time from the store and draws
  * the field at that moment; three.js lives behind this component only.
  */
-export function BattleScene({ battle, unitTypes, debug }: BattleSceneProps) {
+export function BattleScene({
+  battle,
+  unitTypes,
+  debug,
+  introFromAbove = false,
+}: BattleSceneProps & {
+  /**
+   * Open looking straight down on the field, north up, as the map left it,
+   * and bring the camera down to the opening view (the battle viewer).
+   */
+  introFromAbove?: boolean;
+}) {
   const showStats = debug?.showStats ?? false;
   const stressFigures = debug?.stressFigures;
   // A new battle or a new stress crowd starts from a clean scene.
@@ -124,6 +135,7 @@ export function BattleScene({ battle, unitTypes, debug }: BattleSceneProps) {
       unitTypes={unitTypes}
       showStats={showStats}
       stressFigures={stressFigures}
+      introFromAbove={introFromAbove}
     />
   );
 }
@@ -133,6 +145,7 @@ interface SceneViewProps {
   unitTypes: BattleSceneProps["unitTypes"];
   showStats: boolean;
   stressFigures: number | undefined;
+  introFromAbove: boolean;
 }
 
 // Memoised: a parent that re-renders on every tick of the battle clock (the
@@ -142,6 +155,7 @@ const SceneView = memo(function SceneView({
   unitTypes,
   showStats,
   stressFigures,
+  introFromAbove,
 }: SceneViewProps) {
   const { t, locale } = useT();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -253,6 +267,7 @@ const SceneView = memo(function SceneView({
           noticeTimer = window.setTimeout(() => setLowered(false), 8000);
         },
         onFrame: placeLabels,
+        introFromAbove,
       });
     } catch (error) {
       console.error("The battle scene could not start.", error);
@@ -265,7 +280,7 @@ const SceneView = memo(function SceneView({
       engineRef.current = null;
       engine.dispose();
     };
-  }, [battle, unitTypes, stressFigures, showStats, labels]);
+  }, [battle, unitTypes, stressFigures, showStats, labels, introFromAbove]);
 
   // Label texts change size with the language and the font; measure them
   // when they do, not on every frame.

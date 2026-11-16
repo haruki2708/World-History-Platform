@@ -232,7 +232,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
               {/* On a phone the scene takes the upper part of the screen and
                   the panel scrolls below it. */}
               <div className="relative h-[42dvh] min-h-52 lg:h-auto lg:min-h-0 lg:flex-1">
-                <BattleScene battle={battle} unitTypes={unitTypes} />
+                <BattleScene battle={battle} unitTypes={unitTypes} introFromAbove />
               </div>
               <ControlBar battle={battle} playback={playback} />
             </div>
