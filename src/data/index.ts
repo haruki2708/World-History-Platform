@@ -1,9 +1,11 @@
+import type { Battle, UnitType } from "@/lib/battle";
 import type {
   BorderSnapshot,
   HistoricalEvent,
   Polity,
   Year,
 } from "@/lib/types";
+import unitTypesJson from "./battles/unit-types.json";
 import borderSnapshotsJson from "./border-snapshots.json";
 import eventsJson from "./events.json";
 import politiesJson from "./polities.json";
@@ -46,6 +48,28 @@ export function getEventsAround(
     (event) =>
       Math.abs(event.year - year) <= windowYears || isEventActive(event, year),
   );
+}
+
+/** Kinds of soldiers in the 3D battle scenes, shared by every battle. */
+export const unitTypes = unitTypesJson as UnitType[];
+
+/**
+ * Battles with a 3D scene, keyed by event id. A battle file is large, so it is
+ * loaded only when its scene opens.
+ */
+const battleLoaders = new Map<string, () => Promise<{ default: unknown }>>([
+  ["battle-of-cannae", () => import("./battles/battle-of-cannae.json")],
+]);
+
+/** True when the event has a 3D battle scene. */
+export function hasBattle(eventId: string): boolean {
+  return battleLoaders.has(eventId);
+}
+
+export async function loadBattle(id: string): Promise<Battle | undefined> {
+  const load = battleLoaders.get(id);
+  if (!load) return undefined;
+  return (await load()).default as Battle;
 }
 
 /** The latest border snapshot at or before `year`, if any. */

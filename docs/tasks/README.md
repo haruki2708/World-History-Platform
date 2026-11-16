@@ -32,3 +32,6 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-011](T-011-tutor-map-links-server.md) | 2 | Server tạo nút "xem trên bản đồ" từ câu trả lời của Claude | Xong, đã gộp 2026-11-16 |
 | [T-012](T-012-borders-review.md) | 3 | Soát lại các mốc biên giới của đợt 2 | Xong, đã gộp 2026-11-16 |
 | [T-013](T-013-about.md) | 1 | Giới thiệu, cách dùng và ghi công | Xong, đã gộp 2026-11-16 |
+| [T-014](T-014-roman-legionary-model.md) | 1 | Trận đánh 3D: mô hình lính La Mã thời Cộng hoà (Blender) | Đang làm (giao 2026-11-16) |
+| [T-015](T-015-battle-scene.md) | 3 | Trận đánh 3D: cảnh 3D (three.js) | Đang làm (giao 2026-11-16) |
+| [T-016](T-016-cannae-data.md) | 2 | Trận đánh 3D: dữ liệu trận Cannae, địa hình, tìm mô hình ngựa và hoạt hình | Đang làm (giao 2026-11-16) |

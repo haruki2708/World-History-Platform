@@ -33,6 +33,7 @@ Làm trọn vẹn một thời kỳ trước khi mở rộng:
 | Giao diện | Tailwind CSS | Nhanh cho nhóm nhỏ |
 | Dữ liệu | File JSON và GeoJSON trong repo | Chưa cần database ở MVP |
 | AI | Claude API (`claude-opus-5-5`) qua route phía server, có streaming | Khoá API không lộ ra trình duyệt |
+| Trận đánh 3D | three.js trong trình duyệt; mô hình lính dựng bằng Blender, xuất `.glb` | Vẽ hàng nghìn hình lính có hoạt hình trên web; Blender miễn phí và chạy được bằng script |
 | Deploy | Vercel | Miễn phí ở quy mô nhỏ |
 
 ## Gia sư AI hoạt động thế nào

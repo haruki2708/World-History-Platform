@@ -1,0 +1,199 @@
+// Checks the 3D battle data against the contract in src/lib/battle.ts:
+// src/data/battles/unit-types.json, every src/data/battles/<event-id>.json
+// and its terrain grid in public/data/terrain/. Exits with code 1 on errors.
+// Run as part of `npm run validate`. Owned by lane 2 from T-016 on.
+//
+//   node scripts/battles/validate-battles.mjs
+
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const battlesDir = join(root, "src", "data", "battles");
+const terrainDir = join(root, "public", "data", "terrain");
+
+const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ACTIONS = new Set(["stand", "advance", "charge", "fight", "retreat", "rout", "pursue"]);
+const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
+
+const errors = [];
+const warnings = [];
+const fail = (where, message) => errors.push(`${where}: ${message}`);
+const warn = (where, message) => warnings.push(`${where}: ${message}`);
+
+const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
+const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+
+function checkText(where, value) {
+  if (!value || typeof value.en !== "string" || typeof value.vi !== "string" || !value.en.trim() || !value.vi.trim()) {
+    fail(where, "needs non-empty `en` and `vi`");
+  }
+}
+
+function checkSources(where, sources) {
+  if (!Array.isArray(sources) || sources.length === 0) return fail(where, "needs at least one source");
+  for (const [i, source] of sources.entries()) {
+    if (!source || typeof source.title !== "string" || !source.title.trim()) fail(`${where}[${i}]`, "needs a title");
+    if (source.url !== undefined && !/^https:\/\//.test(source.url)) fail(`${where}[${i}]`, "url must start with https://");
+  }
+}
+
+function checkRange(where, range) {
+  if (!range || !isNumber(range.min) || !isNumber(range.max) || range.min < 0 || range.min > range.max) {
+    return fail(where, "needs numbers min <= max, not negative");
+  }
+  if (range.note !== undefined) checkText(`${where}.note`, range.note);
+}
+
+// --- Shared data ------------------------------------------------------------
+
+const polities = new Set(readJson(join(root, "src", "data", "polities.json")).map((p) => p.id));
+const events = new Map(readJson(join(root, "src", "data", "events.json")).map((e) => [e.id, e]));
+
+const unitTypes = new Map();
+for (const [i, type] of readJson(join(battlesDir, "unit-types.json")).entries()) {
+  const where = `unit-types.json[${i}]`;
+  if (!KEBAB.test(type.id ?? "")) fail(where, "id must be kebab-case");
+  else if (unitTypes.has(type.id)) fail(where, `duplicate id ${type.id}`);
+  checkText(`${where}.name`, type.name);
+  if (!KEBAB.test(type.model ?? "")) fail(where, "model must be a kebab-case file stem");
+  if (type.mounted !== undefined && typeof type.mounted !== "boolean") fail(where, "mounted must be true or false");
+  unitTypes.set(type.id, type);
+}
+
+// --- Each battle ------------------------------------------------------------
+
+const battleFiles = readdirSync(battlesDir).filter((f) => f.endsWith(".json") && f !== "unit-types.json");
+
+for (const file of battleFiles) {
+  const b = readJson(join(battlesDir, file));
+  const where = file;
+
+  if (`${b.id}.json` !== file) fail(where, `id ${b.id} must match the file name`);
+  if (!events.has(b.id)) fail(where, `id ${b.id} is not an event in events.json`);
+  if (!b.origin || !isNumber(b.origin.lng) || !isNumber(b.origin.lat)) fail(where, "origin needs lng and lat");
+  checkText(`${where}.date`, b.date);
+  checkText(`${where}.uncertainty`, b.uncertainty);
+  checkSources(`${where}.sources`, b.sources);
+
+  // Sides and units.
+  const sides = new Map();
+  for (const [i, side] of (b.sides ?? []).entries()) {
+    const at = `${where}.sides[${i}]`;
+    if (!KEBAB.test(side.id ?? "") || sides.has(side.id)) fail(at, "id must be kebab-case and unique");
+    if (!polities.has(side.polityId)) fail(at, `polityId ${side.polityId} is not in polities.json`);
+    checkText(`${at}.name`, side.name);
+    if (!Array.isArray(side.commanders) || side.commanders.length === 0) fail(at, "needs at least one commander");
+    else side.commanders.forEach((c, j) => checkText(`${at}.commanders[${j}]`, c));
+    checkRange(`${at}.strength`, side.strength);
+    if (side.casualties !== undefined) checkRange(`${at}.casualties`, side.casualties);
+    sides.set(side.id, side);
+  }
+  if (sides.size < 2) fail(where, "needs at least two sides");
+
+  const units = new Map();
+  const menBySide = new Map();
+  for (const [i, unit] of (b.units ?? []).entries()) {
+    const at = `${where}.units[${i}]`;
+    if (!KEBAB.test(unit.id ?? "") || units.has(unit.id)) fail(at, "id must be kebab-case and unique");
+    if (!sides.has(unit.side)) fail(at, `side ${unit.side} is not a side of this battle`);
+    if (!unitTypes.has(unit.type)) fail(at, `type ${unit.type} is not in unit-types.json`);
+    checkText(`${at}.name`, unit.name);
+    if (!Number.isInteger(unit.men) || unit.men <= 0) fail(at, "men must be a positive whole number");
+    units.set(unit.id, unit);
+    menBySide.set(unit.side, (menBySide.get(unit.side) ?? 0) + (unit.men || 0));
+  }
+  for (const [id, side] of sides) {
+    const men = menBySide.get(id) ?? 0;
+    if (side.strength && (men < side.strength.min * 0.9 || men > side.strength.max * 1.1)) {
+      warn(where, `units of ${id} add up to ${men}, outside strength ${side.strength.min}–${side.strength.max} (±10%)`);
+    }
+  }
+
+  // Terrain.
+  const t = b.terrain ?? {};
+  const terrainWhere = `${where}.terrain`;
+  for (const key of ["width", "height", "minX", "maxX", "minY", "maxY"]) {
+    if (!isNumber(t[key])) fail(terrainWhere, `${key} must be a number`);
+  }
+  if (!(t.minX < t.maxX && t.minY < t.maxY)) fail(terrainWhere, "needs minX < maxX and minY < maxY");
+  if (!(Number.isInteger(t.width) && t.width >= 2 && Number.isInteger(t.height) && t.height >= 2)) {
+    fail(terrainWhere, "width and height must be whole numbers >= 2");
+  }
+  const gridPath = join(terrainDir, t.file ?? "");
+  if (!t.file || !existsSync(gridPath)) fail(terrainWhere, `file ${t.file} not found in public/data/terrain/`);
+  else if (statSync(gridPath).size !== t.width * t.height * 2) {
+    fail(terrainWhere, `file is ${statSync(gridPath).size} bytes, expected width × height × 2 = ${t.width * t.height * 2}`);
+  }
+  checkSources(`${terrainWhere}.sources`, t.sources);
+  const inside = (p) => isNumber(p?.x) && isNumber(p?.y) && p.x >= t.minX && p.x <= t.maxX && p.y >= t.minY && p.y <= t.maxY;
+  for (const [i, river] of (t.rivers ?? []).entries()) {
+    const at = `${terrainWhere}.rivers[${i}]`;
+    checkText(`${at}.name`, river.name);
+    if (!Array.isArray(river.points) || river.points.length < 2) fail(at, "needs at least two points");
+    if (!isNumber(river.width) || river.width <= 0) fail(at, "width must be positive");
+  }
+  for (const [i, mark] of (t.landmarks ?? []).entries()) {
+    const at = `${terrainWhere}.landmarks[${i}]`;
+    checkText(`${at}.name`, mark.name);
+    if (!LANDMARK_KINDS.has(mark.kind)) fail(at, `kind ${mark.kind} is not one of ${[...LANDMARK_KINDS].join(", ")}`);
+    if (!inside(mark.point)) fail(at, "point must lie inside the terrain");
+  }
+
+  // States: the start and the end of every phase list every unit once.
+  const lastMen = new Map([...units].map(([id, u]) => [id, u.men]));
+  const checkStates = (at, states) => {
+    if (!Array.isArray(states)) return fail(at, "must be a list of unit states");
+    const seen = new Set();
+    for (const [i, s] of states.entries()) {
+      const sw = `${at}[${i}]`;
+      if (!units.has(s.unit)) fail(sw, `unit ${s.unit} is not a unit of this battle`);
+      else if (seen.has(s.unit)) fail(sw, `unit ${s.unit} listed twice`);
+      seen.add(s.unit);
+      const f = s.formation ?? {};
+      if (!inside(f.center)) fail(sw, "formation.center must lie inside the terrain");
+      if (!(isNumber(f.frontage) && f.frontage > 0 && isNumber(f.depth) && f.depth > 0)) fail(sw, "frontage and depth must be positive");
+      if (!(isNumber(f.facing) && f.facing >= 0 && f.facing < 360)) fail(sw, "facing must be in [0, 360)");
+      if (f.bulge !== undefined && !isNumber(f.bulge)) fail(sw, "bulge must be a number");
+      if (!ACTIONS.has(s.action)) fail(sw, `action ${s.action} is not one of ${[...ACTIONS].join(", ")}`);
+      if (!Number.isInteger(s.men) || s.men < 0) fail(sw, "men must be a whole number >= 0");
+      else if (units.has(s.unit)) {
+        if (s.men > lastMen.get(s.unit)) fail(sw, `men ${s.men} is more than before (${lastMen.get(s.unit)}); units only lose men`);
+        lastMen.set(s.unit, s.men);
+      }
+    }
+    for (const id of units.keys()) if (!seen.has(id)) fail(at, `unit ${id} is missing`);
+  };
+
+  if (!isNumber(b.startHour) || b.startHour < 0 || b.startHour >= 24) fail(where, "startHour must be in [0, 24)");
+  checkStates(`${where}.initial`, b.initial);
+  if (!Array.isArray(b.phases) || b.phases.length === 0) fail(where, "needs at least one phase");
+  let hour = b.startHour;
+  const phaseIds = new Set();
+  for (const [i, phase] of (b.phases ?? []).entries()) {
+    const at = `${where}.phases[${i}]`;
+    if (!KEBAB.test(phase.id ?? "") || phaseIds.has(phase.id)) fail(at, "id must be kebab-case and unique");
+    phaseIds.add(phase.id);
+    checkText(`${at}.title`, phase.title);
+    checkText(`${at}.narration`, phase.narration);
+    if (!isNumber(phase.endHour) || phase.endHour < hour || phase.endHour > 48) fail(at, `endHour must not go back in time (previous ${hour})`);
+    hour = phase.endHour;
+    if (!isNumber(phase.playSeconds) || phase.playSeconds <= 0) fail(at, "playSeconds must be positive");
+    checkStates(`${at}.units`, phase.units);
+    for (const [j, arrow] of (phase.arrows ?? []).entries()) {
+      if (!sides.has(arrow.side)) fail(`${at}.arrows[${j}]`, `side ${arrow.side} is not a side of this battle`);
+      if (!Array.isArray(arrow.points) || arrow.points.length < 2 || !arrow.points.every(inside)) {
+        fail(`${at}.arrows[${j}]`, "needs at least two points inside the terrain");
+      }
+    }
+  }
+}
+
+for (const w of warnings) console.warn(`warning: ${w}`);
+if (errors.length > 0) {
+  console.error("Battle data is invalid:");
+  for (const e of errors) console.error(`  - ${e}`);
+  process.exit(1);
+}
+console.log(`Battle data is valid: ${battleFiles.length} battle(s), ${unitTypes.size} unit types.`);

@@ -1,0 +1,69 @@
+{
+  "id": "battle-of-cannae",
+  "origin": { "lng": 16.1518, "lat": 41.2967 },
+  "date": { "en": "216 BCE", "vi": "216 TCN" },
+  "sides": [
+    {
+      "id": "rome",
+      "polityId": "rome",
+      "name": { "en": "Rome and its allies", "vi": "La Mã và đồng minh" },
+      "commanders": [{ "en": "Placeholder", "vi": "Dữ liệu tạm" }],
+      "strength": { "min": 4000, "max": 4000 }
+    },
+    {
+      "id": "carthage",
+      "polityId": "carthage",
+      "name": { "en": "Hannibal's army", "vi": "Quân của Hannibal" },
+      "commanders": [{ "en": "Placeholder", "vi": "Dữ liệu tạm" }],
+      "strength": { "min": 4000, "max": 4000 }
+    }
+  ],
+  "units": [
+    { "id": "placeholder-legion", "side": "rome", "type": "roman-hastati", "name": { "en": "Placeholder legion", "vi": "Quân đoàn tạm" }, "men": 4000 },
+    { "id": "placeholder-gauls", "side": "carthage", "type": "gallic-infantry", "name": { "en": "Placeholder Gauls", "vi": "Lính Gaul tạm" }, "men": 4000 }
+  ],
+  "startHour": 7,
+  "initial": [
+    { "unit": "placeholder-legion", "formation": { "center": { "x": 0, "y": 600 }, "frontage": 400, "depth": 40, "facing": 180 }, "action": "stand", "men": 4000 },
+    { "unit": "placeholder-gauls", "formation": { "center": { "x": 0, "y": -600 }, "frontage": 400, "depth": 30, "facing": 0, "bulge": 60 }, "action": "stand", "men": 4000 }
+  ],
+  "phases": [
+    {
+      "id": "placeholder-advance",
+      "title": { "en": "Placeholder phase", "vi": "Giai đoạn tạm" },
+      "narration": {
+        "en": "Placeholder data so the scene can be built before T-016 brings the real battle.",
+        "vi": "Dữ liệu tạm để dựng cảnh trước khi T-016 đưa vào dữ liệu thật của trận."
+      },
+      "endHour": 9,
+      "playSeconds": 12,
+      "units": [
+        { "unit": "placeholder-legion", "formation": { "center": { "x": 0, "y": 40 }, "frontage": 400, "depth": 40, "facing": 180 }, "action": "fight", "men": 3600 },
+        { "unit": "placeholder-gauls", "formation": { "center": { "x": 0, "y": -40 }, "frontage": 400, "depth": 30, "facing": 0, "bulge": -40 }, "action": "fight", "men": 3200 }
+      ],
+      "arrows": [
+        { "side": "rome", "points": [{ "x": 0, "y": 560 }, { "x": 0, "y": 80 }] }
+      ]
+    }
+  ],
+  "terrain": {
+    "file": "battle-of-cannae.bin",
+    "width": 64,
+    "height": 48,
+    "minX": -4000,
+    "maxX": 4000,
+    "minY": -3000,
+    "maxY": 3000,
+    "rivers": [],
+    "landmarks": [],
+    "sources": [{ "title": "Placeholder: flat ground until T-016" }]
+  },
+  "uncertainty": {
+    "en": "Placeholder data, not a reconstruction.",
+    "vi": "Dữ liệu tạm, chưa phải phỏng dựng."
+  },
+  "sources": [
+    { "title": "Polybius, Histories 3.107–118", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+    { "title": "Livy, Ab Urbe Condita 22.43–51", "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22" }
+  ]
+}

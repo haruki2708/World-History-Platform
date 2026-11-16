@@ -20,12 +20,24 @@ export interface AppState {
    */
   focusRequest: number;
   locale: Locale;
+  /** The battle open in the 3D scene (an event id), or null for the map. */
+  battleId: string | null;
+  /**
+   * Position on the open battle's own timeline, in phases: 0 is the start,
+   * n the end of phase n; fractions lie between. See phaseAt in lib/battle.
+   */
+  battleTime: number;
 
   setYear: (year: Year) => void;
   setViewport: (viewport: MapViewport) => void;
   /** Selecting an event also moves the timeline to that event's year. */
   selectEvent: (id: string | null, year?: Year) => void;
   setLocale: (locale: Locale) => void;
+  /** Opens a battle at its start. */
+  openBattle: (id: string) => void;
+  closeBattle: () => void;
+  /** Never below 0; the scene and the controls keep it within the phases. */
+  setBattleTime: (time: number) => void;
 }
 
 /** Central Mediterranean, wide enough to see Rome and Carthage. */
@@ -40,6 +52,8 @@ export const useAppStore = create<AppState>()((set) => ({
   selectedEventId: null,
   focusRequest: 0,
   locale: "en",
+  battleId: null,
+  battleTime: 0,
 
   setYear: (year) => set({ year: clampYear(year) }),
   setViewport: (viewport) => set({ viewport }),
@@ -50,4 +64,8 @@ export const useAppStore = create<AppState>()((set) => ({
       ...(id === null ? {} : { focusRequest: state.focusRequest + 1 }),
     })),
   setLocale: (locale) => set({ locale }),
+  openBattle: (id) => set({ battleId: id, battleTime: 0 }),
+  closeBattle: () => set({ battleId: null, battleTime: 0 }),
+  setBattleTime: (time) =>
+    set({ battleTime: Number.isFinite(time) ? Math.max(0, time) : 0 }),
 }));

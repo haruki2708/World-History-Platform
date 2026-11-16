@@ -19,16 +19,17 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 
 | Ai | Sở hữu |
 |---|---|
-| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx` |
-| Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/` |
-| Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` |
+| Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx`; trận đánh 3D: `art/` (script Blender), `public/battles/models/` |
+| Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/`; trận đánh 3D: `src/data/battles/`, `public/data/terrain/`, `scripts/battles/`, `docs/data/battles/` |
+| Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` (trừ các thư mục trận đánh của Lane 2); trận đánh 3D: `src/components/battle/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |
 
 Quy tắc cho lane:
 
 - Chỉ sửa file trong vùng mình sở hữu. Cần đổi file ngoài vùng (kiểu dữ liệu, store, thêm thư viện) thì không tự sửa: ghi đề nghị vào mục "Kết quả" của file task.
-- Ngoại lệ: được thêm khoá vào `src/lib/i18n/messages.ts`, chỉ với tiền tố của mảng mình (`timeline.*`, `events.*`, `tutor.*`, `map.*`), và phải thêm cho cả `en` lẫn `vi`.
-- Timeline, bản đồ và tutor chỉ giao tiếp qua `useAppStore`. Không import component của mảng khác.
+- Ngoại lệ: được thêm khoá vào `src/lib/i18n/messages.ts`, chỉ với tiền tố của mảng mình (`timeline.*`, `events.*`, `tutor.*`, `map.*`, `about.*`; cảnh trận đánh: `battle.scene.*`), và phải thêm cho cả `en` lẫn `vi`.
+- Timeline, bản đồ, tutor và cảnh trận đánh chỉ giao tiếp qua `useAppStore`. Không import component của mảng khác.
+- Dữ liệu trận đánh, cảnh 3D và mô hình lính chỉ giao tiếp qua hợp đồng trong `src/lib/battle.ts`.
 - Khung chat và route của tutor chỉ giao tiếp qua hợp đồng trong `src/lib/tutor.ts`.
 - Không bao giờ đưa khoá API vào code, commit, log hay tài liệu. Khoá chỉ nằm trong `.env.local`. Khi phát triển, dùng `TUTOR_MOCK=1`.
 
@@ -46,7 +47,7 @@ Quy tắc cho lane:
 ```
 npm run dev      # chạy local tại http://localhost:3000
 npm run lint
-npm run validate # kiểm tra dữ liệu lịch sử (src/data, public/data/borders)
+npm run validate # kiểm tra dữ liệu lịch sử (src/data, public/data/borders) và dữ liệu trận đánh 3D
 npm run build    # phải qua trước khi báo xong task
 ```
 

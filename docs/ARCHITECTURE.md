@@ -15,27 +15,34 @@ src/
     timeline/          Lane 1
     panel/             Lane 1 (danh sách và chi tiết sự kiện)
     tutor/             Lane 1 (khung chat), giai đoạn 4
+    battle/            Lane 3: cảnh trận đánh 3D (three.js)
   data/
     events.json        Lane 3
     polities.json      Lane 3
     border-snapshots.json   Lane 3 (danh mục các mốc biên giới)
+    battles/           Lane 2: dữ liệu trận đánh 3D, loại lính
     index.ts           hàm truy vấn dữ liệu (phiên chính)
   lib/
     types.ts           kiểu dữ liệu chung
+    battle.ts          hợp đồng của trận đánh 3D
     years.ts           YEAR_MIN, YEAR_MAX, clampYear, formatYear
     i18n/              chuỗi giao diện en/vi và hook useT
   store/
     useAppStore.ts     trạng thái chung
+  app/battle-lab/      trang thử cảnh trận đánh, chỉ chạy khi phát triển (phiên chính)
 public/data/borders/   file GeoJSON biên giới, Lane 3
+public/data/terrain/   lưới độ cao của chiến trường, Lane 2
+public/battles/models/ mô hình lính .glb, Lane 1
 public/map/            bản đồ nền (Natural Earth), Lane 2
-scripts/               script kiểm tra dữ liệu, Lane 3
+scripts/               script kiểm tra dữ liệu, Lane 3 (trừ scripts/battles/ của Lane 2)
+art/                   script Blender dựng mô hình lính, Lane 1
 ```
 
 Trên màn hẹp (dưới 1024px), panel bên chia thành hai tab "Sự kiện" và "Gia sư AI". Trên màn rộng hai phần xếp chồng.
 
 ## Trạng thái chung: `useAppStore`
 
-Ba mảng (timeline, bản đồ, tutor) chỉ giao tiếp qua store này.
+Các mảng (timeline, bản đồ, tutor, cảnh trận đánh) chỉ giao tiếp qua store này.
 
 | Trường | Kiểu | Ai ghi | Ai đọc |
 |---|---|---|---|
@@ -44,8 +51,10 @@ Ba mảng (timeline, bản đồ, tutor) chỉ giao tiếp qua store này.
 | `selectedEventId` | `string \| null` | Panel, bản đồ, nút trong câu trả lời của gia sư, qua `selectEvent` | Tất cả |
 | `focusRequest` | `number` | Tăng mỗi lần `selectEvent` chọn một sự kiện, kể cả chọn lại đúng sự kiện đang chọn | Bản đồ (bay tới sự kiện) |
 | `locale` | `"en" \| "vi"` | `LocaleSwitch` | Tất cả |
+| `battleId` | `string \| null` | `openBattle(id)`, `closeBattle()` | Cảnh trận đánh, nút điều khiển trận |
+| `battleTime` | `number` | `setBattleTime` (nút điều khiển trận; trang thử) | Cảnh trận đánh |
 
-`setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra.
+`setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra. `setBattleTime` chỉ chặn số âm; cảnh và nút điều khiển tự giữ trong `[0, số giai đoạn]`.
 
 ## Năm
 
@@ -82,7 +91,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 
 ### Hàm truy vấn (`src/data/index.ts`)
 
-`events`, `polities`, `borderSnapshots`, `getEvent(id)`, `getPolity(id)`, `isEventActive(event, year)`, `getEventsAround(year, windowYears = 30)`, `getBorderSnapshot(year)`.
+`events`, `polities`, `borderSnapshots`, `getEvent(id)`, `getPolity(id)`, `isEventActive(event, year)`, `getEventsAround(year, windowYears = 30)`, `getBorderSnapshot(year)`. Cho trận đánh 3D: `unitTypes`, `hasBattle(eventId)`, `loadBattle(id)` (nạp file trận khi cần, không nằm trong gói chính).
 
 ## Đa ngôn ngữ
 
@@ -124,3 +133,72 @@ src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --s
 - **Kiểm tra:** `npm run tutor:check` chạy bộ tự kiểm tra của route (giả lập và một máy chủ Claude giả, không gọi API thật); `npm run tutor:prompt` in prompt đầy đủ cho một yêu cầu mẫu.
 - **Giới hạn** (`src/server/tutor/limits.ts`, cấu hình trong `.env.example`): mỗi người (theo IP) 6 câu trong 60 giây (`rate_limited`) và 100 câu mỗi ngày UTC (`limit_reached`); cả app tối đa 5 USD mỗi ngày UTC, ước tính từ số token của từng câu trả lời (`limit_reached`). Câu bị chặn không gọi API và không bị tính lượt. Chỉ nhận yêu cầu cùng nguồn (header `Origin`).
 - **Giới hạn của phần giới hạn:** bộ đếm nằm trong bộ nhớ của một tiến trình, khởi động lại là mất; chạy nhiều tiến trình thì cần kho dùng chung (thay `QuotaStore`). IP lấy từ `x-forwarded-for`, chỉ đáng tin khi đứng sau proxy ghi đè header này. Chưa có xác thực người dùng.
+
+## Trận đánh 3D (bản thử: Cannae)
+
+Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân chuyển động qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Hợp đồng nằm ở `src/lib/battle.ts`. Chỉ phiên chính được sửa file này.
+
+```
+dữ liệu trận (Lane 2)                cảnh 3D (Lane 3)          nút điều khiển (Lane 1, đợt C)
+src/data/battles/*.json     ──►   src/components/battle/  ◄──  useAppStore.battleTime
+public/data/terrain/*.bin            three.js
+                                          ▲
+mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/models/*.glb
+                       file gốc để ngoài repo
+```
+
+### Dữ liệu
+
+- **File trận:** mỗi trận một file `src/data/battles/<id sự kiện>.json` (kiểu `Battle`). Id trùng với id sự kiện trong `events.json`. Phiên chính đăng ký file mới vào `battleLoaders` trong `src/data/index.ts`.
+- **Loại lính:** dùng chung cho mọi trận, nằm ở `src/data/battles/unit-types.json` (kiểu `UnitType`). `model` là tên file trong `public/battles/models/`; nhiều loại lính có thể dùng chung một mô hình.
+- **Toạ độ trên chiến trường:** tính bằng mét từ `origin` (kinh độ, vĩ độ của điểm x = 0, y = 0). x hướng đông, y hướng bắc. `facing` tính bằng độ, theo chiều kim đồng hồ từ hướng bắc.
+- **Thời gian:**
+  - `initial` là vị trí lúc bắt đầu. Mỗi giai đoạn ghi trạng thái của **mọi** đơn vị lúc **kết thúc** giai đoạn.
+  - `battleTime` trong store chạy từ 0 tới số giai đoạn. Giữa hai mốc, cảnh tự nội suy.
+  - `phaseAt` và `hourAt` trong `battle.ts` quy đổi `battleTime` ra giai đoạn đang diễn ra và giờ trong ngày.
+- **Quân số:** một hình lính bằng `MEN_PER_FIGURE` (20) người. Số người `men` của một đơn vị chỉ giảm, không tăng; `npm run validate` có kiểm tra.
+- **Địa hình:**
+  - Lưới độ cao trong `public/data/terrain/`: số Int16 little-endian, đơn vị decimet, hàng chạy từ bắc xuống nam, cột từ tây sang đông.
+  - Sông và địa danh (trại, đồi, thành) đi kèm trong `terrain`.
+  - Số liệu hay vị trí là phỏng dựng hoặc còn tranh cãi thì ghi ở `uncertainty`, `NumberRange.note` hoặc `approximate`.
+- **Nội dung và nguồn:** tiêu đề và lời dẫn song ngữ, tự viết. Mỗi trận có nguồn. Dữ liệu độ cao có nguồn và giấy phép.
+- **Kiểm tra:** `npm run validate` chạy thêm `scripts/battles/validate-battles.mjs`.
+
+### Mô hình lính
+
+- **File:** `public/battles/models/<model>.glb`, mỗi file tối đa 4 MB.
+- **Hệ trục:** đơn vị mét, trục Y hướng lên, nhân vật đứng trên y = 0, mặt nhìn về +Z.
+- **Khung xương:** một khung xương chuẩn Unreal (67 xương, lấy từ mô hình Celt của Andywoodhead). Ba lưới cùng gắn vào khung này:
+  - `LOD0`: tối đa 8 000 tam giác;
+  - `LOD1`: tối đa 1 500;
+  - `LOD2`: tối đa 300.
+- **Vật liệu:** một vật liệu với một ảnh màu gộp, tối đa 2048×2048. Ảnh pháp tuyến nếu có thì tối đa 1024×1024.
+- **Hoạt hình:** đặt tên theo `UNIT_CLIPS`.
+  - Bắt buộc: `idle`, `walk`, `attack`.
+  - Nên có: `run`, `die`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
+- **Kỵ binh:** người và ngựa nằm trong cùng một file.
+- **File gốc:** các file tải từ Sketchfab để ngoài repo, ở `E:\World_History_Platform_assets\sources\`. Trong repo chỉ có script `art/blender/` và file `.glb` đã xuất. Chạy lại script bằng Blender 5.2.2 không giao diện là dựng lại được mô hình.
+- **Giấy phép và ghi công:**
+  - Mô hình nền có giấy phép CC BY 4.0 (Andywoodhead, Sketchfab). Ghi công trong `art/CREDITS.md`, kèm mô tả những gì đã sửa.
+  - Khi trận đánh vào app chính, ghi công thêm ở hộp thoại Giới thiệu và README.
+  - Không dùng mô hình trích từ game thương mại (Total War hay game khác).
+
+### Cảnh 3D
+
+- **Component:** `BattleScene` (`src/components/battle/BattleScene.tsx`) nhận `BattleSceneProps` và đọc `battleTime` từ store. Nó chỉ được nạp ở phía trình duyệt (`next/dynamic` với `ssr: false`), nên three.js không nằm trong gói của trang chính.
+- **Vẽ lính:** hàng nghìn hình lính có hoạt hình được vẽ theo lô (instancing). Mức chi tiết chọn theo khoảng cách, cho từng khối quân. Thiếu file mô hình thì vẽ hình tạm theo màu của phe. Màu phe lấy từ `polities.json` qua `polityId`.
+- **Hiệu năng:**
+  - Mục tiêu: khoảng 7 000 hình lính, từ 50 khung hình/giây trở lên ở 1280×800 trên máy của người dùng (laptop RTX 3050).
+  - Có mức chất lượng thấp cho máy yếu.
+  - Mở rồi đóng cảnh nhiều lần không rò bộ nhớ (giải phóng WebGL).
+- **Trang thử `/battle-lab`:** chỉ chạy với `npm run dev`. Gồm cảnh, nút phát và thanh tua. Tham số:
+  - `?battle=<id>`: chọn trận;
+  - `?stats=1`: hiện số khung hình/giây và số hình lính;
+  - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng.
+
+### Các đợt làm
+
+Chi tiết ở `docs/PLAN.md`.
+- **Đợt A:** mô hình lính La Mã (T-014), cảnh 3D (T-015), dữ liệu trận Cannae và địa hình (T-016).
+- **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
+- **Đợt C:** nút điều khiển trận, mở cảnh từ panel sự kiện, chuyển cảnh từ bản đồ vào trận.
