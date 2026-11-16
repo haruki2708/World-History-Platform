@@ -105,17 +105,6 @@ RIGID = {
 SMOOTHING = {"Tunic_1": 12, "Mail": 12, "Mail_yoke": 12, "Belt": 8}
 DEFAULT_SMOOTHING = 3
 
-# Poses that show whether the skin deforms properly. Rotations are about
-# the figure's axes: X to its left, -Y forwards, Z up.
-TEST_POSES = {
-    "arms-up": [("upperarm_l", "Y", -80), ("upperarm_r", "Y", 80), ("lowerarm_r", "Y", 40)],
-    "step": [("thigh_l", "X", -45), ("calf_l", "X", 55), ("thigh_r", "X", 22), ("calf_r", "X", 12),
-             ("upperarm_r", "X", -30), ("upperarm_l", "X", 25)],
-    "bend": [("spine_01", "X", 18), ("spine_02", "X", 16), ("spine_03", "X", 14), ("neck_01", "X", -20),
-             ("head", "Z", 35), ("upperarm_l", "Y", 30), ("upperarm_r", "Y", -30)],
-}
-
-
 def base_name(obj):
     """Object name without the ".low" suffix of the game-resolution kit."""
     return obj.name.split(".")[0]
@@ -218,7 +207,7 @@ def preview(name):
     render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{{view}}.png"))
     armature = bpy.data.objects.get(whp_skeleton.RIG_NAME)
     if armature is not None and name.endswith("rig"):
-        for pose_name, pose in TEST_POSES.items():
+        for pose_name, pose in roman_anims.TEST_POSES.items():
             whp_skeleton.reset_pose(armature)
             whp_skeleton.apply_pose(armature, pose)
             render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{pose_name}-{{view}}.png"),

@@ -55,23 +55,31 @@ class WeightSource:
         self.not_right = _Surface(coords, triangles[~is_right])
         self.not_left = _Surface(coords, triangles[~is_left])
 
+    def _lookup(self, surface, banned, p):
+        location, _normal, tri, _dist = surface.tree.find_nearest(Vector(p))
+        a, b, c = surface.triangles[tri]
+        bary = poly_3d_calc([Vector(self.coords[a]), Vector(self.coords[b]), Vector(self.coords[c])], location)
+        w = bary[0] * self.weights[a] + bary[1] * self.weights[b] + bary[2] * self.weights[c]
+        w = np.where(banned, 0.0, w)
+        return w / max(float(w.sum()), 1e-9)
+
     def sample(self, points):
-        """Weights at the nearest surface point of each query point."""
+        """Weights at the nearest surface point of each query point.
+
+        A point on the centre line can be exactly as far from a left face
+        as from its mirror image on the right; which one the lookup returns
+        then varies from run to run. Such points take the mean of a
+        left-side and a right-side lookup: the same every time, and
+        symmetric."""
         out = np.zeros((len(points), self.weights.shape[1]), dtype=np.float32)
         for i, p in enumerate(points):
             if p[0] > self.CENTRE:
-                surface, banned = self.not_right, self.right_bones
+                out[i] = self._lookup(self.not_right, self.right_bones, p)
             elif p[0] < -self.CENTRE:
-                surface, banned = self.not_left, self.left_bones
+                out[i] = self._lookup(self.not_left, self.left_bones, p)
             else:
-                surface, banned = self.any, None
-            location, _normal, tri, _dist = surface.tree.find_nearest(Vector(p))
-            a, b, c = surface.triangles[tri]
-            bary = poly_3d_calc([Vector(self.coords[a]), Vector(self.coords[b]), Vector(self.coords[c])], location)
-            w = bary[0] * self.weights[a] + bary[1] * self.weights[b] + bary[2] * self.weights[c]
-            if banned is not None:
-                w = np.where(banned, 0.0, w)
-            out[i] = w / max(float(w.sum()), 1e-9)
+                out[i] = 0.5 * (self._lookup(self.not_right, self.right_bones, p)
+                                + self._lookup(self.not_left, self.left_bones, p))
         return out
 
 

@@ -7,7 +7,7 @@ simple shapes laid along the skeleton instead: a tube per limb segment, an
 elliptic tube for the trunk and the skirt, an ellipsoid for the head. Each
 shape is sized from the vertices of the detailed figure around it and
 follows one bone. Colours come from the shared atlas afterwards
-(whp_lod.transfer_uvs_and_weights).
+(whp_lod.flat_colour_uvs).
 """
 
 import math

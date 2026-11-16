@@ -18,7 +18,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy  # noqa: E402
 from mathutils import Vector  # noqa: E402
 
+import roman_anims  # noqa: E402
 import roman_source  # noqa: E402
+import whp_skeleton  # noqa: E402
 from whp_common import MODELS_DIR, RENDER_DIR, log, reset_scene, script_args, world_bounds  # noqa: E402
 from whp_render import add_ground, aim_camera, setup_lights, setup_render, setup_world  # noqa: E402
 
@@ -181,7 +183,7 @@ def three_quarter(template, out):
     play(f, "idle", 0)
     scene = stage(1100, 1300)
     lo, hi = bounds_of([f])
-    aim_camera(scene, lo, hi, Vector((-0.75, -1.0, 0.0)), ortho=False, lens=70, margin=1.06, elevation=6)
+    aim_camera(scene, *pad(lo, hi, 0.03), Vector((-0.75, -1.0, 0.0)), ortho=True, margin=1.04, elevation=6)
     render_jpeg(scene, os.path.join(out, "02-three-quarter.jpg"))
 
 
@@ -268,6 +270,19 @@ def compare(template, out):
         bpy.data.objects.remove(obj, do_unlink=True)
 
 
+def test_poses(template, out):
+    """The skin under strain: arms raised, a long step, bent forward."""
+    figures = []
+    for i, pose in enumerate(roman_anims.TEST_POSES.values()):
+        f = place(template, (1.6 * (i - 1), 0.0, 0.0))
+        whp_skeleton.apply_pose(f.armature, pose)
+        figures.append(f)
+    scene = stage(1800, 1100)
+    lo, hi = bounds_of(figures)
+    aim_camera(scene, *pad(lo, hi, 0.04), Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.03, elevation=6)
+    render_jpeg(scene, os.path.join(out, "11-test-poses.jpg"))
+
+
 IMAGES = {
     "views": views,
     "three-quarter": three_quarter,
@@ -276,6 +291,7 @@ IMAGES = {
     "lods": lods,
     "animations": animations,
     "compare": compare,
+    "test-poses": test_poses,
 }
 
 

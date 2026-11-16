@@ -341,7 +341,7 @@ def build():
     color_image, normal_image = compose_textures(color_raw, normal_raw, ao_raw)
     final = lod.final_material(MODEL, color_image, normal_image)
 
-    # LOD1 from the baked LOD0 parts; LOD2 mostly from a remeshed proxy.
+    # LOD1 from the baked LOD0 parts; LOD2 from a segmented stand-in.
     levels = [[], [], []]
     levels[2].append(build_lod2_proxy(parts, armature, color_image))
     for part, low in zip(PARTS, parts):

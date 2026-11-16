@@ -20,6 +20,16 @@ from whp_anim import FPS, Poser, finish_action, lerp, new_action, smooth
 
 WALK_STRIDE = 1.08          # metres travelled in one walk loop (two steps)
 
+# Poses that show whether the skin deforms properly. Rotations are about
+# the figure's axes: X to its left, -Y forwards, Z up.
+TEST_POSES = {
+    "arms-up": [("upperarm_l", "Y", -80), ("upperarm_r", "Y", 80), ("lowerarm_r", "Y", 40)],
+    "step": [("thigh_l", "X", -45), ("calf_l", "X", 55), ("thigh_r", "X", 22), ("calf_r", "X", 12),
+             ("upperarm_r", "X", -30), ("upperarm_l", "X", 25)],
+    "bend": [("spine_01", "X", 18), ("spine_02", "X", 16), ("spine_03", "X", 14), ("neck_01", "X", -20),
+             ("head", "Z", 35), ("upperarm_l", "Y", 30), ("upperarm_r", "Y", -30)],
+}
+
 KEYED = [
     "pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "head",
     "upperarm_l", "lowerarm_l", "hand_l", "lowerarm_twist_01_l",

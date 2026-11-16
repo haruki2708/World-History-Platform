@@ -150,40 +150,6 @@ def single_material(obj, material):
     mesh.update()
 
 
-def remesh(obj, voxel):
-    """Voxel remesh: one closed surface around everything in `obj`."""
-    mod = obj.modifiers.new("Remesh", "REMESH")
-    mod.mode = "VOXEL"
-    mod.voxel_size = voxel
-    mod.adaptivity = 0.0
-    mod.use_smooth_shade = True
-    select_only(obj)
-    bpy.ops.object.modifier_apply(modifier=mod.name)
-    return obj
-
-
-def transfer_uvs_and_weights(target, source, weights=True):
-    """Copy the atlas UVs (and the vertex groups) of `source` onto
-    `target` from the nearest surface points."""
-    if UV_NAME not in target.data.uv_layers:
-        target.data.uv_layers.new(name=UV_NAME)
-    mod = target.modifiers.new("Transfer", "DATA_TRANSFER")
-    mod.object = source
-    mod.use_loop_data = True
-    mod.data_types_loops = {"UV"}
-    mod.loop_mapping = "POLYINTERP_NEAREST"
-    mod.layers_uv_select_src = "ALL"
-    mod.layers_uv_select_dst = "NAME"
-    mod.use_vert_data = weights
-    mod.data_types_verts = {"VGROUP_WEIGHTS"}
-    mod.vert_mapping = "POLYINTERP_NEAREST"
-    mod.layers_vgroup_select_src = "ALL"
-    mod.layers_vgroup_select_dst = "NAME"
-    select_only(target)
-    bpy.ops.object.datalayout_transfer(modifier=mod.name)
-    bpy.ops.object.modifier_apply(modifier=mod.name)
-
-
 def flat_colour_uvs(target, source, image):
     """Give every triangle of `target` one flat colour from the atlas:
     sample the surface of `source` (which carries the atlas UVs) at seven
@@ -229,31 +195,6 @@ def flat_colour_uvs(target, source, image):
         out[f] = uvs[best]
     mesh.uv_layers[UV_NAME].data.foreach_set("uv", out.ravel())
     mesh.update()
-
-
-def flatten_seam_triangles(obj, factor=3.0):
-    """Triangles whose transferred UVs straddle two atlas islands would
-    smear a strip of unrelated texels across them: give them the UV of
-    one corner instead (one flat colour)."""
-    mesh = obj.data
-    triangulate(obj)
-    n = len(mesh.polygons)
-    uv = np.empty(n * 3 * 2)
-    mesh.uv_layers[UV_NAME].data.foreach_get("uv", uv)
-    uv = uv.reshape(n, 3, 2)
-    idx = np.empty(n * 3, dtype=np.int64)
-    mesh.polygons.foreach_get("vertices", idx)
-    co = np.empty(len(mesh.vertices) * 3)
-    mesh.vertices.foreach_get("co", co)
-    co = co.reshape(-1, 3)[idx.reshape(n, 3)]
-    uv_edges = np.linalg.norm(uv - np.roll(uv, 1, axis=1), axis=2)
-    edges = np.linalg.norm(co - np.roll(co, 1, axis=1), axis=2)
-    ratio = np.median(uv_edges.sum(axis=1) / np.maximum(edges.sum(axis=1), 1e-9))
-    bad = (uv_edges > factor * ratio * np.maximum(edges, 1e-4)).any(axis=1)
-    uv[bad] = uv[bad][:, :1, :]
-    mesh.uv_layers[UV_NAME].data.foreach_set("uv", uv.ravel())
-    mesh.update()
-    return int(bad.sum())
 
 
 # --------------------------------------------------------------------------

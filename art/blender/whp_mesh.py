@@ -54,6 +54,35 @@ def new_mesh_object(name, verts, faces, materials=(), face_materials=None, smoot
     return obj
 
 
+def canonicalise(obj):
+    """Rebuild a mesh with its faces in a fixed order: each face starts at
+    its lowest vertex index, faces sorted by their vertex lists. Some
+    bmesh operators (bisect, delete, extrude) return edges and faces in an
+    order that changes from run to run; everything downstream (weight
+    smoothing over edges, decimation ties) then drifts. Vertices keep
+    their order; materials and smooth flags are kept. Use before any UVs
+    or vertex groups exist."""
+    mesh = obj.data
+    co = np.empty(len(mesh.vertices) * 3)
+    mesh.vertices.foreach_get("co", co)
+    faces = []
+    for poly in mesh.polygons:
+        verts = list(poly.vertices)
+        k = verts.index(min(verts))
+        faces.append((tuple(verts[k:] + verts[:k]), poly.material_index, poly.use_smooth))
+    faces.sort(key=lambda f: f[0])
+    materials = list(mesh.materials)
+    mesh.clear_geometry()
+    mesh.from_pydata(co.reshape(-1, 3).tolist(), [], [f[0] for f in faces])
+    mesh.polygons.foreach_set("material_index", [f[1] for f in faces])
+    mesh.polygons.foreach_set("use_smooth", [f[2] for f in faces])
+    mesh.materials.clear()
+    for mat in materials:
+        mesh.materials.append(mat)
+    mesh.update()
+    return obj
+
+
 def recalc_normals(obj, inside=False):
     bm = bmesh.new()
     bm.from_mesh(obj.data)

@@ -12,7 +12,7 @@ import bpy
 from mathutils import Vector
 
 from whp_common import link_object, log
-from whp_mesh import Builder
+from whp_mesh import Builder, canonicalise
 
 TORSO_Y = 0.03          # the tunic's front-to-back middle
 
@@ -89,7 +89,7 @@ def _shell(tunic, name, keep, xs, zs, offset, smooth, slot_of, materials):
     bm.free()
     for mat in materials:
         mesh.materials.append(mat)
-    obj = link_object(bpy.data.objects.new(name, mesh))
+    obj = canonicalise(link_object(bpy.data.objects.new(name, mesh)))
     log(f"{name}: {len(mesh.polygons)} faces")
     return obj
 
