@@ -11,7 +11,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
 | 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Đang làm. Xong: T-007 (giới hạn, trần chi phí), T-008 (link chia sẻ, nhớ ngôn ngữ, phím tắt), T-013 (giới thiệu, ghi công) |
 | 6. Mở rộng | Gia sư dẫn đường trên bản đồ; sau đó quiz, thời kỳ mới | Lane 1 (T-010), Lane 2 (T-011) | Câu trả lời có nút đưa tới đúng sự kiện và năm | Gia sư dẫn đường xong ở chế độ giả lập và với máy chủ Claude giả (T-010, T-011, đã gộp 2026-11-16); chưa thử với model thật |
-| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Đợt A đang làm (T-014, T-015, T-016, giao 2026-11-16) |
+| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Đợt A đang làm (giao 2026-11-16): T-016 (dữ liệu Cannae, địa hình) xong, đã gộp 2026-11-16; T-014 và T-015 đang làm |
 
 ## Nhật ký
 
@@ -27,6 +27,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-16:** Lane 2 xong T-011 (server tách ký hiệu `[[map:…]]` trong câu trả lời của Claude thành nút), lane 1 xong T-013 (hộp thoại Giới thiệu với ghi công đầy đủ, gợi ý lần đầu). Gộp cả hai. Chạy thử đầu cuối: hộp thoại ở hai ngôn ngữ, sáng và tối, 1280px và 390px; với máy chủ Claude giả, câu trả lời hiện đúng nút, chữ sạch ký hiệu, lịch sử gửi lại không có ký hiệu. Phiên chính thử ngẫu nhiên 20 000 cách cắt câu trả lời thành mẩu và tìm ra một lỗi: dòng trống sau ký hiệu bị mất khi dấu xuống dòng đến trong hai mẩu; đã sửa trong commit riêng, kèm mục kiểm tra mới.
 - **2026-11-16:** Lane 3 xong T-012: soát 11 mốc biên giới của đợt 2 với Shepherd, Cliopatria và Wikipedia (chỉ kiểm chứng dữ kiện), sửa 10 mốc (người Senones, Etruria năm 290, Gaul trong dãy Alps năm 218 và 201, Illyria, Pergamon, Rhodes năm 168, Caria, Judaea và Armenia năm 88, ranh giới Mauretania–Numidia, Pontus từ 63). Script build thêm kiểm tra màu (54 cặp láng giềng, ΔE nhỏ nhất 13,5) và gộp polygon chạm nhau của cùng thế lực, nên bản đồ hết đường kẻ bên trong lãnh thổ. Phiên chính kiểm tra: dựng lại ra đúng từng byte các file đã commit; xem cả 14 mốc trên app. Gộp vào `main`.
 - **2026-11-16:** Người dùng chốt: hoãn deploy, phát triển thêm tính năng trước. Tính năng đầu tiên: **trận đánh 3D** (giai đoạn 7), dựng bằng Blender và three.js; một hình lính bằng 20 người; làm thử trận Cannae trước. Mô hình nền: lính La Mã và lính Celt của Andywoodhead trên Sketchfab (CC BY 4.0), phải sửa trang bị sang thời Cộng hoà; không dùng mô hình trích từ game Total War. Phiên chính thêm three.js 0.187.0, hợp đồng `src/lib/battle.ts`, `battleId` và `battleTime` trong store, trang thử `/battle-lab`, script kiểm tra dữ liệu trận. Lane 2 và lane 3 đổi vai cho trận đánh vì lane 3 có nhiều hạn mức Fable hơn: lane 3 làm cảnh 3D, lane 2 làm dữ liệu. Giao đợt A: T-014 (lane 1), T-015 (lane 3), T-016 (lane 2).
+- **2026-11-16:** Lane 2 xong T-016: dữ liệu trận Cannae (22 khối quân, 6 giai đoạn từ 5:30 tới 17:00, quân số và thương vong ghi riêng theo Polybius và Livy), chọn bờ phải sông Aufidus theo lời Polybius và Livy rằng quân La Mã quay mặt về nam, sông bên phải; địa hình 341 × 271 điểm cách 30 m từ Copernicus DEM GLO-30; script dựng địa hình không thêm thư viện; khảo sát mô hình ngựa và thư viện hoạt hình cho đợt B. Phiên chính kiểm tra: dựng lại địa hình ra đúng từng byte, quân số và chỉ huy khớp nguồn. Người dùng duyệt, gộp vào `main`. Giữ Copernicus (SRTM nhiễu hơn và không thấy lòng sông); thêm câu ghi công và câu miễn trách nhiệm của Copernicus vào README, thêm `npm run terrain`. Giao T-017 cho lane 2: chú giải bản đồ che nhãn tên thế lực.
 
 ## Việc để giai đoạn 5
 
@@ -34,10 +35,16 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - Khi deploy: thay bộ đếm giới hạn trong bộ nhớ (T-007) bằng kho dùng chung nếu chạy nhiều tiến trình; kiểm tra proxy của nền tảng có ghi đè `x-forwarded-for` và đặt `x-forwarded-host`, nếu không giới hạn theo người dùng bị lách được và kiểm tra Origin có thể chặn nhầm.
 - Biên giới: 8 chỗ vòng polygon tự cắt, mỗi chỗ cỡ 0,02–0,05° và theo toạ độ có vẻ nằm ngoài biển nên không thấy trên bản đồ: Epirus ở mọi mốc, Seleukos ở Caria năm 264–201, và một chỗ do bước gộp polygon tạo ra (thành bang Hy Lạp năm 509, gần eo Messina). Nên thêm kiểm tra tự cắt vào `scripts/build-borders.mjs` (bản gộp tự cắt thì giữ các mảnh rời) rồi sửa các chỗ cũ.
 - Biên giới: lane 3 đề nghị thêm mốc 222 TCN để thấy La Mã chiếm Gaul trong dãy Alps (222) rồi mất lại (218). Các phần còn lại sau T-012 ghi ở `docs/data/BORDERS.md`, mục "Còn lại".
-- Bản đồ: chú giải dài (nhiều thế lực) che nhãn tên thế lực ở góc trên bên trái, ví dụ "Gallic tribes" năm 290 và Mauretania năm 88.
 - Theo dõi một đường mảnh nằm ngang qua vùng Ai Cập và vịnh Ba Tư, thấy trong ảnh chụp bản đồ thu nhỏ trước T-009 (không có trong dữ liệu; có thể là đường nối giữa các ô khi MapLibre tô lớp lãnh thổ). Sau T-009 chưa thấy lại.
 - Khi chạy thật: kiểm tra cache có trúng (`cacheReadTokens` > 0 từ câu thứ hai), đo chi phí thật mỗi câu hỏi, đọc thử câu trả lời ở hai ngôn ngữ và hai độ sâu rồi chỉnh prompt. Xem số nút bị bỏ (`dropped` trong log `[tutor] map links`) vài ngày để biết model có theo đúng cú pháp ký hiệu không.
 - Khi deploy: hộp thoại Giới thiệu nói "app không lưu cuộc trò chuyện". Câu này đúng với code của app; phải kiểm tra lại với nền tảng hosting (log yêu cầu của máy chủ, proxy) trước khi đưa ra Internet.
+
+## Việc cho trận đánh 3D (đợt B, C)
+
+- Ghi công trong hộp thoại Giới thiệu khi trận đánh vào app chính: địa hình Copernicus (câu ghi công và câu miễn trách nhiệm, đã có trong README), mô hình của Andywoodhead (CC BY 4.0, theo `art/CREDITS.md` của T-014), mô hình ngựa nếu là CC BY.
+- Chuyển cảnh từ bản đồ vào trận: bay tới `origin` của trận, không phải toạ độ sự kiện (Cannae: `origin` cách thành Cannae 6,2 km về phía đông bắc).
+- Hoạt hình: chưa đọc được điều khoản Mixamo và CMU mocap (lỗi trang), nên chưa dùng. Ngựa: ứng viên CC0 tốt nhất (BlendSwap 28627) cần đọc giấy phép của lưới gốc trước. Chi tiết ở `docs/data/battles/ASSETS.md`.
+- Sau khi T-015 gộp: lane 2 xem dữ liệu Cannae trong cảnh 3D thật, chỉnh tốc độ, độ dày khối quân, mũi tên.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 

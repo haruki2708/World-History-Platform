@@ -9,6 +9,7 @@
     "lint": "eslint",
     "validate": "node scripts/validate-data.mjs && node scripts/battles/validate-battles.mjs",
     "borders": "node scripts/build-borders.mjs",
+    "terrain": "node scripts/battles/build-terrain.mjs",
     "tutor:check": "node --import ./src/server/tutor/tools/register.mjs src/server/tutor/tools/self-check.ts",
     "tutor:prompt": "node --import ./src/server/tutor/tools/register.mjs src/server/tutor/tools/print-prompt.ts"
   },
