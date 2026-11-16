@@ -166,6 +166,24 @@ const en = {
     "This question could not be sent. It may be too long, or the conversation too large.",
   "tutor.error.unavailable":
     "Something went wrong while reaching the tutor. Try again.",
+  "battle.scene.label": "3D battle scene",
+  "battle.scene.loading": "Loading the scene…",
+  "battle.scene.error":
+    "The 3D scene could not be shown. Your browser or graphics card may not support WebGL 2.",
+  "battle.scene.hint": "Drag to move, right-drag to turn, scroll to zoom.",
+  "battle.scene.quality": "Quality",
+  "battle.scene.quality.high": "High",
+  "battle.scene.quality.low": "Low",
+  "battle.scene.quality.lowered": "Quality lowered to keep the scene smooth.",
+  "battle.scene.approximate": "approximate location",
+  "battle.scene.stats.fps": "frames per second",
+  "battle.scene.stats.figures": "figures standing",
+  "battle.scene.stats.drawn": "figures in view",
+  "battle.scene.stats.calls": "draw calls",
+  "battle.scene.stats.triangles": "triangles",
+  "battle.scene.stats.lods": "blocks at LOD 0 / 1 / 2",
+  "battle.scene.stats.models": "models",
+  "battle.scene.stats.gpu": "graphics card",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -331,6 +349,24 @@ const vi: Record<MessageKey, string> = {
     "Không gửi được câu hỏi này. Có thể câu hỏi quá dài hoặc cuộc trò chuyện quá lớn.",
   "tutor.error.unavailable":
     "Có lỗi khi kết nối tới gia sư. Hãy thử lại.",
+  "battle.scene.label": "Cảnh trận đánh 3D",
+  "battle.scene.loading": "Đang tải cảnh…",
+  "battle.scene.error":
+    "Không hiển thị được cảnh 3D. Trình duyệt hoặc card đồ hoạ của bạn có thể không hỗ trợ WebGL 2.",
+  "battle.scene.hint": "Kéo để di chuyển, kéo chuột phải để xoay, cuộn để phóng.",
+  "battle.scene.quality": "Chất lượng",
+  "battle.scene.quality.high": "Cao",
+  "battle.scene.quality.low": "Thấp",
+  "battle.scene.quality.lowered": "Đã hạ chất lượng để cảnh chạy mượt.",
+  "battle.scene.approximate": "vị trí ước lượng",
+  "battle.scene.stats.fps": "khung hình/giây",
+  "battle.scene.stats.figures": "hình lính còn đứng",
+  "battle.scene.stats.drawn": "hình lính trong khung hình",
+  "battle.scene.stats.calls": "lệnh vẽ",
+  "battle.scene.stats.triangles": "tam giác",
+  "battle.scene.stats.lods": "khối ở LOD 0 / 1 / 2",
+  "battle.scene.stats.models": "mô hình",
+  "battle.scene.stats.gpu": "card đồ hoạ",
 };
 
 export const messages: Record<Locale, Record<MessageKey, string>> = { en, vi };
