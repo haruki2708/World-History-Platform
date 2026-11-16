@@ -51,6 +51,26 @@ const BAKE_FPS = 30;
 /** No more than this many frames in total; longer clip sets bake at a lower rate. */
 const MAX_FRAMES = 2048;
 
+/** One cycle of a walk or run clip: how long it lasts and how far it carries the figure. */
+export interface GaitCycle {
+  seconds: number;
+  /** Ground covered in one cycle, metres, at the size of the model. */
+  metres: number;
+}
+
+/**
+ * Ground covered by one cycle of the walk and run clips, metres, for a model
+ * whose stride cannot be measured (see plantedStride): what the clips of the
+ * shared animation library measure on the Roman models.
+ */
+const FALLBACK_STRIDES = { walk: 1.3, run: 5.5 };
+/** Sole vertices: this close to the lowest point of the bind pose, metres. */
+const SOLE_HEIGHT = 0.03;
+/** No more sole vertices than this are followed. */
+const SOLE_SAMPLES = 240;
+/** A sole this close to the lowest point of the clip is on the ground, metres. */
+const GROUND_REACH = 0.02;
+
 export interface FigureLod {
   geometry: BufferGeometry;
   triangles: number;
@@ -67,6 +87,10 @@ export interface UnitModel {
   clipTable: Vector4[];
   hasDie: boolean;
   dieSeconds: number;
+  /** False when the model has no run clip and the scene plays walk instead. */
+  hasRun: boolean;
+  /** The walk and run cycles, for matching the legs to the ground speed. */
+  gait: { walk: GaitCycle; run: GaitCycle };
   /** Height of the figure in its bind pose, metres. */
   height: number;
   /** Base colour texture, if the model has one. */
@@ -286,6 +310,20 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
 
   lods[0].geometry.computeBoundingBox();
   const height = Math.max(lods[0].geometry.boundingBox?.max.y ?? 1.8, 0.5);
+  // How far one cycle of walk and run carries the figure, read off the
+  // baked clips themselves (without a run clip, run is the walk clip).
+  const gaitOf = (name: "walk" | "run"): GaitCycle => {
+    const clip = chosen[name];
+    const frames = clip ? frameCount(clip) : 1;
+    const measured = clip
+      ? plantedStride(lods[0].geometry, data, width, firstRow.get(clip) ?? 0, frames, fps)
+      : 0;
+    const fallback = name === "run" && chosen.run === chosen.walk ? "walk" : name;
+    return {
+      seconds: Math.max(frames / fps, 0.05),
+      metres: measured > 0.05 ? measured : FALLBACK_STRIDES[fallback],
+    };
+  };
   const geometries = new Set(lods.map((lod) => lod.geometry));
 
   return {
@@ -296,6 +334,8 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     clipTable,
     hasDie: chosen.die !== null,
     dieSeconds: chosen.die?.duration ?? 0,
+    hasRun: chosen.run !== chosen.walk,
+    gait: { walk: gaitOf("walk"), run: gaitOf("run") },
     height,
     map: source.map,
     surface: surface && {
@@ -309,6 +349,81 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
       source.release?.();
     },
   };
+}
+
+/**
+ * The ground one cycle of a walk or run clip covers, in metres, measured on
+ * the baked frames: while a foot (or a hoof) is on the ground it slides back
+ * under the figure at the speed the figure is meant to travel, and that speed
+ * times the length of the cycle is the stride.
+ *
+ * Not the distance the feet slide while they touch the ground: a run has
+ * moments with both feet in the air, and the figure travels through those
+ * too. Returns 0 when nothing stays on the ground from one frame to the next.
+ */
+function plantedStride(
+  geometry: BufferGeometry,
+  bones: Float32Array,
+  width: number,
+  firstRow: number,
+  frames: number,
+  fps: number,
+): number {
+  const position = geometry.attributes.position;
+  const boneIndex = geometry.attributes.aBoneIndex;
+  const boneWeight = geometry.attributes.aBoneWeight;
+  if (frames < 2 || !position || !boneIndex || !boneWeight) return 0;
+
+  // The soles: the lowest vertices of the bind pose.
+  let lowest = Infinity;
+  for (let v = 0; v < position.count; v++) lowest = Math.min(lowest, position.getY(v));
+  const all: number[] = [];
+  for (let v = 0; v < position.count; v++) {
+    if (position.getY(v) < lowest + SOLE_HEIGHT) all.push(v);
+  }
+  const every = Math.max(Math.ceil(all.length / SOLE_SAMPLES), 1);
+  const soles = all.filter((_, i) => i % every === 0);
+  if (soles.length === 0) return 0;
+
+  // Where each sole vertex is in every frame: skinned as the shader does.
+  const at = new Float32Array(frames * soles.length * 3);
+  let ground = Infinity;
+  for (let f = 0; f < frames; f++) {
+    const row = (firstRow + f) * width;
+    for (let s = 0; s < soles.length; s++) {
+      const v = soles[s];
+      const x = position.getX(v);
+      const y = position.getY(v);
+      const z = position.getZ(v);
+      const o = (f * soles.length + s) * 3;
+      for (let k = 0; k < 4; k++) {
+        const weight = boneWeight.getComponent(v, k);
+        if (weight <= 0) continue;
+        const m = (row + Math.round(boneIndex.getComponent(v, k)) * 3) * 4;
+        for (let axis = 0; axis < 3; axis++) {
+          const r = m + axis * 4;
+          at[o + axis] += weight * (bones[r] * x + bones[r + 1] * y + bones[r + 2] * z + bones[r + 3]);
+        }
+      }
+      ground = Math.min(ground, at[o + 1]);
+    }
+  }
+
+  // Speed over the ground of every vertex that is on it in two frames running.
+  const speeds: number[] = [];
+  for (let f = 0; f < frames; f++) {
+    // A loop: the last frame is followed by the first.
+    const next = (f + 1) % frames;
+    for (let s = 0; s < soles.length; s++) {
+      const a = (f * soles.length + s) * 3;
+      const b = (next * soles.length + s) * 3;
+      if (at[a + 1] > ground + GROUND_REACH || at[b + 1] > ground + GROUND_REACH) continue;
+      speeds.push(Math.hypot(at[b] - at[a], at[b + 2] - at[a + 2]) * fps);
+    }
+  }
+  if (speeds.length < 3) return 0;
+  speeds.sort((p, q) => p - q);
+  return (speeds[Math.floor(speeds.length / 2)] * frames) / fps;
 }
 
 /**

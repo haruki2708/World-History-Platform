@@ -258,8 +258,8 @@ export class UnitTrack {
 
   /**
    * Fills x, y, heading, status, since and rank for `time`. A fallen figure
-   * stays DYING for `lingerSeconds` of playback, then is GONE; pass 0 when
-   * the model has no death clip. Returns the number of figures still standing.
+   * stays DYING for `lingerSeconds` of playback, then is GONE: pass Infinity
+   * to leave the fallen on the field, 0 when the model has no death clip. Returns the number of figures still standing.
    */
   sample(time: number, lingerSeconds: number): number {
     const last = this.keys.length - 1;

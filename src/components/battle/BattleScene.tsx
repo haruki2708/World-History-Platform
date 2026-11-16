@@ -9,6 +9,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { BattleEngine, type EngineStats, type Quality } from "./engine/BattleEngine";
 import {
   DOT_RADIUS,
+  type LabelObstacle,
   type LabelPlacement,
   type LabelRequest,
   type LabelSide,
@@ -43,6 +44,33 @@ interface SceneLabel {
   anchors: FieldPoint[];
   river: boolean;
   approximate: boolean;
+}
+
+/**
+ * Anything drawn over the scene carries this attribute, here or in the
+ * viewer around it; place labels keep clear of it.
+ */
+const OVERLAY_SELECTOR = "[data-battle-overlay]";
+/** Overlays are measured again every this many frames. */
+const OVERLAY_FRAMES = 15;
+
+/** The boxes of the overlays that lie over `host`, relative to it. */
+function measureOverlays(host: HTMLElement): LabelObstacle[] {
+  const frame = host.getBoundingClientRect();
+  const boxes: LabelObstacle[] = [];
+  for (const element of document.querySelectorAll(OVERLAY_SELECTOR)) {
+    const box = element.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0) continue;
+    if (box.right <= frame.left || box.left >= frame.right) continue;
+    if (box.bottom <= frame.top || box.top >= frame.bottom) continue;
+    boxes.push({
+      left: box.left - frame.left,
+      top: box.top - frame.top,
+      right: box.right - frame.left,
+      bottom: box.bottom - frame.top,
+    });
+  }
+  return boxes;
 }
 
 /** Which labels win a crowded spot: lower first. */
@@ -167,7 +195,13 @@ const SceneView = memo(function SceneView({
     const position = { x: 0, y: 0 };
     const spots: (LabelSpot | null)[] = labels.map(() => null);
     const shown: string[] = labels.map(() => "");
+    let overlays: LabelObstacle[] = [];
+    let overlayAge = OVERLAY_FRAMES;
     const placeLabels = () => {
+      if (++overlayAge >= OVERLAY_FRAMES) {
+        overlayAge = 0;
+        overlays = measureOverlays(host);
+      }
       const requests: LabelRequest[] = labels.map((label, i) => {
         // Measured once here, then by the ResizeObserver below.
         const text = labelTextRefs.current[i];
@@ -190,7 +224,7 @@ const SceneView = memo(function SceneView({
           previous: spots[i],
         };
       });
-      const placements = layoutLabels(requests, engine.viewSize);
+      const placements = layoutLabels(requests, engine.viewSize, overlays);
       placements.forEach((placement, i) => {
         spots[i] = placement && { anchor: placement.anchor, side: placement.side };
         const element = labelRefs.current[i];
@@ -312,6 +346,7 @@ const SceneView = memo(function SceneView({
           <div className="absolute right-3 top-3 flex flex-col items-end gap-2">
             <button
               type="button"
+              data-battle-overlay
               onClick={toggleQuality}
               className="rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-foreground hover:bg-surface"
             >
@@ -321,6 +356,7 @@ const SceneView = memo(function SceneView({
             {lowered && (
               <p
                 role="status"
+                data-battle-overlay
                 className="max-w-56 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
               >
                 {t("battle.scene.quality.lowered")}
@@ -329,7 +365,10 @@ const SceneView = memo(function SceneView({
           </div>
 
           {!hintSeen && (
-            <p className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted">
+            <p
+              data-battle-overlay
+              className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
+            >
               {t("battle.scene.hint")}
             </p>
           )}
@@ -346,6 +385,7 @@ const SceneView = memo(function SceneView({
           data-triangles={stats.triangles}
           data-quality={stats.quality}
           data-gpu={stats.gpu}
+          data-battle-overlay
           className="pointer-events-none absolute left-3 top-3 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 rounded-md border border-line bg-background/85 px-2.5 py-1.5 font-mono text-xs text-foreground"
         >
           <dt className="text-muted">{t("battle.scene.stats.fps")}</dt>

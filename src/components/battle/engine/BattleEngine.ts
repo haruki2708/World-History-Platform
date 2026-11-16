@@ -114,6 +114,7 @@ export class BattleEngine {
   private readonly battle: Battle;
   private terrain: Terrain | null = null;
   private arrows: ArrowLayer | null = null;
+  private clock: BattleClock | null = null;
 
   private quality: Quality;
   private disposed = false;
@@ -312,6 +313,7 @@ export class BattleEngine {
     const colorOfSide = (sideId: string) => colors.get(sideId) ?? new Color(FALLBACK_COLOR);
 
     const clock = new BattleClock(battle);
+    this.clock = clock;
     const materialCache = new Map<string, FigureMaterials>();
     for (const unit of battle.units) {
       const model = modelByKey.get(modelKeyOf.get(unit.id) ?? "") ?? placeholderFor(false);
@@ -442,7 +444,7 @@ export class BattleEngine {
     this.fog.far = distance * 4 + 45000;
 
     this.shared.uTime.value = seconds;
-    this.crowd.update(time, playing, seconds, terrain.heightAt);
+    this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
     const counts = this.crowd.selectLods(
       this.camera,
       this.height,

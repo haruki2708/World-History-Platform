@@ -6,7 +6,9 @@
  * Per-figure attributes:
  *   iPosYaw  xyz = world position of the feet, w = rotation about +Y
  *   iAnim    x = clip, y = clip to blend towards, z = blend 0..1,
- *            w = seconds into the clip, for clips that do not loop
+ *            w = for a standing figure, the ground it has covered on foot
+ *            (metres), which sets the pose of the walk and run clips; for a
+ *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
  *
  * Two looks share that vertex work:
@@ -28,7 +30,7 @@ import {
   MeshStandardMaterial,
   Vector2,
 } from "three";
-import type { UnitModel } from "./model";
+import { CLIP_INDEX, type UnitModel } from "./model";
 
 export interface FigureShared {
   /** Seconds since the scene opened. */
@@ -58,9 +60,11 @@ attribute vec4 aBoneWeight;
 attribute float aTeam;
 uniform highp sampler2D uBoneTex;
 uniform vec4 uClips[5];
+uniform vec2 uStride;
 uniform float uTime;
 uniform float uFigScale;
 uniform vec3 uTeam;
+float figSize;
 vec3 figPosition;
 vec3 figNormal;
 vec4 figR0;
@@ -70,13 +74,22 @@ float figCos;
 float figSin;
 
 float figFrame(float clip) {
-  vec4 info = uClips[int(clip + 0.5)];
-  float seconds = info.w > 0.5
-    ? uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0
-    : iAnim.w;
-  float frame = seconds * info.z;
-  frame = info.w > 0.5 ? mod(frame, info.y) : min(frame, info.y - 1.0);
-  return info.x + floor(frame);
+  int index = int(clip + 0.5);
+  vec4 info = uClips[index];
+  float frame;
+  if (index == ${CLIP_INDEX.walk} || index == ${CLIP_INDEX.run}) {
+    // Walk and run follow the ground covered, not the clock: one cycle per
+    // stride of this figure, so a foot on the ground stays where it is.
+    float stride = (index == ${CLIP_INDEX.walk} ? uStride.x : uStride.y) * figSize;
+    frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
+  } else if (info.w > 0.5) {
+    float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
+    frame = mod(seconds * info.z, info.y);
+  } else {
+    // Played once, then held on its last frame (die).
+    frame = iAnim.w * info.z;
+  }
+  return info.x + min(floor(frame), info.y - 1.0);
 }
 
 void figBones(float row, out vec4 r0, out vec4 r1, out vec4 r2) {
@@ -102,6 +115,7 @@ vec3 figDirection(vec3 d) {
 }
 
 void figureTransform(vec3 p, vec3 n) {
+  figSize = uFigScale * (0.94 + 0.12 * fract(iSeed * 3.17));
   figBones(figFrame(iAnim.x), figR0, figR1, figR2);
   if (iAnim.z > 0.001) {
     vec4 s0;
@@ -113,8 +127,7 @@ void figureTransform(vec3 p, vec3 n) {
     figR2 = mix(figR2, s2, iAnim.z);
   }
   vec4 p4 = vec4(p, 1.0);
-  float size = uFigScale * (0.94 + 0.12 * fract(iSeed * 3.17));
-  vec3 sp = vec3(dot(figR0, p4), dot(figR1, p4), dot(figR2, p4)) * size;
+  vec3 sp = vec3(dot(figR0, p4), dot(figR1, p4), dot(figR2, p4)) * figSize;
   figCos = cos(iPosYaw.w);
   figSin = sin(iPosYaw.w);
   figPosition = vec3(figCos * sp.x + figSin * sp.z, sp.y, figCos * sp.z - figSin * sp.x) + iPosYaw.xyz;
@@ -171,11 +184,13 @@ export function createFigureMaterials(
   const uniforms = {
     uBoneTex: { value: model.boneTexture },
     uClips: { value: model.clipTable },
+    uStride: { value: new Vector2(model.gait.walk.metres, model.gait.run.metres) },
     uTeam: { value: new Color(team) },
   };
   const bind = (shader: { uniforms: Record<string, IUniform> }) => {
     shader.uniforms.uBoneTex = uniforms.uBoneTex;
     shader.uniforms.uClips = uniforms.uClips;
+    shader.uniforms.uStride = uniforms.uStride;
     shader.uniforms.uTeam = uniforms.uTeam;
     shader.uniforms.uTime = shared.uTime;
     shader.uniforms.uFigScale = shared.uFigScale;
