@@ -206,7 +206,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 ### Cảnh 3D
 
 - **Component:** `BattleScene` (`src/components/battle/BattleScene.tsx`) nhận `BattleSceneProps` và đọc `battleTime` từ store. Nó chỉ được nạp ở phía trình duyệt (`next/dynamic` với `ssr: false`), nên three.js không nằm trong gói của trang chính.
-- **Vẽ lính:** hàng nghìn hình lính có hoạt hình được vẽ theo lô (instancing). Mức chi tiết chọn theo khoảng cách, cho từng khối quân. Thiếu file mô hình thì vẽ hình tạm theo màu của phe. Màu phe lấy từ `polities.json` qua `polityId`.
+- **Vẽ lính:** hàng nghìn hình lính có hoạt hình được vẽ theo lô (instancing). Mức chi tiết chọn cho từng lô, theo khoảng cách tới hình lính gần camera nhất của lô. Thiếu file mô hình thì vẽ hình tạm theo màu của phe. Màu phe lấy từ `polities.json` qua `polityId`.
+- **Quay đầu:** hướng của một khối đổi từ 135° trở lên giữa hai mốc thì từng người quay đầu tại chỗ, hàng cuối thành hàng đầu; cả khối không xoay quanh tâm. Muốn một khối bẻ hướng cả đội hình quá 135° thì chia thành hai giai đoạn.
+- **Vẽ trên mặt đất:** vùng màu dưới mỗi khối và mũi tên di chuyển được vẽ sau mặt đất và trước lính, nên lính luôn đứng lên trên.
+- **Nhãn địa danh:** ẩn khi điểm của nhãn bị đồi hay khối quân che (`engine/occlusion.ts`); quân đứng ngay tại địa danh thì không che tên của nó.
 - **Hiệu năng:**
   - Mục tiêu: khoảng 7 000 hình lính, từ 50 khung hình/giây trở lên ở 1280×800 trên máy của người dùng (laptop RTX 3050).
   - Có mức chất lượng thấp cho máy yếu.
@@ -226,6 +229,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Bố cục** (T-023): cảnh và thanh điều khiển bên trái; khung bên 360 px bên phải, thu gọn được, có hai tab "Lời dẫn" và "Thông tin trận" (hai bên, nguồn, ghi công). Ở bề ngang hẹp, khung bên nằm dưới cảnh.
 - **Ghi công trong khung:** `src/components/battle/viewer/credits.ts`. Phải khớp với README ("Data credits") và `art/CREDITS.md`. Thêm mô hình mới (T-021, T-022) thì thêm dòng ở cả ba chỗ.
 - **Lớp phủ:** phần tử nào của khung nằm đè lên cảnh thì có thuộc tính `data-battle-overlay`; nhãn địa danh của cảnh tránh các phần tử này.
+- **Cú hạ camera** (T-026): khung xem trận mở với camera ở trên cao nhìn thẳng xuống, hướng bắc lên, như bản đồ để lại sau khi bay tới chiến trường (T-025), rồi hạ về góc nhìn mở trong 1,6 giây. Bật bằng prop `introFromAbove` của `BattleScene`; `/battle-lab` không bật. Bỏ qua khi người dùng bật giảm chuyển động; người dùng chạm vào cảnh thì dừng.
 
 ### Các đợt làm
 

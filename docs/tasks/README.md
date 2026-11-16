@@ -44,4 +44,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-023](T-023-battle-viewer.md) | 3 | Trận đánh 3D: khung xem trận trong app chính, mở từ panel sự kiện | Xong, đã gộp 2026-11-17 (phiên chính làm nốt) |
 | [T-024](T-024-model-polish.md) | 1 | Trận đánh 3D: sửa các chỗ chưa ưng ý của mô hình bộ binh (sải chân, tay người Gaul, vạt áo, *pilum*) | Đang làm (giao 2026-11-17) |
 | [T-025](T-025-battle-flight.md) | 2 | Trận đánh 3D: bản đồ bay tới chiến trường trước khi mở trận, bay về khi đóng | Đang làm (giao 2026-11-17) |
-| [T-026](T-026-scene-fixes.md) | 3 | Trận đánh 3D: sửa cảnh (quay đầu tại chỗ, chuẩn bị kỵ binh, mức chi tiết, vùng màu, nhãn) | Đang làm (giao 2026-11-17) |
+| [T-026](T-026-scene-fixes.md) | 3 | Trận đánh 3D: sửa cảnh (quay đầu tại chỗ, chuẩn bị kỵ binh, mức chi tiết, vùng màu, nhãn) | Xong, đã gộp 2026-11-17 (phiên chính làm thay lane 3) |
