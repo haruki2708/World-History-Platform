@@ -121,4 +121,36 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-_(Lane 3 điền khi xong.)_
+_(Đang làm, khoảng 80%. Ghi chú tiến độ dưới đây để phiên sau làm tiếp; khi xong sẽ thay bằng bản kết quả đầy đủ.)_
+
+### Tiến độ tính đến 2026-11-17
+
+**Đã xong và đã commit** (nhánh `lane3/T-023-battle-viewer`, 3 commit "T-023 step 1–3"):
+
+1. **Nút xem trận** trong `EventListItem` (khoá `battle.open`, thuộc tính `data-battle-open`). Nút nằm trong một khối `sticky bottom-0`, vì ở 1280×800 phần tóm tắt dài hơn danh sách nên nút bị khuất nếu không dính đáy.
+2. **`AppShell`** nạp `BattleViewer` bằng `next/dynamic` (`ssr: false`), có `BattleViewerLoading` trong lúc tải.
+3. **`BattleViewer`** (`src/components/battle/BattleViewer.tsx` và `viewer/`): `<dialog>` `showModal()` phủ kín, thanh điều khiển (phát/dừng, giai đoạn trước/sau, thanh tua tự dựng có vạch, giờ, tốc độ 1×/2×), tab Lời dẫn (danh sách 6 giai đoạn, bấm để nhảy) và tab Thông tin trận (ngày, hai bên, quân số, thương vong, điểm chưa chắc, nguồn, ghi công), phím Space, ←/→, Esc. Đã thử bằng Chrome không cửa sổ: mở, phát, dừng, chuyển giai đoạn, bấm vào cảnh rồi Space, mũi tên trên tab, đóng bằng Esc và bằng nút, focus về nút xem trận, địa chỉ và vị trí cuộn giữ nguyên.
+4. **Bước chân:** `walk`/`run` chạy theo quãng đường từng hình lính đi được (không theo đồng hồ). Sải chân đo từ chính clip khi nạp mô hình (`plantedStride` trong `engine/figures/model.ts`). Chọn đứng/đi/chạy theo tốc độ đo được của khối, ngưỡng ghi ở đầu `engine/units.ts`. Kiểm bằng `s-planted.mjs`: chân trụ lệch 0–2,5% khi chạy, 2% ở pha bàn chân đặt phẳng khi đi.
+5. **`die`:** phát một lần, giữ khung cuối, lính ngã nằm lại đến hết trận (trước đây chìm xuống đất sau 5 giây). Cuối trận: 3.067 hình đứng, 3.743 hình nằm.
+6. **Nhãn địa danh tránh lớp phủ:** `labelLayout` nhận vật cản; cảnh đo mọi phần tử có `data-battle-overlay`. Quét 144 góc nhìn: 0 lần đè.
+7. **Bộ nhớ** (bản dev): mở đóng 10 lần, heap sau GC 23,6 MB ở lần 1 và 25,1 MB ở lần 10; chỉ còn 1 context WebGL sống (của bản đồ) sau mỗi lần đóng.
+
+**Còn lại:**
+
+1. Ảnh chụp theo yêu cầu: `s-shots.mjs` đang lỗi ở dòng 23 (bấm nút Phát sau khi bấm "Giai đoạn sau"), chưa tìm nguyên nhân. Cần xem cả nền sáng, tiếng Việt và bề ngang 390 px (chưa nhìn lần nào).
+2. Đo hiệu năng lúc máy sạch. Lần đo đầu: 144,7 khung hình/giây khi đứng yên (sạch); các số đang phát 60–68 đo lúc `blender.exe` của lane khác chạy, phải đo lại (`s-perf.mjs`).
+3. Bản production: `npm run build`, kiểm chunk chứa `WebGLRenderer` không có trong `.next/server/app/index.html`, và danh sách request của trang trước khi bấm nút.
+4. `npm run lint`, `npm run build`, `npm run validate`.
+5. Viết mục "Kết quả" đầy đủ, kèm ghi chú cho lane 1 và các đề nghị bên dưới.
+
+**Phát hiện cần báo (đưa vào bản kết quả):**
+
+- **Số sải chân trong `docs/ARCHITECTURE.md` và `art/README.md` sai.** Đo trên clip đã bake: bàn chân trụ của `walk` lùi 0,98 m/s, tức một vòng 1,333 s đi 1,31 m (tài liệu ghi 1,00 m); của `run` lùi 5,9 m/s, một vòng 0,933 s đi 5,5 m (tài liệu ghi 1,99 m). Số của lane 1 chỉ cộng quãng trượt lúc chân chạm đất, bỏ pha hai chân rời đất. Cảnh tự đo nên không phụ thuộc số trong tài liệu.
+- Clip `run` thực chất là chạy nước rút (5,9 m/s ở cỡ người thật), không phải chạy chậm.
+- Clip `walk`: quanh lúc gót chạm đất và mũi chân rời đất (khung 0–4 và 20–24) bàn chân không lùi theo mặt đất, trượt khoảng 32% trong các khung đó.
+- Dữ liệu Cannae: giai đoạn 1 mọi đơn vị có `action: "stand"` dù đi 0,6–5 km. Cảnh giờ chọn clip theo tốc độ thật nên vẫn đi/chạy.
+- Các khối đi nhanh hơn 26,6 m/s trên màn hình (ví dụ lúc dàn trận) thì chân vẫn trượt: trận 11,5 giờ được phát trong khoảng 140 giây.
+- Hastati đánh bằng kiếm trong khi tay trái vẫn cầm hai cây *pilum*; chưa có clip phóng *pilum*.
+- Ghi công trong khung mới có dòng cho hai mô hình La Mã (`viewer/credits.ts`); thêm mô hình ở T-021 thì phải thêm dòng.
+
+**Công cụ thử** (ngoài repo): `E:\World_History_Platform_assets\T-023\tools\`, chạy `GPU=1 node drive.mjs <kịch bản>.mjs`. Kịch bản: `s-open` (luồng mở/đóng), `s-planted` (chân trụ), `s-stride` (bảng từng khung của clip), `s-labels`, `s-fallen`, `s-close`, `s-attack`, `s-memory`, `s-perf`, `s-shots`. Ảnh ở `E:\World_History_Platform_assets\T-023\shots\`. Dev server: `TUTOR_MOCK=1 npx next dev -p 3103`.
