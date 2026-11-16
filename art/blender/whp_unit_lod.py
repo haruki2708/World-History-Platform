@@ -306,6 +306,10 @@ def _finish_lod(objs, name, limit, armature, material):
     lod.single_material(mesh_obj, material)
     for attr in [a for a in mesh_obj.data.attributes if a.name == lod.UV_WEIGHT]:
         mesh_obj.data.attributes.remove(attr)
+    # Colour attributes only mark things for the bakes (a woven border); in
+    # the file, three.js would multiply them into the material.
+    for attr in list(mesh_obj.data.color_attributes):
+        mesh_obj.data.color_attributes.remove(attr)
     whp_skeleton.bind(mesh_obj, armature)
     log(f"{name}: {count} triangles (limit {limit}), {len(mesh_obj.vertex_groups)} bones used")
     return mesh_obj

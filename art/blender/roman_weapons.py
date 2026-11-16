@@ -157,3 +157,9 @@ def sheathe(sword, scabbard, depth=0.012):
     set_coords(sword, sw)
     log(f"sheathed {sword.name}: hilt top {sw[:, 2].max():.3f}, scabbard top {sc[:, 2].max():.3f} (source units)")
     return sword
+
+
+# Iberian javelins: longer and heavier than the velites', with a long iron
+# head (the falarica and the all-iron soliferrum are the extreme forms).
+IBERIAN_JAVELIN = dict(JAVELIN, length=1.55, shaft_r=(0.0110, 0.0100), socket=0.08, socket_r=0.0120,
+                       blade=0.20, blade_w=0.0120, blade_t=0.0040)

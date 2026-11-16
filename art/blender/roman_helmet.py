@@ -264,3 +264,31 @@ def build_pelt(detail, materials, name="Pelt"):
             facing = np.dot(np.cross(p1 - p0, p2 - p0), (p0 + p1 + p2) / 3 - centre)
             b.face([tip, base[i], base[j]], flip=facing < 0)
     return b.object(name, [materials["fur"]], smooth=detail > 0)
+
+
+# --------------------------------------------------------------------------
+# Sinew cap (Iberians)
+# --------------------------------------------------------------------------
+
+# Strabo 3.3.6: most Lusitanians wear helmets made of sinews (a few, chain
+# cuirasses and helmets with three crests). A close round cap of hardened
+# sinew and hide, lower than the bronze bowl, with a thick rolled edge.
+CAP_HEIGHT = 0.112
+CAP_OFFSET = 0.004
+
+
+def build_cap(detail, materials, name="Cap"):
+    b = Builder()
+    segments = SEGMENTS[detail]
+    rows = []
+    if detail > 0:
+        rows.append(_ring(b, segments, RIM_Z - 0.006, offset=-0.002))
+    rows.append(_ring(b, segments, RIM_Z - 0.010, offset=CAP_OFFSET + 0.004))
+    rows.append(_ring(b, segments, RIM_Z + 0.004, offset=CAP_OFFSET + 0.005))
+    bowl = BOWL if detail > 0 else [BOWL[i] for i in BOWL_LOW]
+    for t, fraction in bowl[1:]:
+        rows.append(_ring(b, segments, RIM_Z + 0.008 + (CAP_HEIGHT - 0.008) * t, fraction ** 0.8,
+                          offset=CAP_OFFSET))
+    b.grid(rows, close_u=True)
+    b.fan(b.vert((CENTER[0], CENTER[1], RIM_Z + CAP_HEIGHT + 0.006)), rows[-1])
+    return b.object(name, [materials["sinew"]], smooth=detail > 0)
