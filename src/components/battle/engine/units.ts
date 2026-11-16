@@ -9,6 +9,7 @@ import {
   BufferGeometry,
   type Camera,
   Color,
+  CustomBlending,
   DynamicDrawUsage,
   Frustum,
   Group,
@@ -17,7 +18,9 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  OneMinusSrcAlphaFactor,
   Sphere,
+  SrcAlphaFactor,
   Vector3,
 } from "three";
 import type { FigureMaterials } from "./figures/material";
@@ -35,6 +38,16 @@ export const FIGURE_SCALE = 3;
 const CHUNK_SIZE = 256;
 /** Seconds to blend from one clip to the next. */
 const BLEND_SECONDS = 0.35;
+
+/**
+ * Draw order among the opaque objects: the ground (0), then what is painted
+ * on it (the tinted patch under each block, the movement arrows), then the
+ * figures. The paint writes no depth, so the figures drawn after it always
+ * cover it, feet included.
+ */
+export const FOOTPRINT_ORDER = 1;
+export const ARROW_ORDER = 2;
+const FIGURE_ORDER = 3;
 
 /**
  * What the legs do follows how fast a block really moves over the ground,
@@ -115,6 +128,7 @@ class Chunk {
   readonly shadowMesh: Mesh;
   drawn = 0;
   lod = 2;
+  /** From the camera to the nearest figure drawn, metres. */
   distance = 0;
   inView = false;
 
@@ -149,6 +163,7 @@ class Chunk {
     this.mesh = new Mesh(this.display[2], materials.material);
     this.mesh.receiveShadow = true;
     this.mesh.matrixAutoUpdate = false;
+    this.mesh.renderOrder = FIGURE_ORDER;
 
     // Shadows come from a coarser mesh than the one on screen. This second
     // mesh has no instances in the main pass and gets them only while the
@@ -178,6 +193,24 @@ class Chunk {
 
   get detailedMaterial(): FigureMaterials["detailed"] {
     return this.materials.detailed;
+  }
+
+  /**
+   * Measures `distance`: to the nearest figure, not to the middle of the
+   * chunk, which for a loose screen of skirmishers may lie half a kilometre
+   * off while some of its men stand at the camera's feet.
+   */
+  measureDistance(camera: Vector3): void {
+    const posYaw = this.posYaw.array as Float32Array;
+    let nearest = Infinity;
+    for (let o = 0; o < this.drawn * 4; o += 4) {
+      const dx = posYaw[o] - camera.x;
+      const dy = posYaw[o + 1] - camera.y;
+      const dz = posYaw[o + 2] - camera.z;
+      const d = dx * dx + dy * dy + dz * dz;
+      if (d < nearest) nearest = d;
+    }
+    this.distance = Math.max(Math.sqrt(nearest), 1);
   }
 
   dispose(): void {
@@ -252,17 +285,22 @@ export class UnitBlock {
       }
     }
     geometry.setIndex(index);
+    // Blended like a transparent material, but not marked transparent: that
+    // keeps it among the opaque objects, drawn before the figures (see
+    // FOOTPRINT_ORDER) instead of after them.
     this.footprintMaterial = new MeshBasicMaterial({
       color,
-      transparent: true,
       opacity: 0.3,
+      blending: CustomBlending,
+      blendSrc: SrcAlphaFactor,
+      blendDst: OneMinusSrcAlphaFactor,
       depthWrite: false,
       polygonOffset: true,
       polygonOffsetFactor: -2,
       polygonOffsetUnits: -4,
     });
     this.footprint = new Mesh(geometry, this.footprintMaterial);
-    this.footprint.renderOrder = 2;
+    this.footprint.renderOrder = FOOTPRINT_ORDER;
     this.footprint.matrixAutoUpdate = false;
     group.add(this.footprint);
   }
@@ -451,7 +489,11 @@ export class UnitBlock {
    */
   setFootprintLook(cameraPosition: Vector3, pixelsPerMetreAtOne: number, daylight: number): void {
     this.footprintMaterial.color.copy(this.color).multiplyScalar(daylight);
-    const distance = Math.max(cameraPosition.distanceTo(this.center), 1);
+    // How large the nearest figures look: a long line seen from one end is
+    // close, though its middle is far.
+    let distance = Infinity;
+    for (const chunk of this.chunks) if (chunk.drawn > 0) distance = Math.min(distance, chunk.distance);
+    if (!Number.isFinite(distance)) distance = Math.max(cameraPosition.distanceTo(this.center), 1);
     const pixels = (this.model.height * FIGURE_SCALE * pixelsPerMetreAtOne) / distance;
     const far = 1 - Math.min(Math.max((pixels - 5) / 13, 0), 1);
     this.footprintMaterial.opacity = 0.1 + 0.42 * far;
@@ -531,7 +573,6 @@ export class Crowd {
 
     for (const block of this.blocks) {
       counts.standing += block.standing;
-      block.setFootprintLook(camera.position, pixelsPerMetreAtOne, daylight);
       const height = block.model.height * FIGURE_SCALE;
       for (const chunk of block.chunks) {
         if (chunk.drawn === 0) {
@@ -539,9 +580,8 @@ export class Crowd {
           chunk.setLod(chunk.lod, settings);
           continue;
         }
-        const sphere = chunk.sphere;
-        chunk.inView = frustum.intersectsSphere(sphere);
-        chunk.distance = Math.max(camera.position.distanceTo(sphere.center) - sphere.radius * 0.7, 1);
+        chunk.inView = frustum.intersectsSphere(chunk.sphere);
+        chunk.measureDistance(camera.position);
         const pixels = (height * pixelsPerMetreAtOne) / chunk.distance;
         // A little hysteresis, so a chunk on a threshold does not flicker.
         const keep = 0.88;
@@ -554,6 +594,7 @@ export class Crowd {
           triangles += chunk.drawn * block.model.lods[lod].triangles;
         }
       }
+      block.setFootprintLook(camera.position, pixelsPerMetreAtOne, daylight);
     }
 
     if (triangles > settings.triangleBudget) {

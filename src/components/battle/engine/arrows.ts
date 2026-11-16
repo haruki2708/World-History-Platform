@@ -3,9 +3,19 @@
  * the colour of their side, with slow bands running towards the head.
  */
 
-import { Color, Group, type IUniform, Mesh, ShaderMaterial } from "three";
+import {
+  type Color,
+  CustomBlending,
+  Group,
+  type IUniform,
+  Mesh,
+  OneMinusSrcAlphaFactor,
+  ShaderMaterial,
+  SrcAlphaFactor,
+} from "three";
 import { type Battle, type BattleArrow, phaseAt } from "@/lib/battle";
 import { buildRibbon, type HeightAt } from "./terrain";
+import { ARROW_ORDER } from "./units";
 
 function pathLength(arrow: BattleArrow): number {
   let length = 0;
@@ -63,8 +73,12 @@ export class ArrowLayer {
         2,
         8,
       );
+      // Blended, but kept among the opaque objects so that it is painted on
+      // the ground before the figures, which then stand on it (ARROW_ORDER).
       const material = new ShaderMaterial({
-        transparent: true,
+        blending: CustomBlending,
+        blendSrc: SrcAlphaFactor,
+        blendDst: OneMinusSrcAlphaFactor,
         depthWrite: false,
         polygonOffset: true,
         polygonOffsetFactor: -3,
@@ -78,9 +92,12 @@ export class ArrowLayer {
         },
         vertexShader: /* glsl */ `
           varying vec2 vUv;
+          varying vec3 vWorld;
           void main() {
             vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            vec4 world = modelMatrix * vec4(position, 1.0);
+            vWorld = world.xyz;
+            gl_Position = projectionMatrix * viewMatrix * world;
           }`,
         fragmentShader: /* glsl */ `
           uniform vec3 uColor;
@@ -89,17 +106,21 @@ export class ArrowLayer {
           uniform float uLength;
           uniform float uLight;
           varying vec2 vUv;
+          varying vec3 vWorld;
           void main() {
             float edge = 1.0 - smoothstep(0.7, 1.0, abs(vUv.y * 2.0 - 1.0));
             float tail = smoothstep(0.0, 0.3, vUv.x);
             float bands = 0.8 + 0.2 * sin(vUv.x * uLength * 0.12 - uTime * 2.5);
-            gl_FragColor = vec4(uColor * bands * uLight, uOpacity * tail * (0.35 + 0.65 * edge));
+            // Faint under the camera, where the figures stand on it and it
+            // would only colour the ground around their feet.
+            float near = mix(0.3, 1.0, smoothstep(40.0, 320.0, distance(cameraPosition, vWorld)));
+            gl_FragColor = vec4(uColor * bands * uLight, uOpacity * near * tail * (0.35 + 0.65 * edge));
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
           }`,
       });
       const mesh = new Mesh(geometry, material);
-      mesh.renderOrder = 3;
+      mesh.renderOrder = ARROW_ORDER;
       this.group.add(mesh);
     }
   }
