@@ -39,6 +39,7 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-018](T-018-battle-scene-polish.md) | 3 | Cảnh 3D: góc nhìn đầu, nhãn địa danh, danh sách mô hình, vật liệu kim loại | Xong, đã gộp 2026-11-16 |
 | [T-019](T-019-animations-hastatus.md) | 1 | Trận đánh 3D: thư viện hoạt hình dùng chung, nâng lính La Mã, thêm hastatus | Xong, đã gộp 2026-11-16 |
 | [T-020](T-020-horse.md) | 2 | Trận đánh 3D: ngựa cho kỵ binh, chỉnh dữ liệu Cannae trong cảnh thật | Đang làm (giao 2026-11-16) |
-| [T-021](T-021-infantry-models.md) | 1 | Trận đánh 3D: sáu loại bộ binh còn lại, kim loại sáng đúng trong cảnh | Đang làm (giao 2026-11-16) |
-| T-022 | 1 | Trận đánh 3D: ba loại kỵ binh (người cưỡi trên ngựa của T-020) | Chờ (sau T-020 và T-021) |
+| [T-021](T-021-infantry-models.md) | 1 | Trận đánh 3D: sáu loại bộ binh còn lại, kim loại sáng đúng trong cảnh | Xong, đã gộp 2026-11-17 |
+| T-022 | 1 | Trận đánh 3D: ba loại kỵ binh (người cưỡi trên ngựa của T-020) | Chờ (sau T-020) |
 | [T-023](T-023-battle-viewer.md) | 3 | Trận đánh 3D: khung xem trận trong app chính, mở từ panel sự kiện | Xong, đã gộp 2026-11-17 (phiên chính làm nốt) |
+| [T-024](T-024-model-polish.md) | 1 | Trận đánh 3D: sửa các chỗ chưa ưng ý của mô hình bộ binh (sải chân, tay người Gaul, vạt áo, *pilum*) | Đang làm (giao 2026-11-17) |

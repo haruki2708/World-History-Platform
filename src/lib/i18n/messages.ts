@@ -219,7 +219,7 @@ const en = {
   "battle.info.newTab": "opens in a new tab",
   "battle.credits.heading": "Credits",
   "battle.credits.models":
-    'Roman soldiers based on "Roman Soldier - T pose" and the rig of "Celt - rigged for UE4/5", both by Andywoodhead (Sketchfab, CC BY 4.0); modified. Animations from the Universal Animation Library by Quaternius (CC0).',
+    'Soldier models based on "Roman Soldier - T pose" and "Celt - rigged for UE4/5", both by Andywoodhead (Sketchfab, CC BY 4.0); modified. Animations from the Universal Animation Library by Quaternius (CC0).',
   "battle.credits.terrain": "Terrain",
 } as const;
 
@@ -439,7 +439,7 @@ const vi: Record<MessageKey, string> = {
   "battle.info.newTab": "mở trong tab mới",
   "battle.credits.heading": "Ghi công",
   "battle.credits.models":
-    'Lính La Mã dựa trên "Roman Soldier - T pose" và khung xương của "Celt - rigged for UE4/5", cùng của Andywoodhead (Sketchfab, CC BY 4.0); đã sửa đổi. Hoạt hình từ Universal Animation Library của Quaternius (CC0).',
+    'Các mô hình lính dựa trên "Roman Soldier - T pose" và "Celt - rigged for UE4/5", cùng của Andywoodhead (Sketchfab, CC BY 4.0); đã sửa đổi. Hoạt hình từ Universal Animation Library của Quaternius (CC0).',
   "battle.credits.terrain": "Địa hình",
 };
 
