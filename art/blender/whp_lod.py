@@ -245,9 +245,24 @@ def normalise_density(obj):
     mesh.uv_layers[UV_NAME].data.foreach_set("uv", uv.ravel())
 
 
-def unwrap_atlas(parts, margin=0.003):
+def _pack(joined, method, margin):
+    select_only(joined)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.select_all(action="SELECT")
+    bpy.ops.uv.pack_islands(rotate=True, scale=True, margin_method=method, margin=margin)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048):
     """Pack the parts' UV islands into one atlas. Each part already has its
-    islands (project_uvs). Returns the parts, separated again."""
+    islands (project_uvs). Returns the parts, separated again.
+
+    By default the gap between islands is Blender's "scaled" margin.
+    With `pixels`, every island instead gets that many texels of a
+    `size` x `size` image clear on each side: packs much tighter when
+    there are many small islands, and keeps a bake's margin from spilling
+    onto the next island (bake margins should be at most `pixels`)."""
     names = [p.name for p in parts]
     tags = []
     for part in parts:
@@ -258,11 +273,30 @@ def unwrap_atlas(parts, margin=0.003):
         tags.append(tag)
     joined = join_objects(parts, "atlas-work")
 
+    if pixels is None:
+        _pack(joined, "SCALED", margin)
+    else:
+        # The "add" margin is in the UVs' own units, before packing scales
+        # them: pack once to learn the scale, then again with the margin
+        # that comes out at `pixels` texels.
+        before = _uv_and_face_areas(joined.data)[0].sum()
+        start = np.empty(len(joined.data.loops) * 2)
+        joined.data.uv_layers[UV_NAME].data.foreach_get("uv", start)
+        guess = pixels / size * 2.6
+        for attempt in range(4):
+            if attempt:
+                joined.data.uv_layers[UV_NAME].data.foreach_set("uv", start)
+            _pack(joined, "ADD", guess)
+            after = _uv_and_face_areas(joined.data)[0].sum()
+            texels = guess * math.sqrt(after / before) * size
+            if texels >= pixels and texels - pixels < 0.2:
+                break
+            guess *= (pixels + 0.05) / texels
+        log(f"atlas: {after * 100:.1f}% of the UV square covered, {texels:.2f} texels clear round each island")
+
     select_only(joined)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.select_all(action="SELECT")
-    bpy.ops.uv.pack_islands(rotate=True, scale=True, margin=margin)
     bpy.ops.mesh.separate(type="MATERIAL")
     bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -357,6 +391,72 @@ class EmissionSwap:
         return False
 
 
+# A material with this custom property set takes its metalness from the
+# saturation of its base colour: grey texels are bare metal (a steel blade),
+# coloured ones are not (a wooden or bone grip). See SurfaceSwap.
+METAL_FROM_GREY = "whp_metal_from_grey"
+GREY_METAL_ROUGHNESS = 0.35
+
+
+class SurfaceSwap:
+    """Temporarily make every material emit (1, roughness, metallic), read
+    from its Principled BSDF, so an EMIT bake writes the glTF
+    metallicRoughness image: green is roughness, blue is metalness."""
+
+    def __init__(self, objs):
+        self.materials = {m for o in objs for m in o.data.materials if m is not None}
+        self.undo = []
+
+    def __enter__(self):
+        for mat in sorted(self.materials, key=lambda m: m.name):
+            tree = mat.node_tree
+            out = next(n for n in tree.nodes if n.type == "OUTPUT_MATERIAL")
+            bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+            rough = bsdf.inputs["Roughness"].default_value
+            metal = bsdf.inputs["Metallic"].default_value
+            added = []
+
+            def node(kind):
+                n = tree.nodes.new(kind)
+                added.append(n)
+                return n
+
+            combine = node("ShaderNodeCombineColor")
+            combine.inputs["Red"].default_value = 1.0
+            combine.inputs["Green"].default_value = rough
+            combine.inputs["Blue"].default_value = metal
+            base = bsdf.inputs["Base Color"]
+            if mat.get(METAL_FROM_GREY) and base.is_linked:
+                hsv = node("ShaderNodeSeparateColor")
+                hsv.mode = "HSV"
+                tree.links.new(base.links[0].from_socket, hsv.inputs["Color"])
+                grey = node("ShaderNodeMapRange")       # saturation 0.12 -> metal, 0.28 -> not
+                grey.inputs["From Min"].default_value = 0.12
+                grey.inputs["From Max"].default_value = 0.28
+                grey.inputs["To Min"].default_value = 1.0
+                grey.inputs["To Max"].default_value = 0.0
+                tree.links.new(hsv.outputs["Green"], grey.inputs["Value"])
+                mix = node("ShaderNodeMix")
+                mix.data_type = "FLOAT"
+                mix.inputs["A"].default_value = rough
+                mix.inputs["B"].default_value = GREY_METAL_ROUGHNESS
+                tree.links.new(grey.outputs["Result"], mix.inputs["Factor"])
+                tree.links.new(mix.outputs["Result"], combine.inputs["Green"])
+                tree.links.new(grey.outputs["Result"], combine.inputs["Blue"])
+            emit = node("ShaderNodeEmission")
+            tree.links.new(combine.outputs["Color"], emit.inputs["Color"])
+            tree.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+            self.undo.append((tree, out, bsdf, added))
+        return self
+
+    def __exit__(self, *exc):
+        for tree, out, bsdf, added in self.undo:
+            tree.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+            for n in added:
+                tree.nodes.remove(n)
+        return False
+
+
 def bake_pass(scene, low, sources, kind, extrusion, reach):
     """Bake one pass from `sources` onto `low` (into its active image)."""
     if bpy.context.mode != "OBJECT":
@@ -434,7 +534,10 @@ def save_image(name, rgb, path, srgb):
     return image
 
 
-def final_material(name, color_image, normal_image, roughness=0.72):
+def final_material(name, color_image, normal_image, roughness=0.72, surface_image=None):
+    """The model's one material. With `surface_image` (glTF
+    metallicRoughness: green roughness, blue metalness) roughness and
+    metalness come from it; otherwise roughness is constant, no metal."""
     old = bpy.data.materials.get(name)
     if old is not None:
         bpy.data.materials.remove(old)
@@ -457,4 +560,11 @@ def final_material(name, color_image, normal_image, roughness=0.72):
         nmap.uv_map = UV_NAME
         tree.links.new(tex.outputs["Color"], nmap.inputs["Color"])
         tree.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+    if surface_image is not None:
+        tex = tree.nodes.new("ShaderNodeTexImage")
+        tex.image = surface_image
+        split = tree.nodes.new("ShaderNodeSeparateColor")     # the exporter reads G and B from this
+        tree.links.new(tex.outputs["Color"], split.inputs["Color"])
+        tree.links.new(split.outputs["Green"], bsdf.inputs["Roughness"])
+        tree.links.new(split.outputs["Blue"], bsdf.inputs["Metallic"])
     return mat

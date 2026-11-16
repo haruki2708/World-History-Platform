@@ -85,6 +85,43 @@ class Poser:
         """Roll a bone about its own length."""
         self.rotate(name, self.direction(name, child), degrees)
 
+    def set_rotation(self, name, rotation):
+        """Give a bone this orientation (a 3x3 Matrix in armature space),
+        turning it and what hangs from it about its head."""
+        head = self.head(name)
+        delta = Matrix(rotation) @ self.matrix[name].to_3x3().inverted()
+        self._transform(name, Matrix.Translation(head) @ delta.to_4x4() @ Matrix.Translation(-head))
+
+    def place(self, name, position):
+        """Move a bone (and what hangs from it) so its head is at `position`."""
+        self.move(name, Vector(position) - self.head(name))
+
+    def turned(self, name):
+        """How far a bone is turned from its rest orientation (3x3, armature axes)."""
+        return self.matrix[name].to_3x3() @ self.rest[name].to_3x3().inverted()
+
+    def limb(self, upper, lower, end, target, pole):
+        """Two-bone IK: aim `upper` and `lower` so that the head of `end`
+        reaches `target` (or as near as the limb allows), the middle joint
+        bending towards `pole`. Returns the point reached."""
+        root = self.head(upper)
+        l1 = (self.rest[lower].to_translation() - self.rest[upper].to_translation()).length
+        l2 = (self.rest[end].to_translation() - self.rest[lower].to_translation()).length
+        reach = Vector(target) - root
+        d = min(max(reach.length, abs(l1 - l2) * 1.001 + 1e-6), (l1 + l2) * 0.9995)
+        u = reach.normalized()
+        a = (l1 * l1 - l2 * l2 + d * d) / (2 * d)
+        h = math.sqrt(max(l1 * l1 - a * a, 0.0))
+        pole = Vector(pole)
+        w = pole - pole.dot(u) * u
+        if w.length < 1e-6:
+            w = u.orthogonal()
+        w.normalize()
+        middle = root + u * a + w * h
+        self.aim(upper, lower, middle - root)
+        self.aim(lower, end, root + u * d - middle)
+        return root + u * d
+
     def keep_rest_orientation(self, name, turn=None):
         """Give a bone the orientation it has at rest, whatever its parents
         do, then apply `turn` (a Quaternion) on top."""
@@ -151,19 +188,7 @@ class Poser:
         `knee`; the foot stays flat, pitched (toes down positive) and
         turned out by `yaw` degrees."""
         thigh, calf, foot = f"thigh_{side}", f"calf_{side}", f"foot_{side}"
-        hip = self.head(thigh)
-        l1 = (self.rest[calf].to_translation() - self.rest[thigh].to_translation()).length
-        l2 = (self.rest[foot].to_translation() - self.rest[calf].to_translation()).length
-        reach = Vector(ankle) - hip
-        d = min(reach.length, (l1 + l2) * 0.9995)
-        u = reach.normalized()
-        a = (l1 * l1 - l2 * l2 + d * d) / (2 * d)
-        h = math.sqrt(max(l1 * l1 - a * a, 0.0))
-        pole = Vector(knee)
-        w = (pole - pole.dot(u) * u).normalized()
-        knee_point = hip + u * a + w * h
-        self.aim(thigh, calf, knee_point - hip)
-        self.aim(calf, foot, hip + u * d - knee_point)
+        self.limb(thigh, calf, foot, ankle, knee)
         sign = 1.0 if side == "l" else -1.0
         turn = Quaternion(AXES["Z"], math.radians(yaw * sign)) @ Quaternion(AXES["X"], math.radians(pitch))
         self.keep_rest_orientation(foot, turn)

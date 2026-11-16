@@ -1,11 +1,17 @@
 """Review images of a unit model, rendered from the exported .glb.
 
     blender --background --factory-startup --disable-autoexec \
-        --python art/blender/render_review.py -- [--model roman-legionary] [--only NAME ...]
+        --python art/blender/render_review.py -- --model MODEL [--only NAME ...]
+    blender ... --python art/blender/render_review.py -- --attack-styles [--model MODEL]
 
-Writes JPEGs of at most 400 KB to art/renders/<model>/. Everything is
-rendered from public/battles/models/<model>.glb, i.e. what the 3D scene
-gets, except the source model in the comparison image.
+Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
+order of the unit module's REVIEW list. Everything is rendered from
+public/battles/models/<model>.glb, i.e. what the 3D scene gets, except the
+source model in the "compare" image.
+
+--attack-styles renders the attacks of the animation library that the
+model does not carry (whp_clips.ATTACKS) on its build file
+(art/build/<model>/4-anim.blend), into art/renders/animation-library/.
 """
 
 import argparse
@@ -16,12 +22,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bpy  # noqa: E402
+import numpy as np  # noqa: E402
 from mathutils import Vector  # noqa: E402
 
-import roman_anims  # noqa: E402
-import roman_source  # noqa: E402
+import whp_anim  # noqa: E402
+import whp_build  # noqa: E402
+import whp_clips  # noqa: E402
 import whp_skeleton  # noqa: E402
-from whp_common import MODELS_DIR, RENDER_DIR, log, reset_scene, script_args, world_bounds  # noqa: E402
+from whp_common import BUILD_DIR, MODELS_DIR, RENDER_DIR, log, open_blend, reset_scene, script_args, world_bounds  # noqa: E402
 from whp_render import add_ground, aim_camera, setup_lights, setup_render, setup_world  # noqa: E402
 
 MAX_BYTES = 400 * 1024
@@ -46,6 +54,7 @@ class Figure:
 
 def import_model(path):
     before = set(bpy.data.objects)
+    bpy.context.scene.render.fps = whp_anim.FPS      # the importer maps seconds to frames at this rate
     bpy.ops.import_scene.gltf(filepath=path)
     new = [o for o in bpy.data.objects if o not in before]
     armature = next(o for o in new if o.type == "ARMATURE")
@@ -56,6 +65,8 @@ def import_model(path):
     for obj in [armature, *meshes.values()]:
         obj.hide_render = True
         obj.hide_set(True)
+    # Imported LOD names may carry a suffix when a second model is imported.
+    meshes = {name.split(".")[0]: obj for name, obj in meshes.items()}
     return Figure(armature, meshes)
 
 
@@ -111,10 +122,15 @@ def play(figure, clip, clip_frame):
     strip.extrapolation = "HOLD"
 
 
-def clear_figures(template):
-    keep = {template.armature, *template.meshes.values()}
+def clip_length(clip):
+    return int(round(bpy.data.actions[clip].frame_range[1]))
+
+
+def clear_figures(keep=()):
+    keep = set(keep)
     for obj in list(bpy.context.scene.objects):
-        if obj.type in ("ARMATURE", "MESH") and obj not in keep and not obj.name.startswith("Icosphere"):
+        if obj.type in ("ARMATURE", "MESH") and obj not in keep and not obj.name.startswith("Icosphere") \
+                and not obj.hide_get() and obj.name != "whp-ground":
             bpy.data.objects.remove(obj, do_unlink=True)
 
 
@@ -122,6 +138,11 @@ def bounds_of(figures, extra=()):
     bpy.context.scene.frame_set(FRAME)
     objs = [m for f in figures for m in f.visible()] + list(extra)
     return world_bounds(objs)
+
+
+def bone_head(figure, bone):
+    bpy.context.view_layer.update()
+    return figure.armature.matrix_world @ figure.armature.pose.bones[bone].head
 
 
 def render_jpeg(scene, path, quality=90):
@@ -139,6 +160,45 @@ def render_jpeg(scene, path, quality=90):
         if size <= MAX_BYTES or quality <= 50:
             break
         quality -= 8
+    log(f"rendered {os.path.basename(path)}: {size / 1024:.0f} KB, quality {quality}")
+
+
+def render_panel(scene):
+    """Render the current view; return its pixels (h, w, 4)."""
+    path = os.path.join(BUILD_DIR, "_panel.png")
+    settings = scene.render.image_settings
+    settings.file_format = "PNG"
+    settings.color_mode = "RGB"
+    scene.render.filepath = path
+    scene.frame_set(scene.frame_current)
+    bpy.ops.render.render(write_still=True)
+    image = bpy.data.images.load(path)
+    w, h = image.size
+    pixels = np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    bpy.data.images.remove(image)
+    os.remove(path)
+    return pixels
+
+
+def save_panels(scene, rows, path, quality=90):
+    """Stitch rows of panels (lists of pixel arrays, bottom row last) into
+    one JPEG of at most MAX_BYTES."""
+    sheet = np.concatenate([np.concatenate(row, axis=1) for row in reversed(rows)], axis=0)
+    h, w = sheet.shape[:2]
+    image = bpy.data.images.new("whp-sheet", w, h)
+    image.pixels.foreach_set(sheet.ravel())
+    settings = scene.render.image_settings
+    settings.file_format = "JPEG"
+    settings.color_mode = "RGB"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    while True:
+        settings.quality = quality
+        image.save_render(path, scene=scene)
+        size = os.path.getsize(path)
+        if size <= MAX_BYTES or quality <= 50:
+            break
+        quality -= 8
+    bpy.data.images.remove(image)
     log(f"rendered {os.path.basename(path)}: {size / 1024:.0f} KB, quality {quality}")
 
 
@@ -162,46 +222,45 @@ def pad(lo, hi, amount):
 
 
 # --------------------------------------------------------------------------
-# Images
+# Images. Each takes (template, unit, shoot) and renders one or more files
+# through shoot(scene, what) -> NN-<what>.jpg; SHOTS says how many.
 # --------------------------------------------------------------------------
 
-def views(template, out):
+def views(template, unit, shoot):
     """Front, left side (shield side) and back, standing (idle, frame 0)."""
     figures = []
     for i, turn in enumerate((0.0, -90.0, 180.0)):
-        f = place(template, (1.35 * (i - 1), 0.0, 0.0), turn)
+        f = place(template, (1.4 * (i - 1), 0.0, 0.0), turn)
         play(f, "idle", 0)
         figures.append(f)
     scene = stage(1800, 1200)
     lo, hi = bounds_of(figures)
     aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.04)
-    render_jpeg(scene, os.path.join(out, "01-front-side-back.jpg"))
+    shoot(scene, "front-side-back")
 
 
-def three_quarter(template, out):
+def three_quarter(template, unit, shoot):
     f = place(template)
     play(f, "idle", 0)
     scene = stage(1100, 1300)
     lo, hi = bounds_of([f])
     aim_camera(scene, *pad(lo, hi, 0.03), Vector((-0.75, -1.0, 0.0)), ortho=True, margin=1.04, elevation=6)
-    render_jpeg(scene, os.path.join(out, "02-three-quarter.jpg"))
+    shoot(scene, "three-quarter")
 
 
-def head(template, out):
+def head(template, unit, shoot):
     f = place(template)
     play(f, "idle", 0)
     scene = stage(1100, 1100, samples=64)
-    bpy.context.view_layer.update()
-    head_bone = f.armature.matrix_world @ f.armature.pose.bones["head"].head
-    lo = head_bone + Vector((-0.17, -0.17, -0.20))
-    hi = head_bone + Vector((0.17, 0.17, 0.38))
-    for name, direction in (("03-head-front.jpg", Vector((0.45, -1.0, 0.0))),
-                            ("04-head-side.jpg", Vector((-1.0, -0.25, 0.0)))):
+    centre = bone_head(f, "head")
+    lo = centre + Vector((-0.17, -0.17, -0.20))
+    hi = centre + Vector((0.17, 0.17, 0.38))
+    for what, direction in (("head-front", Vector((0.45, -1.0, 0.0))), ("head-side", Vector((-1.0, -0.25, 0.0)))):
         aim_camera(scene, lo, hi, direction, ortho=False, lens=85, margin=1.0, elevation=4)
-        render_jpeg(scene, os.path.join(out, name))
+        shoot(scene, what)
 
 
-def formation(template, out):
+def formation(template, unit, shoot):
     """Twenty men: five files, four ranks, a little out of step."""
     figures = []
     offsets = [0, 23, 41, 9, 52, 31, 14, 47, 5, 36, 19, 58, 27, 2, 44, 12, 55, 33, 7, 39]
@@ -217,70 +276,149 @@ def formation(template, out):
     scene = stage(1800, 1100, ground=True)
     lo, hi = bounds_of(figures)
     aim_camera(scene, lo, hi, Vector((-0.55, -1.0, 0.0)), ortho=False, lens=50, margin=1.05, elevation=20)
-    render_jpeg(scene, os.path.join(out, "05-formation.jpg"))
+    shoot(scene, "formation")
 
 
-def lods(template, out):
+def lods(template, unit, shoot):
     figures = []
     for i, name in enumerate(LODS):
-        f = place(template, (1.4 * (i - 1), 0.0, 0.0), 0.0, lod=name)
+        f = place(template, (1.45 * (i - 1), 0.0, 0.0), 0.0, lod=name)
         play(f, "idle", 0)
         figures.append(f)
     scene = stage(1800, 1100)
     lo, hi = bounds_of(figures)
     aim_camera(scene, *pad(lo, hi, 0.04), Vector((-0.35, -1.0, 0.0)), ortho=True, margin=1.04)
-    render_jpeg(scene, os.path.join(out, "06-lods.jpg"))
+    shoot(scene, "lods")
 
 
-CLIP_FRAMES = {
-    "idle": (0, 20, 40),
-    "walk": (0, 8, 15),
-    "attack": (0, 9, 16),
-}
+def strike_frame(template, clip="attack"):
+    """Frame of a clip where the right hand is furthest forwards."""
+    f = place(template)
+    best, frame = None, 0
+    for k in range(clip_length(clip) + 1):
+        play(f, clip, k)
+        bpy.context.scene.frame_set(FRAME)
+        y = bone_head(f, "hand_r").y
+        if best is None or y < best:
+            best, frame = y, k
+    clear_figures([template.armature, *template.meshes.values()])
+    return frame
 
 
-def animations(template, out):
-    for n, (clip, frames) in enumerate(CLIP_FRAMES.items()):
+def clip_frames(template):
+    """Three telling frames of each clip."""
+    strike = strike_frame(template)
+    return {
+        "idle": (0, 25, 50),
+        "walk": (0, 10, 20),
+        "run": (0, 7, 14),
+        "attack": (0, max(strike // 2, 1), strike),
+        "die": (0, 20, clip_length("die")),
+    }
+
+
+def animations(template, unit, shoot):
+    frames = clip_frames(template)
+    for clip in whp_build.CLIPS:
         figures = []
-        for i, frame in enumerate(frames):
-            f = place(template, (1.6 * (i - 1), 0.0, 0.0))
+        for i, frame in enumerate(frames[clip]):
+            f = place(template, (1.7 * (i - 1), 0.0, 0.0))
             play(f, clip, frame)
             figures.append(f)
         scene = stage(1800, 1000)
         lo, hi = bounds_of(figures)
         aim_camera(scene, *pad(lo, hi, 0.04), Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.03, elevation=6)
-        render_jpeg(scene, os.path.join(out, f"{7 + n:02d}-anim-{clip}.jpg"))
-        clear_figures(template)
+        shoot(scene, f"anim-{clip}")
+        clear_figures([template.armature, *template.meshes.values()])
 
 
-def compare(template, out):
+def without_surface_map(figure):
+    """Show a figure with its material as it was before the metallicRoughness
+    map: roughness 0.72 everywhere, no metal."""
+    for obj in figure.meshes.values():
+        slot = obj.material_slots[0]
+        mat = slot.material.copy()
+        bsdf = next(node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+        for name, value in (("Roughness", 0.72), ("Metallic", 0.0)):
+            for link in list(bsdf.inputs[name].links):
+                mat.node_tree.links.remove(link)
+            bsdf.inputs[name].default_value = value
+        slot.link = "OBJECT"
+        slot.material = mat
+
+
+def metal(template, unit, shoot):
+    """Head to knee twice, seen from the sword side: left without the
+    metallicRoughness map, right as exported."""
+    before = place(template, (-0.75, 0.0, 0.0), 25.0)
+    after = place(template, (0.75, 0.0, 0.0), 25.0)
+    for f in (before, after):
+        play(f, "idle", 0)
+    without_surface_map(before)
+    scene = stage(1800, 1200, samples=64)
+    lo, hi = bounds_of([before, after])
+    lo.z = 0.55
+    aim_camera(scene, *pad(lo, hi, 0.02), Vector((-0.2, -1.0, 0.0)), ortho=True, margin=1.03, elevation=8)
+    shoot(scene, "metal-before-after")
+
+
+def compare(template, unit, shoot):
     """Source model 07 as downloaded; the new model in its bind pose; the
     new model standing."""
+    import roman_source
+
     source = roman_source.import_roman()
     for obj in source:
         obj.location.x -= 2.25
     rest = place(template, (0.0, 0.0, 0.0))
-    standing = place(template, (1.35, 0.0, 0.0))
+    standing = place(template, (1.4, 0.0, 0.0))
     play(standing, "idle", 0)
     scene = stage(1900, 1100)
     lo, hi = bounds_of([rest, standing], source)
     aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.03)
-    render_jpeg(scene, os.path.join(out, "10-compare-source.jpg"))
-    for obj in source:
-        bpy.data.objects.remove(obj, do_unlink=True)
+    shoot(scene, "compare-source")
 
 
-def test_poses(template, out):
+def test_poses(template, unit, shoot):
     """The skin under strain: arms raised, a long step, bent forward."""
     figures = []
-    for i, pose in enumerate(roman_anims.TEST_POSES.values()):
+    for i, pose in enumerate(whp_clips.TEST_POSES.values()):
         f = place(template, (1.6 * (i - 1), 0.0, 0.0))
         whp_skeleton.apply_pose(f.armature, pose)
         figures.append(f)
     scene = stage(1800, 1100)
     lo, hi = bounds_of(figures)
     aim_camera(scene, *pad(lo, hi, 0.04), Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.03, elevation=6)
-    render_jpeg(scene, os.path.join(out, "11-test-poses.jpg"))
+    shoot(scene, "test-poses")
+
+
+def closeups(template, unit, shoot):
+    """The unit's CLOSEUPS side by side: (title, bone, low corner, high
+    corner from the bone's head, view direction), standing (idle 0)."""
+    f = place(template)
+    play(f, "idle", 0)
+    scene = stage(900, 1100, samples=64)
+    panels = []
+    for _title, bone, lo, hi, direction in unit.CLOSEUPS:
+        centre = bone_head(f, bone)
+        aim_camera(scene, centre + Vector(lo), centre + Vector(hi), Vector(direction), ortho=False, lens=70,
+                   margin=1.0, elevation=6)
+        panels.append(render_panel(scene))
+    shoot.panels(scene, [panels], unit.CLOSEUP_NAME)
+
+
+def beside(template, unit, shoot):
+    """This model next to another one (unit.BESIDE), front and side."""
+    other = import_model(whp_build.glb_path(unit.BESIDE))
+    figures = []
+    for i, (model, turn) in enumerate(((other, 0.0), (template, 0.0), (other, -90.0), (template, -90.0))):
+        f = place(model, (1.3 * i + (0.25 if i >= 2 else 0.0), 0.0, 0.0), turn)
+        play(f, "idle", 0)
+        figures.append(f)
+    scene = stage(1900, 1200)
+    lo, hi = bounds_of(figures)
+    aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.03)
+    shoot(scene, f"beside-{unit.BESIDE}")
 
 
 IMAGES = {
@@ -290,22 +428,97 @@ IMAGES = {
     "formation": formation,
     "lods": lods,
     "animations": animations,
+    "metal": metal,
     "compare": compare,
     "test-poses": test_poses,
+    "closeups": closeups,
+    "beside": beside,
 }
+
+
+SHOTS = {"head": 2, "animations": len(whp_build.CLIPS)}       # files per image; 1 if not listed
+
+
+class Shooter:
+    """Renders to art/renders/<model>/NN-<what>.jpg, numbering as it goes."""
+
+    def __init__(self, out, number=1):
+        self.out = out
+        self.number = number
+        self.written = []
+
+    def path(self, what):
+        path = os.path.join(self.out, f"{self.number:02d}-{what}.jpg")
+        self.number += 1
+        self.written.append(os.path.basename(path))
+        return path
+
+    def __call__(self, scene, what):
+        render_jpeg(scene, self.path(what))
+
+    def panels(self, scene, rows, what):
+        save_panels(scene, rows, self.path(what))
+
+
+def render_model(model, only=None):
+    unit = whp_build.load_unit(model)
+    shoot = Shooter(os.path.join(RENDER_DIR, model))
+    for name in unit.REVIEW:
+        if only is not None and name not in only:
+            shoot.number += SHOTS.get(name, 1)
+            continue
+        reset_scene()
+        template = import_model(whp_build.glb_path(model))
+        IMAGES[name](template, unit, shoot)
+    log("images:", ", ".join(shoot.written))
+
+
+# --------------------------------------------------------------------------
+# The library's other attacks, on a model's build file
+# --------------------------------------------------------------------------
+
+def attack_styles(model):
+    """Each attack of whp_clips.ATTACKS that the model does not carry, three
+    frames each, on the detailed model of its "anim" stage file. The man
+    keeps his own weapon (a sword stands in for a spear, a javelin or a
+    sling) and his shield."""
+    unit = whp_build.load_unit(model)
+    open_blend(os.path.join(whp_build.work_dir(model), "4-anim.blend"))
+    armature = bpy.data.objects[whp_skeleton.RIG_NAME]
+    objs = [o for o in bpy.context.scene.objects if o.type == "MESH" and o.parent is armature and not o.hide_render]
+    scene = stage(560, 760, samples=24)
+    scene.frame_set(0)
+    lo = Vector((-0.8, -0.85, -0.02))
+    hi = Vector((0.8, 0.65, 2.15))
+    rows = []
+    for style in whp_clips.ATTACKS:
+        if style == unit.KIT.attack:
+            continue
+        kit = whp_clips.Kit(shield=unit.KIT.shield, attack=style)
+        action = whp_clips.ATTACKS[style](whp_clips.Builder(armature, kit))
+        whp_anim.set_action(armature, action.name)
+        end = int(action.frame_end)
+        row = []
+        for frame in (0, end * 3 // 10, end // 2):
+            scene.frame_set(frame)
+            aim_camera(scene, lo, hi, Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.0, elevation=6)
+            row.append(render_panel(scene))
+        rows.append(row)
+        log(f"attack style {style}: frames 0, {end * 3 // 10}, {end // 2} of {end}")
+    del objs
+    save_panels(scene, rows, os.path.join(RENDER_DIR, "animation-library", "attack-styles.jpg"))
 
 
 def main():
     parser = argparse.ArgumentParser(prog="render_review.py")
-    parser.add_argument("--model", default="roman-legionary")
+    parser.add_argument("--model", default="roman-legionary", choices=whp_build.unit_ids())
     parser.add_argument("--only", nargs="*", choices=sorted(IMAGES), default=None)
+    parser.add_argument("--attack-styles", action="store_true")
     args = parser.parse_args(script_args())
-    path = os.path.join(MODELS_DIR, f"{args.model}.glb")
-    out = os.path.join(RENDER_DIR, args.model)
-    for name in args.only or IMAGES:
-        reset_scene()
-        template = import_model(path)
-        IMAGES[name](template, out)
+    if args.attack_styles:
+        attack_styles(args.model)
+    else:
+        render_model(args.model, args.only)
     log("done")
 
 
