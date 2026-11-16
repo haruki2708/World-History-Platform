@@ -121,36 +121,122 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-_(Đang làm, khoảng 80%. Ghi chú tiến độ dưới đây để phiên sau làm tiếp; khi xong sẽ thay bằng bản kết quả đầy đủ.)_
+Lane 3 làm bước 1–3 (3 commit "T-023 step 1–3") rồi hết hạn mức ở khoảng 80%. Phiên chính làm nốt theo yêu cầu của người dùng: kiểm tra bản production, đo hiệu năng và bộ nhớ, xem ảnh chụp, sửa một lỗi nhỏ ở bề ngang 390 px, viết mục này.
 
-### Tiến độ tính đến 2026-11-17
+**Tóm tắt:** xong. Từ `/?year=-216&event=battle-of-cannae`, bấm "View the battle in 3D" mở khung xem trận phủ kín trang: cảnh 3D, thanh điều khiển, lời dẫn từng giai đoạn, thông tin hai bên, nguồn và ghi công. Đóng bằng Esc hay nút thì về đúng chỗ cũ. Trang chính không tải three.js trước khi mở trận. Mở đóng 10 lần không rò bộ nhớ. Lính bước theo quãng đường đi được, ngã thì nằm lại. `npm run lint`, `npm run build`, `npm run validate` qua.
 
-**Đã xong và đã commit** (nhánh `lane3/T-023-battle-viewer`, 3 commit "T-023 step 1–3"):
+### Đã làm
 
-1. **Nút xem trận** trong `EventListItem` (khoá `battle.open`, thuộc tính `data-battle-open`). Nút nằm trong một khối `sticky bottom-0`, vì ở 1280×800 phần tóm tắt dài hơn danh sách nên nút bị khuất nếu không dính đáy.
-2. **`AppShell`** nạp `BattleViewer` bằng `next/dynamic` (`ssr: false`), có `BattleViewerLoading` trong lúc tải.
-3. **`BattleViewer`** (`src/components/battle/BattleViewer.tsx` và `viewer/`): `<dialog>` `showModal()` phủ kín, thanh điều khiển (phát/dừng, giai đoạn trước/sau, thanh tua tự dựng có vạch, giờ, tốc độ 1×/2×), tab Lời dẫn (danh sách 6 giai đoạn, bấm để nhảy) và tab Thông tin trận (ngày, hai bên, quân số, thương vong, điểm chưa chắc, nguồn, ghi công), phím Space, ←/→, Esc. Đã thử bằng Chrome không cửa sổ: mở, phát, dừng, chuyển giai đoạn, bấm vào cảnh rồi Space, mũi tên trên tab, đóng bằng Esc và bằng nút, focus về nút xem trận, địa chỉ và vị trí cuộn giữ nguyên.
-4. **Bước chân:** `walk`/`run` chạy theo quãng đường từng hình lính đi được (không theo đồng hồ). Sải chân đo từ chính clip khi nạp mô hình (`plantedStride` trong `engine/figures/model.ts`). Chọn đứng/đi/chạy theo tốc độ đo được của khối, ngưỡng ghi ở đầu `engine/units.ts`. Kiểm bằng `s-planted.mjs`: chân trụ lệch 0–2,5% khi chạy, 2% ở pha bàn chân đặt phẳng khi đi.
-5. **`die`:** phát một lần, giữ khung cuối, lính ngã nằm lại đến hết trận (trước đây chìm xuống đất sau 5 giây). Cuối trận: 3.067 hình đứng, 3.743 hình nằm.
-6. **Nhãn địa danh tránh lớp phủ:** `labelLayout` nhận vật cản; cảnh đo mọi phần tử có `data-battle-overlay`. Quét 144 góc nhìn: 0 lần đè.
-7. **Bộ nhớ** (bản dev): mở đóng 10 lần, heap sau GC 23,6 MB ở lần 1 và 25,1 MB ở lần 10; chỉ còn 1 context WebGL sống (của bản đồ) sau mỗi lần đóng.
+1. **Nút xem trận** trong `EventListItem`:
+   - hiện khi sự kiện đang chọn có trận (`hasBattle`); khoá `battle.open`; thuộc tính `data-battle-open`;
+   - nằm ngoài nút của mục, trong cùng `<li>`;
+   - nằm trong một khối `sticky bottom-0`: ở 1280×800 phần tóm tắt dài hơn danh sách, nên nếu không dính đáy thì nút bị khuất.
+2. **`AppShell`** nạp `BattleViewer` bằng `next/dynamic` (`ssr: false`) khi `battleId` khác `null`, và hiện `BattleViewerLoading` trong lúc tải code.
+3. **`BattleViewer`** (`src/components/battle/BattleViewer.tsx` và `src/components/battle/viewer/`):
+   - **Khung:**
+     - `<dialog>` mở bằng `showModal()`, phủ kín; tên là tên sự kiện;
+     - đang tải thì hiện trạng thái tải; lỗi thì hiện thông báo kèm nút đóng;
+     - không tự phát; focus đầu tiên ở nút Phát.
+   - **Thanh điều khiển** (`ControlBar`, `Scrubber`, `usePlayback`):
+     - phát/dừng theo `playSeconds` từng giai đoạn; hết trận thì dừng ở cuối, bấm phát lại thì chạy từ đầu;
+     - thanh tua tự dựng, có vạch ở mốc giai đoạn, vai trò `slider`, dùng được bằng phím;
+     - giờ trong ngày, dòng "Giai đoạn 4/6 · tiêu đề";
+     - nút giai đoạn trước/sau, tốc độ 1×/2×.
+   - **Khung bên** rộng 360 px, thu gọn được bằng nút trên đầu khung. Có hai tab:
+     - **Lời dẫn:** danh sách 6 giai đoạn. Giai đoạn đang diễn ra mở lời dẫn và tự cuộn tới. Bấm một giai đoạn để nhảy tới.
+     - **Thông tin trận:** ngày; mỗi bên có màu phe, chỉ huy, quân số và thương vong (`NumberRange`, kèm `note`); điểm còn tranh cãi; nguồn trận và nguồn địa hình, có link; ghi công.
+   - **Ghi công** (`viewer/credits.ts`):
+     - mô hình lính dựa trên mô hình của Andywoodhead (CC BY 4.0), đã sửa; hoạt hình của Quaternius (CC0);
+     - hai câu Copernicus đúng từng chữ như README, giữ tiếng Anh ở cả hai ngôn ngữ.
+   - **Phím:**
+     - Space phát/dừng; ←/→ giai đoạn trước/sau; Esc đóng;
+     - không lấy phím khi focus ở thanh tua, nút, tab hay ô nhập;
+     - dòng gợi ý phím nằm dưới thanh điều khiển, ẩn ở bề ngang hẹp.
+   - Màu phe hiện ở đầu khung như chú giải. Chỉ dùng token màu.
+4. **Bước chân** (`engine/units.ts`, `engine/figures/model.ts`):
+   - `walk`/`run` chạy theo quãng đường từng hình lính đi được, không theo đồng hồ, nên chân không trượt.
+   - Sải chân đo từ chính clip khi nạp mô hình (`plantedStride`), không lấy số trong tài liệu.
+   - Chọn đứng, đi hay chạy theo tốc độ đo được của khối, không theo `action` trong dữ liệu. Ngưỡng ghi ở đầu `engine/units.ts` (ở `FIGURE_SCALE` 3):
+     - đứng khi dưới 0,18 m/s, bắt đầu đi khi trên 0,36 m/s;
+     - chạy khi trên 8,0 m/s, đi lại khi dưới 6,5 m/s.
+   - Khối lùi mà vẫn quay mặt về địch thì bước lùi.
+   - Khi tua hay kéo thanh tua, lính đứng yên, không bước.
+   - Kiểm bằng `s-planted.mjs`: chân trụ lệch 0–2,5% khi chạy, khoảng 2% ở pha bàn chân đặt phẳng khi đi.
+5. **`die`:** phát một lần rồi giữ khung cuối; lính ngã nằm lại đến hết trận (trước đây chìm xuống đất sau 5 giây). Cuối trận còn 3 067 hình đứng, 3 743 hình nằm.
+6. **Nhãn địa danh tránh lớp phủ:** `labelLayout` nhận thêm vật cản; cảnh đo mọi phần tử có `data-battle-overlay` (thanh gợi ý, nút chất lượng...). Quét 144 góc nhìn: 0 lần đè.
+7. **Sửa của phiên chính:** ở 390 px, chuyển từ tab Lời dẫn sang Thông tin trận thì tab mới mở ở vị trí cuộn cũ, vì lời dẫn tự cuộn tới giai đoạn đang phát; dòng "Ngày" bị cắt. Giờ mỗi tab có khung cuộn riêng (`key={tab}`).
 
-**Còn lại:**
+### Kiểm tra
 
-1. Ảnh chụp theo yêu cầu: `s-shots.mjs` đang lỗi ở dòng 23 (bấm nút Phát sau khi bấm "Giai đoạn sau"), chưa tìm nguyên nhân. Cần xem cả nền sáng, tiếng Việt và bề ngang 390 px (chưa nhìn lần nào).
-2. Đo hiệu năng lúc máy sạch. Lần đo đầu: 144,7 khung hình/giây khi đứng yên (sạch); các số đang phát 60–68 đo lúc `blender.exe` của lane khác chạy, phải đo lại (`s-perf.mjs`).
-3. Bản production: `npm run build`, kiểm chunk chứa `WebGLRenderer` không có trong `.next/server/app/index.html`, và danh sách request của trang trước khi bấm nút.
-4. `npm run lint`, `npm run build`, `npm run validate`.
-5. Viết mục "Kết quả" đầy đủ, kèm ghi chú cho lane 1 và các đề nghị bên dưới.
+Chrome không cửa sổ, GPU RTX 3050 (`--use-angle=d3d11`), bản production (`next build` rồi `next start`).
 
-**Phát hiện cần báo (đưa vào bản kết quả):**
+**Không tải three.js trước khi mở trận:**
+- Chunk duy nhất chứa `WebGLRenderer` là `21brd65ttm4ev.js` (766 KB). Chunk này không có trong `.next/server/app/index.html`.
+- Trang `/?year=-216&event=battle-of-cannae`, trước khi bấm nút: 19 request, trong đó 10 script, không script nào chứa `WebGLRenderer`. Không có request dữ liệu trận, địa hình hay mô hình. Chỉ có 1 canvas (bản đồ).
+- Sau khi bấm: thêm 3 chunk (có chunk three.js), `battle-of-cannae.bin`, `index.json`, `roman-hastatus.glb`, `roman-legionary.glb`.
 
-- **Số sải chân trong `docs/ARCHITECTURE.md` và `art/README.md` sai.** Đo trên clip đã bake: bàn chân trụ của `walk` lùi 0,98 m/s, tức một vòng 1,333 s đi 1,31 m (tài liệu ghi 1,00 m); của `run` lùi 5,9 m/s, một vòng 0,933 s đi 5,5 m (tài liệu ghi 1,99 m). Số của lane 1 chỉ cộng quãng trượt lúc chân chạm đất, bỏ pha hai chân rời đất. Cảnh tự đo nên không phụ thuộc số trong tài liệu.
+**Luồng mở/đóng** (`s-open.mjs`), cả `en` lẫn `vi`, console sạch:
+- tên hộp thoại đúng: "Battle of Cannae" / "Trận Cannae";
+- mở ở thời điểm 0, focus ở nút Phát; phát 4 giây thì tới 0,17; dừng thì đứng yên;
+- → → ← chuyển đúng giai đoạn; bấm vào cảnh rồi Space vẫn phát; mũi tên trên tab chỉ đổi tab;
+- Esc đóng; focus về nút xem trận; địa chỉ và vị trí cuộn danh sách giữ nguyên;
+- mở lại thì về 0, có 2 canvas; đóng bằng nút thì còn 1 canvas.
+
+**Bộ nhớ** (`s-memory.mjs`, production): mở, phát, rồi đóng 10 lần; lần lẻ đóng bằng Esc, lần chẵn bằng nút.
+- Heap sau GC: 12,6 MB trước khi mở; 15,9 MB sau lần 1; 17,2 MB sau lần 10 (đứng ở 16,9 MB từ lần 5 đến lần 8).
+- Sau mỗi lần đóng: chỉ còn 1 context WebGL sống (của bản đồ), 1 canvas; số node DOM không đổi (1 118).
+
+**Hiệu năng** (`s-perf.mjs`): 1280×800, khung bên mở, cảnh 920×678, chất lượng cao, bỏ giới hạn 60 khung hình/giây. Mỗi khung hình đọc 1 điểm ảnh để chỉ đếm khung đã vẽ xong.
+
+Máy sạch (không có `blender.exe`; Godot, Chrome và các dev server khác vẫn chạy):
+
+| Lúc | Khung hình/giây | p99 (ms) | Hình đứng / nằm |
+|---|---|---|---|
+| Góc nhìn mở, dừng (thời điểm 0) | 124 | 10,8 | 6 810 / 0 |
+| Đang phát giai đoạn 1 (dàn trận), 1× | 66 | 19,2 | 6 810 / 0 |
+| Đang phát giai đoạn 3 (tiến quân), 1× | 64 | 20,5 | 6 668 / 142 |
+| Đang phát giai đoạn 4 (giao chiến, lính ngã), 1× | 68 | 17,8 | 6 339 / 471 |
+| Đang phát giai đoạn 6 (vòng vây), 2× | 108 | 17,1 | 4 988 / 1 822 |
+| Cuối trận, góc nhìn mở, dừng | 114 | 11,9 | 3 067 / 3 743 |
+| Cuối trận, giữa đám lính ngã (120 m), dừng | 114 | 11,4 | 3 067 / 3 743 |
+| Đang phát giai đoạn 4 từ 90 m (hình LOD0) | 59 | 36,7 | 6 318 / 492 |
+
+Mọi trường hợp đều trên mục tiêu 50 khung hình/giây. Lúc Blender của lane 1 đang render, các số khi đang phát xuống còn 40–59.
+
+Để biết code bước chân mới có làm chậm hay không, đã đo xen kẽ `/battle-lab` (bản dev) của `main` và của nhánh này, 3 lượt, cùng điều kiện máy. Trung bình giai đoạn 3: `main` 63, nhánh này 58,5; giai đoạn 4: `main` 62, nhánh này 65. Chênh lệch nằm trong độ dao động, nên code mới không làm chậm rõ rệt.
+
+Theo CPU profile lúc đang phát (giai đoạn 4), phần lớn thời gian mỗi khung hình là chờ GPU. Phần JS cập nhật đám đông tốn khoảng 3,5 ms; React gần như không tốn gì.
+
+**Ảnh chụp** (ngoài repo, `E:\World_History_Platform_assets\T-023\shots\`):
+- `en-light-*`: 1280×800, tiếng Anh, nền sáng;
+- `vi-dark-*`: tiếng Việt, nền tối;
+- `m390-vi-light-*`: 390 px.
+
+Mỗi bộ có: panel sự kiện, lúc vừa mở, giai đoạn 2, đang phát giai đoạn 4, thông tin trận, nguồn và ghi công; bộ 1280×800 có thêm ảnh khung bên thu gọn. Có thêm bộ `m390-vi-dark-*`. Góc nhìn mở thấy cả hai chiến tuyến khi khung lời dẫn mở. Ở 390 px: cảnh ở trên, rồi thanh điều khiển, rồi khung lời dẫn và thông tin; không cuộn ngang.
+
+### Ghi chú cho lane 1 (mô hình và clip)
+
+- **Số sải chân trong `docs/ARCHITECTURE.md` và `art/README.md` sai.** Đo trên clip đã bake:
+  - `walk`: bàn chân trụ lùi 0,98 m/s, tức một vòng 1,333 s đi 1,31 m (tài liệu ghi 1,00 m);
+  - `run`: bàn chân trụ lùi 5,9 m/s, tức một vòng 0,933 s đi 5,5 m (tài liệu ghi 1,99 m).
+
+  Số cũ chỉ cộng quãng trượt lúc chân chạm đất, bỏ pha hai chân rời đất. Cảnh tự đo nên không phụ thuộc số trong tài liệu.
 - Clip `run` thực chất là chạy nước rút (5,9 m/s ở cỡ người thật), không phải chạy chậm.
-- Clip `walk`: quanh lúc gót chạm đất và mũi chân rời đất (khung 0–4 và 20–24) bàn chân không lùi theo mặt đất, trượt khoảng 32% trong các khung đó.
-- Dữ liệu Cannae: giai đoạn 1 mọi đơn vị có `action: "stand"` dù đi 0,6–5 km. Cảnh giờ chọn clip theo tốc độ thật nên vẫn đi/chạy.
-- Các khối đi nhanh hơn 26,6 m/s trên màn hình (ví dụ lúc dàn trận) thì chân vẫn trượt: trận 11,5 giờ được phát trong khoảng 140 giây.
-- Hastati đánh bằng kiếm trong khi tay trái vẫn cầm hai cây *pilum*; chưa có clip phóng *pilum*.
-- Ghi công trong khung mới có dòng cho hai mô hình La Mã (`viewer/credits.ts`); thêm mô hình ở T-021 thì phải thêm dòng.
+- Clip `walk`: quanh lúc gót chạm đất và lúc mũi chân rời đất (khung 0–4 và 20–24), bàn chân không lùi theo mặt đất mà trượt khoảng 32% trong các khung đó.
+- Hastati đánh bằng kiếm trong khi tay trái vẫn cầm hai cây *pilum*. Chưa có clip phóng *pilum*.
 
-**Công cụ thử** (ngoài repo): `E:\World_History_Platform_assets\T-023\tools\`, chạy `GPU=1 node drive.mjs <kịch bản>.mjs`. Kịch bản: `s-open` (luồng mở/đóng), `s-planted` (chân trụ), `s-stride` (bảng từng khung của clip), `s-labels`, `s-fallen`, `s-close`, `s-attack`, `s-memory`, `s-perf`, `s-shots`. Ảnh ở `E:\World_History_Platform_assets\T-023\shots\`. Dev server: `TUTOR_MOCK=1 npx next dev -p 3103`.
+### Ghi chú khác
+
+- Dữ liệu Cannae (lane 2): ở giai đoạn 1, mọi đơn vị có `action: "stand"` dù đi 0,6–5 km. Cảnh giờ chọn clip theo tốc độ thật nên lính vẫn đi hay chạy; `action` chỉ còn quyết định lúc đánh (`fight`).
+- Trận dài 11,5 giờ được phát trong khoảng 140 giây. Khối nào đi nhanh hơn 26,6 m/s trên màn hình (ví dụ lúc dàn trận) thì chân vẫn trượt: chân giữ nhịp chạy nhanh nhất mà vẫn còn trông giống chạy.
+- Ghi công trong khung mới chỉ có dòng cho mô hình La Mã (`viewer/credits.ts`). Khi gộp T-021 (6 mô hình bộ binh) và T-022 (kỵ binh, ngựa) phải thêm dòng, và giữ khớp với README và `art/CREDITS.md`.
+- `/battle-lab` vẫn chỉ chạy ở `next dev`; bản production trả 404, như trước.
+
+### Đề nghị ngoài phạm vi
+
+1. Phiên chính sửa số sải chân trong `docs/ARCHITECTURE.md` (mục "Mô hình lính") theo số đo ở trên, hoặc ghi rằng cảnh tự đo sải chân từ clip.
+2. Vẫn để sau, như task đã ghi: chuyển cảnh từ bản đồ vào trận (lane 2), ghi công trong hộp thoại Giới thiệu, link chia sẻ mở thẳng vào trận.
+
+**Công cụ thử** (ngoài repo): `E:\World_History_Platform_assets\T-023\tools\`. Chạy `GPU=1 node drive.mjs <kịch bản>.mjs`.
+- Kịch bản: `s-open` (luồng mở/đóng), `s-planted` (chân trụ), `s-stride` (bảng từng khung của clip), `s-labels`, `s-fallen`, `s-close`, `s-attack`, `s-memory`, `s-perf`, `s-profile`, `s-shots`.
+- Dev server: `TUTOR_MOCK=1 npx next dev -p 3103`.

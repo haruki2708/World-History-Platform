@@ -270,8 +270,11 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                   </button>
                 ))}
               </div>
-              {/* `relative`: keeps screen-reader-only text inside this scroller. */}
+              {/* `relative`: keeps screen-reader-only text inside this scroller.
+                  Keyed by tab: the story scrolls itself to the phase under
+                  way, and the info must not open at that scroll position. */}
               <div
+                key={tab}
                 role="tabpanel"
                 id={`${panelId}-${tab}`}
                 aria-labelledby={`${panelId}-tab-${tab}`}
