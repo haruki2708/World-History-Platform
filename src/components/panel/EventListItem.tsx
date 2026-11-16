@@ -1,9 +1,10 @@
 "use client";
 
-import { getPolity } from "@/data";
+import { getPolity, hasBattle } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import type { HistoricalEvent } from "@/lib/types";
 import { formatYearRange } from "@/lib/years";
+import { useAppStore } from "@/store/useAppStore";
 
 interface EventListItemProps {
   event: HistoricalEvent;
@@ -31,6 +32,7 @@ export function EventListItem({
   onToggle,
 }: EventListItemProps) {
   const { t, locale } = useT();
+  const openBattle = useAppStore((state) => state.openBattle);
   const dimmed = !selected && !active && !nearby;
 
   return (
@@ -117,6 +119,26 @@ export function EventListItem({
           </span>
         )}
       </button>
+
+      {/* Outside the item's own button: a button may not contain another.
+          Sticky, so it stays in sight at the bottom of the list while the
+          summary above it is longer than the list is tall. The battle viewer
+          returns focus here when it closes. */}
+      {selected && hasBattle(event.id) && (
+        <div className="sticky bottom-0 bg-background pt-1.5 pb-1 pl-4">
+          <button
+            type="button"
+            data-battle-open={event.id}
+            onClick={() => openBattle(event.id)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 fill-current">
+              <path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7Z" />
+            </svg>
+            {t("battle.open")}
+          </button>
+        </div>
+      )}
     </li>
   );
 }

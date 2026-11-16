@@ -1,13 +1,23 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/useT";
+import { useAppStore } from "@/store/useAppStore";
+import { BattleViewerLoading } from "./battle/BattleViewerLoading";
 import { MapView } from "./map/MapView";
 import { EventPanel } from "./panel/EventPanel";
 import { HeaderActions } from "./shell/HeaderActions";
 import { UrlSync } from "./shell/UrlSync";
 import { TimelineBar } from "./timeline/TimelineBar";
 import { TutorPanel } from "./tutor/TutorPanel";
+
+// The battle viewer brings three.js with it, so its code is fetched only when
+// a battle is first opened, and never on the server.
+const BattleViewer = dynamic(
+  () => import("./battle/BattleViewer").then((m) => m.BattleViewer),
+  { ssr: false, loading: () => <BattleViewerLoading /> },
+);
 
 type PanelTab = "events" | "tutor";
 
@@ -27,6 +37,7 @@ const TABS: { id: PanelTab; label: "events.heading" | "tutor.heading" }[] = [
 export function AppShell() {
   const { t, locale } = useT();
   const [tab, setTab] = useState<PanelTab>("events");
+  const battleOpen = useAppStore((state) => state.battleId !== null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -115,6 +126,8 @@ export function AppShell() {
       <footer className="shrink-0 border-t border-line">
         <TimelineBar />
       </footer>
+
+      {battleOpen && <BattleViewer />}
     </div>
   );
 }
