@@ -106,11 +106,12 @@ export class Sky {
   /** The colour of the haze at the horizon, for the fog. */
   readonly haze = new Color();
   /**
-   * Radiance of the sky overhead and of the ground, matching the ambient
-   * light: what shiny surfaces reflect, in place of an environment map.
+   * The colours of the sky dome overhead, at the horizon and below it: what
+   * shiny surfaces reflect, in place of an environment map. Updated in place.
    */
-  readonly envSky = new Color();
-  readonly envGround = new Color();
+  readonly envZenith: Color;
+  readonly envHorizon: Color;
+  readonly envGround: Color;
   /**
    * How bright the field is, 1 at noon and low at night: for the flat
    * markings on the ground (arrows, block outlines), which take no light.
@@ -190,6 +191,9 @@ export class Sky {
           #include <colorspace_fragment>
         }`,
     });
+    this.envZenith = this.material.uniforms.uZenith.value;
+    this.envHorizon = this.material.uniforms.uHorizon.value;
+    this.envGround = this.material.uniforms.uGround.value;
     this.dome = new Mesh(new SphereGeometry(100, 32, 16), this.material);
     this.dome.frustumCulled = false;
     this.dome.renderOrder = -10;
@@ -239,9 +243,6 @@ export class Sky {
     sampleColor(AMBIENT_COLOR, elevation, this.ambient.color);
     sampleColor(GROUND_BOUNCE, elevation, this.ambient.groundColor);
     this.ambient.intensity = sampleNumber(AMBIENT_INTENSITY, elevation) + 0.15 * moon;
-    // A hemisphere light of colour C gives the irradiance of a sky of radiance C / π.
-    this.envSky.copy(this.ambient.color).multiplyScalar(this.ambient.intensity / Math.PI);
-    this.envGround.copy(this.ambient.groundColor).multiplyScalar(this.ambient.intensity / Math.PI);
     this.daylight = Math.min(
       (this.ambient.intensity + this.light.intensity * Math.max(this.lightDir.y, 0)) / 4.5,
       1,

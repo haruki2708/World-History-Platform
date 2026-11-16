@@ -77,7 +77,9 @@ const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
     lod1Pixels: 32,
     triangleBudget: 2_500_000,
     shadows: true,
-    detailedLods: 1,
+    // Every level: figures keep their look (metal stays metal) as they
+    // change level with distance. Measured no slower than LOD0 alone.
+    detailedLods: 3,
   },
   low: {
     pixelRatio: 1,
@@ -165,7 +167,8 @@ export class BattleEngine {
     this.shared = {
       uTime: { value: 0 },
       uFigScale: { value: FIGURE_SCALE },
-      uEnvSky: { value: this.sky.envSky },
+      uEnvZenith: { value: this.sky.envZenith },
+      uEnvHorizon: { value: this.sky.envHorizon },
       uEnvGround: { value: this.sky.envGround },
     };
     this.scene.add(this.sky.dome, this.sky.light, this.sky.light.target, this.sky.ambient);

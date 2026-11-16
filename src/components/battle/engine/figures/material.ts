@@ -35,8 +35,9 @@ export interface FigureShared {
   uTime: IUniform<number>;
   /** How much larger than life the figures are drawn. */
   uFigScale: IUniform<number>;
-  /** Radiance of the sky overhead and of the ground below, for reflections. */
-  uEnvSky: IUniform<Color>;
+  /** Sky dome colours overhead, at the horizon and below it, for reflections. */
+  uEnvZenith: IUniform<Color>;
+  uEnvHorizon: IUniform<Color>;
   uEnvGround: IUniform<Color>;
 }
 
@@ -121,17 +122,24 @@ void figureTransform(vec3 p, vec3 n) {
 }
 `;
 
-/** Sky reflections for the detailed material, in place of an environment map. */
+/**
+ * Sky reflections for the detailed material, in place of an environment
+ * map: the gradient of the sky dome (sky.ts) along the reflected ray, so a
+ * polished surface shows the sky as the viewer sees it. Rough surfaces see a
+ * blurred version: a softer horizon and an average of the upper sky.
+ */
 const SKY_PARS = /* glsl */ `
-uniform vec3 uEnvSky;
+uniform vec3 uEnvZenith;
+uniform vec3 uEnvHorizon;
 uniform vec3 uEnvGround;
 vec3 figSkyRadiance(vec3 viewDir, vec3 normal, float roughness) {
   vec3 r = reflect(-viewDir, normal);
   r = normalize(mix(r, normal, roughness * roughness));
   r = transformDirectionByInverseViewMatrix(r, viewMatrix);
-  // Rough surfaces see a softer horizon.
-  float spread = 0.08 + 0.5 * roughness;
-  return mix(uEnvGround, uEnvSky, smoothstep(-spread, spread, r.y));
+  float up = mix(pow(clamp(r.y, 0.0, 1.0), 0.5), 0.6, roughness);
+  vec3 sky = mix(uEnvHorizon, uEnvZenith, up);
+  float spread = 0.04 + 0.5 * roughness;
+  return mix(sky, uEnvGround, smoothstep(spread * 0.5, -spread, r.y));
 }
 `;
 
@@ -197,7 +205,8 @@ export function createFigureMaterials(
     });
     detailed.onBeforeCompile = (shader) => {
       bind(shader);
-      shader.uniforms.uEnvSky = shared.uEnvSky;
+      shader.uniforms.uEnvZenith = shared.uEnvZenith;
+      shader.uniforms.uEnvHorizon = shared.uEnvHorizon;
       shader.uniforms.uEnvGround = shared.uEnvGround;
       shader.vertexShader = figureVertex(shader.vertexShader);
       shader.fragmentShader = shader.fragmentShader
