@@ -1,69 +1,1383 @@
 {
   "id": "battle-of-cannae",
-  "origin": { "lng": 16.1518, "lat": 41.2967 },
-  "date": { "en": "216 BCE", "vi": "216 TCN" },
+  "origin": { "lng": 16.2085, "lat": 41.3327 },
+  "date": {
+    "en": "2 August 216 BCE (Roman calendar; perhaps 1 July in the Julian calendar)",
+    "vi": "Ngày 2 tháng 8 năm 216 TCN (theo lịch La Mã; có thể là ngày 1 tháng 7 theo lịch Julius)"
+  },
   "sides": [
     {
       "id": "rome",
       "polityId": "rome",
       "name": { "en": "Rome and its allies", "vi": "La Mã và đồng minh" },
-      "commanders": [{ "en": "Placeholder", "vi": "Dữ liệu tạm" }],
-      "strength": { "min": 4000, "max": 4000 }
+      "commanders": [
+        {
+          "en": "Gaius Terentius Varro (consul, in command that day; left wing)",
+          "vi": "Gaius Terentius Varro (chấp chính quan, cầm quân hôm ấy; cánh trái)"
+        },
+        { "en": "Lucius Aemilius Paullus (consul; right wing)", "vi": "Lucius Aemilius Paullus (chấp chính quan; cánh phải)" },
+        { "en": "Gnaeus Servilius Geminus (centre)", "vi": "Gnaeus Servilius Geminus (trung quân)" },
+        { "en": "Marcus Atilius Regulus (centre, per Polybius)", "vi": "Marcus Atilius Regulus (trung quân, theo Polybius)" }
+      ],
+      "strength": {
+        "min": 86000,
+        "max": 87200,
+        "note": {
+          "en": "Polybius (3.113) gives about 80,000 foot and a little over 6,000 horse, including 10,000 foot left in the large camp (3.117). Livy (22.36) says his sources disagree and cites some who give 87,200. Some modern historians think the real figure was lower.",
+          "vi": "Polybius (3.113) ghi khoảng 80.000 bộ binh và hơn 6.000 kỵ binh một chút, kể cả 10.000 bộ binh ở lại trại lớn (3.117). Livy (22.36) nói các nguồn của ông không thống nhất và dẫn một số tác giả cho con số 87.200. Một số sử gia hiện đại cho rằng con số thật thấp hơn."
+        }
+      },
+      "casualties": {
+        "min": 48200,
+        "max": 70000,
+        "note": {
+          "en": "Killed. Livy (22.49): 45,500 foot and 2,700 horse, with 3,000 foot and 1,500 horse captured in the battle. Polybius (3.117): about 70,000 dead, about 10,000 captured (the camp force) and only about 3,000 foot and 370 horse escaped.",
+          "vi": "Số tử trận. Livy (22.49): 45.500 bộ binh và 2.700 kỵ binh, thêm 3.000 bộ binh và 1.500 kỵ binh bị bắt ngay trong trận. Polybius (3.117): khoảng 70.000 người chết, khoảng 10.000 bị bắt (lực lượng ở trại) và chỉ khoảng 3.000 bộ binh cùng 370 kỵ binh thoát được."
+        }
+      }
     },
     {
       "id": "carthage",
       "polityId": "carthage",
       "name": { "en": "Hannibal's army", "vi": "Quân của Hannibal" },
-      "commanders": [{ "en": "Placeholder", "vi": "Dữ liệu tạm" }],
-      "strength": { "min": 4000, "max": 4000 }
+      "commanders": [
+        { "en": "Hannibal (centre)", "vi": "Hannibal (trung quân)" },
+        { "en": "Mago, his brother (centre)", "vi": "Mago, em trai ông (trung quân)" },
+        { "en": "Hasdrubal (left wing, heavy cavalry)", "vi": "Hasdrubal (cánh trái, kỵ binh nặng)" },
+        { "en": "Hanno (right wing, per Polybius) or Maharbal (per Livy)", "vi": "Hanno (cánh phải, theo Polybius) hoặc Maharbal (theo Livy)" }
+      ],
+      "strength": {
+        "min": 50000,
+        "max": 50000,
+        "note": {
+          "en": "Polybius (3.114) and Livy (22.46) agree on about 40,000 foot and 10,000 horse. A guard left in Hannibal's camp is not counted and its size is unknown.",
+          "vi": "Polybius (3.114) và Livy (22.46) cùng ghi khoảng 40.000 bộ binh và 10.000 kỵ binh. Toán quân giữ trại của Hannibal không được tính và không rõ quân số."
+        }
+      },
+      "casualties": {
+        "min": 5700,
+        "max": 8000,
+        "note": {
+          "en": "Killed. Polybius (3.117): about 4,000 Gauls, 1,500 Iberians and Libyans and 200 horsemen. Livy (22.52): up to 8,000 of Hannibal's best men.",
+          "vi": "Số tử trận. Polybius (3.117): khoảng 4.000 lính Gaul, 1.500 lính Iberia và Libya, và 200 kỵ binh. Livy (22.52): tới 8.000 người thuộc hàng tinh nhuệ nhất của Hannibal."
+        }
+      }
     }
   ],
   "units": [
-    { "id": "placeholder-legion", "side": "rome", "type": "roman-hastati", "name": { "en": "Placeholder legion", "vi": "Quân đoàn tạm" }, "men": 4000 },
-    { "id": "placeholder-gauls", "side": "carthage", "type": "gallic-infantry", "name": { "en": "Placeholder Gauls", "vi": "Lính Gaul tạm" }, "men": 4000 }
+    {
+      "id": "roman-cavalry",
+      "side": "rome",
+      "type": "roman-cavalry",
+      "name": { "en": "Roman cavalry (Paullus)", "vi": "Kỵ binh La Mã (Paullus)" },
+      "men": 2400
+    },
+    { "id": "roman-velites", "side": "rome", "type": "roman-velites", "name": { "en": "Roman velites", "vi": "Velites La Mã" }, "men": 8000 },
+    {
+      "id": "allied-light-infantry",
+      "side": "rome",
+      "type": "roman-velites",
+      "name": { "en": "Allied light infantry", "vi": "Bộ binh nhẹ đồng minh" },
+      "men": 7000
+    },
+    {
+      "id": "hastati",
+      "side": "rome",
+      "type": "roman-hastati",
+      "name": { "en": "Hastati of the eight legions", "vi": "Hastati của tám quân đoàn" },
+      "men": 11400
+    },
+    {
+      "id": "principes",
+      "side": "rome",
+      "type": "roman-principes",
+      "name": { "en": "Principes of the eight legions", "vi": "Principes của tám quân đoàn" },
+      "men": 11400
+    },
+    {
+      "id": "triarii",
+      "side": "rome",
+      "type": "roman-triarii",
+      "name": { "en": "Triarii of the eight legions", "vi": "Triarii của tám quân đoàn" },
+      "men": 4200
+    },
+    {
+      "id": "allied-infantry-front",
+      "side": "rome",
+      "type": "socii-infantry",
+      "name": { "en": "Allied infantry, front lines", "vi": "Bộ binh đồng minh, các hàng trước" },
+      "men": 14000
+    },
+    {
+      "id": "allied-infantry-rear",
+      "side": "rome",
+      "type": "socii-infantry",
+      "name": { "en": "Allied infantry, rear lines", "vi": "Bộ binh đồng minh, các hàng sau" },
+      "men": 14000
+    },
+    {
+      "id": "allied-cavalry",
+      "side": "rome",
+      "type": "allied-cavalry",
+      "name": { "en": "Allied cavalry (Varro)", "vi": "Kỵ binh đồng minh (Varro)" },
+      "men": 3800
+    },
+    {
+      "id": "camp-force",
+      "side": "rome",
+      "type": "socii-infantry",
+      "name": { "en": "Force left in the large camp", "vi": "Lực lượng ở lại trại lớn" },
+      "men": 10000
+    },
+    {
+      "id": "balearic-slingers",
+      "side": "carthage",
+      "type": "balearic-slingers",
+      "name": { "en": "Balearic slingers", "vi": "Lính ném đá Baleares" },
+      "men": 2000
+    },
+    { "id": "light-spearmen", "side": "carthage", "type": "light-spearmen", "name": { "en": "Light spearmen", "vi": "Lính giáo nhẹ" }, "men": 6000 },
+    {
+      "id": "hasdrubal-cavalry-front",
+      "side": "carthage",
+      "type": "iberian-gallic-cavalry",
+      "name": { "en": "Iberian and Gallic cavalry, front (Hasdrubal)", "vi": "Kỵ binh Iberia và Gaul, hàng trước (Hasdrubal)" },
+      "men": 3000
+    },
+    {
+      "id": "hasdrubal-cavalry-rear",
+      "side": "carthage",
+      "type": "iberian-gallic-cavalry",
+      "name": { "en": "Iberian and Gallic cavalry, rear (Hasdrubal)", "vi": "Kỵ binh Iberia và Gaul, hàng sau (Hasdrubal)" },
+      "men": 3000
+    },
+    {
+      "id": "libyans-left",
+      "side": "carthage",
+      "type": "libyan-infantry",
+      "name": { "en": "Libyan infantry, left", "vi": "Bộ binh Libya, cánh trái" },
+      "men": 4000
+    },
+    {
+      "id": "gauls-left",
+      "side": "carthage",
+      "type": "gallic-infantry",
+      "name": { "en": "Gauls, left of the crescent", "vi": "Lính Gaul, bên trái lưỡi liềm" },
+      "men": 5000
+    },
+    {
+      "id": "iberians-left",
+      "side": "carthage",
+      "type": "iberian-infantry",
+      "name": { "en": "Iberians, left of centre", "vi": "Lính Iberia, lệch trái" },
+      "men": 4000
+    },
+    {
+      "id": "gauls-centre",
+      "side": "carthage",
+      "type": "gallic-infantry",
+      "name": { "en": "Gauls, centre of the crescent (Hannibal and Mago)", "vi": "Lính Gaul, giữa lưỡi liềm (Hannibal và Mago)" },
+      "men": 6000
+    },
+    {
+      "id": "iberians-right",
+      "side": "carthage",
+      "type": "iberian-infantry",
+      "name": { "en": "Iberians, right of centre", "vi": "Lính Iberia, lệch phải" },
+      "men": 4000
+    },
+    {
+      "id": "gauls-right",
+      "side": "carthage",
+      "type": "gallic-infantry",
+      "name": { "en": "Gauls, right of the crescent", "vi": "Lính Gaul, bên phải lưỡi liềm" },
+      "men": 5000
+    },
+    {
+      "id": "libyans-right",
+      "side": "carthage",
+      "type": "libyan-infantry",
+      "name": { "en": "Libyan infantry, right", "vi": "Bộ binh Libya, cánh phải" },
+      "men": 4000
+    },
+    {
+      "id": "numidians",
+      "side": "carthage",
+      "type": "numidian-cavalry",
+      "name": { "en": "Numidian cavalry (Hanno)", "vi": "Kỵ binh Numidia (Hanno)" },
+      "men": 4000
+    }
   ],
-  "startHour": 7,
+  "startHour": 5.5,
   "initial": [
-    { "unit": "placeholder-legion", "formation": { "center": { "x": 0, "y": 600 }, "frontage": 400, "depth": 40, "facing": 180 }, "action": "stand", "men": 4000 },
-    { "unit": "placeholder-gauls", "formation": { "center": { "x": 0, "y": -600 }, "frontage": 400, "depth": 30, "facing": 0, "bulge": 60 }, "action": "stand", "men": 4000 }
+    {
+      "unit": "roman-cavalry",
+      "formation": { "center": { "x": -750, "y": 1200 }, "frontage": 100, "depth": 300, "facing": 95 },
+      "action": "advance",
+      "men": 2400
+    },
+    {
+      "unit": "roman-velites",
+      "formation": { "center": { "x": -750, "y": 980 }, "frontage": 100, "depth": 200, "facing": 95 },
+      "action": "advance",
+      "men": 8000
+    },
+    {
+      "unit": "hastati",
+      "formation": { "center": { "x": -1100, "y": 1230 }, "frontage": 150, "depth": 280, "facing": 95 },
+      "action": "advance",
+      "men": 11400
+    },
+    {
+      "unit": "principes",
+      "formation": { "center": { "x": -1100, "y": 1010 }, "frontage": 150, "depth": 200, "facing": 95 },
+      "action": "advance",
+      "men": 11400
+    },
+    {
+      "unit": "triarii",
+      "formation": { "center": { "x": -1350, "y": 1480 }, "frontage": 120, "depth": 150, "facing": 95 },
+      "action": "advance",
+      "men": 4200
+    },
+    {
+      "unit": "allied-infantry-front",
+      "formation": { "center": { "x": -1350, "y": 1000 }, "frontage": 150, "depth": 200, "facing": 95 },
+      "action": "advance",
+      "men": 14000
+    },
+    {
+      "unit": "camp-force",
+      "formation": { "center": { "x": -1600, "y": 1250 }, "frontage": 220, "depth": 220, "facing": 180 },
+      "action": "stand",
+      "men": 10000
+    },
+    {
+      "unit": "allied-infantry-rear",
+      "formation": { "center": { "x": 250, "y": 950 }, "frontage": 200, "depth": 220, "facing": 190 },
+      "action": "advance",
+      "men": 14000
+    },
+    {
+      "unit": "allied-light-infantry",
+      "formation": { "center": { "x": 560, "y": 1150 }, "frontage": 150, "depth": 150, "facing": 190 },
+      "action": "advance",
+      "men": 7000
+    },
+    {
+      "unit": "allied-cavalry",
+      "formation": { "center": { "x": 880, "y": 1100 }, "frontage": 150, "depth": 220, "facing": 160 },
+      "action": "advance",
+      "men": 3800
+    },
+    {
+      "unit": "balearic-slingers",
+      "formation": { "center": { "x": -1900, "y": -350 }, "frontage": 100, "depth": 150, "facing": 100 },
+      "action": "advance",
+      "men": 2000
+    },
+    {
+      "unit": "light-spearmen",
+      "formation": { "center": { "x": -1950, "y": -560 }, "frontage": 150, "depth": 200, "facing": 100 },
+      "action": "advance",
+      "men": 6000
+    },
+    {
+      "unit": "hasdrubal-cavalry-front",
+      "formation": { "center": { "x": -2600, "y": -150 }, "frontage": 120, "depth": 220, "facing": 100 },
+      "action": "advance",
+      "men": 3000
+    },
+    {
+      "unit": "hasdrubal-cavalry-rear",
+      "formation": { "center": { "x": -2600, "y": -400 }, "frontage": 120, "depth": 220, "facing": 100 },
+      "action": "advance",
+      "men": 3000
+    },
+    {
+      "unit": "libyans-left",
+      "formation": { "center": { "x": -2600, "y": -650 }, "frontage": 150, "depth": 200, "facing": 100 },
+      "action": "advance",
+      "men": 4000
+    },
+    {
+      "unit": "gauls-left",
+      "formation": { "center": { "x": -3000, "y": -150 }, "frontage": 150, "depth": 220, "facing": 100 },
+      "action": "advance",
+      "men": 5000
+    },
+    {
+      "unit": "iberians-left",
+      "formation": { "center": { "x": -3000, "y": -400 }, "frontage": 150, "depth": 200, "facing": 100 },
+      "action": "advance",
+      "men": 4000
+    },
+    {
+      "unit": "gauls-centre",
+      "formation": { "center": { "x": -3000, "y": -650 }, "frontage": 150, "depth": 220, "facing": 100 },
+      "action": "advance",
+      "men": 6000
+    },
+    {
+      "unit": "iberians-right",
+      "formation": { "center": { "x": -3400, "y": -150 }, "frontage": 150, "depth": 200, "facing": 100 },
+      "action": "advance",
+      "men": 4000
+    },
+    {
+      "unit": "gauls-right",
+      "formation": { "center": { "x": -3400, "y": -400 }, "frontage": 150, "depth": 220, "facing": 100 },
+      "action": "advance",
+      "men": 5000
+    },
+    {
+      "unit": "libyans-right",
+      "formation": { "center": { "x": -3400, "y": -650 }, "frontage": 150, "depth": 200, "facing": 100 },
+      "action": "advance",
+      "men": 4000
+    },
+    {
+      "unit": "numidians",
+      "formation": { "center": { "x": -3800, "y": -150 }, "frontage": 150, "depth": 260, "facing": 100 },
+      "action": "advance",
+      "men": 4000
+    }
   ],
   "phases": [
     {
-      "id": "placeholder-advance",
-      "title": { "en": "Placeholder phase", "vi": "Giai đoạn tạm" },
+      "id": "deployment",
+      "title": { "en": "The armies deploy", "vi": "Hai bên dàn trận" },
       "narration": {
-        "en": "Placeholder data so the scene can be built before T-016 brings the real battle.",
-        "vi": "Dữ liệu tạm để dựng cảnh trước khi T-016 đưa vào dữ liệu thật của trận."
+        "en": "Just after sunrise the consul Varro, in command that day, leads the army from the large camp across the Aufidus and joins it to the troops of the small camp. The line faces south, with the Roman horse against the river on the right and the allied horse on the open left. Hannibal crosses at two places and forms opposite, facing north, then pushes the middle of his Gauls and Iberians forward into a crescent. Ten thousand Romans stay behind to raid his camp.",
+        "vi": "Ngay sau khi mặt trời mọc, chấp chính quan Varro, người cầm quân hôm ấy, dẫn đạo quân từ trại lớn vượt sông Aufidus và nhập với quân của trại nhỏ. Chiến tuyến quay mặt về phía nam, kỵ binh La Mã tựa vào sông ở cánh phải, kỵ binh đồng minh ở cánh trái trống trải. Hannibal vượt sông ở hai chỗ, dàn quân đối diện, mặt quay về phía bắc, rồi đẩy phần giữa của lính Gaul và Iberia lên trước thành hình lưỡi liềm. Mười nghìn lính La Mã ở lại để đánh vào trại của ông."
       },
-      "endHour": 9,
-      "playSeconds": 12,
+      "endHour": 8,
+      "playSeconds": 25,
       "units": [
-        { "unit": "placeholder-legion", "formation": { "center": { "x": 0, "y": 40 }, "frontage": 400, "depth": 40, "facing": 180 }, "action": "fight", "men": 3600 },
-        { "unit": "placeholder-gauls", "formation": { "center": { "x": 0, "y": -40 }, "frontage": 400, "depth": 30, "facing": 0, "bulge": -40 }, "action": "fight", "men": 3200 }
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -1050, "y": 320 }, "frontage": 500, "depth": 70, "facing": 180 },
+          "action": "stand",
+          "men": 2400
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -375, "y": 150 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "stand",
+          "men": 8000
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 375, "y": 150 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "stand",
+          "men": 7000
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -375, "y": 285 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 11400
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -375, "y": 330 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 11400
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -375, "y": 372 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "stand",
+          "men": 4200
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 375, "y": 290 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 14000
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 375, "y": 345 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 14000
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 1080, "y": 300 }, "frontage": 600, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 3800
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -1600, "y": 1250 }, "frontage": 220, "depth": 220, "facing": 180 },
+          "action": "stand",
+          "men": 10000
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -330, "y": -60 }, "frontage": 700, "depth": 15, "facing": 0 },
+          "action": "stand",
+          "men": 2000
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 400, "y": -60 }, "frontage": 800, "depth": 20, "facing": 0 },
+          "action": "stand",
+          "men": 6000
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": -1150, "y": -255 }, "frontage": 350, "depth": 50, "facing": 0 },
+          "action": "stand",
+          "men": 3000
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": -1150, "y": -325 }, "frontage": 350, "depth": 50, "facing": 0 },
+          "action": "stand",
+          "men": 3000
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -820, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "action": "stand",
+          "men": 6000
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 700, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 1150, "y": -290 }, "frontage": 600, "depth": 40, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        }
       ],
       "arrows": [
-        { "side": "rome", "points": [{ "x": 0, "y": 560 }, { "x": 0, "y": 80 }] }
+        { "side": "rome", "points": [{ "x": -750, "y": 1150 }, { "x": -470, "y": 1100 }, { "x": -800, "y": 600 }, { "x": -1050, "y": 380 }] },
+        { "side": "rome", "points": [{ "x": -1100, "y": 1150 }, { "x": -470, "y": 1100 }, { "x": -380, "y": 420 }] },
+        { "side": "rome", "points": [{ "x": 300, "y": 900 }, { "x": 375, "y": 400 }] },
+        { "side": "rome", "points": [{ "x": 880, "y": 1000 }, { "x": 1080, "y": 360 }] },
+        { "side": "carthage", "points": [{ "x": -2550, "y": -250 }, { "x": -1350, "y": -450 }, { "x": -1150, "y": -320 }] },
+        { "side": "carthage", "points": [{ "x": -3000, "y": -600 }, { "x": -1900, "y": -740 }, { "x": -700, "y": -560 }, { "x": -60, "y": -260 }] },
+        { "side": "carthage", "points": [{ "x": -3700, "y": -250 }, { "x": -1900, "y": -740 }, { "x": 500, "y": -560 }, { "x": 1150, "y": -340 }] }
+      ]
+    },
+    {
+      "id": "skirmish",
+      "title": { "en": "The light troops clash", "vi": "Lính nhẹ đụng độ" },
+      "narration": {
+        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A dry wind from the south-east blows dust into the Romans' faces. Meanwhile the force from the large camp marches on Hannibal's camp.",
+        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Một cơn gió khô từ phía đông nam thổi bụi vào mặt quân La Mã. Trong lúc đó, lực lượng từ trại lớn tiến về trại của Hannibal."
+      },
+      "endHour": 9,
+      "playSeconds": 15,
+      "units": [
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -1050, "y": 320 }, "frontage": 500, "depth": 70, "facing": 180 },
+          "action": "stand",
+          "men": 2400
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -375, "y": 60 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "fight",
+          "men": 7600
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 375, "y": 60 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "fight",
+          "men": 6700
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -375, "y": 285 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 11400
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -375, "y": 330 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 11400
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -375, "y": 372 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "stand",
+          "men": 4200
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 375, "y": 290 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 14000
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 375, "y": 345 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 14000
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 1080, "y": 300 }, "frontage": 600, "depth": 40, "facing": 180 },
+          "action": "stand",
+          "men": 3800
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -2900, "y": 0 }, "frontage": 300, "depth": 120, "facing": 225 },
+          "action": "advance",
+          "men": 10000
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -330, "y": 5 }, "frontage": 700, "depth": 15, "facing": 0 },
+          "action": "fight",
+          "men": 1900
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 400, "y": 5 }, "frontage": 800, "depth": 20, "facing": 0 },
+          "action": "fight",
+          "men": 5800
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": -1150, "y": -255 }, "frontage": 350, "depth": 50, "facing": 0 },
+          "action": "stand",
+          "men": 3000
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": -1150, "y": -325 }, "frontage": 350, "depth": 50, "facing": 0 },
+          "action": "stand",
+          "men": 3000
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -820, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "action": "stand",
+          "men": 6000
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 700, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 1150, "y": -290 }, "frontage": 600, "depth": 40, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        }
+      ],
+      "arrows": [
+        { "side": "rome", "points": [{ "x": -375, "y": 140 }, { "x": -375, "y": 75 }] },
+        { "side": "rome", "points": [{ "x": 375, "y": 140 }, { "x": 375, "y": 75 }] },
+        { "side": "carthage", "points": [{ "x": -330, "y": -50 }, { "x": -330, "y": -5 }] },
+        { "side": "carthage", "points": [{ "x": 400, "y": -50 }, { "x": 400, "y": -5 }] },
+        { "side": "rome", "points": [{ "x": -1650, "y": 1100 }, { "x": -2400, "y": 450 }, { "x": -2900, "y": 50 }] }
+      ]
+    },
+    {
+      "id": "cavalry-by-the-river",
+      "title": { "en": "Hasdrubal breaks the Roman horse", "vi": "Hasdrubal đánh tan kỵ binh La Mã" },
+      "narration": {
+        "en": "On the narrow strip by the river, Hasdrubal's Iberian and Gallic horsemen meet the Roman cavalry head on. There is no room to wheel, so many men dismount and fight on foot. The Romans are cut down or driven off along the bank. The light troops fall back through the ranks and the heavy infantry moves up, while on the far wing the Numidians tie down the allied horse.",
+        "vi": "Trên dải đất hẹp ven sông, kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã. Không có chỗ để xoay trở, nên nhiều người xuống ngựa đánh bộ. Quân La Mã bị chém ngã hoặc bị đuổi chạy dọc bờ sông. Lính nhẹ lui về qua hàng ngũ và bộ binh nặng tiến lên, trong khi ở cánh bên kia kỵ binh Numidia cầm chân kỵ binh đồng minh."
+      },
+      "endHour": 9.75,
+      "playSeconds": 20,
+      "units": [
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -1120, "y": 620 }, "frontage": 300, "depth": 80, "facing": 20 },
+          "action": "rout",
+          "men": 600
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "retreat",
+          "men": 7500
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "retreat",
+          "men": 6650
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -375, "y": 120 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "advance",
+          "men": 11400
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -375, "y": 165 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "action": "advance",
+          "men": 11400
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -375, "y": 207 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "action": "advance",
+          "men": 4200
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 375, "y": 125 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "advance",
+          "men": 14000
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 375, "y": 180 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "action": "advance",
+          "men": 14000
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 1080, "y": 250 }, "frontage": 600, "depth": 40, "facing": 180 },
+          "action": "fight",
+          "men": 3750
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -3250, "y": -260 }, "frontage": 350, "depth": 100, "facing": 225 },
+          "action": "fight",
+          "men": 9500
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -250, "y": -420 }, "frontage": 500, "depth": 15, "facing": 0 },
+          "action": "retreat",
+          "men": 1900
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 250, "y": -430 }, "frontage": 600, "depth": 20, "facing": 0 },
+          "action": "retreat",
+          "men": 5750
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": -1080, "y": 420 }, "frontage": 350, "depth": 60, "facing": 10 },
+          "action": "pursue",
+          "men": 2950
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": -1050, "y": 250 }, "frontage": 350, "depth": 60, "facing": 0 },
+          "action": "fight",
+          "men": 2950
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -820, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "action": "stand",
+          "men": 6000
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "action": "stand",
+          "men": 5000
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 700, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 1180, "y": 80 }, "frontage": 600, "depth": 60, "facing": 0 },
+          "action": "fight",
+          "men": 3990
+        }
+      ],
+      "arrows": [
+        { "side": "carthage", "points": [{ "x": -1150, "y": -200 }, { "x": -1100, "y": 250 }, { "x": -1080, "y": 450 }] },
+        { "side": "rome", "points": [{ "x": -1050, "y": 360 }, { "x": -1120, "y": 600 }] },
+        { "side": "rome", "points": [{ "x": -375, "y": 260 }, { "x": -375, "y": 150 }] },
+        { "side": "rome", "points": [{ "x": 375, "y": 265 }, { "x": 375, "y": 160 }] },
+        { "side": "carthage", "points": [{ "x": 1150, "y": -260 }, { "x": 1180, "y": 40 }] }
+      ]
+    },
+    {
+      "id": "crescent-pushed-back",
+      "title": { "en": "The legions push in the crescent", "vi": "Bộ binh La Mã đẩy lõm lưỡi liềm" },
+      "narration": {
+        "en": "The deep Roman formation crashes into the thin crescent of Gauls and Iberians, who hold for a while and then give ground. As they fall back the bulge flattens and then bends inwards, and the Romans crowd from the wings towards the centre to press the attack. Without knowing it, they are marching deeper and deeper between the two blocks of Libyan infantry, which have not yet moved.",
+        "vi": "Đội hình dày đặc của La Mã đâm vào lưỡi liềm mỏng của lính Gaul và Iberia; họ trụ được một lúc rồi lùi dần. Khi họ lùi, chỗ phình phẳng ra rồi lõm vào, và quân La Mã từ hai cánh dồn vào giữa để đánh tiếp. Không hề hay biết, họ đang tiến ngày càng sâu vào khoảng giữa hai khối bộ binh Libya vẫn còn đứng yên."
+      },
+      "endHour": 11,
+      "playSeconds": 25,
+      "units": [
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -1000, "y": 640 }, "frontage": 200, "depth": 60, "facing": 60 },
+          "action": "rout",
+          "men": 300
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -280, "y": -165 }, "frontage": 480, "depth": 25, "facing": 180 },
+          "action": "advance",
+          "men": 7400
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 230, "y": -165 }, "frontage": 480, "depth": 25, "facing": 180 },
+          "action": "advance",
+          "men": 6600
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -280, "y": -365 }, "frontage": 480, "depth": 45, "facing": 176, "bulge": 30 },
+          "action": "fight",
+          "men": 9800
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -280, "y": -305 }, "frontage": 480, "depth": 50, "facing": 178 },
+          "action": "fight",
+          "men": 10600
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -25, "y": -250 }, "frontage": 900, "depth": 30, "facing": 180 },
+          "action": "advance",
+          "men": 4100
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 230, "y": -365 }, "frontage": 480, "depth": 45, "facing": 184, "bulge": 30 },
+          "action": "fight",
+          "men": 12500
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 230, "y": -305 }, "frontage": 480, "depth": 50, "facing": 182 },
+          "action": "fight",
+          "men": 13200
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 1150, "y": 330 }, "frontage": 600, "depth": 50, "facing": 170 },
+          "action": "fight",
+          "men": 3500
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
+          "action": "fight",
+          "men": 9000
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -200, "y": -580 }, "frontage": 450, "depth": 15, "facing": 0 },
+          "action": "fight",
+          "men": 1900
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 260, "y": -590 }, "frontage": 550, "depth": 20, "facing": 0 },
+          "action": "stand",
+          "men": 5750
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": -600, "y": 560 }, "frontage": 350, "depth": 60, "facing": 90 },
+          "action": "pursue",
+          "men": 2930
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": -850, "y": 520 }, "frontage": 350, "depth": 60, "facing": 80 },
+          "action": "advance",
+          "men": 2940
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -820, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -580, "y": -360 }, "frontage": 255, "depth": 30, "facing": 30, "bulge": -8 },
+          "action": "fight",
+          "men": 4600
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -330, "y": -420 }, "frontage": 255, "depth": 30, "facing": 15, "bulge": -8 },
+          "action": "fight",
+          "men": 3750
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -60, "y": -470 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": -10 },
+          "action": "fight",
+          "men": 4900
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 210, "y": -430 }, "frontage": 255, "depth": 30, "facing": 345, "bulge": -8 },
+          "action": "fight",
+          "men": 3750
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 460, "y": -360 }, "frontage": 255, "depth": 30, "facing": 330, "bulge": -8 },
+          "action": "fight",
+          "men": 4600
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 700, "y": -300 }, "frontage": 250, "depth": 60, "facing": 0 },
+          "action": "stand",
+          "men": 4000
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 1200, "y": 160 }, "frontage": 650, "depth": 70, "facing": 350 },
+          "action": "fight",
+          "men": 3980
+        }
+      ],
+      "arrows": [
+        { "side": "rome", "points": [{ "x": -375, "y": 100 }, { "x": -280, "y": -340 }] },
+        { "side": "rome", "points": [{ "x": 375, "y": 100 }, { "x": 230, "y": -340 }] },
+        { "side": "carthage", "points": [{ "x": -60, "y": -200 }, { "x": -60, "y": -450 }] },
+        { "side": "carthage", "points": [{ "x": -1050, "y": 300 }, { "x": -800, "y": 520 }, { "x": -600, "y": 560 }] }
+      ]
+    },
+    {
+      "id": "libyans-and-cavalry-close-in",
+      "title": { "en": "The trap is sprung", "vi": "Cái bẫy sập xuống" },
+      "narration": {
+        "en": "Now the Libyans, armed with Roman gear taken in earlier victories, turn inwards and fall on both flanks of the Roman mass. Behind the Roman army Hasdrubal leads his horsemen across to the far wing; the allied cavalry sees him coming and flees, and he leaves the Numidians to hunt them down. The Romans in the front ranks can no longer advance, and those on the edges turn to face attacks from the sides.",
+        "vi": "Lúc này lính Libya, mang vũ khí La Mã thu được từ các trận thắng trước, quay vào trong và đánh vào cả hai sườn của khối quân La Mã. Phía sau lưng quân La Mã, Hasdrubal dẫn kỵ binh vòng sang cánh bên kia; kỵ binh đồng minh thấy ông kéo đến liền bỏ chạy, và ông để kỵ binh Numidia truy đuổi họ. Các hàng đầu của La Mã không tiến được nữa, còn những người ở rìa phải quay ra chống đỡ từ hai bên."
+      },
+      "endHour": 12.5,
+      "playSeconds": 25,
+      "units": [
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -900, "y": 900 }, "frontage": 150, "depth": 50, "facing": 30 },
+          "action": "rout",
+          "men": 200
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -240, "y": -205 }, "frontage": 420, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 7000
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 200, "y": -205 }, "frontage": 420, "depth": 30, "facing": 180 },
+          "action": "stand",
+          "men": 6300
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -240, "y": -400 }, "frontage": 420, "depth": 50, "facing": 176, "bulge": 25 },
+          "action": "fight",
+          "men": 6800
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -240, "y": -335 }, "frontage": 420, "depth": 55, "facing": 178 },
+          "action": "fight",
+          "men": 8400
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -20, "y": -275 }, "frontage": 820, "depth": 35, "facing": 180 },
+          "action": "fight",
+          "men": 3800
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 200, "y": -400 }, "frontage": 420, "depth": 50, "facing": 184, "bulge": 25 },
+          "action": "fight",
+          "men": 9800
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 200, "y": -335 }, "frontage": 420, "depth": 55, "facing": 182 },
+          "action": "fight",
+          "men": 11400
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 1650, "y": 950 }, "frontage": 500, "depth": 80, "facing": 30 },
+          "action": "rout",
+          "men": 1800
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
+          "action": "fight",
+          "men": 8500
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -200, "y": -580 }, "frontage": 450, "depth": 15, "facing": 0 },
+          "action": "fight",
+          "men": 1900
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 260, "y": -590 }, "frontage": 550, "depth": 20, "facing": 0 },
+          "action": "stand",
+          "men": 5750
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": 1100, "y": 520 }, "frontage": 350, "depth": 60, "facing": 120 },
+          "action": "charge",
+          "men": 2925
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": 700, "y": 560 }, "frontage": 350, "depth": 60, "facing": 100 },
+          "action": "advance",
+          "men": 2930
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -680, "y": -310 }, "frontage": 300, "depth": 60, "facing": 85 },
+          "action": "charge",
+          "men": 3900
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -520, "y": -430 }, "frontage": 200, "depth": 35, "facing": 40, "bulge": -6 },
+          "action": "fight",
+          "men": 4300
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -320, "y": -460 }, "frontage": 255, "depth": 30, "facing": 15, "bulge": -8 },
+          "action": "fight",
+          "men": 3500
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -80, "y": -500 }, "frontage": 255, "depth": 40, "facing": 0, "bulge": -12 },
+          "action": "fight",
+          "men": 4400
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 180, "y": -470 }, "frontage": 255, "depth": 30, "facing": 345, "bulge": -8 },
+          "action": "fight",
+          "men": 3500
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 400, "y": -430 }, "frontage": 200, "depth": 35, "facing": 320, "bulge": -6 },
+          "action": "fight",
+          "men": 4300
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 600, "y": -310 }, "frontage": 300, "depth": 60, "facing": 275 },
+          "action": "charge",
+          "men": 3900
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 1500, "y": 780 }, "frontage": 600, "depth": 80, "facing": 30 },
+          "action": "pursue",
+          "men": 3970
+        }
+      ],
+      "arrows": [
+        { "side": "carthage", "points": [{ "x": -820, "y": -300 }, { "x": -700, "y": -310 }, { "x": -560, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": 700, "y": -300 }, { "x": 620, "y": -310 }, { "x": 480, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": -600, "y": 560 }, { "x": 200, "y": 620 }, { "x": 1050, "y": 540 }] },
+        { "side": "rome", "points": [{ "x": 1150, "y": 360 }, { "x": 1650, "y": 900 }] },
+        { "side": "carthage", "points": [{ "x": 1200, "y": 200 }, { "x": 1500, "y": 740 }] }
+      ]
+    },
+    {
+      "id": "encirclement",
+      "title": { "en": "The ring closes", "vi": "Vòng vây khép lại" },
+      "narration": {
+        "en": "Hasdrubal's horsemen charge the Roman rear again and again, and the encirclement is complete. Packed so tightly that many cannot use their weapons, the Romans fight on as long as the outer ranks stand, then are cut down where they are. Paullus falls in the slaughter, as do the consuls of the previous year; Varro escapes with a handful of riders. Hannibal also relieves his camp and drives the Roman raiders back into theirs.",
+        "vi": "Kỵ binh của Hasdrubal liên tục xung phong vào lưng quân La Mã, và vòng vây khép kín. Bị dồn chặt đến mức nhiều người không thể vung vũ khí, quân La Mã chống cự chừng nào các hàng ngoài còn đứng vững, rồi bị giết ngay tại chỗ. Paullus tử trận trong cuộc tàn sát, cùng với hai chấp chính quan của năm trước; Varro thoát được cùng một nhóm nhỏ kỵ sĩ. Hannibal cũng giải vây cho trại của mình và đánh lui toán quân La Mã về trại của họ."
+      },
+      "endHour": 17,
+      "playSeconds": 30,
+      "units": [
+        {
+          "unit": "roman-cavalry",
+          "formation": { "center": { "x": -700, "y": 1500 }, "frontage": 100, "depth": 40, "facing": 20 },
+          "action": "rout",
+          "men": 150
+        },
+        {
+          "unit": "roman-velites",
+          "formation": { "center": { "x": -350, "y": 300 }, "frontage": 300, "depth": 40, "facing": 10 },
+          "action": "rout",
+          "men": 900
+        },
+        {
+          "unit": "allied-light-infantry",
+          "formation": { "center": { "x": 300, "y": 320 }, "frontage": 300, "depth": 40, "facing": 350 },
+          "action": "rout",
+          "men": 900
+        },
+        {
+          "unit": "hastati",
+          "formation": { "center": { "x": -150, "y": -420 }, "frontage": 280, "depth": 50, "facing": 180, "bulge": 15 },
+          "action": "fight",
+          "men": 1200
+        },
+        {
+          "unit": "principes",
+          "formation": { "center": { "x": -210, "y": -320 }, "frontage": 160, "depth": 90, "facing": 270 },
+          "action": "fight",
+          "men": 1500
+        },
+        {
+          "unit": "triarii",
+          "formation": { "center": { "x": -10, "y": -210 }, "frontage": 460, "depth": 50, "facing": 0 },
+          "action": "fight",
+          "men": 900
+        },
+        {
+          "unit": "allied-infantry-front",
+          "formation": { "center": { "x": 140, "y": -420 }, "frontage": 280, "depth": 50, "facing": 180, "bulge": 15 },
+          "action": "fight",
+          "men": 1500
+        },
+        {
+          "unit": "allied-infantry-rear",
+          "formation": { "center": { "x": 190, "y": -320 }, "frontage": 160, "depth": 90, "facing": 90 },
+          "action": "fight",
+          "men": 2000
+        },
+        {
+          "unit": "allied-cavalry",
+          "formation": { "center": { "x": 2300, "y": 1900 }, "frontage": 300, "depth": 80, "facing": 30 },
+          "action": "rout",
+          "men": 300
+        },
+        {
+          "unit": "camp-force",
+          "formation": { "center": { "x": -1700, "y": 1050 }, "frontage": 300, "depth": 200, "facing": 45 },
+          "action": "retreat",
+          "men": 8000
+        },
+        {
+          "unit": "balearic-slingers",
+          "formation": { "center": { "x": -200, "y": -620 }, "frontage": 450, "depth": 15, "facing": 0 },
+          "action": "stand",
+          "men": 1900
+        },
+        {
+          "unit": "light-spearmen",
+          "formation": { "center": { "x": 260, "y": -630 }, "frontage": 550, "depth": 20, "facing": 0 },
+          "action": "stand",
+          "men": 5750
+        },
+        {
+          "unit": "hasdrubal-cavalry-front",
+          "formation": { "center": { "x": 170, "y": -110 }, "frontage": 420, "depth": 60, "facing": 190 },
+          "action": "charge",
+          "men": 2920
+        },
+        {
+          "unit": "hasdrubal-cavalry-rear",
+          "formation": { "center": { "x": -250, "y": -110 }, "frontage": 420, "depth": 60, "facing": 170 },
+          "action": "charge",
+          "men": 2920
+        },
+        {
+          "unit": "libyans-left",
+          "formation": { "center": { "x": -430, "y": -290 }, "frontage": 250, "depth": 60, "facing": 90 },
+          "action": "fight",
+          "men": 3750
+        },
+        {
+          "unit": "gauls-left",
+          "formation": { "center": { "x": -385, "y": -480 }, "frontage": 170, "depth": 35, "facing": 40, "bulge": -6 },
+          "action": "fight",
+          "men": 4000
+        },
+        {
+          "unit": "iberians-left",
+          "formation": { "center": { "x": -230, "y": -500 }, "frontage": 180, "depth": 30, "facing": 20, "bulge": -8 },
+          "action": "fight",
+          "men": 3500
+        },
+        {
+          "unit": "gauls-centre",
+          "formation": { "center": { "x": -5, "y": -515 }, "frontage": 240, "depth": 40, "facing": 0, "bulge": -12 },
+          "action": "fight",
+          "men": 4000
+        },
+        {
+          "unit": "iberians-right",
+          "formation": { "center": { "x": 220, "y": -500 }, "frontage": 180, "depth": 30, "facing": 340, "bulge": -8 },
+          "action": "fight",
+          "men": 3500
+        },
+        {
+          "unit": "gauls-right",
+          "formation": { "center": { "x": 375, "y": -480 }, "frontage": 170, "depth": 35, "facing": 320, "bulge": -6 },
+          "action": "fight",
+          "men": 4000
+        },
+        {
+          "unit": "libyans-right",
+          "formation": { "center": { "x": 410, "y": -290 }, "frontage": 250, "depth": 60, "facing": 270 },
+          "action": "fight",
+          "men": 3750
+        },
+        {
+          "unit": "numidians",
+          "formation": { "center": { "x": 2100, "y": 1650 }, "frontage": 600, "depth": 80, "facing": 30 },
+          "action": "pursue",
+          "men": 3960
+        }
+      ],
+      "arrows": [
+        { "side": "carthage", "points": [{ "x": 1050, "y": 540 }, { "x": 600, "y": 300 }, { "x": 170, "y": -60 }] },
+        { "side": "carthage", "points": [{ "x": 700, "y": 560 }, { "x": 0, "y": 300 }, { "x": -250, "y": -60 }] },
+        { "side": "carthage", "points": [{ "x": -680, "y": -310 }, { "x": -470, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": 600, "y": -310 }, { "x": 450, "y": -310 }] },
+        { "side": "rome", "points": [{ "x": -240, "y": -180 }, { "x": -350, "y": 270 }] },
+        { "side": "rome", "points": [{ "x": -3200, "y": -200 }, { "x": -2500, "y": 450 }, { "x": -1750, "y": 1000 }] }
       ]
     }
   ],
   "terrain": {
     "file": "battle-of-cannae.bin",
-    "width": 64,
-    "height": 48,
-    "minX": -4000,
-    "maxX": 4000,
-    "minY": -3000,
-    "maxY": 3000,
-    "rivers": [],
-    "landmarks": [],
-    "sources": [{ "title": "Placeholder: flat ground until T-016" }]
+    "width": 341,
+    "height": 271,
+    "minX": -5400,
+    "maxX": 4800,
+    "minY": -4800,
+    "maxY": 3300,
+    "rivers": [
+      {
+        "name": { "en": "Aufidus (Ofanto), modern course", "vi": "Sông Aufidus (Ofanto), dòng chảy ngày nay" },
+        "points": [
+          { "x": -5400, "y": -2700 },
+          { "x": -5310, "y": -2580 },
+          { "x": -4980, "y": -2400 },
+          { "x": -4830, "y": -2370 },
+          { "x": -4740, "y": -2220 },
+          { "x": -4650, "y": -2160 },
+          { "x": -4620, "y": -2010 },
+          { "x": -4470, "y": -1860 },
+          { "x": -4170, "y": -1890 },
+          { "x": -3990, "y": -1830 },
+          { "x": -3780, "y": -1590 },
+          { "x": -3810, "y": -1440 },
+          { "x": -3780, "y": -1380 },
+          { "x": -3690, "y": -1320 },
+          { "x": -3270, "y": -1290 },
+          { "x": -3150, "y": -1200 },
+          { "x": -2940, "y": -1200 },
+          { "x": -2820, "y": -1110 },
+          { "x": -2640, "y": -1080 },
+          { "x": -2490, "y": -930 },
+          { "x": -2460, "y": -810 },
+          { "x": -2370, "y": -720 },
+          { "x": -2280, "y": -690 },
+          { "x": -2160, "y": -750 },
+          { "x": -1800, "y": -750 },
+          { "x": -1770, "y": -720 },
+          { "x": -1650, "y": -720 },
+          { "x": -1470, "y": -780 },
+          { "x": -1350, "y": -690 },
+          { "x": -1320, "y": -540 },
+          { "x": -1410, "y": -330 },
+          { "x": -1410, "y": -210 },
+          { "x": -1350, "y": -150 },
+          { "x": -1350, "y": 0 },
+          { "x": -1380, "y": 0 },
+          { "x": -1350, "y": 30 },
+          { "x": -1350, "y": 240 },
+          { "x": -1320, "y": 270 },
+          { "x": -1320, "y": 330 },
+          { "x": -1380, "y": 390 },
+          { "x": -1350, "y": 660 },
+          { "x": -1320, "y": 690 },
+          { "x": -1110, "y": 660 },
+          { "x": -930, "y": 810 },
+          { "x": -780, "y": 810 },
+          { "x": -750, "y": 780 },
+          { "x": -660, "y": 780 },
+          { "x": -630, "y": 840 },
+          { "x": -480, "y": 840 },
+          { "x": -420, "y": 810 },
+          { "x": -270, "y": 930 },
+          { "x": -330, "y": 1020 },
+          { "x": -420, "y": 1050 },
+          { "x": -510, "y": 1140 },
+          { "x": -510, "y": 1230 },
+          { "x": -270, "y": 1530 },
+          { "x": -270, "y": 1590 },
+          { "x": -330, "y": 1680 },
+          { "x": -330, "y": 1770 },
+          { "x": -270, "y": 1830 },
+          { "x": -150, "y": 2130 },
+          { "x": -180, "y": 2520 },
+          { "x": -330, "y": 2700 },
+          { "x": -450, "y": 2700 },
+          { "x": -480, "y": 2790 },
+          { "x": -570, "y": 2880 },
+          { "x": -630, "y": 2880 },
+          { "x": -750, "y": 3000 }
+        ],
+        "width": 30,
+        "approximate": true
+      }
+    ],
+    "landmarks": [
+      {
+        "name": { "en": "Cannae (citadel and village)", "vi": "Cannae (thành và làng)" },
+        "kind": "town",
+        "point": { "x": -4746, "y": -3998 },
+        "approximate": true
+      },
+      { "name": { "en": "Hill of Cannae", "vi": "Đồi Cannae" }, "kind": "hill", "point": { "x": -4650, "y": -4300 }, "approximate": true },
+      { "name": { "en": "Large Roman camp", "vi": "Trại lớn của La Mã" }, "kind": "camp", "point": { "x": -1600, "y": 1250 }, "approximate": true },
+      { "name": { "en": "Small Roman camp", "vi": "Trại nhỏ của La Mã" }, "kind": "camp", "point": { "x": 250, "y": 1200 }, "approximate": true },
+      { "name": { "en": "Hannibal's camp", "vi": "Trại của Hannibal" }, "kind": "camp", "point": { "x": -3550, "y": -400 }, "approximate": true },
+      { "name": { "en": "Roman crossing", "vi": "Chỗ quân La Mã vượt sông" }, "kind": "ford", "point": { "x": -470, "y": 1100 }, "approximate": true },
+      {
+        "name": { "en": "Hannibal's crossing (north)", "vi": "Chỗ Hannibal vượt sông (phía bắc)" },
+        "kind": "ford",
+        "point": { "x": -1350, "y": -450 },
+        "approximate": true
+      },
+      {
+        "name": { "en": "Hannibal's crossing (south)", "vi": "Chỗ Hannibal vượt sông (phía nam)" },
+        "kind": "ford",
+        "point": { "x": -1900, "y": -740 },
+        "approximate": true
+      }
+    ],
+    "sources": [
+      {
+        "title": "Copernicus DEM GLO-30 (tile N41 E016), produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Resampled to 30 m; river course traced from the same data.",
+        "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N41_00_E016_00_DEM/INFO/eula_F.pdf"
+      }
+    ]
   },
   "uncertainty": {
-    "en": "Placeholder data, not a reconstruction.",
-    "vi": "Dữ liệu tạm, chưa phải phỏng dựng."
+    "en": "This is a reconstruction. Which bank of the Aufidus the battle was fought on is disputed; this scene follows the ancient statements that the Romans faced south with the river on their right, on the plain north-east of Cannae, but other reconstructions put the field on the opposite bank. The river has shifted since antiquity: the scene shows its modern course. The sources' numbers differ and may be inflated, and the split of each army into units is a modern estimate. The position of every unit, the camps and the fords, and the clock times, are reasoned guesses from the descriptions of Polybius and Livy.",
+    "vi": "Đây là phỏng dựng. Trận diễn ra ở bờ nào của sông Aufidus vẫn còn tranh cãi; cảnh này theo lời các sử gia cổ rằng quân La Mã quay mặt về nam, sông ở bên phải, trên đồng bằng phía đông bắc Cannae, nhưng có những phỏng dựng khác đặt chiến trường ở bờ bên kia. Dòng sông đã đổi chỗ từ thời cổ: cảnh vẽ dòng chảy ngày nay. Quân số giữa các nguồn khác nhau và có thể bị thổi phồng, còn cách chia mỗi đạo quân thành các đơn vị là ước lượng hiện đại. Vị trí của từng đơn vị, các trại, chỗ vượt sông và giờ trong ngày đều là phỏng đoán có căn cứ từ mô tả của Polybius và Livy."
   },
   "sources": [
     { "title": "Polybius, Histories 3.107–118", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
-    { "title": "Livy, Ab Urbe Condita 22.43–51", "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22" }
+    { "title": "Livy, Ab Urbe Condita 22.36–52 (English)", "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22" },
+    { "title": "Livy, Ab Urbe Condita 22 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" },
+    { "title": "Battle of Cannae (Wikipedia), for modern estimates of the armies' make-up", "url": "https://en.wikipedia.org/wiki/Battle_of_Cannae" }
   ]
 }

@@ -46,6 +46,39 @@ function checkRange(where, range) {
   if (range.note !== undefined) checkText(`${where}.note`, range.note);
 }
 
+// --- Geometry of a formation ------------------------------------------------
+
+/** A formation as a rectangle: its centre, unit vectors along the front and ahead, half sizes. */
+function corners(f) {
+  const a = (f.facing * Math.PI) / 180;
+  return {
+    c: f.center,
+    ahead: { x: Math.sin(a), y: Math.cos(a) },
+    along: { x: Math.cos(a), y: -Math.sin(a) },
+    hw: f.frontage / 2,
+    hd: f.depth / 2,
+    area: f.frontage * f.depth,
+  };
+}
+
+/** Share of rectangle `a` that lies inside rectangle `b`, sampled on a 12 × 12 grid. */
+function shareInside(a, b) {
+  const n = 12;
+  let hits = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const u = ((i + 0.5) / n) * 2 - 1;
+      const v = ((j + 0.5) / n) * 2 - 1;
+      const x = a.c.x + a.along.x * u * a.hw + a.ahead.x * v * a.hd;
+      const y = a.c.y + a.along.y * u * a.hw + a.ahead.y * v * a.hd;
+      const dx = x - b.c.x;
+      const dy = y - b.c.y;
+      if (Math.abs(dx * b.along.x + dy * b.along.y) <= b.hw && Math.abs(dx * b.ahead.x + dy * b.ahead.y) <= b.hd) hits++;
+    }
+  }
+  return hits / (n * n);
+}
+
 // --- Shared data ------------------------------------------------------------
 
 const polities = new Set(readJson(join(root, "src", "data", "polities.json")).map((p) => p.id));
@@ -132,6 +165,7 @@ for (const file of battleFiles) {
     const at = `${terrainWhere}.rivers[${i}]`;
     checkText(`${at}.name`, river.name);
     if (!Array.isArray(river.points) || river.points.length < 2) fail(at, "needs at least two points");
+    else if (!river.points.every(inside)) fail(at, "every point must lie inside the terrain");
     if (!isNumber(river.width) || river.width <= 0) fail(at, "width must be positive");
   }
   for (const [i, mark] of (t.landmarks ?? []).entries()) {
@@ -164,7 +198,39 @@ for (const file of battleFiles) {
       }
     }
     for (const id of units.keys()) if (!seen.has(id)) fail(at, `unit ${id} is missing`);
+    checkOverlap(at, states);
   };
+
+  // Blocks of the same side must not sit on top of each other: at most
+  // MAX_OVERLAP of the smaller block may lie inside another. Bulge is ignored.
+  const MAX_OVERLAP = 0.25;
+  function checkOverlap(at, states) {
+    const blocks = states
+      .filter((s) => units.has(s.unit) && s.men > 0 && isNumber(s.formation?.facing))
+      .map((s) => ({ ...s, side: units.get(s.unit).side, ...corners(s.formation) }));
+    for (let i = 0; i < blocks.length; i++) {
+      for (let j = i + 1; j < blocks.length; j++) {
+        const a = blocks[i];
+        const b = blocks[j];
+        if (a.side !== b.side) continue;
+        const [small, large] = a.area <= b.area ? [a, b] : [b, a];
+        const share = shareInside(small, large);
+        if (share > MAX_OVERLAP) {
+          fail(at, `${a.unit} and ${b.unit} overlap (${Math.round(share * 100)}% of the smaller block)`);
+        }
+      }
+    }
+  }
+
+  // Every phase must move or change at least one unit.
+  const sameState = (a, b) => JSON.stringify([a.formation, a.action, a.men]) === JSON.stringify([b.formation, b.action, b.men]);
+  let before = new Map((Array.isArray(b.initial) ? b.initial : []).map((s) => [s.unit, s]));
+  for (const [i, phase] of (b.phases ?? []).entries()) {
+    const after = new Map((Array.isArray(phase.units) ? phase.units : []).map((s) => [s.unit, s]));
+    const changed = [...after].some(([id, s]) => !before.has(id) || !sameState(before.get(id), s));
+    if (!changed) fail(`${where}.phases[${i}]`, "no unit changes position, action or men");
+    before = after;
+  }
 
   if (!isNumber(b.startHour) || b.startHour < 0 || b.startHour >= 24) fail(where, "startHour must be in [0, 24)");
   checkStates(`${where}.initial`, b.initial);
