@@ -102,4 +102,96 @@ Chia thành các bước dưới đây. **Commit sau mỗi bước.** Lane hay h
 
 ## Kết quả
 
-_(Lane 1 điền khi xong. Kèm danh sách ảnh trong `art/renders/` để người dùng xem, và những chỗ còn chưa ưng ý.)_
+Xong cả 9 bước, ngày 2026-11-16. Nhánh `lane1/T-014-roman-legionary-model`, chưa gộp vào `main`.
+
+### Đối chiếu với "Xong khi"
+
+| Yêu cầu | Kết quả |
+|---|---|
+| Một khung xương | 1 skin, 67 xương (khung Celt thu nhỏ 0,8); ba lưới dùng chung |
+| LOD0 ≤ 8 000, LOD1 ≤ 1 500, LOD2 ≤ 300 tam giác | 7 483 / 1 360 / 296 |
+| Một vật liệu | `roman-legionary`: ảnh màu JPEG 2048×2048 (528 KB, đã nhân AO), ảnh pháp tuyến JPEG 1024×1024 (199 KB); độ nhám 0,72, không kim loại |
+| Ba hoạt hình | `idle` 2,0 s, `walk` 1,0 s, `attack` 1,2 s; 30 khung/giây, lặp được |
+| Tối đa 4 MB | 1,75 MB (1 834 936 byte) |
+| Hệ trục | mét, Y lên, điểm thấp nhất y = −0,005, mặt nhìn về +Z |
+| Chạy script từ đầu dựng lại được | một lệnh, khoảng 70 giây; hai lần dựng từ file gốc ra file `.glb` giống hệt từng byte (SHA-256 `21eab329…`) |
+| Ảnh duyệt, ghi công | 11 ảnh trong `art/renders/roman-legionary/`; `art/CREDITS.md` |
+| `npm run lint`, `npm run build` | qua |
+
+### Đã kiểm tra thế nào
+
+- **Script tự kiểm tra** sau khi xuất (`whp_export.check_glb`). Script đọc chính file `.glb` và dừng với mã 1 nếu có lỗi:
+  - tên và số tam giác của từng lưới, có gắn skin;
+  - số skin và số xương, số vật liệu, kích thước ảnh;
+  - tên hoạt hình, dung lượng;
+  - đứng trên mặt đất, ngón chân hướng +Z;
+  - nhập lại vào Blender.
+
+  Chạy riêng phần này: `build_roman_legionary.py -- --check`.
+- **three.js 0.187** (bản trong `node_modules`), chạy `GLTFLoader` trong Node:
+  - đọc được, ba lưới `SkinnedMesh` dùng chung một skeleton;
+  - ba clip chạy trong `AnimationMixer`, không có cảnh báo track nào bị lạc;
+  - khi đâm kiếm, đầu tiến về +Z.
+
+  Ảnh được thay bằng texture giả vì Node không giải mã ảnh; ảnh đã được kiểm qua bước nhập lại vào Blender.
+- **Chưa thử trong trình duyệt:** chưa trang nào tải mô hình lính; cảnh 3D là T-015 của lane 3.
+- **Tư thế thử** (giơ tay, bước dài, cúi người): ảnh `11-test-poses.jpg`. Thêm `--preview` để có ảnh tư thế thử của mô hình chi tiết trong `art/build/`.
+- **Ảnh duyệt** đều render từ file `.glb` đã xuất, nên thấy đúng thứ cảnh 3D nhận được.
+
+### Ảnh để duyệt: `art/renders/roman-legionary/`
+
+| Ảnh | Nội dung |
+|---|---|
+| `01-front-side-back.jpg` | Nhìn trước, nghiêng (phía khiên), sau; tư thế đứng |
+| `02-three-quarter.jpg` | Nhìn chéch từ phía kiếm |
+| `03-head-front.jpg`, `04-head-side.jpg` | Cận đầu và mũ |
+| `05-formation.jpg` | 20 lính dàn đội hình, lệch bước nhau |
+| `06-lods.jpg` | LOD0, LOD1, LOD2 cạnh nhau |
+| `07-anim-idle.jpg`, `08-anim-walk.jpg`, `09-anim-attack.jpg` | Ba khung hình mỗi hoạt hình |
+| `10-compare-source.jpg` | Mô hình gốc 07; mô hình mới ở tư thế gốc; mô hình mới đứng |
+| `11-test-poses.jpg` | Tư thế thử khung xương |
+
+### Đã làm gì
+
+**Bỏ khỏi 07** (lý do trong `REMOVED` của `art/blender/roman_source.py`):
+- bốn món task nêu;
+- dây buộc của giáp lá (`Ties`);
+- bao cổ tay da (`Wrist_guard1`): quy ước của phim, không có căn cứ cho lính bộ binh;
+- mảng thân `Full_figure_42_T_pose`, bị áo che hết.
+
+**Trang bị thời Cộng hoà** (dựng hoàn toàn bằng script):
+- mũ Montefortino bằng đồng: chỏm có núm, vành sau ngắn, hai má che có khoét theo mắt và miệng;
+- ngù ba lông đỏ tía, cao 40 cm;
+- giáp lưới có lớp che vai, móc ngực bằng đồng; vòng lưới là vật liệu (ảnh màu và độ lồi) phủ trên lớp vỏ cắt từ áo;
+- đai da;
+- khiên bầu dục cong 120 × 75 cm: gờ dọc phình thành chỗ đặt núm, tấm sắt có đinh tán, viền sắt ở hai đầu, tay cầm ngang;
+- bàn tay nắm lại, kiếm nằm trong nắm tay, bao kiếm chuyển sang hông phải (Polybius 6.23.6).
+
+**Khung xương:** mỗi xương một ma trận đưa phần thân quanh nó từ tư thế chữ T sang tư thế chữ A của khung Celt, co giãn theo chiều dài xương. Trọng số chuyển từ thân Celt theo điểm gần nhất, tách bên trái/phải (để dây xăng đan không dính sang chân kia), rồi làm mượt.
+
+**LOD:** chi tiết trong `art/README.md`, mục "Giai đoạn `lod`".
+
+### Còn chưa ưng ý
+
+1. **Mũ đồng trông mờ, giống đất sét.** Cả mô hình chỉ có một độ nhám, không có ánh kim, nên đồng, sắt và da phản sáng như nhau. Muốn mũ và giáp bóng hơn thì cần một ảnh độ nhám/kim loại (xem đề nghị 2).
+2. **Còn theo mô hình gốc, chưa chắc đúng năm 216 TCN:**
+   - kiếm và bao kiếm mang dáng muộn hơn (giống kiểu Pompeii/Mainz, thế kỷ 1 TCN – 1 SCN), chưa phải *gladius hispaniensis* lưỡi dài hơi thắt eo;
+   - xăng đan kiểu *caligae*;
+   - áo màu đỏ: màu áo lính thời này chưa rõ.
+3. **Mô hình là người lính khá giả.** Theo Polybius 6.23.14–15, chỉ người thuộc hạng tài sản cao nhất mặc giáp lưới; số đông đeo một tấm đồng vuông che ngực (*pectorale*). Polybius cũng nói lính mang hai cây lao (*pilum*) và tấm che ống chân; cả hai chưa làm.
+4. **Nhìn rất gần:** mép má che hơi răng cưa; mép cổ áo giáp lưới lởm chởm; tấm sắt trên núm khiên còn hở một vệt đỏ nhỏ ở giữa. Ở cự ly cảnh trận không thấy.
+5. **LOD1:** mặt hơi nhoè. **LOD2:** hình người khối đơn giản, mỗi tam giác một màu; chỉ hợp khi lính cao vài chục điểm ảnh.
+6. **Atlas** mới dùng khoảng 52% diện tích ảnh màu; xếp chặt hơn thì mặt và giáp sẽ nét hơn.
+7. **Hoạt hình** là bản tạm: cứng, tay cầm khiên ít chuyển động. `walk` không có chuyển động gốc, cảnh phải tự di chuyển hình lính với tốc độ 1,08 m mỗi vòng (1,08 m/s).
+8. **Tư thế gốc** (không phát hoạt hình) là tư thế chữ A với khiên nằm dọc cánh tay trái, trông lạ. Cảnh nên luôn phát ít nhất `idle`.
+
+### Đề nghị ngoài phạm vi
+
+1. **Phiên chính, khi trận đánh vào app:** thêm dòng ghi công vào hộp thoại Giới thiệu và README. Câu gợi ý song ngữ ở cuối `art/CREDITS.md`.
+2. **Phiên chính, `docs/ARCHITECTURE.md`, mục "Mô hình lính":**
+   - ghi rõ hoạt hình không có chuyển động gốc, `walk` 1,08 m mỗi vòng, tư thế gốc là chữ A;
+   - cân nhắc cho phép thêm một ảnh độ nhám/kim loại 1024×1024 (glTF `metallicRoughnessTexture`), khoảng +150 KB, để kim loại trông như kim loại;
+   - ảnh duyệt đặt theo thư mục từng mô hình: `art/renders/<model>/`.
+3. **Lane 3 (T-015):** đọc mục "Ghi chú cho cảnh 3D" trong `art/README.md`, gồm thời lượng clip, tốc độ đi, phía của khiên, và việc ảnh màu đã có AO.
+4. **Đợt B**, nếu duyệt làm tiếp: biến thể *pectorale* cho lính nghèo hơn, lao *pilum*, tấm che ống chân, kiếm *gladius hispaniensis*, lính nhẹ *velites*.
+5. Không cần cài thêm gì cho Blender, không thêm thư viện npm.

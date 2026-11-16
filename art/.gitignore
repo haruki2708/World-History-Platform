@@ -1,0 +1,5 @@
+# Intermediate .blend files, bakes and previews. Rebuilt by the scripts.
+build/
+__pycache__/
+*.blend
+*.blend1
