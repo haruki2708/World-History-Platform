@@ -18,7 +18,8 @@ What differs between models comes from the unit module (whp_build):
               body   parts sampled for the stand-in's limbs and trunk
               trunk  part whose lower edge is the bottom of the trunk
                      (the mail shirt, or the belt over a bare tunic)
-              skirt  part whose lower edge is the hem of the skirt
+              skirt  part whose lower edge is the hem of the skirt (None:
+                     trousers, no skirt)
               head   part that gives the head's size
 """
 
@@ -214,7 +215,7 @@ def build_lod2_proxy(parts, armature, color_image, spec):
     parts and coloured from their atlas. Each shape follows one bone."""
     by_name = {p.name: p for p in parts}
     body = whp_proxy.Samples([by_name[n] for n in spec["body"]])
-    skirt = whp_proxy.Samples([by_name[spec["skirt"]]])
+    skirt = whp_proxy.Samples([by_name[spec["skirt"]]]) if spec.get("skirt") else None
     head = whp_proxy.Samples([by_name[spec["head"]]])
     bones = armature.data.bones
     square = math.pi / 4          # four-sided tubes with a flat side down
@@ -264,12 +265,13 @@ def build_lod2_proxy(parts, armature, color_image, spec):
     neck = joint("neck_01")
     pb.stack(rings, 6, top=((0.0, neck.y, shoulder + 0.02), "spine_03"))
 
-    # Skirt: the tunic below the trunk.
-    hem = float(np.percentile([v.co.z for v in by_name[spec["skirt"]].data.vertices if abs(v.co.x) < 0.3], 2))
-    rx, ry, cy = skirt.slice(hem + 0.04, [b.name for b in bones], max_abs_x=0.3)
-    (_x, top_y, _z), top_rx, top_ry, _bone = rings[0]
-    pb.stack([((0.0, cy, hem), rx, ry, "pelvis"),
-              ((0.0, top_y, trunk_hem + 0.05), top_rx * 0.97, top_ry * 0.97, "pelvis")], 6)
+    # Skirt: the tunic below the trunk (none over trousers).
+    if skirt is not None:
+        hem = float(np.percentile([v.co.z for v in by_name[spec["skirt"]].data.vertices if abs(v.co.x) < 0.3], 2))
+        rx, ry, cy = skirt.slice(hem + 0.04, [b.name for b in bones], max_abs_x=0.3)
+        (_x, top_y, _z), top_rx, top_ry, _bone = rings[0]
+        pb.stack([((0.0, cy, hem), rx, ry, "pelvis"),
+                  ((0.0, top_y, trunk_hem + 0.05), top_rx * 0.97, top_ry * 0.97, "pelvis")], 6)
 
     # Neck and head.
     pb.tube(neck, joint("head") + Vector((0.0, 0.0, 0.03)), (0.05, 0.048), 4, "neck_01",

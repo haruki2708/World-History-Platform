@@ -426,6 +426,8 @@ class SurfaceSwap:
             combine.inputs["Green"].default_value = rough
             combine.inputs["Blue"].default_value = metal
             base = bsdf.inputs["Base Color"]
+            if bsdf.inputs["Metallic"].is_linked:            # a metal map
+                tree.links.new(bsdf.inputs["Metallic"].links[0].from_socket, combine.inputs["Blue"])
             if mat.get(METAL_FROM_GREY) and base.is_linked:
                 hsv = node("ShaderNodeSeparateColor")
                 hsv.mode = "HSV"

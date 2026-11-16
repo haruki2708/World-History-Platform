@@ -457,7 +457,7 @@ def _extension(rt, source, frames, side="r"):
     return (reach - reach.min()) / max(reach.max() - reach.min(), 1e-6)
 
 
-def _stroke(b, source, guard, strike, shield=("guard", "punch"), follow=0.25, lead=3, pack="ual1"):
+def _stroke(b, source, guard, strike, shield=("guard", "punch"), follow=0.25, lead=3, pack="ual1", calm=None):
     """An attack where the right hand goes from `guard` to `strike` and back
     as the source's right hand reaches out and comes back (_extension). The
     dicts hold the wrist, the elbow's direction, where the weapon points
@@ -469,7 +469,7 @@ def _stroke(b, source, guard, strike, shield=("guard", "punch"), follow=0.25, le
     reach = _extension(rt, source, frames)
 
     def pose_at(frame):
-        rt.pose(rt.sample(source, frame))
+        rt.pose(rt.sample(source, frame, calm) if calm else rt.sample(source, frame))
         e = smooth(reach[frame])
         if b.kit.shield:
             ahead = smooth(reach[min(frame + lead, frames)])
@@ -497,6 +497,18 @@ def spear_thrust(b):
     guard = dict(wrist=(-0.27, 0.04, -0.42), aim=(-0.16, -1.0, 0.12), up=(-1.0, 0.0, 0.1), elbow=(-1.0, 0.8, -0.2))
     stab = dict(wrist=(-0.27, -0.46, -0.32), aim=(-0.10, -1.0, 0.06), up=(-1.0, 0.0, 0.2), elbow=(-1.0, 0.3, -0.4))
     return _stroke(b, "Punch_Cross", guard, stab, shield=("guard", "guard"))
+
+
+def sword_slash(b):
+    """A downward cut with a long sword: raised over the right shoulder,
+    the blade back and up, then brought over and down forwards and a
+    little across, the shield held up. Polybius 2.33: the Gauls' swords
+    cut only, with a long swing. Body: OverhandThrow (UAL 2) at half its
+    lunge; the hand is up while the library's arm is drawn back to throw
+    and down when it is stretched out."""
+    raised = dict(wrist=(-0.20, 0.04, 0.30), aim=(-0.25, 0.55, 0.80), up=(-1.0, 0.0, 0.1), elbow=(-1.0, 0.2, 0.4))
+    cut = dict(wrist=(-0.12, -0.48, -0.22), aim=(0.18, -0.75, -0.62), up=(-1.0, 0.0, 0.25), elbow=(-1.0, 0.3, -0.5))
+    return _stroke(b, "OverhandThrow", raised, cut, shield=("guard", "guard"), follow=0.3, pack="ual2", calm=CALM_THROW)
 
 
 # The library's throw is a big lunge; a man in a line throws with less of
@@ -591,6 +603,7 @@ ATTACKS = {
     "spear-thrust": spear_thrust,
     "javelin-throw": javelin_throw,
     "sling": sling,
+    "sword-slash": sword_slash,
 }
 
 
