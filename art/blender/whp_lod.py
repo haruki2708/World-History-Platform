@@ -150,6 +150,112 @@ def single_material(obj, material):
     mesh.update()
 
 
+def remesh(obj, voxel):
+    """Voxel remesh: one closed surface around everything in `obj`."""
+    mod = obj.modifiers.new("Remesh", "REMESH")
+    mod.mode = "VOXEL"
+    mod.voxel_size = voxel
+    mod.adaptivity = 0.0
+    mod.use_smooth_shade = True
+    select_only(obj)
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    return obj
+
+
+def transfer_uvs_and_weights(target, source, weights=True):
+    """Copy the atlas UVs (and the vertex groups) of `source` onto
+    `target` from the nearest surface points."""
+    if UV_NAME not in target.data.uv_layers:
+        target.data.uv_layers.new(name=UV_NAME)
+    mod = target.modifiers.new("Transfer", "DATA_TRANSFER")
+    mod.object = source
+    mod.use_loop_data = True
+    mod.data_types_loops = {"UV"}
+    mod.loop_mapping = "POLYINTERP_NEAREST"
+    mod.layers_uv_select_src = "ALL"
+    mod.layers_uv_select_dst = "NAME"
+    mod.use_vert_data = weights
+    mod.data_types_verts = {"VGROUP_WEIGHTS"}
+    mod.vert_mapping = "POLYINTERP_NEAREST"
+    mod.layers_vgroup_select_src = "ALL"
+    mod.layers_vgroup_select_dst = "NAME"
+    select_only(target)
+    bpy.ops.object.datalayout_transfer(modifier=mod.name)
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+
+
+def flat_colour_uvs(target, source, image):
+    """Give every triangle of `target` one flat colour from the atlas:
+    sample the surface of `source` (which carries the atlas UVs) at seven
+    points under the triangle and use the UV of the sample closest to their
+    mean colour, so that a dark gap between mail rings does not stand for
+    a whole patch of mail. For far LODs, whose big triangles would smear
+    texture across several atlas islands."""
+    from mathutils.interpolate import poly_3d_calc
+
+    triangulate(source)
+    smesh = source.data
+    scoords = [v.co.copy() for v in smesh.vertices]
+    stris = [tuple(p.vertices) for p in smesh.polygons]
+    suv = np.empty(len(smesh.loops) * 2)
+    smesh.uv_layers[UV_NAME].data.foreach_get("uv", suv)
+    suv = suv.reshape(len(stris), 3, 2)
+    tree = BVHTree.FromPolygons(scoords, stris)
+    pixels = pixels_of(image)
+    h, w = pixels.shape[:2]
+
+    triangulate(target)
+    mesh = target.data
+    if UV_NAME not in mesh.uv_layers:
+        mesh.uv_layers.new(name=UV_NAME)
+    out = np.zeros((len(mesh.polygons), 3, 2))
+    for f, poly in enumerate(mesh.polygons):
+        corners = [mesh.vertices[i].co for i in poly.vertices]
+        centre = (corners[0] + corners[1] + corners[2]) / 3
+        points = [centre] + [centre.lerp(c, 0.6) for c in corners] + \
+                 [centre.lerp((corners[i] + corners[(i + 1) % 3]) / 2, 0.6) for i in range(3)]
+        uvs, colours = [], []
+        for p in points:
+            location, _normal, tri, _dist = tree.find_nearest(p)
+            a, b, c = stris[tri]
+            bary = poly_3d_calc([scoords[a], scoords[b], scoords[c]], location)
+            uv = bary[0] * suv[tri, 0] + bary[1] * suv[tri, 1] + bary[2] * suv[tri, 2]
+            px = min(max(int(uv[0] * w), 0), w - 1)
+            py = min(max(int(uv[1] * h), 0), h - 1)
+            uvs.append(uv)
+            colours.append(pixels[py, px, :3])
+        colours = np.array(colours)
+        best = int(np.argmin(np.linalg.norm(colours - colours.mean(axis=0), axis=1)))
+        out[f] = uvs[best]
+    mesh.uv_layers[UV_NAME].data.foreach_set("uv", out.ravel())
+    mesh.update()
+
+
+def flatten_seam_triangles(obj, factor=3.0):
+    """Triangles whose transferred UVs straddle two atlas islands would
+    smear a strip of unrelated texels across them: give them the UV of
+    one corner instead (one flat colour)."""
+    mesh = obj.data
+    triangulate(obj)
+    n = len(mesh.polygons)
+    uv = np.empty(n * 3 * 2)
+    mesh.uv_layers[UV_NAME].data.foreach_get("uv", uv)
+    uv = uv.reshape(n, 3, 2)
+    idx = np.empty(n * 3, dtype=np.int64)
+    mesh.polygons.foreach_get("vertices", idx)
+    co = np.empty(len(mesh.vertices) * 3)
+    mesh.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)[idx.reshape(n, 3)]
+    uv_edges = np.linalg.norm(uv - np.roll(uv, 1, axis=1), axis=2)
+    edges = np.linalg.norm(co - np.roll(co, 1, axis=1), axis=2)
+    ratio = np.median(uv_edges.sum(axis=1) / np.maximum(edges.sum(axis=1), 1e-9))
+    bad = (uv_edges > factor * ratio * np.maximum(edges, 1e-4)).any(axis=1)
+    uv[bad] = uv[bad][:, :1, :]
+    mesh.uv_layers[UV_NAME].data.foreach_set("uv", uv.ravel())
+    mesh.update()
+    return int(bad.sum())
+
+
 # --------------------------------------------------------------------------
 # UV atlas
 # --------------------------------------------------------------------------

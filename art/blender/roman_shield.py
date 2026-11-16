@@ -126,7 +126,7 @@ def build(detail, materials, name="Scutum"):
     end = LENGTH / 2 - SPINE_MARGIN
     if detail == 0:
         stations = [-end, -0.34, -0.15, -0.08, 0.0, 0.08, 0.15, 0.34, end]
-        across = [-1.0, 0.0, 1.0]
+        across = [-1.0, -0.5, 0.0, 0.5, 1.0]
     else:
         n = 20 if detail == 1 else 64
         stations = sorted(set([-end + 2 * end * i / n for i in range(n + 1)]

@@ -11,8 +11,8 @@ import math
 import bpy
 import numpy as np
 
-BRONZE = (0.52, 0.31, 0.085)
-BRONZE_DARK = (0.24, 0.13, 0.035)
+BRONZE = (0.44, 0.235, 0.06)
+BRONZE_DARK = (0.16, 0.08, 0.02)
 IRON = (0.23, 0.24, 0.26)
 IRON_DARK = (0.09, 0.09, 0.10)
 LEATHER = (0.16, 0.085, 0.04)

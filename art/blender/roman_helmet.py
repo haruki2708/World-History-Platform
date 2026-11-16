@@ -117,7 +117,9 @@ CHEEK_THICKNESS = 0.0025
 
 def build_cheeks(detail, materials, name="Helmet_cheeks"):
     b = Builder()
-    rows_n = {0: 6, 1: 10, 2: 24}[detail]
+    # 12 rows at game resolution: fewer cut the corners of the scallops,
+    # and the bake then misses the detailed piece along them.
+    rows_n = {0: 12, 1: 12, 2: 24}[detail]
     cols_n = {0: 3, 1: 4, 2: 10}[detail]
     for side in (1, -1):
         layers = []

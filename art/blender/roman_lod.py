@@ -4,16 +4,21 @@ Each part of the detailed model gets a low-poly stand-in: source meshes are
 copied, stripped of what is hidden under other layers and decimated; the
 generated kit already has game-resolution copies (".low"). The LOD0 parts
 share one UV atlas; colour and normals are baked from the detailed parts,
-ambient occlusion from the LOD0 parts themselves. LOD1 and LOD2 are
-decimated from the baked LOD0 parts, so they reuse its UVs and weights.
+ambient occlusion from the LOD0 parts themselves. LOD1 is decimated from
+the baked LOD0 parts, so it reuses their UVs and weights. LOD2 is a
+segmented stand-in laid along the skeleton (whp_proxy) plus decimated
+copies of the closed kit parts, coloured from the same atlas.
 """
 
+import math
 import os
 
 import bpy
 import numpy as np
+from mathutils import Vector
 
 import whp_lod as lod
+import whp_proxy
 import whp_skeleton
 import whp_skin
 from whp_common import BUILD_DIR, delete_objects, deselect_all, join_objects, log, select_only, triangle_count
@@ -29,6 +34,11 @@ AO_SIZE = 1024
 AO_DISTANCE = 0.10                  # metres
 AO_STRENGTH = 0.75
 SAMPLES = {"NORMAL": 4, "EMIT": 4, "AO": 32}
+
+# LOD2: the body is a segmented stand-in (decimating the open LOD0 parts
+# that far tears them apart). These parts are closed already and keep
+# their own decimated copies.
+LOD2_OWN = ("shield", "sword", "crest", "helmet")
 
 
 class Part:
@@ -62,8 +72,11 @@ class Part:
 
 
 PARTS = [
-    Part("head", ["New_head"], ["New_head", "New_eye", "New_eye_2"], (1000, 190, 36),
-         covers=["Helmet", "Helmet_cheeks", "Tunic_1", "Mail", "Mail_yoke"], reach=0.035,
+    # The head mesh has open eye sockets: the eyeballs must come along.
+    Part("head", ["New_head", "New_eye", "New_eye_2"], ["New_head", "New_eye", "New_eye_2"], (1150, 190, 36),
+         # Only the scalp under the bowl goes: holes under the thin cheek
+         # pieces or the collar show at grazing angles.
+         covers=["Helmet"], reach=0.035,
          uv=1.8, extrusion=0.015, ray=0.035),
     Part("arms", ["New_arms"], ["New_arms"], (1100, 190, 44),
          covers=["Tunic_1", "Mail", "Mail_yoke"], reach=0.03),
@@ -79,10 +92,10 @@ PARTS = [
     Part("sword", ["Sword2_1"], ["Sword2_1"], (140, 40, 10), ao_alone=True),
     Part("helmet", ["Helmet.low"], ["Helmet"], (None, 110, 24), uv=1.3, extrusion=0.008, ray=0.02),
     Part("cheeks", ["Helmet_cheeks.low"], ["Helmet_cheeks"], (None, 40, 0), uv=1.2, extrusion=0.005, ray=0.012),
-    Part("crest", ["Helmet_crest.low"], ["Helmet_crest"], (None, 48, 12), uv=0.7, extrusion=0.005, ray=0.012),
+    Part("crest", ["Helmet_crest.low"], ["Helmet_crest"], (None, 48, 6), uv=0.7, extrusion=0.005, ray=0.012),
     # Slot 2 of the shield is the wooden back: half the density of the face.
     Part("shield", ["Scutum.low"], ["Scutum"], (None, 100, 40), uv=lambda slot: 0.45 if slot == 2 else 1.0,
-         extrusion=0.01, ray=0.025, ao_alone=True),
+         extrusion=0.02, ray=0.045, ao_alone=True),
     Part("hook", ["Mail_hook.low"], ["Mail_hook"], (None, 0, 0), extrusion=0.008, ray=0.02),
 ]
 
@@ -197,6 +210,87 @@ def compose_textures(color_raw, normal_raw, ao_raw):
     return color_image, normal_image
 
 
+def build_lod2_proxy(parts, armature, color_image):
+    """The segmented stand-in for LOD2 (whp_proxy), sized from the LOD0
+    parts and coloured from their atlas. Each shape follows one bone."""
+    by_name = {p.name: p for p in parts}
+    body = whp_proxy.Samples([by_name[n] for n in ("head", "arms", "legs", "tunic", "mail", "yoke", "belt")])
+    tunic = whp_proxy.Samples([by_name["tunic"]])
+    head = whp_proxy.Samples([by_name["head"]])
+    bones = armature.data.bones
+    square = math.pi / 4          # four-sided tubes with a flat side down
+
+    def joint(name):
+        return Vector(bones[name].head_local)
+
+    pb = whp_proxy.ProxyBuilder()
+    for s in ("l", "r"):
+        upper, lower, hand = f"upperarm_{s}", f"lowerarm_{s}", f"hand_{s}"
+        pb.tube(joint(upper), joint(lower),
+                body.radii_along(joint(upper), joint(lower), [upper, f"upperarm_twist_01_{s}"]),
+                4, upper, extend=(0.03, 0.02), phase=square)
+        pb.tube(joint(lower), joint(hand),
+                body.radii_along(joint(lower), joint(hand), [lower, f"lowerarm_twist_01_{s}"]),
+                4, lower, extend=(0.02, 0.0), phase=square)
+        knuckles = joint(f"middle_01_{s}")
+        fist_end = knuckles + (knuckles - joint(hand)) * 0.5
+        pb.tube(joint(hand), fist_end, body.radii_along(joint(hand), fist_end, [hand], percentile=75),
+                4, hand, extend=(0.01, 0.0), caps=(False, True), cap_length=0.5, phase=square)
+
+        thigh, calf, foot = f"thigh_{s}", f"calf_{s}", f"foot_{s}"
+        pb.tube(joint(thigh), joint(calf),
+                body.radii_along(joint(thigh), joint(calf), [thigh, f"thigh_twist_01_{s}"]),
+                4, thigh, extend=(0.0, 0.03), phase=square)
+        pb.tube(joint(calf), joint(foot),
+                body.radii_along(joint(calf), joint(foot), [calf, f"calf_twist_01_{s}"]),
+                4, calf, extend=(0.02, 0.03), phase=square)
+        # Foot: a flat-bottomed box from the heel to the toes, on the ground.
+        ankle, ball = joint(foot), joint(f"ball_{s}")
+        heel = Vector((ankle.x, ankle.y + 0.045, 0.04))
+        toe = Vector((ball.x, ball.y - 0.07, 0.03))
+        r = body.radii_along(heel, toe, [foot, f"ball_{s}"], percentile=70)
+        heel.z, toe.z = r[0] * 0.72, r[1] * 0.72
+        pb.tube(heel, toe, r, 4, foot, caps=(False, True), cap_length=0.4, phase=square)
+
+    # Trunk (the mail shirt), from its hem up to the shoulders.
+    trunk = ["pelvis", "spine_01", "spine_02", "spine_03", "clavicle_l", "clavicle_r"]
+    hips = trunk + ["thigh_l", "thigh_r", "thigh_twist_01_l", "thigh_twist_01_r"]
+    mail_hem = float(np.percentile([v.co.z for v in by_name["mail"].data.vertices], 2))
+    shoulder = joint("clavicle_l").z + 0.02
+    rings = []
+    for z, bone, sample in ((mail_hem + 0.02, "pelvis", hips), (joint("pelvis").z, "pelvis", hips),
+                            (joint("spine_02").z, "spine_02", trunk), (shoulder - 0.04, "spine_03", trunk)):
+        rx, ry, cy = body.slice(z, sample)
+        rings.append(((0.0, cy, z), rx, ry, bone))
+    neck = joint("neck_01")
+    pb.stack(rings, 6, top=((0.0, neck.y, shoulder + 0.02), "spine_03"))
+
+    # Skirt: the tunic below the mail.
+    hem = float(np.percentile([v.co.z for v in by_name["tunic"].data.vertices if abs(v.co.x) < 0.3], 2))
+    rx, ry, cy = tunic.slice(hem + 0.04, [b.name for b in bones], max_abs_x=0.3)
+    (_x, top_y, _z), top_rx, top_ry, _bone = rings[0]
+    pb.stack([((0.0, cy, hem), rx, ry, "pelvis"),
+              ((0.0, top_y, mail_hem + 0.05), top_rx * 0.97, top_ry * 0.97, "pelvis")], 6)
+
+    # Neck and head.
+    pb.tube(neck, joint("head") + Vector((0.0, 0.0, 0.03)), (0.05, 0.048), 4, "neck_01",
+            extend=(0.02, 0.0), phase=square)
+    pts = head.of(["head"])
+    pts = pts[pts[:, 2] > joint("head").z - 0.02]
+    lo, hi = pts.min(axis=0), pts.max(axis=0)
+    radii = (hi - lo) / 2 * np.array((0.93, 0.93, 1.0))
+    radii[2] = max(radii[2], 0.11)
+    pb.ellipsoid(Vector((lo + hi) / 2), radii, 6, 4, "head")
+
+    proxy = pb.object("lod2-proxy")
+    source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts if p.name not in LOD2_OWN],
+                          "lod2-source")
+    lod.flat_colour_uvs(proxy, source, color_image)
+    log(f"LOD2 proxy: {triangle_count(proxy)} triangles, one flat colour each")
+    delete_objects([source])
+    return proxy
+
+
 def _finish_lod(objs, name, limit, armature, material):
     mesh_obj = join_objects(objs, name)
     count = triangle_count(mesh_obj)
@@ -247,11 +341,14 @@ def build():
     color_image, normal_image = compose_textures(color_raw, normal_raw, ao_raw)
     final = lod.final_material(MODEL, color_image, normal_image)
 
-    # LOD1 and LOD2 from the baked LOD0 parts.
+    # LOD1 from the baked LOD0 parts; LOD2 mostly from a remeshed proxy.
     levels = [[], [], []]
+    levels[2].append(build_lod2_proxy(parts, armature, color_image))
     for part, low in zip(PARTS, parts):
         for level in (1, 2):
             budget = part.budget[level]
+            if level == 2 and part.name not in LOD2_OWN:
+                continue
             if budget:
                 copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
                 lod.decimate(copy, budget)
