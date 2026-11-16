@@ -54,13 +54,19 @@ class Kit:
              (blade or shaft, from the grip towards the business end),
              at rest; kept on the armature as "whp_weapon_axis".
     attack:  a key of ATTACKS.
+    carry:   how the weapon is carried when not in use (WEAPON_CARRY, the
+             default, or SPEAR_CARRY: see there).
+    lie_flat: when he falls, lay the weapon level on the ground instead of
+             in line with the forearm (a long spear would go into it).
     """
 
-    def __init__(self, shield=True, attack="sword-thrust"):
+    def __init__(self, shield=True, attack="sword-thrust", carry=None, lie_flat=False):
         if attack not in ATTACKS:
             raise ValueError(f"unknown attack {attack!r}; choose one of {', '.join(ATTACKS)}")
         self.shield = shield
         self.attack = attack
+        self.carry = carry or WEAPON_CARRY
+        self.lie_flat = lie_flat
 
 
 def _vec(v):
@@ -103,6 +109,11 @@ SHIELD_CARRY = {
 # How a weapon is carried when not in use, in the same kind of frame:
 # pointing forwards and down, the back of the hand outwards.
 WEAPON_CARRY = dict(aim=(0.0, -0.8, -0.6), up=(-1.0, 0.0, 0.3), follow=0.6)
+# A long spear stands upright, its butt just off the ground: the forearm
+# comes forwards (IK to `wrist`, the elbow towards `elbow`) and the fist
+# holds the shaft upright beside the thigh.
+SPEAR_CARRY = dict(wrist=(-0.24, -0.17, -0.43), elbow=(-0.6, 0.8, -0.2),
+                   aim=(0.0, -0.08, 1.0), up=(-1.0, 0.1, 0.0), follow=0.6)
 
 
 def blend_carry(a, b, t):
@@ -158,6 +169,16 @@ class Arms:
         if aim is not None:
             p.orient(f"hand_{side}", (self.weapon_axis, self.back_r), (aim, up))
         self._twist(side)
+
+    def hold(self, carry):
+        """Carry the weapon as `carry` says: with the arm solved to a set
+        wrist position if it gives one, else by turning the hand only."""
+        if "wrist" not in carry or self.weapon_axis is None:
+            self.carry_weapon(carry)
+            return
+        turn, origin = self.chest(carry["follow"])
+        self.hand("r", origin + turn @ _vec(carry["wrist"]), turn @ _vec(carry["elbow"]),
+                  turn @ _vec(carry["aim"]).normalized(), turn @ _vec(carry["up"]).normalized())
 
     def carry_weapon(self, carry=WEAPON_CARRY, weight=1.0):
         """Keep the arm as it is but turn the hand so the weapon is carried
@@ -234,7 +255,7 @@ class Builder:
             if weapon is not None:
                 weapon(frame, clip.frames)
             else:
-                self.arms.carry_weapon()
+                self.arms.hold(self.kit.carry)
 
         return self.clip(name, clip.frames, pose_at, loop=LOOPS[name])
 
@@ -281,10 +302,12 @@ class Builder:
         forearm, flat on the ground under the hand."""
         p = self.p
         t = smooth(frame / frames * 1.6)
-        self.arms.carry_weapon(weight=1.0 - t)
+        self.arms.carry_weapon(self.kit.carry, weight=1.0 - t)
         if t > 0.0 and self.arms.weapon_axis is not None:
             before = p.matrix["hand_r"].to_3x3()
             along = p.direction("lowerarm_r", "hand_r")
+            if self.kit.lie_flat:
+                along = Vector((along.x, along.y, 0.0)).normalized()
             p.orient("hand_r", (self.arms.weapon_axis, self.arms.back_r), (along, Vector((0.0, 0.0, 1.0))))
             after = p.matrix["hand_r"].to_3x3()
             p.set_rotation("hand_r", before.to_quaternion().slerp(after.to_quaternion(), t).to_matrix())
@@ -395,8 +418,9 @@ def sword_thrust(b):
 def spear_thrust(b):
     """Underarm thrust of a spear held at the right hip, past the shield's
     right edge; the shield stays up. Body: Punch_Cross."""
-    guard = dict(wrist=(-0.24, 0.04, -0.42), aim=(0.02, -1.0, 0.16), up=(-1.0, 0.0, 0.1), elbow=(-1.0, 0.8, -0.2))
-    stab = dict(wrist=(-0.22, -0.50, -0.32), aim=(0.04, -1.0, 0.08), up=(-1.0, 0.0, 0.2), elbow=(-1.0, 0.3, -0.4))
+    # The shaft runs out past the shield's right edge, a little outwards.
+    guard = dict(wrist=(-0.27, 0.04, -0.42), aim=(-0.16, -1.0, 0.12), up=(-1.0, 0.0, 0.1), elbow=(-1.0, 0.8, -0.2))
+    stab = dict(wrist=(-0.27, -0.46, -0.32), aim=(-0.10, -1.0, 0.06), up=(-1.0, 0.0, 0.2), elbow=(-1.0, 0.3, -0.4))
     return _stroke(b, "Punch_Cross", guard, stab, shield=("guard", "guard"))
 
 
