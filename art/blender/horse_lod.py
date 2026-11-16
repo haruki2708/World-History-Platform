@@ -1,0 +1,268 @@
+"""Stage "lod" of the horse: game meshes in three levels, one atlas, one material.
+
+Four groups of meshes, each with its own LOD0..LOD2 objects, because the
+rider models (T-022) show the tack per kind of horseman:
+
+    horse_LOD<n>           body, mane, tail
+    horse_cloth_LOD<n>     saddle cloth and girth
+    horse_bridle_LOD<n>    headstall, noseband, rings, reins
+    horse_neckrope_LOD<n>  the Numidians' neck rope
+
+All of them share one UV atlas and one material ("horse"): colour (with
+ambient occlusion), normals and roughness/metalness baked with Cycles on
+the CPU, as lane 1 does for the soldiers (whp_lod, whp_unit_lod). The body's
+low mesh is the source skin without the inside of the mouth and the eye
+shells, decimated; the mane, tail and tack are built at game resolution and
+bake from copies of themselves. LOD1 is decimated from LOD0 (same UVs and
+weights). LOD2 is a stand-in of a few tubes along the bones (the decimator
+tears thin legs apart at 150 triangles), coloured flat from the atlas.
+"""
+
+import math
+
+import bmesh
+import bpy
+import numpy as np
+from mathutils import Vector
+
+import horse_rig as rig
+import whp_lod as lod
+import whp_proxy
+import whp_unit_lod as ul
+from whp_common import delete_objects, deselect_all, duplicate_object, log, triangle_count
+
+MODEL = "horse"
+GROUPS = ("horse", "horse_cloth", "horse_bridle", "horse_neckrope")
+GROUP_OF = {"body": "horse", "mane": "horse", "tail": "horse",
+            "cloth": "horse_cloth", "bridle": "horse_bridle", "neckrope": "horse_neckrope"}
+# Triangles at LOD0, LOD1, LOD2 (LOD2 for the body is the stand-in).
+BUDGET = {
+    "body": (2780, 600, None),
+    "mane": (None, 0, 0),             # decimated it turns into a spike; the body's crest suffices
+    "tail": (None, 40, 0),
+    "cloth": (None, 60, 12),
+    "bridle": (None, 0, 0),           # thin, loose pieces: decimated they tear; unseen at that range
+    "neckrope": (None, 24, 0),
+}
+LIMITS = (3500, 700, 150)       # per horse with all its tack (task T-020)
+SOURCE = {"body": rig.BODY_NAME, "mane": "horse-mane", "tail": "horse-tail", "cloth": "horse-cloth",
+          "bridle": "horse-bridle", "neckrope": "horse-neckrope"}
+INNER_SLOTS = (2, 3, 5)          # gums, teeth, cornea (horse_kit.INNER_SLOTS)
+
+
+def _body_shell(body):
+    """Copy of the body without the faces inside the mouth and the shells
+    over the eyes."""
+    shell = duplicate_object(body, "body")
+    shell.modifiers.clear()
+    shell.parent = None
+    bm = bmesh.new()
+    bm.from_mesh(shell.data)
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index in INNER_SLOTS], context="FACES")
+    loose = [v for v in bm.verts if not v.link_faces]
+    bmesh.ops.delete(bm, geom=loose, context="VERTS")
+    bm.to_mesh(shell.data)
+    bm.free()
+    for layer in list(shell.data.uv_layers):
+        shell.data.uv_layers.remove(layer)
+    return shell
+
+
+def low_parts():
+    """LOD0 parts, each with its own UV islands, and the detailed objects
+    each bakes from."""
+    parts, sources = [], []
+    body = bpy.data.objects[rig.BODY_NAME]
+    shell = _body_shell(body)
+    lod.triangulate(shell)
+    lod.set_uv_weight(shell, lambda slot: 1.0)
+    lod.project_uvs(shell)
+    lod.decimate(shell, BUDGET["body"][0])
+    parts.append(shell)
+    sources.append([body])
+    for key in ("mane", "tail", "cloth", "bridle", "neckrope"):
+        obj = bpy.data.objects[SOURCE[key]]
+        low = duplicate_object(obj, key)
+        low.modifiers.clear()
+        low.parent = None
+        lod.triangulate(low)
+        lod.set_uv_weight(low, lambda slot: 1.0)
+        lod.project_uvs(low)
+        parts.append(low)
+        sources.append([obj])
+    for p in parts:
+        log(f"LOD0 {p.name}: {triangle_count(p)} triangles")
+    return parts, sources
+
+
+class _Spec:
+    def __init__(self, name, sources, ao_alone):
+        self.name = name
+        self.bake = [o.name for o in sources]
+        self.extrusion = 0.012
+        self.ray = 0.03
+        self.ao_alone = ao_alone
+
+
+def bake(parts, sources):
+    scene = bpy.context.scene
+    specs = [_Spec(p.name, s, p.name in ("cloth", "bridle", "neckrope")) for p, s in zip(parts, sources)]
+    parts = lod.unwrap_atlas(parts, pixels=ul.ATLAS_MARGIN, size=ul.COLOR_SIZE)
+    material = lod.bake_material()
+    for low in parts:
+        lod.single_material(low, material)
+    lod.setup_cycles(scene, 4)
+    normal_raw = lod.new_target(f"{MODEL}-normal-raw", ul.NORMAL_BAKE_SIZE, non_color=True)
+    color_raw = lod.new_target(f"{MODEL}-color-raw", ul.COLOR_SIZE)
+    ao_raw = lod.new_target(f"{MODEL}-ao-raw", ul.AO_SIZE, non_color=True)
+    surface_raw = lod.new_target(f"{MODEL}-surface-raw", ul.COLOR_SIZE, non_color=True)
+    detailed = [o for s in sources for o in s]
+    # The detailed objects bake in their rest pose, without the armature.
+    undo = [(o, o.parent) for o in detailed]
+    for o in detailed:
+        for m in o.modifiers:
+            m.show_render = False
+    ul.bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
+    with lod.EmissionSwap(detailed):
+        ul.bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
+    with lod.SurfaceSwap(detailed):
+        ul.bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
+    ul.bake_ao(scene, specs, parts, ao_raw, material)
+    for o, _p in undo:
+        for m in o.modifiers:
+            m.show_render = True
+    color_image, normal_image = ul.compose_textures(MODEL, color_raw, normal_raw, ao_raw)
+    surface_image = ul.compose_surface(MODEL, surface_raw)
+    final = lod.final_material(MODEL, color_image, normal_image, surface_image=surface_image)
+    for image in (normal_raw, color_raw, ao_raw, surface_raw):
+        bpy.data.images.remove(image)
+    bpy.data.materials.remove(material)
+    return parts, final, color_image
+
+
+def _joint(rest, name):
+    return Vector(rest[name][:3, 3].tolist())
+
+
+def _slice(co, y, half=0.04):
+    """Top, bottom and half width of the trunk at `y` (legs left out)."""
+    near = co[np.abs(co[:, 1] - y) < half]
+    mid = near[np.abs(near[:, 0]) < 0.08]
+    top = float(mid[:, 2].max())
+    bottom = float(mid[mid[:, 2] > 0.5, 2].min())
+    centre = (top + bottom) / 2
+    band = near[np.abs(near[:, 2] - centre) < 0.08]
+    return top, bottom, float(np.abs(band[:, 0]).max())
+
+
+def lod2_body(parts, rest, color_image):
+    """Stand-in for the far body: an elliptic barrel of three rings, neck,
+    head, four legs of two tubes each and the tail, each shape following
+    one bone, coloured flat from the atlas."""
+    body = next(p for p in parts if p.name == "body")
+    tail = next(p for p in parts if p.name == "tail")
+    # Measured on the detailed skin (the decimated one is too sparse).
+    detailed = bpy.data.objects[rig.BODY_NAME].data
+    co = np.empty(len(detailed.vertices) * 3)
+    detailed.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)
+    pb = whp_proxy.ProxyBuilder()
+    j = lambda n: _joint(rest, n)  # noqa: E731
+
+    # Barrel: rings at the croup, the middle and the chest.
+    hips, chest = j("horse_hips"), j("horse_spine_5")
+    stations = [(hips.y - 0.02, "horse_hips"), ((hips.y + chest.y) / 2, "horse_spine_3"), (chest.y - 0.12, "horse_spine_5")]
+    rings = []
+    for y, bone in stations:
+        top, bottom, half = _slice(co, y)
+        centre = Vector((0.0, y, (top + bottom) / 2))
+        rings.append((centre, pb._ring(centre, Vector((1, 0, 0)), Vector((0, 0, 1)), half * 0.97, (top - bottom) / 2 * 0.97,
+                                       6, bone, math.pi / 6)))
+    # The rings run counter-clockwise about -Y (X then Z), the way the
+    # barrel runs from the croup to the chest: bands outward that way.
+    for (_c0, back), (_c1, front) in zip(rings, rings[1:]):
+        pb._band(back, front)
+    pb._fan(pb._vert(rings[0][0] + Vector((0, 0.10, 0)), stations[0][1]), rings[0][1], flip=True)
+    pb._fan(pb._vert(rings[-1][0] + Vector((0, -0.12, 0)), stations[-1][1]), rings[-1][1])
+    # Neck and head.
+    neck_base = Vector((0.0, j("horse_neck_1").y, j("horse_neck_1").z + 0.06))
+    poll = j("horse_head")
+    pb.tube(neck_base, poll, (0.15, 0.085), 4, "horse_neck_2", extend=(0.05, 0.0), phase=math.pi / 4)
+    head = co[(co[:, 1] < poll.y + 0.02) & (co[:, 2] > 1.1)]
+    tip = Vector(head[np.argmin(head[:, 1])].tolist())
+    pb.tube(poll, tip, (0.085, 0.055), 4, "horse_head", extend=(0.04, 0.0), caps=(False, True), cap_length=0.3,
+            phase=math.pi / 4)
+    # Legs: elbow/stifle (inside the barrel) to knee/hock, then down to the ground.
+    for s in ("l", "r"):
+        for upper, joint_bone, low_bone, r_up in (
+                (f"horse_forearm_{s}", f"horse_fore_cannon_{s}", f"horse_fore_cannon_{s}", 0.07),
+                (f"horse_gaskin_{s}", f"horse_hind_cannon_{s}", f"horse_hind_cannon_{s}", 0.075)):
+            top = j(upper) + Vector((0, 0, 0.10))
+            knee = j(joint_bone)
+            hoof = j(low_bone.replace("cannon", "hoof"))
+            foot = Vector((hoof.x, hoof.y, 0.0))
+            pb.tube(top, knee, (r_up, 0.045), 3, upper, extend=(0.0, 0.02), phase=math.pi / 2)
+            pb.tube(knee, foot, (0.04, 0.045), 3, low_bone, phase=math.pi / 2)
+    proxy = pb.object("lod2-proxy")
+    tail_low = duplicate_object(tail, "tail.lod2")
+    lod.decimate(tail_low, 8)
+    source = duplicate_object(body, "body.src")
+    lod.flat_colour_uvs(proxy, source, color_image)
+    delete_objects([source])
+    from whp_common import join_objects
+    proxy = join_objects([proxy, tail_low], "body.lod2")
+    log(f"LOD2 body stand-in: {triangle_count(proxy)} triangles")
+    return proxy
+
+
+def _push_out(obj, distance):
+    """Move a decimated cloth out along its normals: its flatter faces
+    would otherwise cut into the body's curve."""
+    mesh = obj.data
+    for v in mesh.vertices:
+        v.co += v.normal * distance
+    mesh.update()
+
+
+def build(armature, rest):
+    parts, sources = low_parts()
+    parts, final, color_image = bake(parts, sources)
+    by_name = {p.name: p for p in parts}
+    levels = {g: [[], [], []] for g in GROUPS}
+    for key, budget in BUDGET.items():
+        group = GROUP_OF[key]
+        low = by_name[key]
+        levels[group][0].append(low)
+        if budget[1]:
+            copy = duplicate_object(low, f"{key}.lod1")
+            lod.decimate(copy, budget[1])
+            if key == "cloth":
+                _push_out(copy, 0.012)
+            levels[group][1].append(copy)
+        if key == "body":
+            levels[group][2].append(lod2_body(parts, rest, color_image))
+        elif budget[2]:
+            copy = duplicate_object(low, f"{key}.lod2")
+            lod.decimate(copy, budget[2])
+            if key == "cloth":
+                _push_out(copy, 0.02)
+            levels[group][2].append(copy)
+    out = {}
+    totals = [0, 0, 0]
+    for group in GROUPS:
+        for i in range(3):
+            objs = levels[group][i]
+            if not objs:
+                continue
+            name = f"{group}_LOD{i}"
+            obj = ul._finish_lod(objs, name, LIMITS[i], armature, final)
+            # The coat colours live in the atlas now; a colour attribute
+            # left on the mesh would be exported (COLOR_0) and multiply it.
+            for attr in list(obj.data.color_attributes):
+                obj.data.color_attributes.remove(attr)
+            out[name] = obj
+            totals[i] += triangle_count(obj)
+    for i in range(3):
+        log(f"LOD{i} with all tack: {totals[i]} triangles (target about {LIMITS[i]})")
+    deselect_all()
+    return out, totals

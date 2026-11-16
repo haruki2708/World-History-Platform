@@ -76,3 +76,67 @@ Như `roman-legionary`: **"Roman Soldier - T pose - free download"** và khung x
 ### Dòng ghi công gợi ý
 
 Dùng chung dòng của `roman-legionary` ("Lính La Mã dựa trên…").
+
+## Ngựa (`art/build/horse/horse.blend`, cho kỵ binh ở T-022)
+
+Ngựa không xuất thành file `.glb` riêng: T-022 ghép người cưỡi lên ngựa rồi mới xuất. Mục này ghi công cho phần ngựa trong các mô hình kỵ binh.
+
+### Lưới ngựa
+
+**"Horse"**, tác giả **Tarnyloo** (Blend Swap, blend số 17172; trong file tải về đánh số cũ 83562).
+- Link: https://blendswap.com/blend/17172
+- Giấy phép: [Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/). Trang chỉ ghi "CC-BY", không ghi phiên bản. Tệp giấy phép trong file zip (`83562 - LICENSE.html`) ghi "Released under Creative Commons Attribution 3.0", kèm yêu cầu nêu tên tác giả trong bản sao và bản sửa đổi.
+- Phần dùng: lưới thân ngựa (22 514 đỉnh), gồm cả mắt, răng và lợi; không dùng vật liệu nào (file gốc không có ảnh vật liệu).
+
+### Khung xương và dáng đi
+
+**"Horse Rigged All Gaits"**, tác giả **fdoss001** (Blend Swap, blend số 28627).
+- Link: https://blendswap.com/blend/28627
+- Giấy phép: CC0 ("Free to use. No need to credit me"). Không bắt ghi công; ghi ở đây cho minh bạch.
+- File này dùng lưới của Tarnyloo, có sửa rất ít. Script đã so: cùng số đỉnh, và sau khi khớp tỉ lệ và vị trí, đỉnh lệch nhau nhiều nhất 1,2% kích thước con ngựa. Vì vậy lưới vẫn theo giấy phép CC BY của Tarnyloo.
+- Phần dùng:
+  - trọng số gắn da của 80 xương biến dạng;
+  - vị trí các xương đó trong các action `horse.walk`, `horse.trot`, `horse.canter`, `horse.gallop`, `horse.head.shake`, `horse.tail.flick.left` và `horse.tail.flick.right`.
+- Phần không dùng:
+  - khung Rigify điều khiển (456 xương);
+  - lông dạng hạt;
+  - yên, bàn đạp, dây cương, hàm thiếc;
+  - mọi ảnh vật liệu trong file: ảnh của các add-on thương mại "Extreme PBR" và "materialiq", và ảnh mắt `brown_eye.png`. Các ảnh này không rõ giấy phép.
+
+### Những gì đã thay đổi
+
+1. **Bỏ:**
+   - yên kiểu hiện đại;
+   - bàn đạp, chưa có vào năm 216 TCN;
+   - dây cương có hàm thiếc của file gốc;
+   - lông bờm, đuôi, mi và lông thân dạng hạt (lưới trong game không mang được);
+   - ba khoá hình dạng chỉnh cổ;
+   - toàn bộ vật liệu.
+2. **Đổi tỉ lệ:** cao 1,40 m tới vai, xem `art/README.md`, mục "Ngựa".
+3. **Khung xương mới:**
+   - 40 xương tên `horse_*`;
+   - xương sọ, hàm, mắt, mũi, tai, gốc bờm, ngực và hông được gộp vào xương cha, vì không dáng đi nào làm chúng chuyển động so với xương cha;
+   - mỗi đoạn chân của file gốc gồm hai xương lệch nhau dưới 4°, nay gộp làm một;
+   - thêm xương `horse_saddle` để gắn người cưỡi.
+4. **Thêm**, tự dựng bằng script, vật liệu tự tạo:
+   - **bờm** cắt ngắn dựng đứng và **đuôi**;
+   - **vải lót yên** bằng len đỏ, có viền sẫm, và **đai bụng** da;
+   - **dây cương đơn giản:** dây đầu, dây mũi, hai vòng sắt ở khoé miệng, dây cầm;
+   - **dây quàng cổ** cho ngựa Numidia.
+5. **Màu lông:** ngựa hồng (bay), tự tô:
+   - thân nâu đỏ, bụng sáng hơn;
+   - mõm sẫm;
+   - cẳng chân đen.
+6. **Hoạt hình:**
+   - `walk`, `run` (từ `horse.gallop`), `trot`, `canter` lấy mẫu lại ở 30 khung/giây; vòng `walk` được khép lại ở đuôi;
+   - `idle` ghép từ tư thế đứng, lắc đầu, vẫy đuôi và nhịp thở tự thêm;
+   - `die` tự làm bằng keyframe.
+7. **Giảm chi tiết:**
+   - LOD0 và LOD1 giảm số tam giác từ lưới gốc;
+   - LOD2 là hình đơn giản dựng mới theo khung xương;
+   - màu, pháp tuyến, độ nhám và AO bake vào một atlas.
+
+### Dòng ghi công gợi ý (cho hộp thoại Giới thiệu, README)
+
+- Tiếng Việt: *Ngựa dựa trên "Horse" của Tarnyloo (Blend Swap, CC BY 3.0), khung xương và dáng đi từ "Horse Rigged All Gaits" của fdoss001 (Blend Swap, CC0); đã sửa đổi.*
+- English: *Horse based on "Horse" by Tarnyloo (Blend Swap, CC BY 3.0), with the rig and gaits of "Horse Rigged All Gaits" by fdoss001 (Blend Swap, CC0); modified.*
