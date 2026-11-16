@@ -206,3 +206,10 @@ def place(obj, grip_point, scale):
     co = co @ m[:3, :3].T + m[:3, 3]
     set_coords(obj, co)
     return obj
+
+
+def axes_in_source():
+    """Directions of a placed shield in the source model's space: along its
+    length towards the end below the fist, and out of its face."""
+    tilt = Matrix.Rotation(math.radians(TILT), 3, "Y")
+    return tilt @ Vector((1.0, 0.0, 0.0)), tilt @ Vector((0.0, 0.0, 1.0))

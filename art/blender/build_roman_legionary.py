@@ -19,12 +19,14 @@ import bpy  # noqa: E402
 
 import numpy as np  # noqa: E402
 
+import roman_anims  # noqa: E402
 import roman_fit  # noqa: E402
 import roman_hands  # noqa: E402
 import roman_helmet  # noqa: E402
 import roman_mail  # noqa: E402
 import roman_shield  # noqa: E402
 import roman_source  # noqa: E402
+import whp_anim  # noqa: E402
 import whp_materials  # noqa: E402
 import whp_skeleton  # noqa: E402
 import whp_skin  # noqa: E402
@@ -141,9 +143,24 @@ def stage_rig(args):
         whp_skin.write_groups(obj, weights, names)
         log(f"skinned {obj.name}: {len(coords)} vertices, {int((weights.max(axis=0) > 0).sum())} bones")
 
+    # How the shield sits on the hand bone at rest; the clips aim it by this.
+    hand = matrices[index["hand_l"]][:3, :3] / roman_fit.BASE_SCALE
+    down, out = roman_shield.axes_in_source()
+    celt.armature["whp_shield_down"] = [float(x) for x in hand @ np.array(down)]
+    celt.armature["whp_shield_out"] = [float(x) for x in hand @ np.array(out)]
+
     whp_skeleton.to_canonical(celt.armature, meshes)
     for obj in meshes:
         whp_skeleton.bind(obj, celt.armature)
+
+
+def stage_anim(args):
+    scene = bpy.context.scene
+    scene.render.fps = whp_anim.FPS
+    armature = bpy.data.objects[whp_skeleton.RIG_NAME]
+    for action in roman_anims.build_all(armature):
+        log(f"clip {action.name}: {int(action.frame_end)} frames at {whp_anim.FPS} fps")
+    scene.frame_set(0)
 
 
 STAGES = [
@@ -151,6 +168,7 @@ STAGES = [
     ("strip", stage_strip),
     ("kit", stage_kit),
     ("rig", stage_rig),
+    ("anim", stage_anim),
 ]
 
 
@@ -170,6 +188,16 @@ def preview(name):
             render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{pose_name}-{{view}}.png"),
                          views=("front34", "back34"))
         whp_skeleton.reset_pose(armature)
+    if armature is not None and name.endswith("anim"):
+        for clip in ("idle", "walk", "attack"):
+            action = whp_anim.set_action(armature, clip)
+            for frame in sorted({0, int(action.frame_end * 0.25), int(action.frame_end * 0.42), int(action.frame_end * 0.75)}):
+                scene.frame_set(frame)
+                render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{clip}-{frame:02d}-{{view}}.png"),
+                             views=("front34", "right"), size=700)
+        armature.animation_data.action = None
+        whp_skeleton.reset_pose(armature)
+        scene.frame_set(0)
 
 
 def main():
