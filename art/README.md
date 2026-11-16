@@ -320,3 +320,151 @@ Trang bị dựng theo mô tả văn bản và hình dạng đã biết của c�
 - **Màu chưa có nguồn:** màu khiên của người Libya (da nhạt), người Iberia (da bò), người Gaul (xanh chàm, theo khiên của mô hình nền), màu nâu đất của áo người Libya, màu viền áo người Baleares là lựa chọn để phân biệt các đạo quân, không có nguồn trực tiếp.
 
 Những chỗ còn theo mô hình nền, chưa chắc đúng năm 216 TCN, ghi ở mục "Kết quả" của `docs/tasks/T-014-roman-legionary-model.md`, `docs/tasks/T-019-animations-hastatus.md` và `docs/tasks/T-021-infantry-models.md`.
+
+## Ngựa (cho kỵ binh, T-020)
+
+Con ngựa là nền cho ba mô hình kỵ binh (`roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`). Script của ngựa là các file `horse_*.py` (lane 2). Chúng chỉ import các module `whp_*.py`, không sửa.
+
+Ngựa **không** xuất ra `public/`. Đầu ra là `art/build/horse/horse.blend`, để T-022 ghép người cưỡi lên rồi xuất.
+
+### Nguồn và cách dựng
+
+- **Lưới:** "Horse" của Tarnyloo (Blend Swap 17172, CC BY 3.0).
+- **Khung Rigify và dáng đi:** "Horse Rigged All Gaits" của fdoss001 (Blend Swap 28627, CC0). Xem `art/CREDITS.md`.
+- **Chỗ để file gốc:** `%WHP_ASSETS%\sources\horse-fdoss001\Horse Rigged All Gaits.blend` (612 MB). File của Tarnyloo (`horse-tarnyloo\horse01b.blend`) chỉ dùng để so lưới. Cách tải và mã băm: `README.txt` trong `%WHP_ASSETS%`.
+- **Lệnh dựng** (PowerShell, từ thư mục gốc repo; cả lệnh dựng khoảng 1 phút, kể cả bake Cycles trên CPU):
+
+  ```powershell
+  & $blender --background --factory-startup --disable-autoexec --python art/blender/horse_build.py
+  & $blender --background --factory-startup --disable-autoexec --python art/blender/horse_build.py -- --from lod   # chạy lại từ một giai đoạn
+  & $blender --background --factory-startup --disable-autoexec --python art/blender/horse_render.py                # ảnh duyệt
+  ```
+
+Các giai đoạn, mỗi giai đoạn lưu một file trong `art/build/horse/`:
+
+| Giai đoạn | Việc làm | File |
+|---|---|---|
+| `source` | Mở file gốc và lấy ra:<br>• lưới, trọng số của 80 xương biến dạng;<br>• ma trận các xương đó qua từng dáng đi, lấy mẫu 30 khung/giây; trước mỗi action, rig được đưa về tư thế nghỉ.<br>So lưới với file của Tarnyloo. | `source.npz` |
+| `rig` | Dựng trong cảnh trống:<br>• khung xương 40 xương, thân ngựa;<br>• màu lông (thuộc tính màu đỉnh `whp_color`), bờm, đuôi, trang bị. | `1-rig.blend` |
+| `anim` | Clip `idle`, `walk`, `run`, `die`, thêm `trot`, `canter`. Đo quãng đường một vòng và độ cao yên. | `2-anim.blend`, `horse-info.json` |
+| `lod` | Ba mức chi tiết cho từng nhóm lưới, một atlas, bake màu, pháp tuyến, độ nhám và AO. | `3-lod.blend` |
+| `finish` | • Xếp vào hai collection: `horse` (khung xương và lưới game), `detailed` (lưới chi tiết, ẩn).<br>• Lưu `horse.blend`.<br>• Xuất thử `horse-test.glb` (ngựa trần, 4 clip) và kiểm tra bằng `whp_export.check_glb` và `reimport`. | `horse.blend`, `horse-test.glb` |
+
+Chạy lại từ đầu cho cùng kết quả: hai lần dựng cho `horse-test.glb` giống hệt từng byte.
+
+**Mẹo:** thuộc tính màu đỉnh không được đặt tên `color`. Cycles đọc tên đó theo nghĩa khác, nên khi bake màu ra đen.
+
+### Kích thước
+
+**Cao 1,40 m tới vai** (đỉnh lưng ngay sau đỉnh xương bả vai), nằm giữa khoảng 1,35–1,45 m mà task đặt ra. File gốc được thu theo tỉ lệ 0,773.
+
+Nguồn số liệu, cả hai đều đọc qua trích đoạn của công cụ tìm kiếm, **chưa đọc bản gốc** (các trang này chặn truy cập tự động):
+
+- **Ngựa thời La Mã ở Hà Lan,** bài trên tạp chí *Archaeofauna* về việc ăn thịt ngựa ở Hà Lan thời La Mã (revistas.uam.es/archaeofauna, bài số 8431; chưa xác nhận được tác giả):
+  - ngựa ở các làng bản địa phía bắc biên giới cao trung bình 132 cm tới vai;
+  - ngựa ở trại lính trung bình 142 cm, ở các trang trại *villa* 144 cm.
+- **Ngựa Celt cuối thời đồ sắt,** một nghiên cứu Thuỵ Sĩ: nhỏ, 110–130 cm; người La Mã có nuôi giống ngựa lớn hơn.
+
+Ngựa chiến năm 216 TCN đặt khoảng giữa hai nhóm: 1,40 m. Ngựa Numidia được mô tả là nhỏ và nhanh (Strabo 17.3.7), nên T-022 có thể thu riêng nó (ví dụ 0,95 lần). Mô hình hiện chỉ có một cỡ.
+
+### Hệ trục và hướng
+
+- **Trong Blender:** đơn vị mét, Z hướng lên, ngựa nhìn về −Y.
+- **Trong glTF:** Y hướng lên, ngựa nhìn về +Z.
+- **Mặt đất:** móng đứng trên z = 0.
+- **Gốc toạ độ:** trên mặt đất, giữa móng trước và móng sau (cách nhau 1,25 m). Mõm ở y ≈ −1,45 m, đuôi ở y ≈ +0,9 m.
+
+### Gắn người cưỡi (T-022)
+
+- **Xương yên `horse_saddle`:** con của `horse_spine_3`.
+  - Ma trận nghỉ chỉ là một phép tịnh tiến, các trục trùng trục của khung xương; xương chỉ thẳng về sau (+Y).
+  - Đầu xương nằm trên mặt tấm vải lót yên, trên đường giữa lưng, 0,30 m sau vai: (0,00; −0,157; 1,351) m.
+  - **Chiều cao yên lúc đứng: 1,35 m.**
+- **Ghép khung xương:** ghép khung người cưỡi vào `horse-rig`, rồi đặt `horse_saddle` làm cha của các xương gốc của người: `pelvis`, `ik_foot_root`, `ik_hand_root`. Đặt người sao cho mông chạm đầu xương yên. Khi đó người đi theo lưng ngựa trong mọi clip.
+- **Tên xương:** 40 xương ngựa đều bắt đầu bằng `horse_` và có hậu tố `_l`/`_r`, nên không trùng với 67 xương của người. Ghép lại thành 107 xương.
+- **Độ cao yên theo clip** (m, thấp nhất..cao nhất), cho biết người cưỡi nhấp nhô bao nhiêu:
+
+  | `idle` | `walk` | `run` | `trot` | `canter` | `die` |
+  |---|---|---|---|---|---|
+  | 1,349..1,352 | 1,353..1,364 | 1,308..1,428 | 1,304..1,352 | 1,302..1,402 | 0,43..1,41 |
+
+- **Dây cương:** đầu dây cương nằm ở chỗ tay người cưỡi, (±0,05; −0,62; 1,57) m, tức 0,16 m trước vai và 0,16 m trên lưng. Dây đi theo cổ, không gắn vào tay người. Nếu tay người ở chỗ khác thì đầu dây cương sẽ lơ lửng; T-022 có thể bỏ dây cương ở loại kỵ binh đó.
+
+### Lưới và yên cương
+
+Một vật liệu chung tên `horse`:
+
+- ảnh màu 2048, đã nhân AO;
+- ảnh pháp tuyến 1024;
+- ảnh độ nhám/kim loại 1024 (chỉ hai vòng sắt là kim loại).
+
+Mỗi nhóm lưới có ba mức để T-022 bật tắt theo loại kỵ binh. Số tam giác:
+
+| Lưới | LOD0 | LOD1 | LOD2 | Dùng cho |
+|---|---|---|---|---|
+| `horse_LOD*` (thân, bờm, đuôi) | 2 952 | 629 | 111 | mọi loại |
+| `horse_cloth_LOD*` (vải lót yên, đai bụng) | 236 | 59 | 11 | La Mã, Iberia/Gaul |
+| `horse_bridle_LOD0` (dây đầu, dây mũi, vòng sắt, dây cương) | 164 | không có | không có | La Mã, Iberia/Gaul |
+| `horse_neckrope_LOD*` (dây quàng cổ) | 84 | 22 | không có | Numidia |
+| **Tổng, khi có đủ yên cương** | **3 436** | **710** | **122** | |
+
+Ngựa Numidia (thân và dây quàng cổ) có 3 036, 651 và 111 tam giác. Các lưới đã gắn sẵn vào `horse-rig` (tối đa 4 xương mỗi đỉnh).
+
+Ở LOD1 không có dây cương: dây mảnh và rời từng mảnh, giảm lưới thì vỡ, mà ở khoảng cách đó cũng không thấy. LOD1 của bờm cũng bỏ vì lý do đó; mép cổ của thân đủ thay. LOD2 của thân là hình thay thế dựng từ ống theo khung xương, tô màu phẳng từ atlas, như lính ở LOD2.
+
+Đúng năm 216 TCN:
+
+- không bàn đạp, không yên có cốt;
+- vải lót buộc bằng đai bụng;
+- hàm thiếc chỉ thể hiện bằng hai vòng sắt ở khoé miệng;
+- ngựa Numidia không yên, không cương, chỉ có dây quàng cổ: Livy 35.11.7 (*equi sine frenis*); Strabo 17.3.7 (vòng gỗ hay vòng lông quanh cổ ngựa).
+
+**Ghép atlas:** người và ngựa mỗi bên có một atlas 2048 riêng, mà hợp đồng chỉ cho một vật liệu. T-022 cần xếp lại UV của cả hai vào một atlas rồi bake lại, hoặc ghép hai ảnh vào một ảnh rồi thu UV (xem đề nghị trong mục "Kết quả" của T-020).
+
+### Clip
+
+30 khung/giây. Không có chuyển động gốc: ngựa đứng tại chỗ, cảnh tự di chuyển nó.
+
+| Clip | Nguồn | Độ dài | Một vòng | Ghi chú |
+|---|---|---|---|---|
+| `idle` | tư thế nghỉ, cộng `horse.head.shake` và `horse.tail.flick.*` | 4,967 s (149 khung) | | Đứng bốn chân; thở; lắc đầu ở khung 24–66; vẫy đuôi ở khung 86 và 118. Lặp. |
+| `walk` | `horse.walk` | 1,667 s (50 khung) | **1,20 m** (0,72 m/s) | Lặp; đuôi được khép vòng trong 12 khung cuối. Móng trước lún tối đa 3,2 cm xuống đất trong vài khung (có từ file gốc). |
+| `run` | `horse.gallop` (nước đại) | 0,400 s (12 khung) | **1,21 m** (3,0 m/s) | Lặp; file gốc dài 10 khung ở 24 khung/giây, nay 12 khung ở 30 khung/giây (nhanh hơn 4%) để lặp khít. |
+| `die` | tự làm | 1,967 s (59 khung) | | Khuỵu hai gối trước (khung 18), lăn sang sườn phải, nằm yên từ khung 48. Mọi khung đều chạm đất; khung cuối cao 0..0,70 m. **Không lặp.** |
+| `trot` (thêm) | `horse.trot` | 0,833 s (25 khung) | 1,82 m (2,19 m/s) | Nước kiệu. Lặp. |
+| `canter` (thêm) | `horse.canter` | 0,700 s (21 khung) | 2,11 m (3,0 m/s) | Nước phi nhỏ; gốc 17 khung ở 24 khung/giây, nhanh hơn 1,2%. Lặp. |
+
+**Cách đo một vòng:** trong lúc chạm đất và chịu sức nặng, móng trượt về sau với đúng tốc độ con ngựa đi trên mặt đất. Số đo là trung vị tốc độ đó, lấy trên cả bốn móng, nhân với độ dài clip.
+
+**Lưu ý cho cảnh (lane 3):** gallop của file gốc có pha chạm đất ngắn. Phát ở tốc độ 1× thì không trượt chân ở 3 m/s, chậm hơn nhiều so với nước đại thật (10–15 m/s).
+- Nếu cảnh tăng tốc độ phát theo tốc độ di chuyển của kỵ binh, thì nên giới hạn khoảng 1,5×, chấp nhận móng trượt ở tốc độ cao hơn: gallop thật chỉ khoảng 2,5 sải mỗi giây.
+- Có thể dùng `canter` cho kỵ binh đi nhanh vừa phải.
+
+**Không có `attack`.** T-022 dựng `attack` của kỵ binh bằng clip đánh của người, cộng `idle` (hoặc `walk`) của ngựa lặp lại.
+
+**Clip thêm:** bộ xuất của lane 1 (`whp_export`, chế độ ACTIONS) xuất mọi action trong file, kể cả `trot` và `canter`. Bản xuất thử có 6 action. T-022 xoá hai action này nếu không dùng.
+
+### Ảnh duyệt: `art/renders/horse/`
+
+Render từ `horse.blend` (lưới game, vật liệu đã bake), không phải từ file `.glb`.
+
+| Ảnh | Nội dung |
+|---|---|
+| `01-side-front-back.jpg` | Nhìn nghiêng, trước, sau; đủ vải lót yên và dây cương. |
+| `02-tack.jpg` | Ba kiểu: vải lót và dây cương (La Mã, Iberia/Gaul); chỉ dây quàng cổ (Numidia); trần. |
+| `03-lods.jpg` | LOD0, LOD1, LOD2 cạnh nhau, có yên cương. |
+| `04-anim-idle.jpg` … `07-anim-die.jpg` | Ba khung hình mỗi clip `idle`, `walk`, `run`, `die`. |
+| `08-beside-roman-legionary.jpg` | Ngựa cạnh `roman-legionary` đứng (`idle`): nhìn nghiêng, rồi nhìn chéch. |
+| `09-extra-trot-canter.jpg` | Hai khung `trot`, hai khung `canter`. |
+
+### Các file script của ngựa
+
+| File | Nội dung |
+|---|---|
+| `horse_build.py` | Điểm vào, các giai đoạn, xuất thử và kiểm tra. |
+| `horse_source.py` | Đọc file gốc: lưới, trọng số, ma trận xương qua các action; so với lưới của Tarnyloo. |
+| `horse_rig.py` | Khung xương 40 xương (bảng gộp xương), đổi tỉ lệ, thân, đổi ma trận thành keyframe, khép vòng. |
+| `horse_kit.py` | Màu lông, bờm, đuôi, vải lót yên và đai bụng, dây cương, dây quàng cổ, chỗ ngồi. |
+| `horse_clips.py` | `idle`, `die`, lấy dáng đi, đo một vòng. |
+| `horse_lod.py` | LOD0..2 theo nhóm, atlas, bake (dùng `whp_lod`, `whp_unit_lod`, `whp_proxy`), hình thay thế cho LOD2. |
+| `horse_render.py` | Ảnh duyệt. |
