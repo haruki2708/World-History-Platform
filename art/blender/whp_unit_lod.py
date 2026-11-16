@@ -3,11 +3,23 @@
 Each part of the detailed model gets a low-poly stand-in: source meshes are
 copied, stripped of what is hidden under other layers and decimated; the
 generated kit already has game-resolution copies (".low"). The LOD0 parts
-share one UV atlas; colour and normals are baked from the detailed parts,
-ambient occlusion from the LOD0 parts themselves. LOD1 is decimated from
-the baked LOD0 parts, so it reuses their UVs and weights. LOD2 is a
-segmented stand-in laid along the skeleton (whp_proxy) plus decimated
-copies of the closed kit parts, coloured from the same atlas.
+share one UV atlas; colour, normals and the metallicRoughness map are baked
+from the detailed parts, ambient occlusion from the LOD0 parts themselves.
+LOD1 is decimated from the baked LOD0 parts, so it reuses their UVs and
+weights. LOD2 is a segmented stand-in laid along the skeleton (whp_proxy)
+plus decimated copies of the closed kit parts, coloured from the same atlas.
+
+What differs between models comes from the unit module (whp_build):
+
+    PARTS   list of Part: the pieces of the game mesh and their budgets
+    LOD2    dict for the LOD2 stand-in:
+              own    parts that keep their own decimated copy (closed shapes:
+                     shield, weapons, helmet, crest)
+              body   parts sampled for the stand-in's limbs and trunk
+              trunk  part whose lower edge is the bottom of the trunk
+                     (the mail shirt, or the belt over a bare tunic)
+              skirt  part whose lower edge is the hem of the skirt
+              head   part that gives the head's size
 """
 
 import math
@@ -23,10 +35,6 @@ import whp_skeleton
 import whp_skin
 from whp_common import BUILD_DIR, delete_objects, deselect_all, join_objects, log, select_only, triangle_count
 
-MODEL = "roman-legionary"
-WORK_DIR = os.path.join(BUILD_DIR, MODEL)
-
-LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 COLOR_SIZE = 2048
 NORMAL_BAKE_SIZE = 2048             # baked large, averaged down: smoother mail
 NORMAL_SIZE = 1024
@@ -37,11 +45,6 @@ AO_DISTANCE = 0.10                  # metres
 AO_STRENGTH = 0.75
 SAMPLES = {"NORMAL": 4, "EMIT": 4, "AO": 32}
 SURFACE_DEFAULT = (1.0, 0.7, 0.0)   # unused texels: rough, not metal
-
-# LOD2: the body is a segmented stand-in (decimating the open LOD0 parts
-# that far tears them apart). These parts are closed already and keep
-# their own decimated copies.
-LOD2_OWN = ("shield", "sword", "crest", "helmet")
 
 
 class Part:
@@ -74,42 +77,13 @@ class Part:
         self.sole = sole
 
 
-PARTS = [
-    # The head mesh has open eye sockets: the eyeballs must come along.
-    Part("head", ["New_head", "New_eye", "New_eye_2"], ["New_head", "New_eye", "New_eye_2"], (1150, 190, 36),
-         # Only the scalp under the bowl goes: holes under the thin cheek
-         # pieces or the collar show at grazing angles.
-         covers=["Helmet"], reach=0.035,
-         uv=1.8, extrusion=0.015, ray=0.035),
-    Part("arms", ["New_arms"], ["New_arms"], (1100, 190, 44),
-         covers=["Tunic_1", "Mail", "Mail_yoke"], reach=0.03),
-    Part("legs", ["New_legs"], ["New_legs", "Boots"], (1300, 230, 50), extrusion=0.02, ray=0.04,
-         sole=["Boots"]),
-    Part("tunic", ["Tunic_1"], ["Tunic_1"], (700, 120, 24),
-         covers=["Mail", "Mail_yoke", "Belt"], reach=0.03, uv=0.85),
-    Part("mail", ["Mail"], ["Mail"], (1100, 205, 40), covers=["Mail_yoke", "Belt"], reach=0.02),
-    Part("yoke", ["Mail_yoke"], ["Mail_yoke"], (420, 80, 0)),
-    Part("belt", ["Belt"], ["Belt"], (140, 40, 0)),
-    # Many loose pieces: does not decimate below ~170, so it is left out of LOD1.
-    Part("scabbard", ["Scabbard"], ["Scabbard"], (220, 0, 0)),
-    Part("sword", ["Sword2_1"], ["Sword2_1"], (140, 40, 10), ao_alone=True),
-    Part("helmet", ["Helmet.low"], ["Helmet"], (None, 110, 24), uv=1.3, extrusion=0.008, ray=0.02),
-    Part("cheeks", ["Helmet_cheeks.low"], ["Helmet_cheeks"], (None, 40, 0), uv=1.2, extrusion=0.005, ray=0.012),
-    Part("crest", ["Helmet_crest.low"], ["Helmet_crest"], (None, 48, 6), uv=0.7, extrusion=0.005, ray=0.012),
-    # Slot 2 of the shield is the wooden back: half the density of the face.
-    Part("shield", ["Scutum.low"], ["Scutum"], (None, 100, 40), uv=lambda slot: 0.45 if slot == 2 else 1.0,
-         extrusion=0.02, ray=0.045, ao_alone=True),
-    Part("hook", ["Mail_hook.low"], ["Mail_hook"], (None, 0, 0), extrusion=0.008, ray=0.02),
-]
-
-
 def _objects(names):
     return [bpy.data.objects[n] for n in names]
 
 
-def build_low_parts():
+def build_low_parts(specs):
     parts = []
-    for part in PARTS:
+    for part in specs:
         low = lod.low_copy(_objects(part.low), part.name)
         if part.covers:
             gone = lod.remove_covered(low, _objects(part.covers), part.reach)
@@ -145,10 +119,10 @@ def _restore(changed):
         obj.hide_render = False
 
 
-def bake_selected_to_active(scene, parts, kind, image, material):
+def bake_selected_to_active(scene, specs, parts, kind, image, material):
     lod.set_target(material, image)
     scene.cycles.samples = SAMPLES[kind]
-    for part, low in zip(PARTS, parts):
+    for part, low in zip(specs, parts):
         sources = _objects(part.bake)
         changed = _hide_others(sources + [low])
         lod.bake_pass(scene, low, sources, kind, part.extrusion, part.ray)
@@ -156,14 +130,14 @@ def bake_selected_to_active(scene, parts, kind, image, material):
         log(f"baked {kind:6s} {part.name}")
 
 
-def bake_ao(scene, parts, image, material):
+def bake_ao(scene, specs, parts, image, material):
     """AO of the low parts among themselves: body and kit together, the
     shield and the sword each on their own."""
     lod.set_target(material, image)
     scene.cycles.samples = SAMPLES["AO"]
     scene.world.light_settings.distance = AO_DISTANCE
-    groups = [[low for part, low in zip(PARTS, parts) if not part.ao_alone]]
-    groups += [[low] for part, low in zip(PARTS, parts) if part.ao_alone]
+    groups = [[low for part, low in zip(specs, parts) if not part.ao_alone]]
+    groups += [[low] for part, low in zip(specs, parts) if part.ao_alone]
     for group in groups:
         changed = _hide_others(group)
         select_only(group)
@@ -184,7 +158,7 @@ def _upsample(a, factor):
     return out / 5.0
 
 
-def compose_surface(surface_raw):
+def compose_surface(model, surface_raw):
     """The metallicRoughness image: baked large, averaged down over the
     covered texels, padded, unused texels rough and not metal."""
     raw = lod.pixels_of(surface_raw)
@@ -200,10 +174,11 @@ def compose_surface(surface_raw):
     metal = rgb[..., 2][small]
     log(f"surface map: {(metal > 0.5).mean() * 100:.1f}% of covered texels metal, "
         f"roughness {rgb[..., 1][small].min():.2f}..{rgb[..., 1][small].max():.2f}")
-    return lod.save_image(f"{MODEL}-surface", rgb, os.path.join(WORK_DIR, f"{MODEL}-surface.png"), False)
+    path = os.path.join(BUILD_DIR, model, f"{model}-surface.png")
+    return lod.save_image(f"{model}-surface", rgb, path, False)
 
 
-def compose_textures(color_raw, normal_raw, ao_raw):
+def compose_textures(model, color_raw, normal_raw, ao_raw):
     """Final 8-bit images: colour x AO in sRGB, normals averaged down."""
     color = lod.pixels_of(color_raw)
     mask = color[..., 3] > 0.5
@@ -215,7 +190,8 @@ def compose_textures(color_raw, normal_raw, ao_raw):
     rgb, filled = lod.dilate(rgb, mask, 12)
     rgb[~filled] = rgb[mask].mean(axis=0)
     log(f"colour atlas: {mask.mean() * 100:.1f}% of texels in use")
-    color_image = lod.save_image(f"{MODEL}-color", lod.linear_to_srgb(rgb), os.path.join(WORK_DIR, f"{MODEL}-color.png"), True)
+    work = os.path.join(BUILD_DIR, model)
+    color_image = lod.save_image(f"{model}-color", lod.linear_to_srgb(rgb), os.path.join(work, f"{model}-color.png"), True)
 
     normal = lod.pixels_of(normal_raw)
     nmask = normal[..., 3] > 0.5
@@ -229,17 +205,17 @@ def compose_textures(color_raw, normal_raw, ao_raw):
     encoded = vec * 0.5 + 0.5
     encoded, filled = lod.dilate(encoded, small_mask, 8)
     encoded[~filled] = (0.5, 0.5, 1.0)
-    normal_image = lod.save_image(f"{MODEL}-normal", encoded, os.path.join(WORK_DIR, f"{MODEL}-normal.png"), False)
+    normal_image = lod.save_image(f"{model}-normal", encoded, os.path.join(work, f"{model}-normal.png"), False)
     return color_image, normal_image
 
 
-def build_lod2_proxy(parts, armature, color_image):
+def build_lod2_proxy(parts, armature, color_image, spec):
     """The segmented stand-in for LOD2 (whp_proxy), sized from the LOD0
     parts and coloured from their atlas. Each shape follows one bone."""
     by_name = {p.name: p for p in parts}
-    body = whp_proxy.Samples([by_name[n] for n in ("head", "arms", "legs", "tunic", "mail", "yoke", "belt")])
-    tunic = whp_proxy.Samples([by_name["tunic"]])
-    head = whp_proxy.Samples([by_name["head"]])
+    body = whp_proxy.Samples([by_name[n] for n in spec["body"]])
+    skirt = whp_proxy.Samples([by_name[spec["skirt"]]])
+    head = whp_proxy.Samples([by_name[spec["head"]]])
     bones = armature.data.bones
     square = math.pi / 4          # four-sided tubes with a flat side down
 
@@ -275,25 +251,25 @@ def build_lod2_proxy(parts, armature, color_image):
         heel.z, toe.z = r[0] * 0.72, r[1] * 0.72
         pb.tube(heel, toe, r, 4, foot, caps=(False, True), cap_length=0.4, phase=square)
 
-    # Trunk (the mail shirt), from its hem up to the shoulders.
+    # Trunk, from the lower edge of the trunk part up to the shoulders.
     trunk = ["pelvis", "spine_01", "spine_02", "spine_03", "clavicle_l", "clavicle_r"]
     hips = trunk + ["thigh_l", "thigh_r", "thigh_twist_01_l", "thigh_twist_01_r"]
-    mail_hem = float(np.percentile([v.co.z for v in by_name["mail"].data.vertices], 2))
+    trunk_hem = float(np.percentile([v.co.z for v in by_name[spec["trunk"]].data.vertices], 2))
     shoulder = joint("clavicle_l").z + 0.02
     rings = []
-    for z, bone, sample in ((mail_hem + 0.02, "pelvis", hips), (joint("pelvis").z, "pelvis", hips),
+    for z, bone, sample in ((trunk_hem + 0.02, "pelvis", hips), (max(joint("pelvis").z, trunk_hem + 0.06), "pelvis", hips),
                             (joint("spine_02").z, "spine_02", trunk), (shoulder - 0.04, "spine_03", trunk)):
         rx, ry, cy = body.slice(z, sample)
         rings.append(((0.0, cy, z), rx, ry, bone))
     neck = joint("neck_01")
     pb.stack(rings, 6, top=((0.0, neck.y, shoulder + 0.02), "spine_03"))
 
-    # Skirt: the tunic below the mail.
-    hem = float(np.percentile([v.co.z for v in by_name["tunic"].data.vertices if abs(v.co.x) < 0.3], 2))
-    rx, ry, cy = tunic.slice(hem + 0.04, [b.name for b in bones], max_abs_x=0.3)
+    # Skirt: the tunic below the trunk.
+    hem = float(np.percentile([v.co.z for v in by_name[spec["skirt"]].data.vertices if abs(v.co.x) < 0.3], 2))
+    rx, ry, cy = skirt.slice(hem + 0.04, [b.name for b in bones], max_abs_x=0.3)
     (_x, top_y, _z), top_rx, top_ry, _bone = rings[0]
     pb.stack([((0.0, cy, hem), rx, ry, "pelvis"),
-              ((0.0, top_y, mail_hem + 0.05), top_rx * 0.97, top_ry * 0.97, "pelvis")], 6)
+              ((0.0, top_y, trunk_hem + 0.05), top_rx * 0.97, top_ry * 0.97, "pelvis")], 6)
 
     # Neck and head.
     pb.tube(neck, joint("head") + Vector((0.0, 0.0, 0.03)), (0.05, 0.048), 4, "neck_01",
@@ -306,7 +282,7 @@ def build_lod2_proxy(parts, armature, color_image):
     pb.ellipsoid(Vector((lo + hi) / 2), radii, 6, 4, "head")
 
     proxy = pb.object("lod2-proxy")
-    source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts if p.name not in LOD2_OWN],
+    source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts if p.name not in spec["own"]],
                           "lod2-source")
     lod.flat_colour_uvs(proxy, source, color_image)
     log(f"LOD2 proxy: {triangle_count(proxy)} triangles, one flat colour each")
@@ -335,7 +311,9 @@ def _finish_lod(objs, name, limit, armature, material):
     return mesh_obj
 
 
-def build():
+def build(unit, limits):
+    model = unit.MODEL
+    specs = unit.PARTS
     scene = bpy.context.scene
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
     detailed = [o for o in scene.objects if o.type == "MESH" and not o.name.endswith(".low")]
@@ -344,8 +322,8 @@ def build():
         armature.animation_data.action = None
     whp_skeleton.reset_pose(armature)
 
-    parts = build_low_parts()
-    for part, low in zip(PARTS, parts):
+    parts = build_low_parts(specs)
+    for part, low in zip(specs, parts):
         log(f"LOD0 {part.name}: {triangle_count(low)} triangles")
     log(f"LOD0 total: {sum(triangle_count(p) for p in parts)} triangles")
     delete_objects(generated_low)
@@ -356,28 +334,28 @@ def build():
         lod.single_material(low, material)
 
     lod.setup_cycles(scene, 4)
-    normal_raw = lod.new_target(f"{MODEL}-normal-raw", NORMAL_BAKE_SIZE, non_color=True)
-    color_raw = lod.new_target(f"{MODEL}-color-raw", COLOR_SIZE)
-    ao_raw = lod.new_target(f"{MODEL}-ao-raw", AO_SIZE, non_color=True)
-    surface_raw = lod.new_target(f"{MODEL}-surface-raw", COLOR_SIZE, non_color=True)
-    bake_selected_to_active(scene, parts, "NORMAL", normal_raw, material)
+    normal_raw = lod.new_target(f"{model}-normal-raw", NORMAL_BAKE_SIZE, non_color=True)
+    color_raw = lod.new_target(f"{model}-color-raw", COLOR_SIZE)
+    ao_raw = lod.new_target(f"{model}-ao-raw", AO_SIZE, non_color=True)
+    surface_raw = lod.new_target(f"{model}-surface-raw", COLOR_SIZE, non_color=True)
+    bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
     with lod.EmissionSwap(detailed):
-        bake_selected_to_active(scene, parts, "EMIT", color_raw, material)
+        bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
     with lod.SurfaceSwap(detailed):
-        bake_selected_to_active(scene, parts, "EMIT", surface_raw, material)
-    bake_ao(scene, parts, ao_raw, material)
+        bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
+    bake_ao(scene, specs, parts, ao_raw, material)
 
-    color_image, normal_image = compose_textures(color_raw, normal_raw, ao_raw)
-    surface_image = compose_surface(surface_raw)
-    final = lod.final_material(MODEL, color_image, normal_image, surface_image=surface_image)
+    color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw)
+    surface_image = compose_surface(model, surface_raw)
+    final = lod.final_material(model, color_image, normal_image, surface_image=surface_image)
 
     # LOD1 from the baked LOD0 parts; LOD2 from a segmented stand-in.
     levels = [[], [], []]
-    levels[2].append(build_lod2_proxy(parts, armature, color_image))
-    for part, low in zip(PARTS, parts):
+    levels[2].append(build_lod2_proxy(parts, armature, color_image, unit.LOD2))
+    for part, low in zip(specs, parts):
         for level in (1, 2):
             budget = part.budget[level]
-            if level == 2 and part.name not in LOD2_OWN:
+            if level == 2 and part.name not in unit.LOD2["own"]:
                 continue
             if budget:
                 copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
@@ -385,7 +363,7 @@ def build():
                 levels[level].append(copy)
                 log(f"LOD{level} {part.name}: {triangle_count(copy)} triangles")
         levels[0].append(low)
-    lods = [_finish_lod(objs, f"LOD{i}", LIMITS[i], armature, final) for i, objs in enumerate(levels)]
+    lods = [_finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.
     for obj in detailed:
