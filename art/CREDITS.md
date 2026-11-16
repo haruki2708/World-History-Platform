@@ -131,8 +131,9 @@ Năm mô hình đầu dựng trên cùng mô hình nền và khung xương như 
    - xoá hình vẽ màu xanh trên ngực, lưng, tay và mặt: lấp bằng màu da lành xung quanh, làm phẳng ảnh pháp tuyến ở đó;
    - nhuộm lại quần sọc xanh lá và tím thành sọc vàng đất và nâu đỏ.
 3. **Thêm**, tự dựng: kiếm dài chém, đầu tròn không mũi (lưỡi 0,78 m); khiên bầu dục dài kiểu La Tène như của người Iberia, mặt sơn xanh chàm.
-4. **Thu nhỏ** còn 0,8 lần (cao 1,67 m), giữ nguyên tư thế (mô hình nền đã đứng đúng tư thế của khung xương).
-5. **Giảm chi tiết**, **bake ảnh vật liệu** và **hoạt hình** như các mô hình khác; `attack` là chém bổ từ trên vai xuống.
+4. **Khép hai bàn tay** (T-024): xương ngón tay của chính mô hình được bẻ thành nắm tay, lưới lấy hình đó làm tư thế gốc. Chuôi kiếm và tay cầm khiên đặt vào lòng nắm tay.
+5. **Thu nhỏ** còn 0,8 lần (cao 1,67 m), giữ nguyên tư thế (mô hình nền đã đứng đúng tư thế của khung xương).
+6. **Giảm chi tiết**, **bake ảnh vật liệu** và **hoạt hình** như các mô hình khác; `attack` là chém bổ từ trên vai xuống.
 
 ## Ngựa (`art/build/horse/horse.blend`, cho kỵ binh ở T-022)
 

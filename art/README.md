@@ -238,7 +238,8 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 | `roman_faces.py` | Màu da, râu và tóc dựng từ lưới đầu của mô hình nền. |
 | `balearic_kit.py` | Ba dây ném đá (dây cầm tay co giãn), túi đá. |
 | `celt_source.py` | Nhập mô hình Celt cho người Gaul; xoá hình vẽ trên da, nhuộm lại quần. |
-| `celt_kit.py` | Kiếm dài và khiên của người Gaul, đặt vào tay mô hình Celt. |
+| `celt_hands.py` | Khép hai bàn tay mở của mô hình Celt thành nắm tay (bẻ xương ngón, lưới lấy hình đó làm tư thế gốc); tìm lòng nắm tay. |
+| `celt_kit.py` | Kiếm dài và khiên của người Gaul, đặt vào lòng nắm tay. |
 | `roman_source.py` | Nhập mô hình 07, bỏ trang bị thời Đế chế, chuyển bao kiếm; nhuộm áo, viền áo, màu da. |
 | `roman_hands.py` | Nắm bàn tay, đặt kiếm vào tay. |
 | `roman_helmet.py` | Mũ Montefortino, má che, lông mũ; da sói phủ mũ (velites); mũ gân (Iberia). |

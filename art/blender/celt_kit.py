@@ -17,6 +17,7 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
+import celt_hands
 import roman_shield
 import roman_weapons
 from whp_common import delete_objects, log
@@ -32,7 +33,23 @@ def _axes(co):
     return np.linalg.svd(centred, full_matrices=False)[2]
 
 
+def _grip(side):
+    """The hollow of a fist closed by celt_hands (point, direction from the
+    little finger towards the index), or None for open hands."""
+    arms = bpy.data.objects["Celt_arms"]
+    key = celt_hands.GRIP_POINT.format("l" if side > 0 else "r")
+    if key not in arms:
+        return None
+    axis = celt_hands.GRIP_AXIS.format("l" if side > 0 else "r")
+    return np.array(arms[key]), np.array(arms[axis])
+
+
 def _fist(side):
+    """Where a fist holds its grip: the hollow of the closed fist, or the
+    middle of an open hand."""
+    grip = _grip(side)
+    if grip is not None:
+        return grip[0]
     co = get_coords(bpy.data.objects["Celt_arms"])
     hand = co[co[:, 0] * side > FIST_X]
     return hand.mean(axis=0)
@@ -108,10 +125,17 @@ def build_sword(detail, materials, name="Sword_long"):
     t_ref = (ref - fist) @ along
     if abs(t_ref.min()) > abs(t_ref.max()):
         along = -along                      # from the fist towards the far end
+    closed = _grip(-1)
+    if closed is not None:
+        # The grip runs through the hollow of the closed fist, the blade out
+        # on the side the old one came out.
+        grip, hollow = closed
+        along = hollow if np.dot(hollow, along) > 0 else -hollow
+    else:
+        centre = ref.mean(axis=0)
+        grip = centre + along * np.dot(fist - centre, along)
     flat = e[1] - along * np.dot(e[1], along)
     flat /= np.linalg.norm(flat)
-    centre = ref.mean(axis=0)
-    grip = centre + along * np.dot(fist - centre, along)
     _place(obj, grip, flat, along, np.cross(flat, along))
     return obj
 

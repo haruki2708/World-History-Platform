@@ -8,8 +8,10 @@ torcs and arm rings.
 Source: the Celt model itself ("Celt - rigged for UE4/5" by Andywoodhead,
 CC BY 4.0), the model the shared rig comes from: bare torso, trousers,
 belt, torc, moustache, fair hair (Diodorus 5.28). His body paint is taken
-off and his trousers dyed in plant colours (celt_source); his round shield
-and short sword are replaced (celt_kit). Attack: sword-slash.
+off and his trousers dyed in plant colours (celt_source); his open hands
+are closed into fists (celt_hands); his round shield and short sword are
+replaced, their grips in the hollow of the fists (celt_kit). Attack:
+sword-slash.
 
 The build itself is whp_build; this module holds what is particular to
 this model.
@@ -34,7 +36,7 @@ SHIELD = ((0.055, 0.085, 0.15), (0.025, 0.040, 0.075))   # woad blue, as on the 
 # -- stages "source" and "kit" ---------------------------------------------
 
 def build_source():
-    celt_source.import_celt()
+    celt_source.import_celt(fists=True)
 
 
 def _kit(detail, suffix=""):
