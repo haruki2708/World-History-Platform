@@ -304,7 +304,7 @@ def _finish_lod(objs, name, limit, armature, material):
     weights = whp_skin.prune(whp_skin.read_groups(mesh_obj, names))
     whp_skin.write_groups(mesh_obj, weights, names)
     lod.single_material(mesh_obj, material)
-    for attr in [a for a in mesh_obj.data.attributes if a.name == lod.UV_WEIGHT]:
+    for attr in [a for a in mesh_obj.data.attributes if a.name == lod.UV_WEIGHT or a.name.startswith("whp_")]:
         mesh_obj.data.attributes.remove(attr)
     # Colour attributes only mark things for the bakes (a woven border); in
     # the file, three.js would multiply them into the material.

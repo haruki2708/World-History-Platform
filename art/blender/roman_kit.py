@@ -17,7 +17,7 @@ import roman_weapons
 import whp_build
 import whp_materials
 from roman_fit import FINAL_SCALE
-from whp_common import log
+from whp_common import delete_objects, log
 from whp_mesh import get_coords
 
 # Parts that follow one bone without bending.
@@ -55,7 +55,8 @@ def materials(detail, extra=()):
 def prepare_body(sword="hand"):
     """Close the fists and move the scabbard to the right hip (Polybius
     6.23.6). The sword goes into the right fist (sword="hand") or, when
-    that hand holds something else, into the scabbard ("sheathed")."""
+    that hand holds something else, into the scabbard ("sheathed"); "none"
+    takes away both sword and scabbard."""
     objs = bpy.data.objects
     for side in (1, -1):
         roman_hands.curl_hand(objs["New_arms"], side)
@@ -64,6 +65,8 @@ def prepare_body(sword="hand"):
         roman_hands.seat_sword(objs[WEAPON])
     elif sword == "sheathed":
         roman_weapons.sheathe(objs[WEAPON], objs["Scabbard"])
+    elif sword == "none":
+        delete_objects([objs[WEAPON], objs["Scabbard"]])
     else:
         raise ValueError(sword)
 
