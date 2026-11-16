@@ -699,8 +699,12 @@ def sword_slash(b):
 
 # The library's throw is a big lunge; a man in a line throws with less of
 # his body. Trunk and legs keep this much of its motion.
-CALM_THROW = {bone: 0.5 for bone in ("pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "Head",
-                                     "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r")}
+TRUNK_BONES = ("pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "Head")
+LEG_BONES = ("thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r")
+CALM_THROW = {bone: 0.5 for bone in TRUNK_BONES + LEG_BONES}
+# Throwing in a tunic: the legs keep less still, or the forward thigh goes
+# through the front of the skirt (javelin-throw, sling).
+CALM_THROW_SKIRT = dict(CALM_THROW, **{bone: 0.25 for bone in LEG_BONES})
 
 
 def javelin_throw(b):
@@ -714,7 +718,7 @@ def javelin_throw(b):
     release = int(np.argmax(reach))
 
     def pose_at(frame):
-        rt.pose(rt.sample(source, frame, CALM_THROW))
+        rt.pose(rt.sample(source, frame, CALM_THROW_SKIRT))
         if b.kit.shield:
             b.arms.shield(SHIELD_CARRY["guard"])
         after = smooth((frame - release) / 6.0) if frame > release else 0.0
@@ -750,7 +754,7 @@ def sling(b):
         return turn @ Vector((-math.cos(angle), -math.sin(angle), 0.0))
 
     def pose_at(frame):
-        rt.pose(rt.sample(source, frame, CALM_THROW))
+        rt.pose(rt.sample(source, frame, CALM_THROW_SKIRT))
         if b.kit.shield:
             b.arms.shield(SHIELD_CARRY["guard"])
         turn, _origin = b.arms.chest(0.3)

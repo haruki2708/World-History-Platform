@@ -162,8 +162,8 @@ Muốn đi nhanh hơn thì cảnh tăng tốc độ phát clip theo tỉ lệ: t
 |---|---|---|---|
 | `sword-thrust` | `Punch_Cross` (UAL 1) | 1,0 s | Đâm kiếm qua mép phải khiên, khiên đẩy tới trước một nhịp. `roman-legionary`, `roman-hastatus`, `libyan-infantry`, `iberian-infantry`. |
 | `spear-thrust` | `Punch_Cross` (UAL 1) | 1,0 s | Đâm giáo tầm hông, cán giáo chạy qua mép phải khiên, khiên giữ yên. `roman-triarii`. |
-| `javelin-throw` | `OverhandThrow` (UAL 2) | 1,333 s | Phóng lao qua vai. Thân và chân chỉ giữ một nửa biên độ của nguồn (lính trong hàng không lao cả người). `roman-velites`. |
-| `sling` | `OverhandThrow` (UAL 2) | 1,333 s | Một vòng rưỡi dây trên đầu, hòn đá chạy sau bàn tay; rồi vung lên sau vai, ném ra trước và lên; dây rũ xuống. Đường tay tự dựng (không có clip nguồn cho dây ném). `balearic-slinger`. |
+| `javelin-throw` | `OverhandThrow` (UAL 2) | 1,333 s | Phóng lao qua vai. Thân giữ một nửa biên độ của nguồn (lính trong hàng không lao cả người), chân một phần tư (T-024: với nửa biên độ, đùi bước ra trước chọc qua vạt áo). `roman-velites`. |
+| `sling` | `OverhandThrow` (UAL 2) | 1,333 s | Một vòng rưỡi dây trên đầu, hòn đá chạy sau bàn tay; rồi vung lên sau vai, ném ra trước và lên; dây rũ xuống. Đường tay tự dựng (không có clip nguồn cho dây ném). Chân giữ một phần tư biên độ, như `javelin-throw`. `balearic-slinger`. |
 | `sword-slash` | `OverhandThrow` (UAL 2) | 1,333 s | Giơ kiếm qua vai phải, lưỡi chĩa lên sau, rồi bổ xuống trước và chéo sang trái; khiên giữ yên. Thân giữ nửa biên độ. `gallic-infantry`. |
 
 **Giáo dài** (`SPEAR_CARRY`): khi không đánh, cánh tay phải giải bằng IK, cẳng tay đưa ra trước, giáo dựng đứng cạnh đùi, đế giáo cách đất vài cm, mũi giáo cao khoảng 2,4 m.

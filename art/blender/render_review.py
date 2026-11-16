@@ -579,7 +579,7 @@ SKIRT_FRAMES = {"attack": (0.40, 0.50, 0.60, 0.70), "run": (0.25, 0.75)}
 
 def compare_skirt(template):
     """The hips and thighs in the attack (around the lunge) and in the
-    run, from the front and the shield side."""
+    run, from the front on the weapon side (the shield hides the other)."""
     scene = stage(560, 640, samples=48)
     panels = []
     for clip, shares in SKIRT_FRAMES.items():
@@ -589,7 +589,7 @@ def compare_skirt(template):
             scene.frame_set(FRAME)
             centre = bone_head(f, "pelvis") + Vector((0.0, 0.0, -0.18))
             aim_camera(scene, centre - Vector((0.32, 0.32, 0.36)), centre + Vector((0.32, 0.32, 0.30)),
-                       Vector((0.55, -1.0, 0.0)), ortho=True, margin=1.0, elevation=8)
+                       Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.0, elevation=8)
             panels.append(render_panel(scene))
             clear_figures([template.armature, *template.meshes.values()])
     return panels
