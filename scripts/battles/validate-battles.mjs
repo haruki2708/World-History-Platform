@@ -233,6 +233,9 @@ for (const file of battleFiles) {
   }
 
   if (!isNumber(b.startHour) || b.startHour < 0 || b.startHour >= 24) fail(where, "startHour must be in [0, 24)");
+  if (b.dayOfYear !== undefined && !(Number.isInteger(b.dayOfYear) && b.dayOfYear >= 1 && b.dayOfYear <= 366)) {
+    fail(where, "dayOfYear must be a whole number in [1, 366]");
+  }
   checkStates(`${where}.initial`, b.initial);
   if (!Array.isArray(b.phases) || b.phases.length === 0) fail(where, "needs at least one phase");
   let hour = b.startHour;

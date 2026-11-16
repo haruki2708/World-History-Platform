@@ -118,17 +118,25 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 
 | Giai đoạn | Kết thúc | Phát (giây) | Căn cứ |
 |---|---|---|---|
-| Lúc bắt đầu (`initial`) | 5:30 | | Các đạo quân rời trại thành từng cột. Quân trại lớn ở bờ tây gần chỗ lội; quân trại nhỏ ở bờ đông; quân Hannibal phía đông trại của ông, lính nhẹ đi đầu (Livy 22.46) |
+| Lúc bắt đầu (`initial`) | 5:30 | | Mỗi đạo quân là một khối đang khép hàng, lùi về phía nơi nó đến: quân La Mã lùi 760 m về phía bắc (hai trại và chỗ lội), quân Hannibal lùi 1,7 km về phía tây (trại và hai chỗ vượt sông của ông). Xem mục 9 |
 | 1. Dàn trận | 8:00 | 25 | Polybius 3.113: thứ tự hai bên như mục 5. Hai chiến tuyến cách nhau khoảng 450 m, lính nhẹ đứng trước. Lưỡi liềm lồi khoảng 90 m về phía quân La Mã |
 | 2. Lính nhẹ đụng độ | 9:00 | 15 | Polybius 3.115: lính nhẹ giao chiến trước, chưa bên nào hơn. Livy 22.49: Paullus trúng đá ném ngay đầu trận. Livy 22.46: gió Volturnus thổi bụi vào mặt quân La Mã. Polybius 3.117: lực lượng ở trại lớn đánh trại Hannibal khi trận bắt đầu |
 | 3. Kỵ binh bên sông | 9:45 | 20 | Polybius 3.115 và Livy 22.47: chỗ hẹp, không xoay trở được, kỵ binh xuống ngựa đánh bộ; kỵ binh La Mã bị đánh tan và bị đuổi dọc bờ sông. Lính nhẹ lui về, bộ binh nặng tiến lên (Polybius 3.115). Kỵ binh Numidia cầm chân kỵ binh đồng minh (Polybius 3.116) |
-| 4. Lưỡi liềm bị đẩy lõm | 11:00 | 25 | Polybius 3.115 và Livy 22.47: lính Gaul và Iberia trụ một lúc rồi lùi; lưỡi liềm lõm vào; quân La Mã dồn từ hai cánh vào giữa. Mặt trận La Mã được cho `bulge` dương để ôm theo chỗ lõm |
+| 4. Lưỡi liềm bị đẩy lõm | 11:00 | 25 | Polybius 3.115 và Livy 22.47: lính Gaul và Iberia trụ một lúc rồi lùi; lưỡi liềm lõm vào; quân La Mã dồn từ hai cánh vào giữa. Mặt trận La Mã được đặt cách mép lưỡi liềm 6 m, xoay và phình theo đúng chỗ lõm (mục 9) |
 | 5. Cái bẫy sập | 12:30 | 25 | Polybius 3.115: lính châu Phi hai bên quay vào đánh sườn. Polybius 3.116: Hasdrubal vòng sang giúp kỵ binh Numidia, kỵ binh đồng minh bỏ chạy, ông để Numidia đuổi theo |
 | 6. Vòng vây khép lại | 17:00 | 30 | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
 
 Chi tiết không vẽ thành chuyển động riêng: mưu 500 kỵ binh Numidia giả hàng (Livy 22.48), cảnh Lentulus gặp Paullus (Livy 22.49), các toán chạy thoát về hai trại và làng Cannae (Livy 22.49–50).
 
 Hướng các khối quân: La Mã quay về nam (180°), Carthage về bắc (0°) lúc dàn trận. Khoảng cách và bề rộng các khối là ước lượng sao cho tổng chiều dài chiến tuyến khoảng 2,7 km, khớp với bề rộng đồng bằng; bộ binh La Mã đứng sâu (ba hàng, tổng chừng 120 m) như Polybius 3.113 tả.
+
+### Ngày trong năm (`dayOfYear`)
+
+Ngày 2 tháng 8 là theo **lịch La Mã thời đó** (Macrobius, *Saturnalia* 1.16.26, dẫn sử gia Quadrigarius: *ante diem IIII Nonas Sextiles*). Lịch La Mã trước cải cách của Caesar không khớp với mùa: các giáo sĩ (*pontifices*) chèn tháng nhuận thất thường. Ví dụ: Livy (44.37.8) ghi nguyệt thực năm 168 TCN vào ngày 4 tháng 9, trong khi tính thiên văn cho ra ngày 21 tháng 6 theo lịch Julius.
+
+- **Chọn:** ngày 1 tháng 7 năm 216 TCN theo lịch Julius, là quy đổi của P. S. Derow ("The Roman Calendar, 218–191 B.C.", *Phoenix* 30.3, 1976, tr. 277 trở đi). Bài báo của Derow nằm sau JSTOR, tôi chưa đọc bản gốc; con số lấy theo bài "Battle of Cannae" trên Wikipedia tiếng Anh, có dẫn bài này. Wikipedia cũng ghi các tác giả khác đề xuất những ngày khác, không nêu cụ thể.
+- **Quy đổi:** hợp đồng dùng lịch Gregory nối ngược. Ngày 1/7 năm 216 TCN (năm thiên văn −215) theo lịch Julius là ngày Julius 1 642 710,5, tức **27 tháng 6** theo lịch Gregory nối ngược. Năm −215 không nhuận, nên **`dayOfYear` = 178**, vài ngày sau hạ chí: ngày dài nhất năm, mặt trời mọc sớm, đúng với "ngay sau khi mặt trời mọc" quân La Mã đã ra trận.
+- Nếu lấy thẳng ngày 2/8 theo lịch Julius thì ra 29/7 Gregory (`dayOfYear` 210). Đường đi của mặt trời hai ngày này không khác nhiều; giữ số của Derow vì đó là quy đổi có căn cứ.
 
 ## 7. Địa hình
 
@@ -173,6 +181,43 @@ GLO-30 là mô hình bề mặt (DSM): đo cả cây và nhà, không chỉ mặ
 
 `scripts/battles/validate-battles.mjs` (chạy trong `npm run validate`) đã thêm:
 
-- Các khối quân cùng phe không được chồng lên nhau quá 25% diện tích khối nhỏ hơn, ở mọi thời điểm (bỏ qua `bulge`).
+- Các khối quân cùng phe không được chồng lên nhau quá 25% diện tích khối nhỏ hơn, ở mọi mốc (`initial` và cuối mỗi giai đoạn; bỏ qua `bulge`).
 - Mỗi giai đoạn phải có ít nhất một đơn vị đổi vị trí, hành động hoặc số người.
 - Mọi điểm của sông phải nằm trong vùng địa hình.
+- `dayOfYear`, nếu có, là số nguyên từ 1 tới 366 (T-020).
+
+`scripts/battles/check-overlap.mjs` (T-020, không nằm trong `npm run validate`) báo các khối chồng nhau ở mọi mốc **và giữa các mốc** (mỗi 1/4 giai đoạn), cả cùng phe lẫn hai phe, tính cả `bulge`, đúng như cảnh di chuyển chúng (nội suy tuyến tính). Dùng khi sửa dữ liệu: `node scripts/battles/check-overlap.mjs --min 0.05`.
+
+## 9. Chỉnh khi xem trong cảnh thật (T-020)
+
+Xem cả 6 giai đoạn trong `/battle-lab?stats=1` (cảnh của T-015, T-018), kết hợp với `check-overlap.mjs`. Đã sửa:
+
+**Tốc độ.** Tính theo thời gian trong trận (quãng đường chia cho khoảng `endHour`), mọi khối đều ở mức hợp lý: bộ binh nhanh nhất là lực lượng ở trại lớn đi đánh trại Hannibal (0,5 m/s trung bình cả giai đoạn 2), các khối khác dưới 0,2 m/s, đều dưới mức đi bộ 1 m/s; kỵ binh của Hasdrubal nhanh nhất (0,2–0,3 m/s trung bình khi truy đuổi và vòng ra sau lưng quân La Mã). Lúc dàn quân, cả đạo quân di chuyển cùng nhau (0,19 m/s phía Carthage, 0,09 m/s phía La Mã). Không cần đổi `endHour`. Khi phát, mỗi giai đoạn nén hàng chục phút vào 15–30 giây, nên khối quân trên màn hình đi nhanh hơn thật hàng trăm lần; lane 3 chỉnh tốc độ bước chân theo tốc độ trên màn hình (T-023).
+
+**Hành động khớp với di chuyển.** Cảnh dùng `action` ghi ở giai đoạn k cho suốt giai đoạn k. Trước đây:
+- giai đoạn 1 ghi `stand` cho mọi khối, nên lính đứng nghỉ mà trượt đi 0,6–5 km; nay là `advance`, trừ lực lượng ở trại;
+- lính nhẹ Carthage lùi theo lưỡi liềm ở giai đoạn 4 nay là `retreat`;
+- lính nhẹ La Mã tiến theo bộ binh nặng ở giai đoạn 5 nay là `advance`.
+
+**Dàn quân không xuyên nhau.** Trước đây các khối đi thẳng từ trại tới chỗ đứng nên cắt đường nhau (principes xuyên qua bộ binh đồng minh tới 86%, lính Iberia xuyên qua kỵ binh Numidia 73%). Nay mỗi đạo quân bắt đầu như một khối đã sắp đúng thứ tự trái phải của chiến tuyến, các đơn vị hẹp lại còn 60% bề ngang, lùi về một phía chung (La Mã: x −150, y +760; Carthage: x −1700, y −380). Mọi đơn vị của một bên di chuyển cùng một véc-tơ nên không khối nào cắt nhau. Mũi tên giai đoạn 1 vẽ lại theo đúng đường đi đó. Đổi lại, cảnh không còn vẽ đường vòng qua chỗ lội; chỗ lội vẫn là địa danh trên bản đồ.
+
+**Mặt trận La Mã ôm lưỡi liềm (giai đoạn 4–6).** Trước đây hastati và bộ binh đồng minh hàng đầu cắm sâu 20–42% vào lưỡi liềm, vì mỗi khối La Mã phình ra ở giữa khối trong khi lưỡi liềm lõm ở giữa cả đạo quân. Nay:
+- mép trước của lưỡi liềm là đường bao phía bắc của các đoạn (đoạn lõm thì hai đầu nhô hơn phần giữa);
+- mỗi khối La Mã hàng đầu được xoay song song với dây cung của đoạn mép nó đối mặt, phình đúng bằng độ lõm của lưỡi liềm trên đoạn đó, rồi lùi lại cho mọi điểm mép trước cách lưỡi liềm 6 m;
+- hàng sau (principes, đồng minh hàng sau) đứng song song, cách 12 m;
+- triarii lùi thêm 35 m cho khỏi chạm hàng principes.
+
+**Giai đoạn 6.**
+- Principes và bộ binh đồng minh hàng sau quay ra hai sườn, đứng sát lính Libya (cách 10 m) thay vì lơ lửng giữa vòng vây.
+- Lính nhẹ La Mã kẹt lại trong vòng vây, sau triarii, thay vì chạy thoát xuyên qua kỵ binh Hasdrubal đang đánh vào.
+- Kỵ binh Hasdrubal hẹp lại (360 m) cho khỏi chạm góc của lính Libya.
+
+**Kỵ binh tháo chạy.**
+- Kỵ binh La Mã chạy dọc bờ sông lên phía bắc, giữ hướng, thay vì cắt ngang đường kỵ binh Hasdrubal.
+- Kỵ binh đồng minh tháo chạy thành một khối hẹp và sâu hơn.
+
+**Còn lại, có chủ ý:**
+- Giữa giai đoạn 3, lính nhẹ hai bên lui về **qua** hàng bộ binh nặng của mình (Polybius 3.115: lính nhẹ rút qua khoảng hở giữa các đơn vị). Ở mức khối quân, việc này hiện thành khối xuyên qua khối, khoảng 2–4 giây khi phát.
+- Giai đoạn 5, kỵ binh Numidia đuổi sát và lẫn vào kỵ binh đồng minh đang quay đầu bỏ chạy (chồng tối đa 14% giữa giai đoạn).
+- Giai đoạn 6, các khối La Mã bị dồn chặt khi quay ra hai sườn, chồng nhau tối đa 14% giữa giai đoạn, không chồng ở cuối giai đoạn.
+- **Triarii vẫn quay mặt về nam ở giai đoạn 6**, dù kỵ binh Hasdrubal đánh từ phía bắc: cảnh xoay cả khối quanh tâm khi `facing` đổi, nên quay đầu 180° làm một khối rộng 820 m quét ngang cả đạo quân. Đề nghị cho lane 3 ghi trong mục "Kết quả" của T-020.

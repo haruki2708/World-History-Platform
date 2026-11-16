@@ -23,7 +23,17 @@ Cập nhật: 2026-11-16 (T-016). Chỉ tìm và đánh giá, chưa tải file n
 | 4 | [Rigged Mid Poly Horse](https://sketchfab.com/3d-models/fea999c1d8d64eb4a9c2bb1fac1e7d83) (Sketchfab) | antemeossa | **CC BY 4.0** | 5 162 | Có, 4 hoạt hình | Nhẹ nhất trong nhóm tả thực, gần mức cần cho `LOD0`. Phong cách đơn giản hơn mô hình lính của Andywoodhead |
 | 5 | [Horse](https://sketchfab.com/3d-models/041e84c8a0c34944a38b948a2c58fc0f) (Sketchfab) | kenchoo | **CC BY 4.0** | 42 631 | Có, 1 hoạt hình | Chi tiết hơn, phải giảm lưới mạnh |
 
-**Đề xuất:** thử #1 trước (đủ dáng, CC0) nếu giấy phép của lưới gốc Tarnyloo ổn; nếu không, #4 (nhẹ, 4 hoạt hình) hoặc #2/#3 (đẹp hơn, ít hoạt hình). Với mô hình CC BY: ghi công tác giả, link mô hình, link giấy phép và ghi rõ đã sửa gì trong `art/CREDITS.md`.
+### Lựa chọn (T-020, 2026-11-16)
+
+**Chọn #1, "Horse Rigged All Gaits" (BlendSwap 28627), dùng theo giấy phép CC BY của lưới gốc.** Đọc trực tiếp trên trang:
+
+- **BlendSwap 28627 (fdoss001):** trường License ghi **CC0**; mô tả: "Free to use. No need to credit me". Có khung xương, các dáng đi, nước kiệu, nước kiệu nhanh, nước đại; có yên, bàn đạp, cương (sẽ bỏ: thời 216 TCN chưa có bàn đạp); lông bằng hệ hạt (sẽ bỏ). Hai bình luận (Ailuros) nói lưới ngựa gốc là của Tarnyloo, dẫn link [blend 17172](https://blendswap.com/blend/17172).
+- **BlendSwap 17172 "Horse" (Tarnyloo):** trường License ghi **CC-BY**, trang tải ghi "Please credit Tarnyloo when you use it". Mô tả: "100% medium poly original model made entirely by me from assorted references". Trang không ghi phiên bản CC BY, và điều khoản chung của BlendSwap (`/terms`) cũng không ghi.
+- **Kết luận:** lưới gốc có giấy phép rõ ràng (CC BY), nên không cần bỏ ứng viên này. Một bản dẫn xuất không thể gỡ nghĩa vụ ghi công của lưới gốc, nên coi cả mô hình là **CC BY**: ghi công Tarnyloo (lưới) và fdoss001 (khung xương, hoạt hình, CC0) trong `art/CREDITS.md`. Khi có file, so lưới của hai mô hình để xác nhận lời bình luận; nếu 28627 hoá ra là lưới khác thì vẫn ghi công cả hai, không hại gì.
+- **Vì sao không chọn #4 hay #2/#3:** #1 là mô hình duy nhất có đủ các dáng đi cần cho `walk` và `run`, lại cùng phong cách tả thực; #4 nhẹ nhưng chỉ có 4 hoạt hình chưa rõ tên, #2/#3 chỉ có một hoạt hình.
+- **Tải về:** cả hai trang bắt đăng nhập ("Sign in to download"). Người dùng tự tải, đặt vào `E:\World_History_Platform_assets\sources\horse-fdoss001\` và `...\horse-tarnyloo\`; nguồn ghi trong `README.txt` của thư mục đó.
+
+**Đề xuất ở T-016:** thử #1 trước (đủ dáng, CC0) nếu giấy phép của lưới gốc Tarnyloo ổn; nếu không, #4 (nhẹ, 4 hoạt hình) hoặc #2/#3 (đẹp hơn, ít hoạt hình). Với mô hình CC BY: ghi công tác giả, link mô hình, link giấy phép và ghi rõ đã sửa gì trong `art/CREDITS.md`.
 
 ### Đã xem và loại
 
