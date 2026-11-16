@@ -11,7 +11,6 @@ import {
   ACESFilmicToneMapping,
   Color,
   Fog,
-  type IUniform,
   PCFShadowMap,
   PerspectiveCamera,
   Scene,
@@ -19,10 +18,11 @@ import {
   WebGLRenderer,
 } from "three";
 import { MapControls } from "three/addons/controls/MapControls.js";
-import { type Battle, type FieldPoint, hourAt, type UnitType } from "@/lib/battle";
+import { type Battle, type FieldPoint, hourAt, phaseAt, type UnitType } from "@/lib/battle";
 import { ArrowLayer } from "./arrows";
-import { loadModelSource } from "./figures/loader";
-import { createFigureMaterials, type FigureMaterials } from "./figures/material";
+import { loadModelIndex, loadModelSource } from "./figures/loader";
+import { createFigureMaterials, type FigureMaterials, type FigureShared } from "./figures/material";
+import { type FramedBlock, frameBlocks, mainForces } from "./framing";
 import { buildUnitModel, type UnitModel } from "./figures/model";
 import { createPlaceholderSource } from "./figures/placeholder";
 import { Sky } from "./sky";
@@ -71,8 +71,22 @@ export interface EngineOptions {
 }
 
 const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
-  high: { pixelRatio: 2, lod0Pixels: 110, lod1Pixels: 32, triangleBudget: 2_500_000, shadows: true },
-  low: { pixelRatio: 1, lod0Pixels: Infinity, lod1Pixels: 70, triangleBudget: 700_000, shadows: false },
+  high: {
+    pixelRatio: 2,
+    lod0Pixels: 110,
+    lod1Pixels: 32,
+    triangleBudget: 2_500_000,
+    shadows: true,
+    detailedLods: 1,
+  },
+  low: {
+    pixelRatio: 1,
+    lod0Pixels: Infinity,
+    lod1Pixels: 70,
+    triangleBudget: 700_000,
+    shadows: false,
+    detailedLods: 0,
+  },
 };
 
 const FOV = 40;
@@ -89,10 +103,7 @@ export class BattleEngine {
   private readonly sky: Sky;
   private readonly fog = new Fog(0xffffff, 1000, 60000);
   private readonly crowd = new Crowd();
-  private readonly shared: { uTime: IUniform<number>; uFigScale: IUniform<number> } = {
-    uTime: { value: 0 },
-    uFigScale: { value: FIGURE_SCALE },
-  };
+  private readonly shared: FigureShared;
   private readonly models = new Set<UnitModel>();
   private modelNotes: string[] = [];
   private readonly materials: FigureMaterials[] = [];
@@ -150,7 +161,13 @@ export class BattleEngine {
       this.gpu = String(this.renderer.getContext().getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
     }
 
-    this.sky = new Sky(this.battle.origin.lat);
+    this.sky = new Sky(this.battle.origin.lat, this.battle.dayOfYear);
+    this.shared = {
+      uTime: { value: 0 },
+      uFigScale: { value: FIGURE_SCALE },
+      uEnvSky: { value: this.sky.envSky },
+      uEnvGround: { value: this.sky.envGround },
+    };
     this.scene.add(this.sky.dome, this.sky.light, this.sky.light.target, this.sky.ambient);
     this.scene.fog = this.fog;
     this.scene.add(this.crowd.group);
@@ -177,6 +194,11 @@ export class BattleEngine {
 
   getQuality(): Quality {
     return this.quality;
+  }
+
+  /** Size of the drawing area in CSS pixels. */
+  get viewSize(): { width: number; height: number } {
+    return { width: this.width, height: this.height };
   }
 
   /** A choice by the user; the engine then stops lowering quality on its own. */
@@ -252,20 +274,25 @@ export class BattleEngine {
       return model;
     };
 
+    // The model index first: only the models it lists are requested.
     const modelByKey = new Map<string, UnitModel>();
-    const [heights] = await Promise.all([
-      loadHeights(battle.terrain, signal),
-      ...[...wanted].map(async ([key, want]) => {
-        const source = want.file ? await loadModelSource(want.file, signal) : null;
-        if (this.disposed) {
-          source?.release?.();
-          return;
-        }
-        const model = source ? buildUnitModel(source) : placeholderFor(want.mounted);
-        this.models.add(model);
-        modelByKey.set(key, model);
-      }),
-    ]);
+    const loadModels = async () => {
+      const available = await loadModelIndex(signal);
+      await Promise.all(
+        [...wanted].map(async ([key, want]) => {
+          const file = want.file && available.has(want.file) ? want.file : null;
+          const source = file ? await loadModelSource(file, signal) : null;
+          if (this.disposed) {
+            source?.release?.();
+            return;
+          }
+          const model = source ? buildUnitModel(source) : placeholderFor(want.mounted);
+          this.models.add(model);
+          modelByKey.set(key, model);
+        }),
+      );
+    };
+    const [heights] = await Promise.all([loadHeights(battle.terrain, signal), loadModels()]);
     if (this.disposed) return;
     this.modelNotes = [...modelByKey]
       .map(([key, model]) => `${key}: ${model.placeholder ? "placeholder" : "file"}`)
@@ -302,6 +329,8 @@ export class BattleEngine {
     this.scene.add(this.arrows.group);
 
     this.frameView();
+    await this.compileShaders();
+    if (this.disposed) return;
     this.startedAt = performance.now();
     this.lastFrame = this.startedAt;
     this.statSince = this.startedAt;
@@ -310,46 +339,77 @@ export class BattleEngine {
     this.options.onReady?.();
   }
 
-  /** Opens on the whole battle, seen from the south with north at the top. */
+  /**
+   * Opens on the main forces where they stand at the end of the phase under
+   * way (see framing.ts). Ends of phases, not the exact battle time: at the
+   * start of a battle the armies are still marching out of their camps, and
+   * the view should show where they meet, so they march into the frame.
+   */
   private frameView(): void {
     const terrain = this.terrain;
     if (!terrain) return;
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (const block of this.crowd.blocks) {
-      for (const key of block.track.keys) {
-        const reach = Math.hypot(key.frontage, key.depth) / 2 + Math.abs(key.bulge);
-        minX = Math.min(minX, key.center.x - reach);
-        maxX = Math.max(maxX, key.center.x + reach);
-        minY = Math.min(minY, key.center.y - reach);
-        maxY = Math.max(maxY, key.center.y + reach);
-      }
-    }
-    if (!Number.isFinite(minX)) {
-      ({ minX, maxX, minY, maxY } = terrain.data);
-    }
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    const radius = Math.max(Math.hypot(maxX - minX, maxY - minY) / 2, 100);
-
-    const vertical = (FOV * Math.PI) / 180;
-    const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * this.camera.aspect);
-    const distance = (radius * 1.05) / Math.sin(Math.min(vertical, horizontal) / 2);
-    const tilt = (52 * Math.PI) / 180; // from straight down
-    const target = this.controls.target.set(centerX, terrain.heightAt(centerX, centerY), -centerY);
-    this.camera.position.set(
-      target.x,
-      target.y + distance * Math.cos(tilt),
-      target.z + distance * Math.sin(tilt),
+    const phases = this.battle.phases.length;
+    const time = phases === 0 ? 0 : phaseAt(this.battle, this.options.getTime());
+    const blocks: FramedBlock[] = this.crowd.blocks.map((block) => {
+      const formation = block.track.formationAt(time);
+      return {
+        side: block.track.unit.side,
+        formation: { ...formation, center: { ...formation.center } },
+        men: formation.men,
+      };
+    });
+    const tallest = Math.max(...this.crowd.blocks.map((block) => block.model.height), 1.8);
+    const fit = frameBlocks(
+      mainForces(blocks),
+      terrain.heightAt,
+      tallest * FIGURE_SCALE,
+      (FOV * Math.PI) / 180,
+      this.camera.aspect,
     );
+
+    let distance: number;
+    if (fit) {
+      this.controls.target.copy(fit.target);
+      this.camera.position.copy(fit.position);
+      distance = fit.distance;
+    } else {
+      // No troops: the whole ground, from the south.
+      const { minX, maxX, minY, maxY } = terrain.data;
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      distance = Math.hypot(maxX - minX, maxY - minY);
+      const tilt = (52 * Math.PI) / 180;
+      const target = this.controls.target.set(centerX, terrain.heightAt(centerX, centerY), -centerY);
+      this.camera.position.set(
+        target.x,
+        target.y + distance * Math.cos(tilt),
+        target.z + distance * Math.sin(tilt),
+      );
+    }
     const span = Math.hypot(
       terrain.data.maxX - terrain.data.minX,
       terrain.data.maxY - terrain.data.minY,
     );
     this.controls.maxDistance = Math.max(span * 1.2, distance * 1.5);
     this.controls.update();
+  }
+
+  /**
+   * Compiles every shader the troops may need while the scene still shows
+   * that it is loading; the detailed material would otherwise compile, and
+   * stall a frame, on the first zoom onto a block.
+   */
+  private async compileShaders(): Promise<void> {
+    const meshes = this.crowd.warmUpMeshes();
+    if (meshes.length === 0) return;
+    this.crowd.group.add(...meshes);
+    try {
+      await this.renderer.compileAsync(this.scene, this.camera);
+    } catch {
+      // Only an optimisation: shaders also compile on first use.
+    } finally {
+      this.crowd.group.remove(...meshes);
+    }
   }
 
   // --- Every frame -----------------------------------------------------------

@@ -2,11 +2,19 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { getPolity } from "@/data";
-import type { BattleSceneProps, FieldPoint } from "@/lib/battle";
+import type { BattleLandmark, BattleSceneProps, FieldPoint } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
 import type { LocalizedText } from "@/lib/types";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleEngine, type EngineStats, type Quality } from "./engine/BattleEngine";
+import {
+  DOT_RADIUS,
+  type LabelPlacement,
+  type LabelRequest,
+  type LabelSide,
+  type LabelSpot,
+  layoutLabels,
+} from "./labelLayout";
 
 /** The quality the user picked with the button, kept between visits. */
 const QUALITY_STORAGE_KEY = "whp.battleQuality";
@@ -31,9 +39,46 @@ function storeQuality(quality: Quality): void {
 interface SceneLabel {
   key: string;
   name: LocalizedText;
-  point: FieldPoint;
+  /** Where the label may stand: one point for a landmark, several along a river. */
+  anchors: FieldPoint[];
   river: boolean;
   approximate: boolean;
+}
+
+/** Which labels win a crowded spot: lower first. */
+const KIND_PRIORITY: Record<BattleLandmark["kind"] | "river", number> = {
+  town: 0,
+  river: 1,
+  camp: 2,
+  hill: 3,
+  ford: 4,
+  other: 5,
+};
+
+const LANDMARK_SIDES: readonly LabelSide[] = ["above", "below", "right", "left"];
+const RIVER_SIDES: readonly LabelSide[] = ["center"];
+/** Where along a river its name may stand, as shares of its length, best first. */
+const RIVER_STOPS = [0.5, 0.38, 0.62, 0.26, 0.74, 0.14, 0.86];
+
+/** Points at the given shares of the length of a polyline. */
+function pointsAlong(points: FieldPoint[], shares: number[]): FieldPoint[] {
+  if (points.length < 2) return points.slice(0, 1);
+  const lengths = [0];
+  for (let i = 1; i < points.length; i++) {
+    lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
+  }
+  const total = lengths[lengths.length - 1];
+  return shares.map((share) => {
+    const at = share * total;
+    let i = 1;
+    while (i < points.length - 1 && lengths[i] < at) i++;
+    const span = lengths[i] - lengths[i - 1];
+    const t = span > 0 ? (at - lengths[i - 1]) / span : 0;
+    return {
+      x: points[i - 1].x + (points[i].x - points[i - 1].x) * t,
+      y: points[i - 1].y + (points[i].y - points[i - 1].y) * t,
+    };
+  });
 }
 
 /**
@@ -74,6 +119,9 @@ const SceneView = memo(function SceneView({
   const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<BattleEngine | null>(null);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const labelTextRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  /** Measured sizes of the label texts, kept current by a ResizeObserver. */
+  const labelSizes = useRef<({ width: number; height: number } | null)[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [quality, setQuality] = useState<Quality>(() => readStoredQuality() ?? "high");
   const [lowered, setLowered] = useState(false);
@@ -81,27 +129,35 @@ const SceneView = memo(function SceneView({
   const [stats, setStats] = useState<EngineStats | null>(null);
   const initialQuality = useRef(quality);
 
-  const labels = useMemo<SceneLabel[]>(
-    () => [
+  // In priority order, so the layout can take them as they come.
+  const labels = useMemo<SceneLabel[]>(() => {
+    const ranked = [
       ...battle.terrain.landmarks.map((landmark, i) => ({
-        key: `landmark-${i}`,
-        name: landmark.name,
-        point: landmark.point,
-        river: false,
-        approximate: landmark.approximate ?? false,
+        rank: KIND_PRIORITY[landmark.kind] ?? KIND_PRIORITY.other,
+        label: {
+          key: `landmark-${i}`,
+          name: landmark.name,
+          anchors: [landmark.point],
+          river: false,
+          approximate: landmark.approximate ?? false,
+        },
       })),
       ...battle.terrain.rivers
         .filter((river) => river.points.length > 0)
         .map((river, i) => ({
-          key: `river-${i}`,
-          name: river.name,
-          point: river.points[Math.floor(river.points.length / 2)],
-          river: true,
-          approximate: river.approximate ?? false,
+          rank: KIND_PRIORITY.river,
+          label: {
+            key: `river-${i}`,
+            name: river.name,
+            anchors: pointsAlong(river.points, RIVER_STOPS),
+            river: true,
+            approximate: river.approximate ?? false,
+          },
         })),
-    ],
-    [battle],
-  );
+    ];
+    // A stable sort keeps the order of the data within a kind.
+    return ranked.sort((a, b) => a.rank - b.rank).map((entry) => entry.label);
+  }, [battle]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -109,6 +165,43 @@ const SceneView = memo(function SceneView({
     let engine: BattleEngine;
     let noticeTimer = 0;
     const position = { x: 0, y: 0 };
+    const spots: (LabelSpot | null)[] = labels.map(() => null);
+    const shown: string[] = labels.map(() => "");
+    const placeLabels = () => {
+      const requests: LabelRequest[] = labels.map((label, i) => {
+        // Measured once here, then by the ResizeObserver below.
+        const text = labelTextRefs.current[i];
+        let size = labelSizes.current[i];
+        if (!size && text && text.offsetWidth > 0) {
+          size = { width: text.offsetWidth, height: text.offsetHeight };
+          labelSizes.current[i] = size;
+        }
+        return {
+          // Not mounted or not measured yet: nothing to place.
+          anchors: size
+            ? label.anchors.map((anchor) =>
+                engine.project(anchor, position) ? { x: position.x, y: position.y } : null,
+              )
+            : [],
+          sides: label.river ? RIVER_SIDES : LANDMARK_SIDES,
+          width: size?.width ?? 0,
+          height: size?.height ?? 0,
+          dot: !label.river,
+          previous: spots[i],
+        };
+      });
+      const placements = layoutLabels(requests, engine.viewSize);
+      placements.forEach((placement, i) => {
+        spots[i] = placement && { anchor: placement.anchor, side: placement.side };
+        const element = labelRefs.current[i];
+        const text = labelTextRefs.current[i];
+        if (!element || !text) return;
+        const key = placementKey(placement);
+        if (key === shown[i]) return;
+        shown[i] = key;
+        showLabel(element, text, placement);
+      });
+    };
     try {
       engine = new BattleEngine(host, {
         battle,
@@ -125,17 +218,7 @@ const SceneView = memo(function SceneView({
           setLowered(true);
           noticeTimer = window.setTimeout(() => setLowered(false), 8000);
         },
-        onFrame: () => {
-          labels.forEach((label, i) => {
-            const element = labelRefs.current[i];
-            if (!element) return;
-            const visible = engine.project(label.point, position);
-            element.style.visibility = visible ? "visible" : "hidden";
-            if (visible) {
-              element.style.transform = `translate(${Math.round(position.x)}px, ${Math.round(position.y)}px)`;
-            }
-          });
-        },
+        onFrame: placeLabels,
       });
     } catch (error) {
       console.error("The battle scene could not start.", error);
@@ -149,6 +232,22 @@ const SceneView = memo(function SceneView({
       engine.dispose();
     };
   }, [battle, unitTypes, stressFigures, showStats, labels]);
+
+  // Label texts change size with the language and the font; measure them
+  // when they do, not on every frame.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const texts = labelTextRefs.current;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const i = texts.indexOf(entry.target as HTMLSpanElement);
+        const box = entry.borderBoxSize?.[0];
+        if (i >= 0 && box) labelSizes.current[i] = { width: box.inlineSize, height: box.blockSize };
+      }
+    });
+    for (const text of texts) if (text) observer.observe(text);
+    return () => observer.disconnect();
+  }, [status, labels]);
 
   const toggleQuality = () => {
     const next: Quality = quality === "high" ? "low" : "high";
@@ -176,8 +275,22 @@ const SceneView = memo(function SceneView({
             className="pointer-events-none absolute left-0 top-0"
             style={{ visibility: "hidden" }}
           >
+            {!label.river && (
+              <span
+                className="absolute rounded-full border border-background bg-foreground"
+                style={{
+                  left: -DOT_RADIUS,
+                  top: -DOT_RADIUS,
+                  width: DOT_RADIUS * 2,
+                  height: DOT_RADIUS * 2,
+                }}
+              />
+            )}
             <span
-              className={`absolute left-0 top-0 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-sm border border-line bg-background/75 px-1.5 py-0.5 text-xs text-foreground ${
+              ref={(element) => {
+                labelTextRefs.current[i] = element;
+              }}
+              className={`absolute left-0 top-0 whitespace-nowrap rounded-sm border border-line bg-background/75 px-1.5 py-0.5 text-xs text-foreground ${
                 label.river ? "italic" : ""
               }`}
               title={label.approximate ? t("battle.scene.approximate") : undefined}
@@ -270,3 +383,19 @@ const SceneView = memo(function SceneView({
     </div>
   );
 });
+
+function placementKey(placement: LabelPlacement | null): string {
+  if (!placement) return "";
+  return `${Math.round(placement.x)},${Math.round(placement.y)},${Math.round(placement.dx)},${Math.round(placement.dy)}`;
+}
+
+/** Moves a label to its placement, or hides it (null). */
+function showLabel(element: HTMLDivElement, text: HTMLSpanElement, placement: LabelPlacement | null): void {
+  if (!placement) {
+    element.style.visibility = "hidden";
+    return;
+  }
+  element.style.visibility = "visible";
+  element.style.transform = `translate(${Math.round(placement.x)}px, ${Math.round(placement.y)}px)`;
+  text.style.transform = `translate(${Math.round(placement.dx)}px, ${Math.round(placement.dy)}px)`;
+}

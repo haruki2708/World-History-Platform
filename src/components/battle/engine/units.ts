@@ -64,6 +64,11 @@ export interface LodSettings {
   /** Most triangles of figures in view, before the far blocks are coarsened. */
   triangleBudget: number;
   shadows: boolean;
+  /**
+   * How many of the finest levels use the detailed material (normal and
+   * roughness-metalness maps) when the model has one: 0 for none.
+   */
+  detailedLods: number;
 }
 
 export interface CrowdCounts {
@@ -93,7 +98,7 @@ class Chunk {
     readonly first: number,
     readonly count: number,
     readonly model: UnitModel,
-    materials: FigureMaterials,
+    private readonly materials: FigureMaterials,
   ) {
     this.posYaw = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.anim = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
@@ -136,12 +141,19 @@ class Chunk {
     };
   }
 
-  setLod(lod: number, shadows: boolean): void {
+  setLod(lod: number, settings: LodSettings): void {
+    const { shadows, detailedLods } = settings;
     this.lod = lod;
     this.mesh.geometry = this.display[lod];
+    this.mesh.material =
+      lod < detailedLods && this.materials.detailed ? this.materials.detailed : this.materials.material;
     this.mesh.visible = this.drawn > 0;
     this.shadowMesh.geometry = this.shadow[lod === 0 ? 1 : 2];
     this.shadowMesh.visible = shadows && this.drawn > 0;
+  }
+
+  get detailedMaterial(): FigureMaterials["detailed"] {
+    return this.materials.detailed;
   }
 
   dispose(): void {
@@ -387,7 +399,7 @@ export class Crowd {
       for (const chunk of block.chunks) {
         if (chunk.drawn === 0) {
           chunk.inView = false;
-          chunk.setLod(chunk.lod, settings.shadows);
+          chunk.setLod(chunk.lod, settings);
           continue;
         }
         const sphere = chunk.sphere;
@@ -422,13 +434,36 @@ export class Crowd {
 
     for (const chunk of this.chunks) {
       if (chunk.drawn === 0) continue;
-      chunk.setLod(chunk.lod, settings.shadows);
+      chunk.setLod(chunk.lod, settings);
       if (chunk.inView) {
         counts.drawn += chunk.drawn;
         counts.lods[chunk.lod]++;
       }
     }
     return counts;
+  }
+
+  /**
+   * Meshes that show every material a chunk may switch to, for compiling the
+   * shaders up front: otherwise the first zoom onto a block would stall
+   * while the detailed material compiles. Remove them once compiled.
+   */
+  warmUpMeshes(): Mesh[] {
+    const meshes: Mesh[] = [];
+    const seen = new Set<unknown>();
+    for (const chunk of this.chunks) {
+      for (const material of [chunk.mesh.material, chunk.detailedMaterial]) {
+        if (!material || seen.has(material)) continue;
+        seen.add(material);
+        for (const geometry of chunk.display) {
+          const mesh = new Mesh(geometry, material);
+          mesh.receiveShadow = true;
+          mesh.frustumCulled = false;
+          meshes.push(mesh);
+        }
+      }
+    }
+    return meshes;
   }
 
   dispose(): void {
