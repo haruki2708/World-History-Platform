@@ -27,7 +27,7 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 Quy tắc cho lane:
 
 - Chỉ sửa file trong vùng mình sở hữu. Cần đổi file ngoài vùng (kiểu dữ liệu, store, thêm thư viện) thì không tự sửa: ghi đề nghị vào mục "Kết quả" của file task.
-- Ngoại lệ: được thêm khoá vào `src/lib/i18n/messages.ts`, chỉ với tiền tố của mảng mình (`timeline.*`, `events.*`, `tutor.*`, `map.*`, `about.*`; cảnh trận đánh: `battle.scene.*`), và phải thêm cho cả `en` lẫn `vi`.
+- Ngoại lệ: được thêm khoá vào `src/lib/i18n/messages.ts`, chỉ với tiền tố của mảng mình (`timeline.*`, `events.*`, `tutor.*`, `map.*`, `about.*`; cảnh và khung xem trận đánh: `battle.*`), và phải thêm cho cả `en` lẫn `vi`.
 - Timeline, bản đồ, tutor và cảnh trận đánh chỉ giao tiếp qua `useAppStore`. Không import component của mảng khác.
 - Dữ liệu trận đánh, cảnh 3D và mô hình lính chỉ giao tiếp qua hợp đồng trong `src/lib/battle.ts`.
 - Khung chat và route của tutor chỉ giao tiếp qua hợp đồng trong `src/lib/tutor.ts`.

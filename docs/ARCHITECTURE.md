@@ -51,8 +51,8 @@ Các mảng (timeline, bản đồ, tutor, cảnh trận đánh) chỉ giao ti�
 | `selectedEventId` | `string \| null` | Panel, bản đồ, nút trong câu trả lời của gia sư, qua `selectEvent` | Tất cả |
 | `focusRequest` | `number` | Tăng mỗi lần `selectEvent` chọn một sự kiện, kể cả chọn lại đúng sự kiện đang chọn | Bản đồ (bay tới sự kiện) |
 | `locale` | `"en" \| "vi"` | `LocaleSwitch` | Tất cả |
-| `battleId` | `string \| null` | `openBattle(id)`, `closeBattle()` | Cảnh trận đánh, nút điều khiển trận |
-| `battleTime` | `number` | `setBattleTime` (nút điều khiển trận; trang thử) | Cảnh trận đánh |
+| `battleId` | `string \| null` | `openBattle(id)` (nút xem trận trong panel sự kiện), `closeBattle()` (khung xem trận) | `AppShell` (nạp khung xem trận), cảnh trận đánh |
+| `battleTime` | `number` | `setBattleTime` (khung xem trận; trang thử) | Cảnh trận đánh, khung xem trận |
 
 `setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra. `setBattleTime` chỉ chặn số âm; cảnh và nút điều khiển tự giữ trong `[0, số giai đoạn]`.
 
@@ -139,8 +139,8 @@ src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --s
 Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân chuyển động qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Hợp đồng nằm ở `src/lib/battle.ts`. Chỉ phiên chính được sửa file này.
 
 ```
-dữ liệu trận (Lane 2)                cảnh 3D (Lane 3)          nút điều khiển (Lane 1, đợt C)
-src/data/battles/*.json     ──►   src/components/battle/  ◄──  useAppStore.battleTime
+dữ liệu trận (Lane 2)                cảnh 3D, khung xem trận (Lane 3)
+src/data/battles/*.json     ──►   src/components/battle/  ◄──  useAppStore.battleId, battleTime
 public/data/terrain/*.bin            three.js
                                           ▲
 mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/models/*.glb
@@ -180,7 +180,9 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Hoạt hình:** đặt tên theo `UNIT_CLIPS`.
   - Bắt buộc: `idle`, `walk`, `attack`.
   - Nên có: `run`, `die`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
-  - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó. Mỗi file ghi độ dài một vòng `walk` trong `art/README.md` (lính La Mã: 1,08 m).
+  - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
+  - Độ dài một vòng `walk` và `run` ghi trong `art/README.md`. Các mô hình dùng thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương): một vòng `walk` dài 1,333 s và đi được 1,00 m; một vòng `run` dài 0,933 s và đi được 1,99 m. Cảnh chỉnh tốc độ phát theo tốc độ di chuyển của khối quân để chân không trượt.
+  - `idle`, `walk`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối.
   - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
 - **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
@@ -204,9 +206,16 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng;
   - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt.
 
+### Khung xem trận (đợt C)
+
+- **Mở:** sự kiện nào có trận 3D (`hasBattle(id)` trong `src/data/index.ts`) thì panel sự kiện có nút xem trận. Nút gọi `openBattle(id)`.
+- **Hiện:** khi `battleId` khác `null`, `AppShell` nạp `BattleViewer` (`src/components/battle/BattleViewer.tsx`) bằng `next/dynamic` với `ssr: false`. three.js chỉ tải khi người dùng mở trận lần đầu.
+- **Khung:** `BattleViewer` phủ kín trang, nằm trong một `<dialog>` mở bằng `showModal()`. Nhờ vậy các phím tắt chung của trang (`src/components/shell/keyboard.ts`) tự đứng ngoài khi trận đang mở; khung xem trận tự xử lý phím của nó. Esc hoặc nút đóng gọi `closeBattle()`, và focus trở về nút đã mở trận.
+- **Thời gian:** khung xem trận là nơi duy nhất ghi `battleTime` trong app chính (phát, tua, chuyển giai đoạn). Trang `/battle-lab` vẫn tự ghi như trước.
+
 ### Các đợt làm
 
 Chi tiết ở `docs/PLAN.md`.
 - **Đợt A:** mô hình lính La Mã (T-014), cảnh 3D (T-015), dữ liệu trận Cannae và địa hình (T-016).
 - **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
-- **Đợt C:** nút điều khiển trận, mở cảnh từ panel sự kiện, chuyển cảnh từ bản đồ vào trận.
+- **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.

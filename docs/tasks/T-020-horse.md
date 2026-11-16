@@ -14,12 +14,13 @@ Người dùng duyệt đợt B: đủ 10 loại mô hình cho trận Cannae. Ba
 - một khung xương;
 - `LOD0` tối đa 8 000 tam giác cho cả người lẫn ngựa.
 
-Task này dựng **con ngựa** làm nền. Lane 1 sẽ ghép người cưỡi lên ngựa trong T-022. Lane 1 đang làm T-019 (thư viện hoạt hình, lính La Mã) trong `art/` cùng lúc với bạn, nên chỉ sửa các file ngựa nêu ở trên.
+Task này dựng **con ngựa** làm nền. Lane 1 sẽ ghép người cưỡi lên ngựa trong T-022. Lane 1 đang làm T-021 (sáu loại bộ binh) trong `art/` cùng lúc với bạn, nên chỉ sửa các file ngựa nêu ở trên.
 
 ## Đọc trước
 
 - `docs/data/battles/ASSETS.md`: khảo sát ngựa bạn đã làm ở T-016.
 - `art/README.md`: quy trình Blender của lane 1 (cách chạy, các module `whp_*.py`, LOD, bake, xuất, kiểm tra).
+- `docs/tasks/T-019-animations-hastatus.md`, mục "Thay đổi ở các module `whp_*.py` (cho lane 2)": lane 1 vừa thêm và đổi một số hàm. Ví dụ `whp_export.reimport` giờ thử tư thế người đứng trên mặt đất; với ngựa thì truyền `ground=()` hoặc ngưỡng riêng.
   - Được import các module chung, **không sửa chúng**. Cần đổi thì ghi đề nghị cho lane 1 trong mục "Kết quả".
 - Blender 5.2.2 tại `D:\Tools\Blender\5.2.2\blender.exe`. Luôn chạy với `--background --factory-startup --disable-autoexec`.
 
@@ -59,7 +60,7 @@ Task này dựng **con ngựa** làm nền. Lane 1 sẽ ghép người cưỡi l
 
 ### Phần 2: Dữ liệu Cannae trong cảnh thật
 
-Cảnh 3D (T-015) đã gộp, nên giờ xem được dữ liệu của bạn trong cảnh thật: `npm run dev`, mở `/battle-lab?stats=1`. Lane 3 đang sửa góc nhìn đầu và nhãn trong T-018.
+Cảnh 3D (T-015, T-018) đã gộp, nên giờ xem được dữ liệu của bạn trong cảnh thật: `npm run dev -- -p 3102`, mở `/battle-lab?stats=1`. Lane 3 đang làm khung xem trận (T-023) trong `src/components/battle/`; cảnh trong trang thử vẫn như cũ.
 
 - Xem cả 6 giai đoạn, rồi chỉnh những gì trông sai:
   - tốc độ di chuyển (lính đi bộ khoảng 1 m/s, kỵ binh nhanh hơn);

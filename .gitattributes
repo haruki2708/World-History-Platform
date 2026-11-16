@@ -1,3 +1,7 @@
+# Text files: LF in the repo and in every working copy, so scripts that edit
+# files by pattern see the same line endings on every machine.
+* text=auto eol=lf
+
 # Binary assets: never touch line endings.
 *.glb binary
 *.bin binary

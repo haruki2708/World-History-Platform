@@ -1,6 +1,6 @@
 [
   { "id": "roman-velites", "name": { "en": "Velites (Roman light infantry)", "vi": "Velites (bộ binh nhẹ La Mã)" }, "model": "roman-velites" },
-  { "id": "roman-hastati", "name": { "en": "Hastati", "vi": "Hastati (lính trẻ)" }, "model": "roman-legionary" },
+  { "id": "roman-hastati", "name": { "en": "Hastati", "vi": "Hastati (lính trẻ)" }, "model": "roman-hastatus" },
   { "id": "roman-principes", "name": { "en": "Principes", "vi": "Principes (lính trung niên)" }, "model": "roman-legionary" },
   { "id": "roman-triarii", "name": { "en": "Triarii", "vi": "Triarii (lính già)" }, "model": "roman-triarii" },
   { "id": "socii-infantry", "name": { "en": "Allied infantry (socii)", "vi": "Bộ binh đồng minh (socii)" }, "model": "roman-legionary" },
