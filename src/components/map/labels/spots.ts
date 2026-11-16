@@ -11,11 +11,22 @@ import {
 } from "./grid";
 import type { LandMask } from "./landMask";
 
+/** A point where a label can be centred, in grid and map coordinates. */
+export interface LabelPoint {
+  /** Grid coordinates (cell centre). */
+  column: number;
+  row: number;
+  lng: number;
+  lat: number;
+}
+
 /**
  * Where a polity's label goes in one border snapshot. A polity whose land
  * falls into several large separate pieces gets a spot in each of them.
+ * The spot's own point, the preferred one, is the point of the piece
+ * farthest from its edges and the sea.
  */
-export interface LabelSpot {
+export interface LabelSpot extends LabelPoint {
   /** `polityId` for the main spot, `polityId#2`, `#3` for further pieces. */
   id: string;
   /**
@@ -26,17 +37,17 @@ export interface LabelSpot {
   polityId: string;
   /** The main spot sits in the piece with the most room for a label. */
   main: boolean;
-  /** The point of the piece farthest from its edges and the sea. */
-  lng: number;
-  lat: number;
   /**
    * Visible (land) area, in world units²: of the whole territory for a main
    * spot, of the piece otherwise. Ranks labels.
    */
   area: number;
-  /** The same point in grid coordinates (cell centre). */
-  column: number;
-  row: number;
+  /**
+   * Other points of the same piece, best first, spread over it: where the
+   * label goes when something on screen covers the spot. A main spot then
+   * also has the best point of each piece that has no label of its own.
+   */
+  alternatives: LabelPoint[];
   /** Land cells of the territory within `window`, 1 inside and 0 outside. */
   window: Window;
   inside: Uint8Array;
@@ -113,19 +124,28 @@ const MIN_PIECE_SHARE = 0.25;
 const MAX_SPOTS_PER_POLITY = 3;
 
 interface Piece {
+  /** Number of the piece in the `labels` array of `findPieces`, from 1. */
+  label: number;
   cells: number;
   /** Index of the cell farthest from the piece's edges. */
   best: number;
 }
 
-/** Connected pieces of the inside cells (8-neighbour), with their best cell. */
-function findPieces(inside: Uint8Array, field: Float64Array, width: number): Piece[] {
+/**
+ * Connected pieces of the inside cells (8-neighbour), with their best cell,
+ * and the piece number of each cell (0 outside).
+ */
+function findPieces(
+  inside: Uint8Array,
+  field: Float64Array,
+  width: number,
+): { pieces: Piece[]; label: Int32Array } {
   const label = new Int32Array(inside.length);
   const pieces: Piece[] = [];
   const stack: number[] = [];
   for (let start = 0; start < inside.length; start++) {
     if (!inside[start] || label[start]) continue;
-    const piece: Piece = { cells: 0, best: start };
+    const piece: Piece = { label: pieces.length + 1, cells: 0, best: start };
     label[start] = pieces.length + 1;
     stack.push(start);
     while (stack.length > 0) {
@@ -143,7 +163,69 @@ function findPieces(inside: Uint8Array, field: Float64Array, width: number): Pie
     }
     pieces.push(piece);
   }
-  return pieces;
+  return { pieces, label };
+}
+
+/** Most alternative points kept per piece. */
+const MAX_ALTERNATIVES = 40;
+/** Alternative points lie at least this many cells from the piece's edges. */
+const MIN_ALTERNATIVE_DEPTH = 2;
+
+/**
+ * Alternative label points of each piece, keyed by piece number: the
+ * deepest cell of each block of a coarse grid laid over the window, deepest
+ * first, without the piece's best cell. Blocks are half the depth of the
+ * piece's best cell, so the points spread over the whole piece and follow
+ * its shape, with little cost for large territories. One pass over the
+ * window serves every piece.
+ */
+function alternativesByPiece(
+  pieces: Piece[],
+  label: Int32Array,
+  field: Float64Array,
+  window: Window,
+): Map<number, LabelPoint[]> {
+  const blockSize = new Int32Array(pieces.length + 1);
+  const blocksX = new Int32Array(pieces.length + 1);
+  for (const piece of pieces) {
+    blockSize[piece.label] = Math.max(3, Math.round(Math.sqrt(field[piece.best]) / 2));
+    blocksX[piece.label] = Math.ceil(window.width / blockSize[piece.label]);
+  }
+  const best = new Set(pieces.map((piece) => piece.best));
+  const minField = MIN_ALTERNATIVE_DEPTH * MIN_ALTERNATIVE_DEPTH;
+  // Per piece, block number -> deepest cell.
+  const deepest = new Map<number, Map<number, number>>();
+  for (let i = 0; i < label.length; i++) {
+    const piece = label[i];
+    if (!piece || field[i] < minField || best.has(i)) continue;
+    const block = blockSize[piece];
+    const blockId =
+      Math.floor(Math.floor(i / window.width) / block) * blocksX[piece] +
+      Math.floor((i % window.width) / block);
+    let blocks = deepest.get(piece);
+    if (!blocks) deepest.set(piece, (blocks = new Map()));
+    const current = blocks.get(blockId);
+    if (current === undefined || field[i] > field[current]) blocks.set(blockId, i);
+  }
+  const result = new Map<number, LabelPoint[]>();
+  for (const [piece, blocks] of deepest) {
+    result.set(
+      piece,
+      [...blocks.values()]
+        .sort((a, b) => field[b] - field[a])
+        .slice(0, MAX_ALTERNATIVES)
+        .map((i) => pointAt(window, i)),
+    );
+  }
+  return result;
+}
+
+/** The label point at the centre of cell `i` of `window`. */
+function pointAt(window: Window, i: number): LabelPoint {
+  const column = window.x + (i % window.width) + 0.5;
+  const row = window.y + Math.floor(i / window.width) + 0.5;
+  const [lng, lat] = fromGrid(column, row);
+  return { column, row, lng, lat };
 }
 
 function spotsFor(polityId: string, polygons: GridRing[][], land: LandMask): LabelSpot[] {
@@ -189,7 +271,7 @@ function spotsFor(polityId: string, polygons: GridRing[][], land: LandMask): Lab
   if (cells === 0) return [];
 
   const field = distanceField(inside, window.width, window.height);
-  const pieces = findPieces(inside, field, window.width);
+  const { pieces, label } = findPieces(inside, field, window.width);
   // The main label goes where there is the most room; then the other large
   // pieces, largest first.
   const main = pieces.reduce((a, b) => (field[b.best] > field[a.best] ? b : a));
@@ -200,22 +282,29 @@ function spotsFor(polityId: string, polygons: GridRing[][], land: LandMask): Lab
       .filter((piece) => piece !== main && piece.cells >= MIN_PIECE_SHARE * largest)
       .sort((a, b) => b.cells - a.cells),
   ].slice(0, MAX_SPOTS_PER_POLITY);
+  const alternatives = alternativesByPiece(pieces, label, field, window);
+  // The best points of the pieces without a label of their own, for the
+  // main label when every point of its own piece is covered.
+  const unlabelled = pieces
+    .filter((piece) => !chosen.includes(piece))
+    .sort((a, b) => field[b.best] - field[a.best])
+    .slice(0, MAX_ALTERNATIVES)
+    .map((piece) => pointAt(window, piece.best));
 
   return chosen.map((piece, index) => {
-    const column = window.x + (piece.best % window.width) + 0.5;
-    const row = window.y + Math.floor(piece.best / window.width) + 0.5;
-    const [lng, lat] = fromGrid(column, row);
+    const point = pointAt(window, piece.best);
     const id = index === 0 ? polityId : `${polityId}#${index + 1}`;
     return {
+      ...point,
       id,
-      key: `${id}@${column},${row}`,
+      key: `${id}@${point.column},${point.row}`,
       polityId,
       main: index === 0,
-      lng,
-      lat,
       area: (index === 0 ? cells : piece.cells) * CELL * CELL,
-      column,
-      row,
+      alternatives: [
+        ...(alternatives.get(piece.label) ?? []),
+        ...(index === 0 ? unlabelled : []),
+      ],
       window,
       inside,
     };
@@ -251,20 +340,27 @@ const SAMPLES_X = 9;
 const SAMPLES_Y = 3;
 
 /**
- * True when a label of `width` × `height` pixels, centred on the spot, lies
- * (almost) entirely on the territory's land at `zoom`.
+ * True when a label of `width` × `height` pixels, centred on `point` (the
+ * spot itself or one of its alternatives), lies (almost) entirely on the
+ * territory's land at `zoom`.
  */
-export function labelFits(spot: LabelSpot, width: number, height: number, zoom: number): boolean {
+export function labelFits(
+  spot: LabelSpot,
+  point: LabelPoint,
+  width: number,
+  height: number,
+  zoom: number,
+): boolean {
   const cellPixels = CELL * 2 ** zoom;
   const halfWidth = width / 2 / cellPixels;
   const halfHeight = height / 2 / cellPixels;
   const { window, inside } = spot;
   let hits = 0;
   for (let j = 0; j < SAMPLES_Y; j++) {
-    const y = spot.row + (-1 + (2 * j) / (SAMPLES_Y - 1)) * halfHeight;
+    const y = point.row + (-1 + (2 * j) / (SAMPLES_Y - 1)) * halfHeight;
     const row = Math.floor(y) - window.y;
     for (let i = 0; i < SAMPLES_X; i++) {
-      const x = spot.column + (-1 + (2 * i) / (SAMPLES_X - 1)) * halfWidth;
+      const x = point.column + (-1 + (2 * i) / (SAMPLES_X - 1)) * halfWidth;
       const col = Math.floor(x) - window.x;
       if (row >= 0 && row < window.height && col >= 0 && col < window.width) {
         hits += inside[row * window.width + col];
