@@ -79,9 +79,12 @@ export interface EngineOptions {
 }
 
 /** The opening move of the camera, milliseconds. */
-const INTRO_MS = 1600;
-/** It starts this many times further out than the opening view, looking down. */
-const INTRO_HEIGHT = 1.7;
+const INTRO_MS = 1800;
+/**
+ * It starts looking straight down on the middle of the ground, high enough to
+ * see all of it with this much to spare: where the map left off (T-025).
+ */
+const INTRO_MARGIN = 1.08;
 const INTRO_POLAR = 0.02;
 
 const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
@@ -152,7 +155,13 @@ export class BattleEngine {
   /** The blocks of troops as boxes, this frame: what may hide a place from view. */
   private readonly occluders: Occluder[] = [];
   /** The opening move of the camera while it lasts (see introFromAbove). */
-  private intro: { from: Spherical; to: Spherical; start: number } | null = null;
+  private intro: {
+    from: Spherical;
+    to: Spherical;
+    fromTarget: Vector3;
+    toTarget: Vector3;
+    start: number;
+  } | null = null;
   private readonly stopIntro = (): void => {
     this.intro = null;
   };
@@ -434,18 +443,26 @@ export class BattleEngine {
   }
 
   /**
-   * Starts the opening move: from straight above the point the opening view
-   * looks at, north up (the camera a hair south of it), down to that view.
+   * Starts the opening move: from straight above the middle of the ground,
+   * north up (the camera a hair south of it), high enough to see all of it,
+   * as the map shows it at the end of its flight; down to the opening view.
    */
   private startIntro(now: number): void {
-    if (!this.options.introFromAbove) return;
+    const terrain = this.terrain;
+    if (!this.options.introFromAbove || !terrain) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const to = new Spherical().setFromVector3(
-      this.scratch.subVectors(this.camera.position, this.controls.target),
-    );
-    const from = new Spherical(to.radius * INTRO_HEIGHT, INTRO_POLAR, 0);
+    const toTarget = this.controls.target.clone();
+    const to = new Spherical().setFromVector3(this.scratch.subVectors(this.camera.position, toTarget));
+    const { minX, maxX, minY, maxY } = terrain.data;
+    const x = (minX + maxX) / 2;
+    const y = (minY + maxY) / 2;
+    const fromTarget = new Vector3(x, terrain.heightAt(x, y), -y);
+    const tan = Math.tan((FOV * Math.PI) / 360);
+    const radius =
+      Math.max((maxY - minY) / 2 / tan, (maxX - minX) / 2 / (tan * this.camera.aspect)) * INTRO_MARGIN;
+    const from = new Spherical(Math.max(radius, to.radius), INTRO_POLAR, 0);
     this.controls.maxDistance = Math.max(this.controls.maxDistance, from.radius);
-    this.intro = { from, to, start: now };
+    this.intro = { from, to, fromTarget, toTarget, start: now };
     this.placeIntroCamera(0);
   }
 
@@ -459,10 +476,12 @@ export class BattleEngine {
     if (turn > Math.PI) turn -= 2 * Math.PI;
     if (turn < -Math.PI) turn += 2 * Math.PI;
     const at = new Spherical(
-      from.radius + (to.radius - from.radius) * e,
+      // Height by ratio, so the zoom feels even from far to near.
+      from.radius * (to.radius / from.radius) ** e,
       from.phi + (to.phi - from.phi) * e,
       from.theta + turn * e,
     );
+    this.controls.target.lerpVectors(intro.fromTarget, intro.toTarget, e);
     this.camera.position.setFromSpherical(at).add(this.controls.target);
   }
 

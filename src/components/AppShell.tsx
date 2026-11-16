@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { type ComponentType, useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleViewerLoading } from "./battle/BattleViewerLoading";
@@ -14,11 +14,28 @@ import { TutorPanel } from "./tutor/TutorPanel";
 
 // The battle viewer brings three.js with it, so its code is fetched only when
 // a battle is first asked for, and never on the server.
-const loadBattleViewer = () => import("./battle/BattleViewer");
-const BattleViewer = dynamic(
-  () => loadBattleViewer().then((m) => m.BattleViewer),
-  { ssr: false, loading: () => <BattleViewerLoading /> },
-);
+const loadBattleViewer = () =>
+  import("./battle/BattleViewer").then((m) => {
+    loadedBattleViewer = m.BattleViewer;
+    return m.BattleViewer;
+  });
+const BattleViewer = dynamic(loadBattleViewer, {
+  ssr: false,
+  loading: () => <BattleViewerLoading />,
+});
+/** The viewer's component once its code has arrived (fetched while the map flies). */
+let loadedBattleViewer: ComponentType | null = null;
+
+/**
+ * One open battle. When the code arrived during the flight, the viewer is
+ * drawn at once; through next/dynamic it would show the loading state for a
+ * moment (about 0.3 s) even then. The choice is made once per opening, so the
+ * viewer is never swapped for another component while it is open.
+ */
+function OpenBattle() {
+  const [Viewer] = useState<ComponentType>(() => loadedBattleViewer ?? BattleViewer);
+  return <Viewer />;
+}
 
 type PanelTab = "events" | "tutor";
 
@@ -135,7 +152,7 @@ export function AppShell() {
         <TimelineBar />
       </footer>
 
-      {battleOpen && <BattleViewer />}
+      {battleOpen && <OpenBattle />}
     </div>
   );
 }

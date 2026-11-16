@@ -57,7 +57,15 @@ Các mảng (timeline, bản đồ, tutor, cảnh trận đánh) chỉ giao ti�
 
 `setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra. `setBattleTime` chỉ chặn số âm; cảnh và nút điều khiển tự giữ trong `[0, số giai đoạn]`.
 
-**Mở trận qua bản đồ (T-025):** nút xem trận gọi `requestBattle(id)`. Bản đồ thấy `battleRequest` thì bay tới `origin` của trận, xong thì gọi `openBattle(id)`. Bản đồ không bay được (chưa tải xong, lỗi WebGL, người dùng bật giảm chuyển động) thì gọi `openBattle(id)` ngay. Khi trận đóng, bản đồ trở lại góc nhìn trước lúc bay.
+**Mở trận qua bản đồ (T-025):**
+- Nút xem trận gọi `requestBattle(id)`. Bản đồ thấy `battleRequest` thì bay khoảng 2 giây tới khung vùng địa hình của trận (`terrain`, không phải `origin`), hướng bắc lên, không nghiêng, vẽ khung nét đứt của vùng đó, rồi gọi `openBattle(id)`. Trong lúc có trận, giới hạn phóng của bản đồ được nâng tạm từ 8 lên 14.
+- Trận luôn mở, kể cả khi không bay được:
+  - bản đồ chưa tải xong hay lỗi WebGL, hoặc `loadBattle` lỗi: mở ngay;
+  - người dùng bật giảm chuyển động: mở ngay, bản đồ không dịch chuyển;
+  - người dùng kéo hay phóng bản đồ giữa chừng: mở ngay;
+  - quá 4 giây kể từ lúc bấm: mở luôn.
+- Khi trận đóng, bản đồ bay về góc nhìn trước lúc bay (nhảy thẳng nếu giảm chuyển động), xoá khung, trả giới hạn phóng về 8.
+- `AppShell` tải sẵn code khung xem trận lúc bản đồ bắt đầu bay; nếu code đã về khi trận mở thì hiện khung ngay, không qua trạng thái tải của `next/dynamic`.
 
 ## Năm
 
@@ -186,11 +194,12 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
-    - Số đo của lane 3 (T-023) với thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương): một vòng `walk` dài 1,333 s, đi được 1,31 m; một vòng `run` dài 0,933 s, đi được 5,5 m, gần với chạy nước rút. `art/README.md` đang ghi 1,00 m và 1,99 m; lane 1 cần đối chiếu.
+    - Số đo với thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương; T-024 đo lại theo cách của cảnh, bằng `art/tools/gait_check.py`): một vòng `walk` dài 1,333 s, đi được 1,30 m; một vòng `run` dài 0,933 s, đi được 5,45 m. Clip nguồn của `run` vốn là chạy nhanh (5,8 m/s ở cỡ người thật).
+    - Chân trụ đã được khoá trong clip (`whp_clips.Builder.lock_feet`): trượt dưới 3% khi đi, khoảng 1% khi chạy.
   - `idle`, `walk`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối, và lính ngã nằm lại đến hết trận.
   - Độ dài `attack` khác nhau theo kiểu tấn công: 1,0 s (`sword-thrust`, `spear-thrust`), 1,333 s (`javelin-throw`, `sling`, `sword-slash`).
-  - Clip có thể làm chuyển động mọi xương của khung, không chỉ xương có lưới da người: lính Baleares (`balearic-slinger`) dùng xương `ik_hand_gun` cho túi đá và dây ném. Cảnh phải nướng chuyển động của mọi xương mà lưới có dùng.
-- **Chiều cao:** hình lính cao dưới 2,25 m tính cả ngù mũ; riêng mũi giáo của triarii (`roman-triarii`) lên tới khoảng 2,4 m. Khung bao dùng để cắt hình phải tính phần này.
+  - Clip có thể làm chuyển động mọi xương của khung, không chỉ xương có lưới da người: lính Baleares (`balearic-slinger`) dùng xương `ik_hand_gun` cho túi đá và dây ném; hastatus (`roman-hastatus`) dùng xương `ik_hand_l` cho hai cây *pilum*, có cả tỉ lệ trong clip (thu nhỏ còn 1% trong `attack` và `die`: coi như đã phóng). Cảnh phải nướng chuyển động của mọi xương mà lưới có dùng, gồm vị trí, góc quay và tỉ lệ.
+- **Chiều cao:** hình lính cao dưới 2,25 m tính cả ngù mũ; riêng mũi giáo của triarii (`roman-triarii`) lên tới khoảng 2,44 m. Khung bao dùng để cắt hình phải tính phần này.
   - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
 - **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
@@ -229,7 +238,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Bố cục** (T-023): cảnh và thanh điều khiển bên trái; khung bên 360 px bên phải, thu gọn được, có hai tab "Lời dẫn" và "Thông tin trận" (hai bên, nguồn, ghi công). Ở bề ngang hẹp, khung bên nằm dưới cảnh.
 - **Ghi công trong khung:** `src/components/battle/viewer/credits.ts`. Phải khớp với README ("Data credits") và `art/CREDITS.md`. Thêm mô hình mới (T-021, T-022) thì thêm dòng ở cả ba chỗ.
 - **Lớp phủ:** phần tử nào của khung nằm đè lên cảnh thì có thuộc tính `data-battle-overlay`; nhãn địa danh của cảnh tránh các phần tử này.
-- **Cú hạ camera** (T-026): khung xem trận mở với camera ở trên cao nhìn thẳng xuống, hướng bắc lên, như bản đồ để lại sau khi bay tới chiến trường (T-025), rồi hạ về góc nhìn mở trong 1,6 giây. Bật bằng prop `introFromAbove` của `BattleScene`; `/battle-lab` không bật. Bỏ qua khi người dùng bật giảm chuyển động; người dùng chạm vào cảnh thì dừng.
+- **Cú hạ camera** (T-026): khung xem trận mở với camera nhìn thẳng xuống tâm vùng địa hình, hướng bắc lên, đủ cao để thấy cả vùng, như bản đồ để lại sau khi bay tới chiến trường (T-025); rồi trong 1,8 giây dời điểm nhìn và hạ về góc nhìn mở. Bật bằng prop `introFromAbove` của `BattleScene`; `/battle-lab` không bật. Bỏ qua khi người dùng bật giảm chuyển động; người dùng chạm vào cảnh thì dừng.
 
 ### Các đợt làm
 
