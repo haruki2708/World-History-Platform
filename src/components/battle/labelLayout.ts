@@ -7,6 +7,9 @@
  * previous frame first, so labels do not jump about while the camera moves,
  * then every anchor in turn (a river has several along its course) and every
  * side of it. A label with no free spot is hidden.
+ *
+ * Whatever lies over the scene (buttons, hints, panels of the viewer) is
+ * passed in as obstacles: no label or dot is placed under one.
  */
 
 /** Where the text stands relative to its anchor. "center" sits on it (rivers). */
@@ -46,12 +49,15 @@ export const DOT_RADIUS = 3;
 /** Space kept between two boxes, and from the edge of the view. */
 const PADDING = 2;
 
-interface Rect {
+/** A box in the view, CSS pixels from its top left corner. */
+export interface LabelObstacle {
   left: number;
   top: number;
   right: number;
   bottom: number;
 }
+
+type Rect = LabelObstacle;
 
 function offset(side: LabelSide, width: number, height: number): { dx: number; dy: number } {
   switch (side) {
@@ -80,8 +86,9 @@ function overlaps(a: Rect, b: Rect): boolean {
 export function layoutLabels(
   requests: LabelRequest[],
   view: { width: number; height: number },
+  obstacles: readonly LabelObstacle[] = [],
 ): (LabelPlacement | null)[] {
-  const taken: Rect[] = [];
+  const taken: Rect[] = [...obstacles];
   const inside = (r: Rect) =>
     r.left >= PADDING && r.top >= PADDING && r.right <= view.width - PADDING && r.bottom <= view.height - PADDING;
   const free = (r: Rect) => inside(r) && !taken.some((t) => overlaps(r, t));

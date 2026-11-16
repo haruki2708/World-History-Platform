@@ -33,9 +33,6 @@ export const FIGURE_SCALE = 3;
 
 /** Most figures in one chunk (one draw call). */
 const CHUNK_SIZE = 256;
-/** Seconds of playback a fallen figure lies on the ground, then sinks away. */
-const LIE_SECONDS = 5;
-const SINK_SECONDS = 1.5;
 /** Seconds to blend from one clip to the next. */
 const BLEND_SECONDS = 0.35;
 
@@ -297,8 +294,10 @@ export class UnitBlock {
     this.lastTime = time;
     this.lastBlend = blend;
 
-    const fallSeconds = model.dieSeconds + LIE_SECONDS;
-    this.standing = track.sample(time, model.hasDie ? fallSeconds + SINK_SECONDS : 0);
+    // The fallen stay where they fell for the rest of the battle: the die
+    // clip plays once and holds its last frame. Without a die clip a figure
+    // that falls is simply no longer drawn.
+    this.standing = track.sample(time, model.hasDie ? Infinity : 0);
     const figureHeight = model.height * FIGURE_SCALE;
     const done = blend >= 1;
     const fromActing = done ? this.toActing : this.fromActing;
@@ -333,11 +332,10 @@ export class UnitBlock {
         const x = track.x[i];
         const north = track.y[i];
         const z = -north;
-        let y = heightAt(x, north);
+        const y = heightAt(x, north);
         const o = n * 4;
         if (status === DYING) {
           const since = track.since[i];
-          if (since > fallSeconds) y -= ((since - fallSeconds) / SINK_SECONDS) * figureHeight * 0.5;
           anim[o] = DIE;
           anim[o + 1] = DIE;
           anim[o + 2] = 0;
