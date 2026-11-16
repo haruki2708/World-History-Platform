@@ -23,6 +23,11 @@ export interface AppState {
   /** The battle open in the 3D scene (an event id), or null for the map. */
   battleId: string | null;
   /**
+   * A battle the user asked to open that is not open yet: the map flies to
+   * the battlefield first, then opens it with openBattle. Null otherwise.
+   */
+  battleRequest: string | null;
+  /**
    * Position on the open battle's own timeline, in phases: 0 is the start,
    * n the end of phase n; fractions lie between. See phaseAt in lib/battle.
    */
@@ -33,7 +38,12 @@ export interface AppState {
   /** Selecting an event also moves the timeline to that event's year. */
   selectEvent: (id: string | null, year?: Year) => void;
   setLocale: (locale: Locale) => void;
-  /** Opens a battle at its start. */
+  /**
+   * Asks for a battle: sets battleRequest. The map answers by flying to the
+   * battlefield and then calling openBattle (at once if it cannot fly).
+   */
+  requestBattle: (id: string) => void;
+  /** Opens a battle at its start; clears battleRequest. */
   openBattle: (id: string) => void;
   closeBattle: () => void;
   /** Never below 0; the scene and the controls keep it within the phases. */
@@ -53,6 +63,7 @@ export const useAppStore = create<AppState>()((set) => ({
   focusRequest: 0,
   locale: "en",
   battleId: null,
+  battleRequest: null,
   battleTime: 0,
 
   setYear: (year) => set({ year: clampYear(year) }),
@@ -64,7 +75,8 @@ export const useAppStore = create<AppState>()((set) => ({
       ...(id === null ? {} : { focusRequest: state.focusRequest + 1 }),
     })),
   setLocale: (locale) => set({ locale }),
-  openBattle: (id) => set({ battleId: id, battleTime: 0 }),
+  requestBattle: (id) => set({ battleRequest: id }),
+  openBattle: (id) => set({ battleId: id, battleRequest: null, battleTime: 0 }),
   closeBattle: () => set({ battleId: null, battleTime: 0 }),
   setBattleTime: (time) =>
     set({ battleTime: Number.isFinite(time) ? Math.max(0, time) : 0 }),

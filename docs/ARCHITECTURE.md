@@ -51,10 +51,13 @@ Các mảng (timeline, bản đồ, tutor, cảnh trận đánh) chỉ giao ti�
 | `selectedEventId` | `string \| null` | Panel, bản đồ, nút trong câu trả lời của gia sư, qua `selectEvent` | Tất cả |
 | `focusRequest` | `number` | Tăng mỗi lần `selectEvent` chọn một sự kiện, kể cả chọn lại đúng sự kiện đang chọn | Bản đồ (bay tới sự kiện) |
 | `locale` | `"en" \| "vi"` | `LocaleSwitch` | Tất cả |
-| `battleId` | `string \| null` | `openBattle(id)` (nút xem trận trong panel sự kiện), `closeBattle()` (khung xem trận) | `AppShell` (nạp khung xem trận), cảnh trận đánh |
+| `battleRequest` | `string \| null` | `requestBattle(id)` (nút xem trận, từ T-025); `openBattle` xoá về `null` | Bản đồ (bay tới chiến trường rồi gọi `openBattle`), `AppShell` (tải sẵn code khung xem trận) |
+| `battleId` | `string \| null` | `openBattle(id)` (bản đồ sau khi bay; trước T-025 là nút xem trận), `closeBattle()` (khung xem trận) | `AppShell` (nạp khung xem trận), cảnh trận đánh, bản đồ (bay về chỗ cũ khi trận đóng) |
 | `battleTime` | `number` | `setBattleTime` (khung xem trận; trang thử) | Cảnh trận đánh, khung xem trận |
 
 `setYear` tự làm tròn và giới hạn trong `[YEAR_MIN, YEAR_MAX]`, nên bên gọi không cần kiểm tra. `setBattleTime` chỉ chặn số âm; cảnh và nút điều khiển tự giữ trong `[0, số giai đoạn]`.
+
+**Mở trận qua bản đồ (T-025):** nút xem trận gọi `requestBattle(id)`. Bản đồ thấy `battleRequest` thì bay tới `origin` của trận, xong thì gọi `openBattle(id)`. Bản đồ không bay được (chưa tải xong, lỗi WebGL, người dùng bật giảm chuyển động) thì gọi `openBattle(id)` ngay. Khi trận đóng, bản đồ trở lại góc nhìn trước lúc bay.
 
 ## Năm
 
@@ -191,6 +194,9 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
 - **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
+  - Ngựa (T-020, lane 2): `art/build/horse/horse.blend`, dựng bằng `art/blender/horse_build.py`. Cao 1,40 m tới vai, 40 xương tên `horse_*`; người cưỡi gắn vào xương `horse_saddle`, yên cao 1,35 m. Chi tiết ở `art/README.md`, mục "Ngựa" và "Gắn người cưỡi".
+  - Clip của ngựa: một vòng `walk` 1,667 s đi 1,20 m; một vòng `run` (phi nước đại) 0,400 s đi 1,21 m, chỉ không trượt chân quanh 3 m/s.
+  - Ghi công ngựa: lưới "Horse" của Tarnyloo (Blend Swap, CC BY 3.0, bắt buộc nêu tên tác giả); khung xương và dáng đi của fdoss001 (CC0). Khi kỵ binh vào cảnh (T-022), thêm vào dòng ghi công của khung xem trận và README.
 - **File gốc:** các file tải từ Sketchfab để ngoài repo, ở `E:\World_History_Platform_assets\sources\`. Trong repo chỉ có script `art/blender/` và file `.glb` đã xuất. Chạy lại script bằng Blender 5.2.2 không giao diện là dựng lại được mô hình.
 - **Giấy phép và ghi công:**
   - Mô hình nền có giấy phép CC BY 4.0 (Andywoodhead, Sketchfab). Ghi công trong `art/CREDITS.md`, kèm mô tả những gì đã sửa.
@@ -213,7 +219,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 
 ### Khung xem trận (đợt C)
 
-- **Mở:** sự kiện nào có trận 3D (`hasBattle(id)` trong `src/data/index.ts`) thì panel sự kiện có nút xem trận. Nút gọi `openBattle(id)`.
+- **Mở:** sự kiện nào có trận 3D (`hasBattle(id)` trong `src/data/index.ts`) thì panel sự kiện có nút xem trận. Nút gọi `openBattle(id)`; từ T-025 nút gọi `requestBattle(id)` để bản đồ bay tới chiến trường trước (xem mục "Trạng thái chung").
 - **Hiện:** khi `battleId` khác `null`, `AppShell` nạp `BattleViewer` (`src/components/battle/BattleViewer.tsx`) bằng `next/dynamic` với `ssr: false`. three.js chỉ tải khi người dùng mở trận lần đầu.
 - **Khung:** `BattleViewer` phủ kín trang, nằm trong một `<dialog>` mở bằng `showModal()`. Nhờ vậy các phím tắt chung của trang (`src/components/shell/keyboard.ts`) tự đứng ngoài khi trận đang mở; khung xem trận tự xử lý phím của nó. Esc hoặc nút đóng gọi `closeBattle()`, và focus trở về nút đã mở trận.
 - **Thời gian:** khung xem trận là nơi duy nhất ghi `battleTime` trong app chính (phát, tua, chuyển giai đoạn). Trang `/battle-lab` vẫn tự ghi như trước.

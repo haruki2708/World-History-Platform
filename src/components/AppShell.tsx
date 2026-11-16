@@ -13,9 +13,10 @@ import { TimelineBar } from "./timeline/TimelineBar";
 import { TutorPanel } from "./tutor/TutorPanel";
 
 // The battle viewer brings three.js with it, so its code is fetched only when
-// a battle is first opened, and never on the server.
+// a battle is first asked for, and never on the server.
+const loadBattleViewer = () => import("./battle/BattleViewer");
 const BattleViewer = dynamic(
-  () => import("./battle/BattleViewer").then((m) => m.BattleViewer),
+  () => loadBattleViewer().then((m) => m.BattleViewer),
   { ssr: false, loading: () => <BattleViewerLoading /> },
 );
 
@@ -38,6 +39,13 @@ export function AppShell() {
   const { t, locale } = useT();
   const [tab, setTab] = useState<PanelTab>("events");
   const battleOpen = useAppStore((state) => state.battleId !== null);
+  const battleRequested = useAppStore((state) => state.battleRequest !== null);
+
+  // While the map flies to a battlefield, fetch the viewer's code so the
+  // battle opens without waiting for it.
+  useEffect(() => {
+    if (battleRequested) void loadBattleViewer();
+  }, [battleRequested]);
 
   useEffect(() => {
     const root = document.documentElement;
