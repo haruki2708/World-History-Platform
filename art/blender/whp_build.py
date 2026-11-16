@@ -161,7 +161,9 @@ def stage_anim(unit):
     for action in builder.build():
         log(f"clip {action.name}: {int(action.frame_end)} frames at {whp_anim.FPS} fps")
     for clip, metres in builder.strides.items():
-        log(f"{clip}: {metres:.3f} m per loop")
+        before, after, shift = builder.slips[clip]
+        log(f"{clip}: {metres:.3f} m per loop; planted feet slip at most {before * 100:.0f}% of the "
+            f"ground's step before the lock, {after * 100:.0f}% after (ankles moved up to {shift * 100:.1f} cm)")
     log(f"die: lifted {builder.lying_lift * 100:.1f} cm when lying")
     scene.frame_set(0)
 
