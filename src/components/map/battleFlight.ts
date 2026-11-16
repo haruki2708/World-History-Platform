@@ -18,14 +18,14 @@ import {
 import { prefersReducedMotion } from "./motion";
 
 /** Length of the flight to a battlefield. */
-export const FLY_IN_MS = 2000;
+const FLY_IN_MS = 2000;
 /** Length of the flight back once the battle closes. */
-export const FLY_BACK_MS = 1200;
+const FLY_BACK_MS = 1200;
 /**
  * From the request on, the longest the battle waits for the map: a battle
  * file that is slow to load, a flight that stalls, whatever the reason.
  */
-export const OPEN_TIMEOUT_MS = 4000;
+const OPEN_TIMEOUT_MS = 4000;
 /** The flight back is cut short (a jump) if it has not ended by then. */
 const BACK_TIMEOUT_MS = FLY_BACK_MS + 1500;
 /**
@@ -118,7 +118,7 @@ function terrainRing(battle: Battle): [number, number][] {
  * A request flies to the battle's terrain, framed north up and flat, then
  * opens the battle. Whatever goes wrong, the battle still opens: at once when
  * the user prefers reduced motion or the battle file fails to load, as soon
- * as the user takes hold of the map mid-flight (MapLibre then ends the flight,
+ * as the user takes hold of the map (mid-flight MapLibre ends the flight,
  * which counts as arriving), and after OPEN_TIMEOUT_MS in any case. A second
  * request while flying is ignored.
  *
@@ -136,6 +136,7 @@ export class BattleFlight {
     /** Told when a flight to a battlefield starts and ends. */
     private readonly onFlying: (flying: boolean) => void,
   ) {
+    map.on("movestart", this.onMoveStart);
     map.on("moveend", this.onMoveEnd);
   }
 
@@ -199,9 +200,19 @@ export class BattleFlight {
 
   dispose(): void {
     clearTimeout(this.timer);
+    this.map.off("movestart", this.onMoveStart);
     this.map.off("moveend", this.onMoveEnd);
     if (this.state.kind === "flying") this.onFlying(false);
   }
+
+  /**
+   * A drag or zoom by the user while the battle file is still loading: there
+   * is no flight yet for MapLibre to end, so open the battle here. (Once the
+   * flight is under way, the gesture ends it and onMoveEnd opens the battle.)
+   */
+  private readonly onMoveStart = (event: MapMovementEvent) => {
+    if (event.originalEvent && this.state.kind === "flying") this.arrive(this.state.token);
+  };
 
   private readonly onMoveEnd = (event: MapMovementEvent & FlightEventData) => {
     const token = event.battleFlight;
