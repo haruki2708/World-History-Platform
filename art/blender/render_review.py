@@ -3,7 +3,7 @@
     blender --background --factory-startup --disable-autoexec \
         --python art/blender/render_review.py -- --model MODEL [--only NAME ...]
     blender ... --python art/blender/render_review.py -- --attack-styles [--model MODEL]
-    blender ... --python art/blender/render_review.py -- --model MODEL --before OLD.glb         --compare {fists,skirt,pila} --out NN-NAME.jpg
+    blender ... --python art/blender/render_review.py -- --model MODEL --before OLD.glb         --compare {fists,skirt,pila,spear} --out NN-NAME.jpg
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -612,7 +612,21 @@ def compare_pila(template):
     return panels
 
 
-COMPARE = {"fists": compare_fists, "skirt": compare_skirt, "pila": compare_pila}
+def compare_spear(template):
+    """Seen from the side (his right): standing, walking, running."""
+    scene = stage(620, 900, samples=48)
+    panels = []
+    for clip, frame in (("idle", 0), ("idle", 40), ("walk", 0), ("walk", 20), ("run", 7)):
+        f = place(template)
+        play(f, clip, frame)
+        scene.frame_set(FRAME)
+        aim_camera(scene, Vector((-0.6, -1.0, -0.02)), Vector((0.6, 1.0, 2.55)), "right", ortho=True, margin=1.0)
+        panels.append(render_panel(scene))
+        clear_figures([template.armature, *template.meshes.values()])
+    return panels
+
+
+COMPARE = {"fists": compare_fists, "skirt": compare_skirt, "pila": compare_pila, "spear": compare_spear}
 
 
 def before_after(model, before, what, out):

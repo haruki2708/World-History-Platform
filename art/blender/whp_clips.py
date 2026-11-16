@@ -130,9 +130,12 @@ SHIELD_CARRY = {
 WEAPON_CARRY = dict(aim=(0.0, -0.8, -0.6), up=(-1.0, 0.0, 0.3), follow=0.6)
 # A long spear stands upright, its butt just off the ground: the forearm
 # comes forwards (IK to `wrist`, the elbow towards `elbow`) and the fist
-# holds the shaft upright beside the thigh.
+# holds the shaft upright beside the thigh. The chest leans forwards by
+# about 9 degrees standing and walking, so in its frame the shaft leans back
+# by as much: upright to within 3 degrees when he stands or walks, some 18
+# degrees forwards when he runs (T-024; it was 14, 15 and 30).
 SPEAR_CARRY = dict(wrist=(-0.24, -0.17, -0.43), elbow=(-0.6, 0.8, -0.2),
-                   aim=(0.0, -0.08, 1.0), up=(-1.0, 0.1, 0.0), follow=0.6)
+                   aim=(0.0, 0.15, 1.0), up=(-1.0, 0.1, 0.0), follow=0.6)
 
 
 # A sling hangs from the fist, the cords straight down.
