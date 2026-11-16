@@ -424,8 +424,10 @@ export class BattleEngine {
   }
 
   private measure(now: number, elapsed: number, counts: { standing: number; drawn: number; lods: number[] }): void {
-    // A long gap is a hidden tab or a stall while loading, not a slow scene.
-    if (elapsed > 500) {
+    // A hidden tab or a very long gap is a pause, not a slow scene. Frames
+    // that are merely slow (a software renderer manages one or two a second)
+    // must still count, or the weakest machines would never drop to low.
+    if (document.hidden || elapsed > 3000) {
       this.statFrames = 0;
       this.statSince = now;
       return;
