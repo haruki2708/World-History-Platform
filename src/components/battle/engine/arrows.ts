@@ -23,6 +23,7 @@ export class ArrowLayer {
   private phase = -1;
   private readonly opacity: IUniform<number> = { value: 1 };
   private readonly clock: IUniform<number> = { value: 0 };
+  private readonly light: IUniform<number> = { value: 1 };
 
   constructor(
     private readonly battle: Battle,
@@ -30,7 +31,8 @@ export class ArrowLayer {
     private readonly heightAt: HeightAt,
   ) {}
 
-  update(time: number, seconds: number): void {
+  /** `daylight` dims the arrows with the scene, from 1 at noon down at night. */
+  update(time: number, seconds: number, daylight: number): void {
     if (this.battle.phases.length === 0) return;
     const phase = phaseAt(this.battle, time);
     if (phase !== this.phase) {
@@ -42,6 +44,7 @@ export class ArrowLayer {
     const fade = Math.min(Math.max((progress - 0.75) / 0.25, 0), 1);
     this.opacity.value = 0.85 * (1 - 0.7 * fade);
     this.clock.value = seconds;
+    this.light.value = daylight;
   }
 
   private rebuild(arrows: BattleArrow[]): void {
@@ -70,6 +73,7 @@ export class ArrowLayer {
           uColor: { value: this.colorOfSide(arrow.side) },
           uOpacity: this.opacity,
           uTime: this.clock,
+          uLight: this.light,
           uLength: { value: length },
         },
         vertexShader: /* glsl */ `
@@ -83,12 +87,13 @@ export class ArrowLayer {
           uniform float uOpacity;
           uniform float uTime;
           uniform float uLength;
+          uniform float uLight;
           varying vec2 vUv;
           void main() {
             float edge = 1.0 - smoothstep(0.7, 1.0, abs(vUv.y * 2.0 - 1.0));
             float tail = smoothstep(0.0, 0.3, vUv.x);
             float bands = 0.8 + 0.2 * sin(vUv.x * uLength * 0.12 - uTime * 2.5);
-            gl_FragColor = vec4(uColor * bands, uOpacity * tail * (0.35 + 0.65 * edge));
+            gl_FragColor = vec4(uColor * bands * uLight, uOpacity * tail * (0.35 + 0.65 * edge));
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
           }`,

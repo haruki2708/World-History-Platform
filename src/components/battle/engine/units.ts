@@ -171,7 +171,7 @@ export class UnitBlock {
     readonly track: UnitTrack,
     readonly model: UnitModel,
     materials: FigureMaterials,
-    color: Color,
+    private readonly color: Color,
     group: Group,
   ) {
     const chunkCount = Math.ceil(track.count / CHUNK_SIZE);
@@ -325,8 +325,12 @@ export class UnitBlock {
     this.center.set(formation.center.x, heightAt(formation.center.x, formation.center.y), -formation.center.y);
   }
 
-  /** Fades the ground patch in as the figures shrink to dots. */
-  setFootprintOpacity(cameraPosition: Vector3, pixelsPerMetreAtOne: number): void {
+  /**
+   * Fades the ground patch in as the figures shrink to dots, and dims it
+   * with the daylight (it is a flat colour that takes no light).
+   */
+  setFootprintLook(cameraPosition: Vector3, pixelsPerMetreAtOne: number, daylight: number): void {
+    this.footprintMaterial.color.copy(this.color).multiplyScalar(daylight);
     const distance = Math.max(cameraPosition.distanceTo(this.center), 1);
     const pixels = (this.model.height * FIGURE_SCALE * pixelsPerMetreAtOne) / distance;
     const far = 1 - Math.min(Math.max((pixels - 5) / 13, 0), 1);
@@ -362,7 +366,13 @@ export class Crowd {
    * Picks a level of detail for every chunk from its size on screen, then
    * coarsens the farthest chunks until the triangles in view fit the budget.
    */
-  selectLods(camera: Camera, viewportHeight: number, fovRadians: number, settings: LodSettings): CrowdCounts {
+  selectLods(
+    camera: Camera,
+    viewportHeight: number,
+    fovRadians: number,
+    settings: LodSettings,
+    daylight: number,
+  ): CrowdCounts {
     projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     frustum.setFromProjectionMatrix(projection);
     const pixelsPerMetreAtOne = viewportHeight / (2 * Math.tan(fovRadians / 2));
@@ -372,7 +382,7 @@ export class Crowd {
 
     for (const block of this.blocks) {
       counts.standing += block.standing;
-      block.setFootprintOpacity(camera.position, pixelsPerMetreAtOne);
+      block.setFootprintLook(camera.position, pixelsPerMetreAtOne, daylight);
       const height = block.model.height * FIGURE_SCALE;
       for (const chunk of block.chunks) {
         if (chunk.drawn === 0) {

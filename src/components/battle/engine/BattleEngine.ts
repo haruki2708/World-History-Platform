@@ -385,8 +385,9 @@ export class BattleEngine {
       this.height,
       (FOV * Math.PI) / 180,
       QUALITY[this.quality],
+      this.sky.daylight,
     );
-    this.arrows?.update(time, seconds);
+    this.arrows?.update(time, seconds, this.sky.daylight);
 
     this.renderer.render(this.scene, this.camera);
     this.options.onFrame?.();

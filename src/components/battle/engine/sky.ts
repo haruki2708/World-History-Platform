@@ -73,10 +73,13 @@ const SUN_COLOR: Stop<Color>[] = [
   [-4, c("#ff7a3a")], [0, c("#ff8a48")], [8, c("#ffb878")], [25, c("#ffe9cc")], [60, c("#fff6e8")],
 ];
 const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.7], [25, 2.7], [60, 3.1]];
-const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.3], [-6, 0.55], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
-const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#0b0d14")], [-6, c("#2a2a30")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
+const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
+// The colour of the light from the sky: moonlit blue by night.
+const AMBIENT_COLOR: Stop<Color>[] = [
+  [-18, c("#5d74a8")], [-6, c("#6f7fa6")], [0, c("#b9b3c0")], [8, c("#c9d2e0")], [25, c("#cfdcee")],
+];
+const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#1b2030")], [-6, c("#2f3038")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
 const MOON_COLOR = c("#9db4e0");
-const WHITE = c("#ffffff");
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
@@ -90,6 +93,11 @@ export class Sky {
   readonly ambient = new HemisphereLight();
   /** The colour of the haze at the horizon, for the fog. */
   readonly haze = new Color();
+  /**
+   * How bright the field is, 1 at noon and low at night: for the flat
+   * markings on the ground (arrows, block outlines), which take no light.
+   */
+  daylight = 1;
 
   private readonly latitude: number;
   private readonly material: ShaderMaterial;
@@ -198,7 +206,7 @@ export class Sky {
       this.lightDir.copy(this.sunDir);
     } else {
       this.light.color.copy(MOON_COLOR);
-      this.light.intensity = 0.4 * moon;
+      this.light.intensity = 0.9 * moon;
       this.lightDir.copy(this.moonDir);
     }
     // Keep the light off the horizon: endless shadows are all artefacts.
@@ -207,9 +215,13 @@ export class Sky {
       this.lightDir.normalize();
     }
 
-    this.ambient.color.copy(uniforms.uZenith.value).lerp(uniforms.uHorizon.value, 0.6).lerp(WHITE, 0.35);
-    this.ambient.groundColor.copy(uniforms.uGround.value);
-    this.ambient.intensity = sampleNumber(AMBIENT_INTENSITY, elevation) + 0.12 * moon;
+    sampleColor(AMBIENT_COLOR, elevation, this.ambient.color);
+    sampleColor(GROUND_BOUNCE, elevation, this.ambient.groundColor);
+    this.ambient.intensity = sampleNumber(AMBIENT_INTENSITY, elevation) + 0.15 * moon;
+    this.daylight = Math.min(
+      (this.ambient.intensity + this.light.intensity * Math.max(this.lightDir.y, 0)) / 4.5,
+      1,
+    );
   }
 
   setShadows(enabled: boolean): void {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { getPolity } from "@/data";
 import type { BattleSceneProps, FieldPoint } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
@@ -40,13 +40,36 @@ interface SceneLabel {
  * The 3D scene of a battle. Reads the battle time from the store and draws
  * the field at that moment; three.js lives behind this component only.
  */
-export function BattleScene(props: BattleSceneProps) {
+export function BattleScene({ battle, unitTypes, debug }: BattleSceneProps) {
+  const showStats = debug?.showStats ?? false;
+  const stressFigures = debug?.stressFigures;
   // A new battle or a new stress crowd starts from a clean scene.
-  const key = `${props.battle.id}/${props.debug?.stressFigures ?? 0}`;
-  return <SceneView key={key} {...props} />;
+  return (
+    <SceneView
+      key={`${battle.id}/${stressFigures ?? 0}`}
+      battle={battle}
+      unitTypes={unitTypes}
+      showStats={showStats}
+      stressFigures={stressFigures}
+    />
+  );
 }
 
-function SceneView({ battle, unitTypes, debug }: BattleSceneProps) {
+interface SceneViewProps {
+  battle: BattleSceneProps["battle"];
+  unitTypes: BattleSceneProps["unitTypes"];
+  showStats: boolean;
+  stressFigures: number | undefined;
+}
+
+// Memoised: a parent that re-renders on every tick of the battle clock (the
+// lab does) must not re-render the scene with it.
+const SceneView = memo(function SceneView({
+  battle,
+  unitTypes,
+  showStats,
+  stressFigures,
+}: SceneViewProps) {
   const { t, locale } = useT();
   const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<BattleEngine | null>(null);
@@ -57,8 +80,6 @@ function SceneView({ battle, unitTypes, debug }: BattleSceneProps) {
   const [hintSeen, setHintSeen] = useState(false);
   const [stats, setStats] = useState<EngineStats | null>(null);
   const initialQuality = useRef(quality);
-  const showStats = debug?.showStats ?? false;
-  const stressFigures = debug?.stressFigures;
 
   const labels = useMemo<SceneLabel[]>(
     () => [
@@ -248,4 +269,4 @@ function SceneView({ battle, unitTypes, debug }: BattleSceneProps) {
       )}
     </div>
   );
-}
+});

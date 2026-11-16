@@ -81,4 +81,37 @@ Dựng engine cho cảnh trận đánh 3D. Engine vẽ chiến trường từ d�
 
 ## Kết quả
 
-_(Lane 3 điền khi xong: cách làm, số đo hiệu năng, giới hạn, đề nghị cho hợp đồng.)_
+> **Đang làm dở (ghi lúc tạm dừng, 2026-11-16).** Mục này sẽ được viết lại khi xong task.
+
+### Đã xong và đã commit
+
+- Engine trong `src/components/battle/engine/`, component `BattleScene.tsx`, khoá `battle.scene.*` (en và vi).
+  - `BattleEngine.ts`: renderer, camera (`MapControls`), vòng lặp, hai mức chất lượng, tự hạ mức, giải phóng.
+  - `terrain.ts`: mặt đất từ lưới độ cao, màu tạo trong shader, sông, hàm `heightAt`.
+  - `sky.ts`: mặt trời, mặt trăng, bầu trời, bóng đổ theo giờ.
+  - `figures/`: `model.ts` nướng hoạt hình vào ảnh ma trận xương; `placeholder.ts` hình tạm bộ binh và kỵ binh; `loader.ts` nạp `.glb`; `material.ts` skinning trong vertex shader.
+  - `units.ts`: khối quân, chia lô 256 hình, LOD theo từng lô, bóng đổ từ lưới thô hơn, vệt màu dưới chân khối quân.
+  - `timeline.ts`: vị trí từng hình theo `battleTime`, ai ngã lúc nào. `arrows.ts`: mũi tên. `stress.ts`: đám đông tổng hợp.
+- `tools/make-test-model.mjs`: tạo một file `.glb` thử đúng hợp đồng ở mức trần (67 xương, LOD 7 968 / 1 488 / 300 tam giác, ảnh 2048×2048, đủ 5 hoạt hình).
+- Đã thấy chạy đúng trên `/battle-lab` (chụp ảnh bằng Chrome headless): địa hình, hai khối quân, mũi tên, tua, ánh sáng theo giờ, hình ngã rồi biến mất, `?stress=7000`, và engine tự dùng file `.glb` thử khi đặt vào `public/battles/models/roman-legionary.glb`.
+
+### Số đo sơ bộ, chưa phải số chính thức
+
+- Chrome headless chạy được trên GPU thật mà không mở cửa sổ: mặc định ra AMD Radeon tích hợp; thêm cờ `--use-angle=d3d11 --force_high_performance_gpu` thì ra RTX 3050.
+- `?stress=7000`, 1280×800, chất lượng cao, RTX 3050, cả 7 000 hình dùng file `.glb` thử (4,2 triệu tam giác mỗi khung hình, gồm cả bóng đổ): khoảng 172 khung hình/giây khi đứng yên, 111 khi đang phát. Mỗi khung hình có đọc lại một điểm ảnh để ép GPU vẽ xong.
+- **Lần đo này có `blender.exe` của lane khác đang chạy**, nên phải đo lại khi máy rảnh.
+
+### Còn phải làm
+
+1. Xem lại ảnh chụp sau lần chỉnh cuối: ban đêm (vệt màu và mũi tên đã cho tối theo ánh sáng), kỵ binh tạm, sông và địa danh.
+2. Đo chính thức: RTX 3050 chất lượng cao; AMD tích hợp chất lượng thấp. Kiểm tra `blender.exe`, Godot trước khi đo.
+3. Thử tự hạ chất lượng (chạy bằng SwiftShader cho chậm).
+4. Thử mở và đóng cảnh nhiều lần xem có rò bộ nhớ không.
+5. `npm run build`, kiểm tra trang `/` không kéo three.js; thử bề ngang 390px; chế độ sáng và tối.
+6. Viết lại mục "Kết quả" cho đầy đủ.
+
+### Ghi chú cho phiên làm tiếp
+
+- Dev server của lane 3 chạy ở cổng 3103 (`npx next dev -p 3103`) để không đụng lane khác.
+- Dữ liệu thử (địa hình có đồi, sông, địa danh, kỵ binh, 3 giai đoạn từ 05:12 tới 21:30) được tạo tạm bằng script ngoài repo rồi trả lại bằng `git checkout`. **Không commit** thay đổi ở `src/data/battles/`, `public/data/terrain/` hay `public/battles/`.
+- Mỗi mô hình chưa có file sinh một dòng 404 trong console của trình duyệt. Sẽ ghi thành đề nghị cho hợp đồng (file liệt kê mô hình đã có).

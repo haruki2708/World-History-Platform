@@ -268,8 +268,13 @@ export class UnitTrack {
     const s = t - k;
     const from = this.slots[k];
     const to = this.slots[Math.min(k + 1, last)];
-    const formation = this.formationAt(t);
+    const f = this.formationAt(t);
     const now = this.clock.seconds(t);
+    // The same placement as formationPoint, with the trigonometry hoisted
+    // out of the loop: this runs for every figure on every frame of playback.
+    const sin = Math.sin(f.facing);
+    const cos = Math.cos(f.facing);
+    const curve = (8 * f.bulge) / f.frontage;
     let standing = 0;
 
     for (let i = 0; i < this.count; i++) {
@@ -293,7 +298,12 @@ export class UnitTrack {
         u = lerp(u, to[i * 2], s);
         v = lerp(v, to[i * 2 + 1], s);
       }
-      this.place(formation, u, v, i);
+      const across = u * f.frontage;
+      const forward = f.depth * (0.5 - v) + f.bulge * (1 - 4 * u * u);
+      this.x[i] = f.center.x + cos * across + sin * forward;
+      this.y[i] = f.center.y - sin * across + cos * forward;
+      this.heading[i] =
+        f.facing + (curve === 0 ? 0 : Math.atan(curve * u)) + (this.seed[i] - 0.5) * 0.25;
       this.status[i] = ALIVE;
       this.rank[i] = v;
       standing++;
