@@ -7,6 +7,7 @@ meshes, no armature, 280k triangles, standing in a T pose and facing -Y.
 import os
 
 import bpy
+import numpy as np
 
 from whp_lod import METAL_FROM_GREY
 
@@ -144,3 +145,97 @@ def scabbard_to_right_hip(scabbard):
         v.co.z += SCABBARD_SHIFT[2]
     mesh.flip_normals()
     mesh.update()
+
+
+# --------------------------------------------------------------------------
+# Recolouring the source textures (cloth dyed otherwise, other skin tones)
+# --------------------------------------------------------------------------
+
+def _colour_nodes(obj):
+    mat = obj.data.materials[0]
+    tree = mat.node_tree
+    tex = tree.nodes["whp-color"]
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    return tree, tex, bsdf
+
+
+def _mean_luminance(image):
+    px = np.empty(image.size[0] * image.size[1] * 4, dtype=np.float32)
+    image.pixels.foreach_get(px)
+    px = px.reshape(-1, 4)
+    lum = px[:, 0] * 0.2126 + px[:, 1] * 0.7152 + px[:, 2] * 0.0722
+    lum = lum[lum > 0.01]                       # unused black texels
+    return float(np.median(lum)) if len(lum) else 0.5
+
+
+def recolour(obj, color, border=None, border_color=None, contrast=0.6):
+    """Dye a cloth texture another colour: keep its light and shade (the
+    folds and weave, as luminance relative to the texture's median, softened
+    by `contrast`) and replace its hue by `color` (linear RGB). `border`
+    names a colour attribute (border_attribute) where `border_color` is
+    woven in instead."""
+    tree, tex, bsdf = _colour_nodes(obj)
+    median = _mean_luminance(tex.image)
+    bw = tree.nodes.new("ShaderNodeRGBToBW")
+    tree.links.new(tex.outputs["Color"], bw.inputs["Color"])
+    shade = tree.nodes.new("ShaderNodeMath")            # 1 + contrast * (lum / median - 1)
+    shade.operation = "MULTIPLY_ADD"
+    shade.inputs[1].default_value = contrast / median
+    shade.inputs[2].default_value = 1.0 - contrast
+    tree.links.new(bw.outputs["Val"], shade.inputs[0])
+    out = None
+    for col, factor in ((color, None), (border_color, border)):
+        if col is None:
+            continue
+        mix = tree.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Factor"].default_value = 1.0
+        mix.inputs["A"].default_value = (*col, 1.0)
+        tree.links.new(shade.outputs["Value"], mix.inputs["B"])
+        if out is None:
+            out = mix
+            continue
+        blend = tree.nodes.new("ShaderNodeMix")
+        blend.data_type = "RGBA"
+        attr = tree.nodes.new("ShaderNodeAttribute")
+        attr.attribute_name = factor
+        tree.links.new(attr.outputs["Fac"], blend.inputs["Factor"])
+        tree.links.new(out.outputs["Result"], blend.inputs["A"])
+        tree.links.new(mix.outputs["Result"], blend.inputs["B"])
+        out = blend
+    tree.links.new(out.outputs["Result"], bsdf.inputs["Base Color"])
+    log(f"recoloured {obj.name}: median luminance {median:.3f}")
+
+
+def tint(obj, color):
+    """Multiply a skin texture by `color` (a darker or more olive skin)."""
+    tree, tex, bsdf = _colour_nodes(obj)
+    mix = tree.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Factor"].default_value = 1.0
+    mix.inputs["B"].default_value = (*color, 1.0)
+    tree.links.new(tex.outputs["Color"], mix.inputs["A"])
+    tree.links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
+
+
+def border_attribute(obj, width, name="whp_border", hem=True, sleeves=True):
+    """Mark a woven border on a tunic as a point colour attribute (1 in the
+    border, 0 elsewhere): `width` up from the hem and in from the ends of
+    the sleeves. In the source model's space, so the border follows the
+    cloth once it is posed."""
+    co = np.empty(len(obj.data.vertices) * 3)
+    obj.data.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)
+    mark = np.zeros(len(co))
+    if hem:
+        mark = np.maximum(mark, np.clip((co[:, 2].min() + width - co[:, 2]) / 0.004 + 0.5, 0.0, 1.0))
+    if sleeves:
+        reach = np.abs(co[:, 0])
+        mark = np.maximum(mark, np.clip((reach - (reach.max() - width)) / 0.004 + 0.5, 0.0, 1.0))
+    attr = obj.data.color_attributes.new(name, "FLOAT_COLOR", "POINT")
+    values = np.repeat(mark[:, None], 4, axis=1)
+    values[:, 3] = 1.0
+    attr.data.foreach_set("color", values.astype(np.float32).ravel())
+    log(f"{obj.name}: border on {int((mark > 0.5).sum())} of {len(mark)} vertices")
