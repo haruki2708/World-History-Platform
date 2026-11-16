@@ -32,7 +32,7 @@ export function EventListItem({
   onToggle,
 }: EventListItemProps) {
   const { t, locale } = useT();
-  const openBattle = useAppStore((state) => state.openBattle);
+  const requestBattle = useAppStore((state) => state.requestBattle);
   const dimmed = !selected && !active && !nearby;
 
   return (
@@ -129,7 +129,7 @@ export function EventListItem({
           <button
             type="button"
             data-battle-open={event.id}
-            onClick={() => openBattle(event.id)}
+            onClick={() => requestBattle(event.id)}
             className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 fill-current">
