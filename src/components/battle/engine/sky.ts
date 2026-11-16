@@ -18,10 +18,22 @@ import {
 const DEG = Math.PI / 180;
 
 /**
- * The battle data has no calendar date the engine can read, so the sun runs
- * as in the campaigning season (late spring to early autumn).
+ * Without a day of the year in the battle data, the sun runs as in the
+ * campaigning season (late spring to early autumn).
  */
-const SOLAR_DECLINATION = 14 * DEG;
+const DEFAULT_DECLINATION = 14 * DEG;
+
+/**
+ * The sun's declination on a day of the solar year (1 = 1 January,
+ * proleptic Gregorian), in radians: within a degree of the true value,
+ * plenty for light and shadows. Without a valid day, a summer value.
+ */
+export function solarDeclination(dayOfYear?: number): number {
+  if (dayOfYear === undefined || !Number.isFinite(dayOfYear) || dayOfYear < 1 || dayOfYear > 366) {
+    return DEFAULT_DECLINATION;
+  }
+  return -23.44 * DEG * Math.cos(((2 * Math.PI) / 365.25) * (dayOfYear + 10));
+}
 
 /** Direction towards the sun in world axes (+X east, +Y up, -Z north). */
 export function sunDirection(hour: number, latitude: number, declination: number, out: Vector3): Vector3 {
@@ -94,12 +106,20 @@ export class Sky {
   /** The colour of the haze at the horizon, for the fog. */
   readonly haze = new Color();
   /**
+   * The colours of the sky dome overhead, at the horizon and below it: what
+   * shiny surfaces reflect, in place of an environment map. Updated in place.
+   */
+  readonly envZenith: Color;
+  readonly envHorizon: Color;
+  readonly envGround: Color;
+  /**
    * How bright the field is, 1 at noon and low at night: for the flat
    * markings on the ground (arrows, block outlines), which take no light.
    */
   daylight = 1;
 
   private readonly latitude: number;
+  private readonly declination: number;
   private readonly material: ShaderMaterial;
   private readonly sunDir = new Vector3();
   private readonly moonDir = new Vector3();
@@ -109,8 +129,10 @@ export class Sky {
   private readonly snapped = new Vector3();
   private hour = NaN;
 
-  constructor(latitudeDeg: number) {
+  /** dayOfYear: Battle.dayOfYear; without it the sun runs as in summer. */
+  constructor(latitudeDeg: number, dayOfYear?: number) {
     this.latitude = latitudeDeg * DEG;
+    this.declination = solarDeclination(dayOfYear);
     this.material = new ShaderMaterial({
       side: BackSide,
       depthWrite: false,
@@ -169,6 +191,9 @@ export class Sky {
           #include <colorspace_fragment>
         }`,
     });
+    this.envZenith = this.material.uniforms.uZenith.value;
+    this.envHorizon = this.material.uniforms.uHorizon.value;
+    this.envGround = this.material.uniforms.uGround.value;
     this.dome = new Mesh(new SphereGeometry(100, 32, 16), this.material);
     this.dome.frustumCulled = false;
     this.dome.renderOrder = -10;
@@ -182,9 +207,9 @@ export class Sky {
   setHour(hour: number): void {
     if (hour === this.hour) return;
     this.hour = hour;
-    sunDirection(hour, this.latitude, SOLAR_DECLINATION, this.sunDir);
+    sunDirection(hour, this.latitude, this.declination, this.sunDir);
     // A full moon: opposite the sun.
-    sunDirection(hour + 12, this.latitude, -SOLAR_DECLINATION, this.moonDir);
+    sunDirection(hour + 12, this.latitude, -this.declination, this.moonDir);
     const elevation = Math.asin(this.sunDir.y) / DEG;
     const moonElevation = Math.asin(this.moonDir.y) / DEG;
     const night = 1 - smooth(-8, -4, elevation);

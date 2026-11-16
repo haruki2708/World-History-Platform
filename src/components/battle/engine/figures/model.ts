@@ -71,9 +71,35 @@ export interface UnitModel {
   height: number;
   /** Base colour texture, if the model has one. */
   map: Texture | null;
+  /**
+   * Normal and roughness-metalness maps for the detailed material of close
+   * figures, or null when the model has none (placeholders, simple files).
+   */
+  surface: ModelSurface | null;
   /** Draw both faces of every triangle (cloaks, crests). */
   doubleSided: boolean;
   dispose(): void;
+}
+
+/** The maps of a model file beyond its colour, as the file gives them. */
+export interface SurfaceMaps {
+  normalMap: Texture | null;
+  /** glTF normalTexture.scale. */
+  normalStrength: number;
+  /** roughnessMap and metalnessMap are one glTF texture: G roughness, B metalness. */
+  roughnessMap: Texture | null;
+  metalnessMap: Texture | null;
+  /** Factors that multiply the maps (glTF roughnessFactor, metallicFactor). */
+  roughness: number;
+  metalness: number;
+}
+
+export interface ModelSurface extends SurfaceMaps {
+  /**
+   * normalScale for three.js: y is negated when the geometry carries no
+   * tangents and the shader derives the tangent frame from the uv.
+   */
+  normalScale: [number, number];
 }
 
 export interface SkinnedSource {
@@ -89,6 +115,7 @@ export interface SkinnedSource {
   lods: SkinnedMesh[][];
   clips: AnimationClip[];
   map: Texture | null;
+  surface?: SurfaceMaps | null;
   doubleSided?: boolean;
   /** Frees whatever the source loaded (textures of a .glb, for instance). */
   release?: () => void;
@@ -102,6 +129,14 @@ function clipKey(name: string): string {
 
 export function buildUnitModel(source: SkinnedSource): UnitModel {
   source.root.updateMatrixWorld(true);
+
+  // Tangents from the file give the best normal mapping, but only if every
+  // level has them: one material serves all levels, and its normalScale
+  // must match the way the shader finds the tangent frame.
+  const surface = source.surface ?? null;
+  const tangents =
+    surface?.normalMap != null &&
+    source.lods.every((meshes) => meshes.every((mesh) => mesh.geometry.attributes.tangent !== undefined));
 
   // One bone list for all levels, in case they came with separate skins.
   const bones: Bone[] = [];
@@ -118,7 +153,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
         }
         return index;
       });
-      return prepareGeometry(mesh, remap);
+      return prepareGeometry(mesh, remap, tangents);
     });
     let geometry = pieces[0];
     if (pieces.length > 1) {
@@ -263,6 +298,10 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     dieSeconds: chosen.die?.duration ?? 0,
     height,
     map: source.map,
+    surface: surface && {
+      ...surface,
+      normalScale: [surface.normalStrength, tangents ? surface.normalStrength : -surface.normalStrength],
+    },
     doubleSided: source.doubleSided ?? false,
     dispose() {
       for (const geometry of geometries) geometry.dispose();
@@ -274,9 +313,10 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
 
 /**
  * Copies a skinned mesh into a plain geometry in model space: position,
- * normal, uv, colour, the team-colour mask and up to four bone influences.
+ * normal, uv, colour, the team-colour mask, up to four bone influences and,
+ * when asked, the tangents.
  */
-function prepareGeometry(mesh: SkinnedMesh, remap: number[]): BufferGeometry {
+function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boolean): BufferGeometry {
   const source = mesh.geometry;
   const count = source.attributes.position.count;
   const geometry = new BufferGeometry();
@@ -297,6 +337,17 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[]): BufferGeometry {
       normal.setXYZ(i, point.x, point.y, point.z);
     }
     geometry.setAttribute("normal", normal);
+  }
+
+  const sourceTangent = source.attributes.tangent;
+  if (withTangents && sourceTangent) {
+    const tangent = new BufferAttribute(new Float32Array(count * 4), 4);
+    const linear = new Matrix3().setFromMatrix4(mesh.bindMatrix);
+    for (let i = 0; i < count; i++) {
+      point.fromBufferAttribute(sourceTangent, i).applyMatrix3(linear).normalize();
+      tangent.setXYZW(i, point.x, point.y, point.z, sourceTangent.getW(i) < 0 ? -1 : 1);
+    }
+    geometry.setAttribute("tangent", tangent);
   }
 
   const uv = new BufferAttribute(new Float32Array(count * 2), 2);

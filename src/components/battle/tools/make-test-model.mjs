@@ -6,11 +6,16 @@
 //   - meshes LOD0 (8 000 triangles), LOD1 (1 500) and LOD2 (300), every vertex
 //     weighted to up to four bones;
 //   - one material with a 2048 x 2048 colour texture;
+//   - with --maps, a 1024 x 1024 normal map and a 1024 x 1024 roughness-metalness
+//     map as well: the head is polished metal (like a bronze helmet), the
+//     torso rougher metal with rings in the normal map (like mail), the
+//     limbs cloth and leather. Meshes carry no tangents, so the scene takes
+//     the tangent frame from the uv (the real models do carry tangents);
 //   - clips idle, walk, run, attack and die.
 //
 // It is a mannequin made of tubes, not a soldier. No dependencies.
 //
-//   node src/components/battle/tools/make-test-model.mjs <out.glb> [--no-die] [--no-run]
+//   node src/components/battle/tools/make-test-model.mjs <out.glb> [--maps] [--no-die] [--no-run]
 //
 // To try it in /battle-lab, write it to public/battles/models/<model>.glb for
 // a model name in src/data/battles/unit-types.json, then delete the file
@@ -22,10 +27,11 @@ import zlib from "node:zlib";
 const args = process.argv.slice(2);
 const out = args.find((arg) => !arg.startsWith("--"));
 if (!out) {
-  console.error("Usage: node make-test-model.mjs <out.glb> [--no-die] [--no-run]");
+  console.error("Usage: node make-test-model.mjs <out.glb> [--maps] [--no-die] [--no-run]");
   process.exit(1);
 }
 const skipClips = new Set(args.filter((arg) => arg.startsWith("--no-")).map((arg) => arg.slice(5)));
+const withMaps = args.includes("--maps");
 
 // --- Skeleton ----------------------------------------------------------------
 
@@ -280,19 +286,16 @@ function crcChunk(type, data) {
   return Buffer.concat([length, body, crc]);
 }
 
-/** Bands for legs, arms, torso and head (top to bottom of the image). */
-function makeTexture(size) {
-  const bands = [[92, 66, 46], [200, 152, 112], [176, 40, 32], [205, 160, 120]];
+/** An RGB PNG of size x size; pixel(u, v) returns [r, g, b] for v from 0 at the top. */
+function makePng(size, pixel) {
   const row = Buffer.alloc(1 + size * 3);
   const rows = [];
   for (let y = 0; y < size; y++) {
-    const band = bands[Math.min(Math.floor((y / size) * 4), 3)];
-    const stripe = Math.floor(y / 64) % 2 === 0 ? 1 : 0.9;
     for (let x = 0; x < size; x++) {
-      const check = Math.floor(x / 128) % 2 === 0 ? 1 : 0.94;
-      row[1 + x * 3] = band[0] * stripe * check;
-      row[2 + x * 3] = band[1] * stripe * check;
-      row[3 + x * 3] = band[2] * stripe * check;
+      const [r, g, b] = pixel((x + 0.5) / size, (y + 0.5) / size);
+      row[1 + x * 3] = r;
+      row[2 + x * 3] = g;
+      row[3 + x * 3] = b;
     }
     rows.push(Buffer.from(row));
   }
@@ -306,6 +309,64 @@ function makeTexture(size) {
     crcChunk("IDAT", zlib.deflateSync(Buffer.concat(rows), { level: 9 })),
     crcChunk("IEND", Buffer.alloc(0)),
   ]);
+}
+
+/** Bands of the uv, top to bottom of the image: legs (0), arms, torso, head. */
+const ARMS = 1;
+const TORSO = 2;
+const HEAD = 3;
+const bandOf = (v) => Math.min(Math.floor(v * 4), 3);
+
+function makeTexture(size) {
+  const bands = [[92, 66, 46], [200, 152, 112], [176, 40, 32], [205, 160, 120]];
+  return makePng(size, (u, v) => {
+    const band = bands[bandOf(v)];
+    const stripe = Math.floor((v * size) / 64) % 2 === 0 ? 1 : 0.9;
+    const check = Math.floor((u * size) / 128) % 2 === 0 ? 1 : 0.94;
+    return band.map((c) => c * stripe * check);
+  });
+}
+
+/** Height of the surface for the normal map, in texels: rings on the torso, seams on the limbs. */
+function bump(u, v) {
+  switch (bandOf(v)) {
+    case TORSO: {
+      const ring = (a) => Math.abs(Math.sin(a * Math.PI));
+      return 2.5 * ring(u * 96) * ring(v * 4 * 48);
+    }
+    case HEAD:
+      return 0;
+    default:
+      return 3 * Math.pow(Math.abs(Math.sin(u * 16 * Math.PI)), 8);
+  }
+}
+
+/** Tangent-space normal map (OpenGL convention, +Y up, as glTF asks), from the bump heights. */
+function makeNormalMap(size) {
+  const h = 1 / size;
+  return makePng(size, (u, v) => {
+    const dx = (bump(u + h, v) - bump(u - h, v)) / 2;
+    // v grows downwards in the image and the uv; +Y of the normal map points to smaller v.
+    const dy = (bump(u, v - h) - bump(u, v + h)) / 2;
+    const length = Math.hypot(dx, dy, 1);
+    return [(-dx / length) * 127.5 + 127.5, (-dy / length) * 127.5 + 127.5, (1 / length) * 127.5 + 127.5];
+  });
+}
+
+/** glTF metallicRoughnessTexture: G roughness, B metalness. */
+function makeMetalRoughnessMap(size) {
+  return makePng(size, (u, v) => {
+    switch (bandOf(v)) {
+      case HEAD:
+        return [0, 0.3 * 255, 255];
+      case TORSO:
+        return [0, 0.5 * 255, 255];
+      case ARMS:
+        return [0, 0.85 * 255, 0];
+      default:
+        return [0, 0.7 * 255, 0];
+    }
+  });
 }
 
 // --- glTF --------------------------------------------------------------------
@@ -427,7 +488,11 @@ for (const [name, clip] of Object.entries(CLIPS)) {
   animations.push(animation);
 }
 
-const image = addView(makeTexture(2048));
+const colorImage = addView(makeTexture(2048));
+const normalImage = withMaps ? addView(makeNormalMap(1024)) : null;
+const metalRoughnessImage = withMaps ? addView(makeMetalRoughnessMap(1024)) : null;
+const images = [colorImage, normalImage, metalRoughnessImage].filter((view) => view !== null);
+const textureIndex = (view) => images.indexOf(view);
 
 const gltf = {
   asset: { version: "2.0", generator: "World History Platform: make-test-model.mjs" },
@@ -440,12 +505,20 @@ const gltf = {
   materials: [
     {
       name: "TestSoldier",
-      pbrMetallicRoughness: { baseColorTexture: { index: 0 }, metallicFactor: 0, roughnessFactor: 0.9 },
+      pbrMetallicRoughness: withMaps
+        ? {
+            baseColorTexture: { index: textureIndex(colorImage) },
+            metallicRoughnessTexture: { index: textureIndex(metalRoughnessImage) },
+            metallicFactor: 1,
+            roughnessFactor: 1,
+          }
+        : { baseColorTexture: { index: 0 }, metallicFactor: 0, roughnessFactor: 0.9 },
+      ...(withMaps ? { normalTexture: { index: textureIndex(normalImage) } } : {}),
     },
   ],
-  textures: [{ source: 0, sampler: 0 }],
+  textures: images.map((_, i) => ({ source: i, sampler: 0 })),
   samplers: [{ magFilter: 9729, minFilter: 9987 }],
-  images: [{ bufferView: image, mimeType: "image/png" }],
+  images: images.map((view) => ({ bufferView: view, mimeType: "image/png" })),
   accessors,
   bufferViews,
   buffers: [{ byteLength: 0 }],
