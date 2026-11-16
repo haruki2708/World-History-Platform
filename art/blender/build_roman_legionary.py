@@ -19,7 +19,6 @@ import bpy  # noqa: E402
 
 import numpy as np  # noqa: E402
 
-import roman_anims  # noqa: E402
 import roman_fit  # noqa: E402
 import roman_hands  # noqa: E402
 import roman_lod  # noqa: E402
@@ -28,6 +27,7 @@ import roman_mail  # noqa: E402
 import roman_shield  # noqa: E402
 import roman_source  # noqa: E402
 import whp_anim  # noqa: E402
+import whp_clips  # noqa: E402
 import whp_export  # noqa: E402
 import whp_materials  # noqa: E402
 import whp_skeleton  # noqa: E402
@@ -98,9 +98,11 @@ RIGID = {
     "New_eye_2": "head",
     "Scutum": "hand_l",
     "Sword2_1": "hand_r",
-    "Scabbard": "pelvis",
     "Mail_hook": "spine_03",
 }
+# Parts that follow two bones half and half without bending: the scabbard
+# hangs from the belt but swings with the thigh (and lies along it).
+SHARED = {"Scabbard": ("pelvis", "thigh_r")}
 # Rounds of weight smoothing; cloth and mail get more than skin.
 SMOOTHING = {"Tunic_1": 12, "Mail": 12, "Mail_yoke": 12, "Belt": 8}
 DEFAULT_SMOOTHING = 3
@@ -129,6 +131,8 @@ def stage_rig(args):
         bone = RIGID.get(base_name(obj))
         if bone:
             weights = whp_skin.rigid(len(coords), len(names), index[bone])
+        elif base_name(obj) in SHARED:
+            weights = sum(whp_skin.rigid(len(coords), len(names), index[b]) * 0.5 for b in SHARED[base_name(obj)])
         else:
             weights = source.sample(coords)
             # The fists are closed for good: fingers move with the hand.
@@ -144,18 +148,39 @@ def stage_rig(args):
     down, out = roman_shield.axes_in_source()
     celt.armature["whp_shield_down"] = [float(x) for x in hand @ np.array(down)]
     celt.armature["whp_shield_out"] = [float(x) for x in hand @ np.array(out)]
+    # Where the sword points from the right fist, at rest: the clips aim it by this.
+    sword = get_coords(bpy.data.objects["Sword2_1"])
+    celt.armature["whp_weapon_axis"] = [float(x) for x in weapon_axis(sword, celt.joints["hand_r"])]
 
     whp_skeleton.to_canonical(celt.armature, meshes)
     for obj in meshes:
         whp_skeleton.bind(obj, celt.armature)
 
 
+def weapon_axis(coords, hand):
+    """Unit vector along a held weapon's length, from the hand towards
+    the far end: the main axis of its vertices."""
+    centred = coords - coords.mean(axis=0)
+    axis = np.linalg.svd(centred, full_matrices=False)[2][0]
+    far = coords[np.argmax(np.linalg.norm(coords - hand, axis=1))]
+    if np.dot(far - hand, axis) < 0:
+        axis = -axis
+    return axis / np.linalg.norm(axis)
+
+
+KIT = whp_clips.Kit(shield=True, attack="sword-thrust")
+
+
 def stage_anim(args):
     scene = bpy.context.scene
     scene.render.fps = whp_anim.FPS
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
-    for action in roman_anims.build_all(armature):
+    builder = whp_clips.Builder(armature, KIT)
+    for action in builder.build():
         log(f"clip {action.name}: {int(action.frame_end)} frames at {whp_anim.FPS} fps")
+    for clip, metres in builder.strides.items():
+        log(f"{clip}: {metres:.3f} m per loop")
+    log(f"die: lifted {builder.lying_lift * 100:.1f} cm when lying")
     scene.frame_set(0)
 
 
@@ -163,7 +188,7 @@ def stage_lod(args):
     roman_lod.build()
 
 
-CLIPS = ("idle", "walk", "attack")
+CLIPS = ("idle", "walk", "run", "attack", "die")
 LODS = ("LOD0", "LOD1", "LOD2")
 GLB = os.path.join(MODELS_DIR, f"{MODEL}.glb")
 
@@ -207,16 +232,16 @@ def preview(name):
     render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{{view}}.png"))
     armature = bpy.data.objects.get(whp_skeleton.RIG_NAME)
     if armature is not None and name.endswith("rig"):
-        for pose_name, pose in roman_anims.TEST_POSES.items():
+        for pose_name, pose in whp_clips.TEST_POSES.items():
             whp_skeleton.reset_pose(armature)
             whp_skeleton.apply_pose(armature, pose)
             render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{pose_name}-{{view}}.png"),
                          views=("front34", "back34"))
         whp_skeleton.reset_pose(armature)
     if armature is not None and name.endswith("anim"):
-        for clip in ("idle", "walk", "attack"):
+        for clip in CLIPS:
             action = whp_anim.set_action(armature, clip)
-            for frame in sorted({0, int(action.frame_end * 0.25), int(action.frame_end * 0.42), int(action.frame_end * 0.75)}):
+            for frame in sorted({0, int(action.frame_end * 0.25), int(action.frame_end * 0.5), int(action.frame_end)}):
                 scene.frame_set(frame)
                 render_views(scene, objs, os.path.join(WORK_DIR, f"preview-{name}-{clip}-{frame:02d}-{{view}}.png"),
                              views=("front34", "right"), size=700)

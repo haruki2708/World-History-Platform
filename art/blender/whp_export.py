@@ -244,9 +244,41 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
     return problems
 
 
-def reimport(path, lods):
-    """Import the file into an empty scene; report what came back."""
+# Clip, frame ("last" for the last), and the allowed range of the lowest and
+# the highest point of LOD0 in that pose, metres above the ground.
+GROUND_CHECKS = (
+    ("idle", 0, (-0.03, 0.02), (1.5, 2.3)),         # standing on his soles
+    ("walk", 0, (-0.03, 0.03), (1.5, 2.3)),
+    ("die", "last", (-0.05, 0.05), (0.0, 0.75)),    # lying on the ground, nothing through it
+)
+
+
+def _pose_bounds(armature, mesh, clip, frame):
+    """Lowest and highest point of a skinned mesh at a frame of a clip."""
+    scene = bpy.context.scene
+    action = bpy.data.actions[clip]
+    armature.animation_data.action = action
+    if hasattr(armature.animation_data, "action_slot") and len(action.slots):
+        armature.animation_data.action_slot = action.slots[0]
+    if frame == "last":
+        frame = int(round(action.frame_range[1]))
+    scene.frame_set(frame)
+    deps = bpy.context.evaluated_depsgraph_get()
+    ev = mesh.evaluated_get(deps)
+    data = ev.to_mesh()
+    co = np.empty(len(data.vertices) * 3)
+    data.vertices.foreach_get("co", co)
+    ev.to_mesh_clear()
+    world = np.array(mesh.matrix_world)
+    z = (co.reshape(-1, 3) @ world[:3, :3].T + world[:3, 3])[:, 2]
+    return float(z.min()), float(z.max())
+
+
+def reimport(path, lods, ground=GROUND_CHECKS):
+    """Import the file into an empty scene; report what came back, and
+    check a few poses against the ground (`ground`, see GROUND_CHECKS)."""
     reset_scene()
+    bpy.context.scene.render.fps = 30          # the importer maps seconds to frames at this rate
     bpy.ops.import_scene.gltf(filepath=path)
     problems = []
     # The importer adds an "Icosphere" as the display shape of the bones.
@@ -262,4 +294,16 @@ def reimport(path, lods):
         obj.data.calc_loop_triangles()
         log(f"  re-import {name}: {len(obj.data.loop_triangles)} triangles, materials "
             f"{[m.name for m in obj.data.materials]}")
+    lod0 = meshes.get(lods[0])
+    if armatures and lod0 is not None and armatures[0].animation_data is None:
+        armatures[0].animation_data_create()
+    for clip, frame, (lo_min, lo_max), (hi_min, hi_max) in (ground or ()):
+        if lod0 is None or not armatures or clip not in bpy.data.actions:
+            continue
+        lo, hi = _pose_bounds(armatures[0], lod0, clip, frame)
+        log(f"  pose {clip} frame {frame}: lowest {lo:.3f} m, highest {hi:.3f} m")
+        if not (lo_min <= lo <= lo_max):
+            problems.append(f"{clip} frame {frame}: lowest point {lo:.3f} m, expected {lo_min}..{lo_max}")
+        if not (hi_min <= hi <= hi_max):
+            problems.append(f"{clip} frame {frame}: highest point {hi:.3f} m, expected {hi_min}..{hi_max}")
     return problems

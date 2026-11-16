@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy  # noqa: E402
 from mathutils import Vector  # noqa: E402
 
-import roman_anims  # noqa: E402
+import whp_clips  # noqa: E402
 import roman_source  # noqa: E402
 import whp_skeleton  # noqa: E402
 from whp_common import MODELS_DIR, RENDER_DIR, log, reset_scene, script_args, world_bounds  # noqa: E402
@@ -273,7 +273,7 @@ def compare(template, out):
 def test_poses(template, out):
     """The skin under strain: arms raised, a long step, bent forward."""
     figures = []
-    for i, pose in enumerate(roman_anims.TEST_POSES.values()):
+    for i, pose in enumerate(whp_clips.TEST_POSES.values()):
         f = place(template, (1.6 * (i - 1), 0.0, 0.0))
         whp_skeleton.apply_pose(f.armature, pose)
         figures.append(f)

@@ -293,6 +293,9 @@ def build_lod2_proxy(parts, armature, color_image):
 
 def _finish_lod(objs, name, limit, armature, material):
     mesh_obj = join_objects(objs, name)
+    # Decimation can leave a few duplicate faces; drop them here rather than
+    # let the glTF exporter do it (and warn) on its own.
+    mesh_obj.data.validate()
     count = triangle_count(mesh_obj)
     if count > limit:
         log(f"WARNING {name}: {count} triangles, decimating the whole mesh to {limit}")
