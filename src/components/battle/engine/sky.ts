@@ -1,0 +1,264 @@
+/**
+ * Sky, sun and moon for a clock time: the direction and colour of the light,
+ * the gradient of the sky dome and the haze, from before dawn to deep night.
+ */
+
+import {
+  BackSide,
+  Color,
+  DirectionalLight,
+  HemisphereLight,
+  Mesh,
+  type PerspectiveCamera,
+  ShaderMaterial,
+  SphereGeometry,
+  Vector3,
+} from "three";
+
+const DEG = Math.PI / 180;
+
+/**
+ * The battle data has no calendar date the engine can read, so the sun runs
+ * as in the campaigning season (late spring to early autumn).
+ */
+const SOLAR_DECLINATION = 14 * DEG;
+
+/** Direction towards the sun in world axes (+X east, +Y up, -Z north). */
+export function sunDirection(hour: number, latitude: number, declination: number, out: Vector3): Vector3 {
+  const hourAngle = (hour - 12) * 15 * DEG;
+  const sinLat = Math.sin(latitude);
+  const cosLat = Math.cos(latitude);
+  const sinDec = Math.sin(declination);
+  const cosDec = Math.cos(declination);
+  const east = -cosDec * Math.sin(hourAngle);
+  const north = cosLat * sinDec - sinLat * cosDec * Math.cos(hourAngle);
+  const up = sinLat * sinDec + cosLat * cosDec * Math.cos(hourAngle);
+  return out.set(east, up, -north).normalize();
+}
+
+type Stop<T> = [elevation: number, value: T];
+
+function sampleNumber(stops: Stop<number>[], elevation: number): number {
+  if (elevation <= stops[0][0]) return stops[0][1];
+  for (let i = 1; i < stops.length; i++) {
+    if (elevation <= stops[i][0]) {
+      const t = (elevation - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]);
+      return stops[i - 1][1] + (stops[i][1] - stops[i - 1][1]) * t;
+    }
+  }
+  return stops[stops.length - 1][1];
+}
+
+function sampleColor(stops: Stop<Color>[], elevation: number, out: Color): Color {
+  if (elevation <= stops[0][0]) return out.copy(stops[0][1]);
+  for (let i = 1; i < stops.length; i++) {
+    if (elevation <= stops[i][0]) {
+      const t = (elevation - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]);
+      return out.copy(stops[i - 1][1]).lerp(stops[i][1], t);
+    }
+  }
+  return out.copy(stops[stops.length - 1][1]);
+}
+
+const c = (hex: string) => new Color(hex);
+
+// All keyed by the elevation of the sun, in degrees.
+const ZENITH: Stop<Color>[] = [
+  [-18, c("#03050c")], [-6, c("#101a38")], [0, c("#2a4a80")], [8, c("#3b6fb5")], [25, c("#3a78c8")], [60, c("#3476cc")],
+];
+const HORIZON: Stop<Color>[] = [
+  [-18, c("#070b16")], [-6, c("#2b3050")], [0, c("#c9a48a")], [8, c("#d9c3a8")], [25, c("#bfd3e6")], [60, c("#b3cdea")],
+];
+const SUN_COLOR: Stop<Color>[] = [
+  [-4, c("#ff7a3a")], [0, c("#ff8a48")], [8, c("#ffb878")], [25, c("#ffe9cc")], [60, c("#fff6e8")],
+];
+const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.7], [25, 2.7], [60, 3.1]];
+const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.3], [-6, 0.55], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
+const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#0b0d14")], [-6, c("#2a2a30")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
+const MOON_COLOR = c("#9db4e0");
+const WHITE = c("#ffffff");
+
+function smooth(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
+  return t * t * (3 - 2 * t);
+}
+
+export class Sky {
+  readonly dome: Mesh;
+  /** The sun by day, the moon by night; the only light that casts shadows. */
+  readonly light = new DirectionalLight();
+  readonly ambient = new HemisphereLight();
+  /** The colour of the haze at the horizon, for the fog. */
+  readonly haze = new Color();
+
+  private readonly latitude: number;
+  private readonly material: ShaderMaterial;
+  private readonly sunDir = new Vector3();
+  private readonly moonDir = new Vector3();
+  private readonly lightDir = new Vector3(0, 1, 0);
+  private readonly right = new Vector3();
+  private readonly up = new Vector3();
+  private readonly snapped = new Vector3();
+  private hour = NaN;
+
+  constructor(latitudeDeg: number) {
+    this.latitude = latitudeDeg * DEG;
+    this.material = new ShaderMaterial({
+      side: BackSide,
+      depthWrite: false,
+      fog: false,
+      uniforms: {
+        uZenith: { value: new Color() },
+        uHorizon: { value: new Color() },
+        uGround: { value: new Color() },
+        uSunColor: { value: new Color() },
+        uSunDir: { value: this.sunDir },
+        uMoonDir: { value: this.moonDir },
+        uSun: { value: 0 },
+        uMoon: { value: 0 },
+        uStars: { value: 0 },
+      },
+      vertexShader: /* glsl */ `
+        varying vec3 vDir;
+        void main() {
+          vDir = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position.z = gl_Position.w; // always behind everything
+        }`,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uZenith;
+        uniform vec3 uHorizon;
+        uniform vec3 uGround;
+        uniform vec3 uSunColor;
+        uniform vec3 uSunDir;
+        uniform vec3 uMoonDir;
+        uniform float uSun;
+        uniform float uMoon;
+        uniform float uStars;
+        varying vec3 vDir;
+        float starHash(vec3 p) {
+          p = fract(p * 0.3183099 + 0.1);
+          p *= 17.0;
+          return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+        }
+        void main() {
+          vec3 d = normalize(vDir);
+          vec3 color = mix(uHorizon, uZenith, pow(clamp(d.y, 0.0, 1.0), 0.5));
+          color = mix(color, uGround, smoothstep(0.0, -0.06, d.y));
+          float sun = max(dot(d, uSunDir), 0.0);
+          color += uSunColor * uSun * (pow(sun, 6.0) * 0.18 + pow(sun, 48.0) * 0.4);
+          color += uSunColor * uSun * smoothstep(0.9997, 0.99985, sun) * 12.0;
+          float moon = max(dot(d, uMoonDir), 0.0);
+          color += vec3(0.8, 0.86, 1.0) * uMoon * (smoothstep(0.9997, 0.9998, moon) * 1.6 + pow(moon, 300.0) * 0.12);
+          if (uStars > 0.0 && d.y > 0.0) {
+            vec3 p = d * 180.0;
+            float seed = starHash(floor(p));
+            float point = smoothstep(0.3, 0.0, length(fract(p) - 0.5));
+            color += vec3(step(0.992, seed) * point * (0.3 + 0.7 * fract(seed * 91.7))) * uStars * smoothstep(0.0, 0.25, d.y);
+          }
+          gl_FragColor = vec4(color, 1.0);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`,
+    });
+    this.dome = new Mesh(new SphereGeometry(100, 32, 16), this.material);
+    this.dome.frustumCulled = false;
+    this.dome.renderOrder = -10;
+
+    this.light.shadow.mapSize.set(2048, 2048);
+    this.light.shadow.bias = -0.0003;
+    this.setHour(12);
+  }
+
+  /** Sets every light and colour for a clock time in hours. */
+  setHour(hour: number): void {
+    if (hour === this.hour) return;
+    this.hour = hour;
+    sunDirection(hour, this.latitude, SOLAR_DECLINATION, this.sunDir);
+    // A full moon: opposite the sun.
+    sunDirection(hour + 12, this.latitude, -SOLAR_DECLINATION, this.moonDir);
+    const elevation = Math.asin(this.sunDir.y) / DEG;
+    const moonElevation = Math.asin(this.moonDir.y) / DEG;
+    const night = 1 - smooth(-8, -4, elevation);
+    const moon = night * smooth(0, 10, moonElevation);
+
+    const uniforms = this.material.uniforms;
+    sampleColor(ZENITH, elevation, uniforms.uZenith.value);
+    sampleColor(HORIZON, elevation, uniforms.uHorizon.value);
+    sampleColor(GROUND_BOUNCE, elevation, uniforms.uGround.value);
+    sampleColor(SUN_COLOR, elevation, uniforms.uSunColor.value);
+    uniforms.uSun.value = smooth(-6, 2, elevation);
+    uniforms.uMoon.value = moon;
+    uniforms.uStars.value = 1 - smooth(-12, -4, elevation);
+    this.haze.copy(uniforms.uHorizon.value).lerp(uniforms.uZenith.value, 0.25);
+
+    if (elevation > -4) {
+      this.light.color.copy(uniforms.uSunColor.value);
+      this.light.intensity = sampleNumber(SUN_INTENSITY, elevation);
+      this.lightDir.copy(this.sunDir);
+    } else {
+      this.light.color.copy(MOON_COLOR);
+      this.light.intensity = 0.4 * moon;
+      this.lightDir.copy(this.moonDir);
+    }
+    // Keep the light off the horizon: endless shadows are all artefacts.
+    if (this.lightDir.y < 0.07) {
+      this.lightDir.y = 0.07;
+      this.lightDir.normalize();
+    }
+
+    this.ambient.color.copy(uniforms.uZenith.value).lerp(uniforms.uHorizon.value, 0.6).lerp(WHITE, 0.35);
+    this.ambient.groundColor.copy(uniforms.uGround.value);
+    this.ambient.intensity = sampleNumber(AMBIENT_INTENSITY, elevation) + 0.12 * moon;
+  }
+
+  setShadows(enabled: boolean): void {
+    this.light.castShadow = enabled;
+  }
+
+  /**
+   * Call every frame: keeps the dome on the camera and the shadow map on the
+   * part of the field the camera looks at.
+   */
+  follow(camera: PerspectiveCamera, target: Vector3, distance: number): void {
+    this.dome.position.copy(camera.position);
+
+    // The shadow box grows with the zoom, in steps so it does not shimmer.
+    const wanted = Math.min(Math.max(distance * 0.75, 60), 4000);
+    const half = Math.pow(1.3, Math.ceil(Math.log(wanted) / Math.log(1.3)));
+    const texel = (half * 2) / this.light.shadow.mapSize.x;
+    this.right.set(0, 1, 0).cross(this.lightDir).normalize();
+    this.up.copy(this.lightDir).cross(this.right);
+    const tx = Math.round(target.dot(this.right) / texel) * texel;
+    const ty = Math.round(target.dot(this.up) / texel) * texel;
+    this.snapped
+      .copy(this.right)
+      .multiplyScalar(tx)
+      .addScaledVector(this.up, ty)
+      .addScaledVector(this.lightDir, target.dot(this.lightDir));
+
+    const reach = half * 2 + 600;
+    this.light.target.position.copy(this.snapped);
+    this.light.position.copy(this.snapped).addScaledVector(this.lightDir, reach);
+    this.light.target.updateMatrixWorld();
+    const shadowCamera = this.light.shadow.camera;
+    if (shadowCamera.right !== half) {
+      shadowCamera.left = -half;
+      shadowCamera.right = half;
+      shadowCamera.top = half;
+      shadowCamera.bottom = -half;
+      shadowCamera.near = 10;
+      shadowCamera.far = reach * 2;
+      shadowCamera.updateProjectionMatrix();
+      this.light.shadow.normalBias = texel * 1.5;
+    }
+  }
+
+  dispose(): void {
+    this.dome.geometry.dispose();
+    this.material.dispose();
+    this.light.shadow.dispose();
+    this.light.dispose();
+    this.ambient.dispose();
+  }
+}
