@@ -20,11 +20,10 @@ import {
   Sphere,
   Vector3,
 } from "three";
-import type { UnitAction, UnitClip } from "@/lib/battle";
 import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
 import type { HeightAt } from "./terrain";
-import { ALIVE, DYING, formationPoint, GONE, type UnitTrack } from "./timeline";
+import { DYING, formationPoint, GONE, type UnitTrack } from "./timeline";
 
 /**
  * Figures are drawn larger than life: one figure stands for twenty men, and
@@ -40,15 +39,43 @@ const SINK_SECONDS = 1.5;
 /** Seconds to blend from one clip to the next. */
 const BLEND_SECONDS = 0.35;
 
-const ACTION_CLIP: Record<UnitAction, UnitClip> = {
-  stand: "idle",
-  advance: "walk",
-  charge: "run",
-  fight: "attack",
-  retreat: "walk",
-  rout: "run",
-  pursue: "run",
-};
+/**
+ * What the legs do follows how fast a block really moves over the ground,
+ * not the action in the data: a block that stands still idles whatever its
+ * orders, and one that moves walks or runs.
+ *
+ * Speeds are metres of field per second of real time, as seen on screen.
+ * They are compared with the natural speeds of the clips of the model at the
+ * size figures are drawn. For the shared animation library at FIGURE_SCALE 3
+ * that is 3.0 m/s for walk and 17.7 m/s for run (its run clip is a sprint).
+ *
+ * - Below MOVE_STOP of the walking speed a block idles; it starts to walk
+ *   above MOVE_START (0.18 and 0.36 m/s).
+ * - Walk turns into run where both clips are stretched by the same factor,
+ *   the geometric mean of the two speeds (7.2 m/s), with GAIT_SLACK either
+ *   way so a block on the threshold does not flicker (run above 8.0 m/s,
+ *   walk again below 6.5 m/s).
+ * - The clips play at the speed that matches the ground covered, up to
+ *   MAX_WALK_RATE and MAX_RUN_RATE times their own (8.9 and 26.6 m/s). A
+ *   battle is shown many times faster than it was fought, so blocks can
+ *   move faster than that; the legs then keep the fastest pace that still
+ *   looks like running, and the feet slide.
+ */
+const MOVE_START = 0.12;
+const MOVE_STOP = 0.06;
+const GAIT_SLACK = 0.1;
+const MAX_WALK_RATE = 3;
+const MAX_RUN_RATE = 1.5;
+/** Seconds over which the measured speed of a block is smoothed. */
+const SPEED_SMOOTHING = 0.12;
+/**
+ * The battle clock running more than this many times faster than normal
+ * playback is a jump (a click on the seek bar, a drag), not a march: the
+ * figures move without stepping.
+ */
+const MAX_PLAYBACK_RATE = 5;
+/** A frame longer than this, seconds, is a pause (a hidden tab), not a step. */
+const MAX_STEP_SECONDS = 1;
 
 const IDLE = CLIP_INDEX.idle;
 const WALK = CLIP_INDEX.walk;
@@ -172,9 +199,23 @@ export class UnitBlock {
   standing = 0;
 
   private readonly footprintMaterial: MeshBasicMaterial;
-  private clipFrom = IDLE;
-  private clipTo = IDLE;
+  // Clips of the figures that act (the front ranks in a fight) and of those
+  // that only keep their place, each blending from one clip to the next.
+  private fromActing = IDLE;
+  private toActing = IDLE;
+  private fromRest = IDLE;
+  private toRest = IDLE;
   private blendStart = -Infinity;
+  /** IDLE, WALK or RUN: what the legs of the block do. */
+  private gait = IDLE;
+  /** Ground speed of the block, metres per second of real time, smoothed. */
+  private speed = 0;
+  /** Where each figure stood in the last frame, to measure its step. */
+  private readonly lastX: Float32Array;
+  private readonly lastY: Float32Array;
+  private placed = false;
+  /** Ground each figure has covered on foot, metres: the phase of its stride. */
+  private readonly walked: Float32Array;
   private lastTime = NaN;
   private lastBlend = NaN;
   private readonly center = new Vector3();
@@ -186,6 +227,9 @@ export class UnitBlock {
     private readonly color: Color,
     group: Group,
   ) {
+    this.lastX = new Float32Array(track.count);
+    this.lastY = new Float32Array(track.count);
+    this.walked = new Float32Array(track.count);
     const chunkCount = Math.ceil(track.count / CHUNK_SIZE);
     for (let c = 0; c < chunkCount; c++) {
       const first = Math.floor((c * track.count) / chunkCount);
@@ -227,16 +271,25 @@ export class UnitBlock {
   }
 
   /**
-   * Moves the figures to where they stand at `time`. `playing` is false
-   * while the battle clock is stopped: marching units then stand at ease
-   * instead of walking on the spot. `now` is wall-clock seconds.
+   * Moves the figures to where they stand at `time`. `now` is wall-clock
+   * seconds. `march` says how the battle clock got here: figures step only
+   * while it runs, and stand at ease when it is stopped or jumps.
    */
-  update(time: number, playing: boolean, now: number, heightAt: HeightAt): void {
-    let clip = CLIP_INDEX[ACTION_CLIP[this.track.actionAt(time)]];
-    if (!playing && (clip === WALK || clip === RUN)) clip = IDLE;
-    if (clip !== this.clipTo) {
-      this.clipFrom = this.clipTo;
-      this.clipTo = clip;
+  update(time: number, now: number, march: March, heightAt: HeightAt): void {
+    const { track, model } = this;
+    if (march.halted) {
+      this.speed = 0;
+      this.gait = IDLE;
+    } else {
+      this.gait = this.pickGait();
+    }
+    // In a fight the front ranks strike; everyone else keeps pace with the block.
+    const acting = track.actionAt(time) === "fight" ? ATTACK : this.gait;
+    if (acting !== this.toActing || this.gait !== this.toRest) {
+      this.fromActing = this.toActing;
+      this.fromRest = this.toRest;
+      this.toActing = acting;
+      this.toRest = this.gait;
       this.blendStart = Number.isNaN(this.lastTime) ? -Infinity : now;
     }
     const blend = Math.min((now - this.blendStart) / BLEND_SECONDS, 1);
@@ -244,13 +297,24 @@ export class UnitBlock {
     this.lastTime = time;
     this.lastBlend = blend;
 
-    const { track, model } = this;
     const fallSeconds = model.dieSeconds + LIE_SECONDS;
     this.standing = track.sample(time, model.hasDie ? fallSeconds + SINK_SECONDS : 0);
     const figureHeight = model.height * FIGURE_SCALE;
-    const from = blend >= 1 ? this.clipTo : this.clipFrom;
-    const to = this.clipTo;
-    const weight = blend >= 1 ? 0 : blend;
+    const done = blend >= 1;
+    const fromActing = done ? this.toActing : this.fromActing;
+    const fromRest = done ? this.toRest : this.fromRest;
+    const weight = done ? 0 : blend;
+
+    // Legs keep up with the ground covered, up to the fastest pace of the
+    // clip. Beyond it every stride is shortened alike, by the speed of the
+    // block and not frame by frame: frame times are uneven, and a limit per
+    // frame would clip steps that are within the pace on average.
+    const stepping = march.step > 0 && this.placed;
+    const pace = this.gait === RUN ? this.runSpeed * MAX_RUN_RATE : this.walkSpeed * MAX_WALK_RATE;
+    const reach = this.speed > pace ? pace / this.speed : 1;
+    const { lastX, lastY, walked } = this;
+    let moved = 0;
+    let movers = 0;
 
     for (const chunk of this.chunks) {
       const posYaw = chunk.posYaw.array as Float32Array;
@@ -267,8 +331,9 @@ export class UnitBlock {
         const status = track.status[i];
         if (status === GONE) continue;
         const x = track.x[i];
-        const z = -track.y[i];
-        let y = heightAt(x, track.y[i]);
+        const north = track.y[i];
+        const z = -north;
+        let y = heightAt(x, north);
         const o = n * 4;
         if (status === DYING) {
           const since = track.since[i];
@@ -278,12 +343,28 @@ export class UnitBlock {
           anim[o + 2] = 0;
           anim[o + 3] = since;
         } else {
+          if (stepping) {
+            const dx = x - lastX[i];
+            const dy = north - lastY[i];
+            const step = Math.hypot(dx, dy);
+            if (step > 0) {
+              // Giving ground while facing the enemy: the stride runs backwards.
+              const heading = track.heading[i];
+              const forward = dx * Math.sin(heading) + dy * Math.cos(heading);
+              const stride = step * reach;
+              walked[i] += forward < -0.5 * step ? -stride : stride;
+              moved += step;
+            }
+            movers++;
+          }
+          lastX[i] = x;
+          lastY[i] = north;
           // In a fight only the front ranks strike; the rest wait their turn.
-          const waits = status === ALIVE && track.rank[i] > 0.34 && track.seed[i] > 0.2;
-          anim[o] = from === ATTACK && waits ? IDLE : from;
-          anim[o + 1] = to === ATTACK && waits ? IDLE : to;
+          const acts = track.rank[i] <= 0.34 || track.seed[i] <= 0.2;
+          anim[o] = acts ? fromActing : fromRest;
+          anim[o + 1] = acts ? this.toActing : this.toRest;
           anim[o + 2] = weight;
-          anim[o + 3] = 0;
+          anim[o + 3] = walked[i];
         }
         posYaw[o] = x;
         posYaw[o + 1] = y;
@@ -312,7 +393,36 @@ export class UnitBlock {
         Math.hypot(maxX - minX, maxY - minY, maxZ - minZ) / 2 + figureHeight * 1.2;
     }
 
+    this.placed = true;
+    if (march.step > 0) {
+      const measured = movers > 0 ? moved / movers / march.step : 0;
+      this.speed += (measured - this.speed) * (1 - Math.exp(-march.step / SPEED_SMOOTHING));
+    }
+
     this.updateFootprint(time, heightAt);
+  }
+
+  /** Natural ground speeds of the clips at the size figures are drawn, m/s. */
+  private get walkSpeed(): number {
+    const { walk } = this.model.gait;
+    return (walk.metres / walk.seconds) * FIGURE_SCALE;
+  }
+
+  private get runSpeed(): number {
+    const { run } = this.model.gait;
+    return (run.metres / run.seconds) * FIGURE_SCALE;
+  }
+
+  /** Idle, walk or run for the speed measured, with slack around each threshold. */
+  private pickGait(): number {
+    const { speed, gait } = this;
+    const walk = this.walkSpeed;
+    if (speed < walk * (gait === IDLE ? MOVE_START : MOVE_STOP)) return IDLE;
+    if (!this.model.hasRun) return WALK;
+    const change = Math.sqrt(walk * this.runSpeed);
+    if (gait === RUN) return speed < change * (1 - GAIT_SLACK) ? WALK : RUN;
+    if (gait === WALK) return speed > change * (1 + GAIT_SLACK) ? RUN : WALK;
+    return speed > change ? RUN : WALK;
   }
 
   private updateFootprint(time: number, heightAt: HeightAt): void {
@@ -356,6 +466,14 @@ export class UnitBlock {
   }
 }
 
+/** How the battle clock moved since the last frame. */
+export interface March {
+  /** Seconds of real time the figures marched for, or 0. */
+  step: number;
+  /** The clock is stopped or has jumped: figures stand at ease. */
+  halted: boolean;
+}
+
 const frustum = new Frustum();
 const projection = new Matrix4();
 
@@ -364,14 +482,35 @@ export class Crowd {
   readonly blocks: UnitBlock[] = [];
   private readonly chunks: Chunk[] = [];
   private readonly ordered: Chunk[] = [];
+  private readonly march: March = { step: 0, halted: true };
+  private lastNow = NaN;
+  private lastClock = NaN;
 
   add(block: UnitBlock): void {
     this.blocks.push(block);
     this.chunks.push(...block.chunks);
   }
 
-  update(time: number, playing: boolean, now: number, heightAt: HeightAt): void {
-    for (const block of this.blocks) block.update(time, playing, now, heightAt);
+  /**
+   * `clock` is `time` in seconds of playback at normal speed; `playing` is
+   * false once the battle clock has stood still for a moment; `now` is
+   * wall-clock seconds.
+   */
+  update(time: number, clock: number, playing: boolean, now: number, heightAt: HeightAt): void {
+    const { march } = this;
+    const elapsed = now - this.lastNow;
+    const advance = clock - this.lastClock;
+    this.lastNow = now;
+    this.lastClock = clock;
+    march.step = 0;
+    march.halted = !playing;
+    if (playing && elapsed > 0 && elapsed < MAX_STEP_SECONDS) {
+      const rate = advance / elapsed;
+      // Backwards or far too fast: the user is seeking.
+      if (rate < 0 || rate > MAX_PLAYBACK_RATE) march.halted = true;
+      else if (rate > 0) march.step = elapsed;
+    }
+    for (const block of this.blocks) block.update(time, now, march, heightAt);
   }
 
   /**
