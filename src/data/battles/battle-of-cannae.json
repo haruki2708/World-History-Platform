@@ -1,10 +1,7 @@
 {
   "id": "battle-of-cannae",
   "origin": { "lng": 16.2085, "lat": 41.3327 },
-  "date": {
-    "en": "2 August 216 BCE (Roman calendar; perhaps 1 July in the Julian calendar)",
-    "vi": "Ngày 2 tháng 8 năm 216 TCN (theo lịch La Mã; có thể là ngày 1 tháng 7 theo lịch Julius)"
-  },
+  "date": { "en": "2 August 216 BCE (Roman calendar)", "vi": "Ngày 2 tháng 8 năm 216 TCN (theo lịch La Mã)" },
   "sides": [
     {
       "id": "rome",
@@ -501,8 +498,8 @@
       "id": "skirmish",
       "title": { "en": "The light troops clash", "vi": "Lính nhẹ đụng độ" },
       "narration": {
-        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A dry wind from the south-east blows dust into the Romans' faces. Meanwhile the force from the large camp marches on Hannibal's camp.",
-        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Một cơn gió khô từ phía đông nam thổi bụi vào mặt quân La Mã. Trong lúc đó, lực lượng từ trại lớn tiến về trại của Hannibal."
+        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A south-easterly wind, which the locals call Volturnus, blows dust into the Romans' faces. Meanwhile the force from the large camp marches on Hannibal's camp.",
+        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Gió đông nam, người địa phương gọi là Volturnus, thổi bụi vào mặt quân La Mã. Trong lúc đó, lực lượng từ trại lớn tiến về trại của Hannibal."
       },
       "endHour": 9,
       "playSeconds": 15,
