@@ -92,4 +92,55 @@ Thay toàn bộ dữ liệu tạm. Giữ id `battle-of-cannae`.
 
 ## Kết quả
 
-_(Lane 2 điền khi xong.)_
+Lane 2, 2026-11-16. Nhánh `lane2/T-016-cannae-data`.
+
+### Đã làm
+
+- **Dữ liệu trận** (`src/data/battles/battle-of-cannae.json`): thay toàn bộ dữ liệu tạm.
+  - 22 đơn vị: 10 phía La Mã (86 200 người, gồm 10 000 ở lại trại lớn), 12 phía Hannibal (50 000). Lưỡi liềm chia 5 khối Gaul và Iberia xen kẽ như Polybius 3.114.
+  - Quân số và thương vong là `NumberRange`, `note` ghi rõ số nào của Polybius, số nào của Livy.
+  - `initial` và 6 giai đoạn theo đúng thứ tự task yêu cầu, mỗi giai đoạn đủ trạng thái 22 đơn vị, có mũi tên. Giờ từ 5:30 tới 17:00, phát tổng cộng 140 giây.
+  - Tổng số hình lính khoảng 6 800 (20 người một hình), dưới mục tiêu 7 000 của T-015.
+- **Chọn bờ sông:** trận ở bờ phải (bờ đông) của Aufidus, trên đồng bằng đông bắc Cannae, nơi sông ngày nay có một đoạn chảy về hướng bắc. Ở đó quân La Mã quay mặt về nam thì sông nằm bên phải họ, đúng như Polybius và Livy tả. Lý do và các giả thuyết khác ghi ở `docs/data/battles/cannae.md`, mục 3. Gốc toạ độ đặt ở giữa hai chiến tuyến, cách thành Cannae 6,2 km.
+- **Địa hình** (`public/data/terrain/battle-of-cannae.bin`):
+  - Lưới 341 × 271 điểm, cách nhau 30 m, vùng phủ 10,2 × 8,1 km, gồm chiến trường, 3 trại, chỗ vượt sông và thành Cannae.
+  - Nguồn: Copernicus DEM GLO-30 từ kho AWS công khai, không cần tài khoản.
+  - Sông Aufidus dò từ chính dữ liệu độ cao, theo dòng chảy ngày nay, `approximate: true`. Thành, đồi Cannae, ba trại, ba chỗ vượt sông đều `approximate`.
+- **Script** `scripts/battles/build-terrain.mjs`, không thêm thư viện npm:
+  - Đọc GeoTIFF (Int16 và Float32), dựng lưới.
+  - Dò lòng sông (`--trace`).
+  - Vẽ ảnh xem trước địa hình kèm khung các khối quân của từng giai đoạn (`--preview --phase n`).
+  - Có nguồn dự phòng SRTM (`--source srtm`).
+- **Kiểm tra** `validate-battles.mjs`, thêm ba kiểm tra:
+  - các khối cùng phe không chồng nhau quá 25%;
+  - mỗi giai đoạn phải có đơn vị đổi trạng thái;
+  - điểm của sông nằm trong địa hình.
+- **`unit-types.json`:** thêm `light-spearmen` (lính giáo nhẹ). Polybius 3.113 tả lính ném đá và lính giáo đi trước quân Hannibal, mà chưa có loại nào hợp. Loại này dùng chung mô hình `iberian-infantry` để lane 1 không phải dựng thêm.
+- **Tài liệu:**
+  - `docs/data/battles/cannae.md`: nguồn đã đọc, mọi lựa chọn kèm lý do, khảo sát nguồn độ cao và giấy phép.
+  - `docs/data/battles/ASSETS.md`: 5 ứng viên mô hình ngựa, 4 thư viện hoạt hình, kèm danh sách đã loại và lý do.
+
+### Kiểm tra
+
+- `npm run validate`, `npm run lint`, `npm run build`: qua.
+- `/battle-lab` (`npm run dev`, Chrome không giao diện, 1280×800): dữ liệu nạp được, thanh dưới hiện "05:30" và "1/6 · The armies deploy". Cảnh 3D còn là chỗ giữ chỗ vì T-015 chưa xong. File địa hình được phục vụ đúng 184 822 byte.
+- Soát bằng mắt vị trí các khối quân của cả 7 thời điểm trên ảnh xem trước địa hình.
+- Đối chiếu bản Latin của Livy: bản dịch Roberts (trên Perseus) dịch ngược hướng quân ở 22.46.8. Dữ liệu theo bản Latin, tức La Mã quay về nam (ghi ở `cannae.md`).
+
+### Chưa xong, còn mở
+
+- **Giấy phép Copernicus, cần phiên chính quyết:**
+  - Giấy phép cho dùng, sửa, phân phối; không share-alike, không cấm thương mại.
+  - Nhưng ngoài câu ghi công còn buộc kèm một câu miễn trách nhiệm, và buộc người nhận lại tuân theo cùng các nghĩa vụ đó. Tức là không "chỉ ghi công" thuần như CC BY.
+  - Nếu muốn tránh: `node scripts/battles/build-terrain.mjs --source srtm` cho lưới SRTM cùng khung, cùng kích thước. Nhược điểm: SRTM nhiễu khoảng ±2 m trên đồng bằng và không thấy lòng sông.
+  - Cũng chưa đọc được trực tiếp câu "public domain" của SRTM trên trang USGS (lỗi 405/403).
+- **Hoạt hình:** điều khoản Mixamo (trang FAQ của Adobe lỗi 403) và CMU mocap (lỗi chứng chỉ TLS) chưa đọc được, nên không đề xuất hai nguồn này.
+- **Ngựa:** ngựa CC0 tốt nhất (BlendSwap 28627) có bình luận nói lưới gốc là của tác giả khác; phải đọc giấy phép mô hình gốc trước khi dùng.
+- **Chưa thử với cảnh 3D thật.** Khi T-015 xong, cần xem lại tốc độ chuyển động, độ dày khối quân và mũi tên.
+
+### Đề nghị ngoài phạm vi
+
+1. **Ghi công** khi trận đánh vào app chính (hộp thoại Giới thiệu, README; phiên chính và lane 1). Câu ghi công Copernicus đã nằm trong `terrain.sources`. Cần thêm câu miễn trách nhiệm: "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30." Nếu dùng mô hình ngựa CC BY thì ghi công thêm.
+2. **`package.json`** (phiên chính): có thể thêm `"terrain": "node scripts/battles/build-terrain.mjs"` cho tiện, như lệnh `borders`.
+3. **Kiểu dữ liệu:** `battle.ts` đủ dùng, không cần đổi. Lưỡi liềm dựng bằng 5 khối có `facing` và `bulge` riêng. Nếu sau này cần lưỡi liềm liền một khối mà vẫn hai loại lính xen kẽ, có thể cân nhắc cho một `BattleUnit` mang nhiều `type`, nhưng hiện chưa cần.
+4. **Bản đồ** (lane 2, đợt C): toạ độ sự kiện trong `events.json` là thành Cannae, còn `origin` của trận cách đó 6,2 km về phía đông bắc. Khi chuyển cảnh từ bản đồ vào trận, nên bay tới `origin` chứ không phải toạ độ sự kiện.
