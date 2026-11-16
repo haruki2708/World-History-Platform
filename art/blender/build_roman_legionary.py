@@ -17,7 +17,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bpy  # noqa: E402
 
+import roman_hands  # noqa: E402
+import roman_helmet  # noqa: E402
+import roman_mail  # noqa: E402
+import roman_shield  # noqa: E402
 import roman_source  # noqa: E402
+import whp_materials  # noqa: E402
+from roman_fit import FINAL_SCALE  # noqa: E402
 from whp_common import BUILD_DIR, log, mesh_objects, open_blend, reset_scene, save_blend, script_args  # noqa: E402
 from whp_render import render_views  # noqa: E402
 
@@ -34,9 +40,44 @@ def stage_strip(args):
     roman_source.strip_imperial_kit()
 
 
+def build_kit(detail, suffix=""):
+    """The generated kit at one level of detail. Returns the new objects."""
+    objs = bpy.data.objects
+    mats = whp_materials.library() if detail == 2 else {m.name[4:]: m for m in bpy.data.materials if m.name.startswith("whp-")}
+    mats["shield"] = bpy.data.materials["whp-shield-paint"]
+    made = [
+        roman_helmet.build_bowl(detail, mats, "Helmet" + suffix),
+        roman_helmet.build_cheeks(detail, mats, "Helmet_cheeks" + suffix),
+        roman_helmet.build_crest(detail, mats, 1.0 / FINAL_SCALE, "Helmet_crest" + suffix),
+    ]
+    shield = roman_shield.build(detail, mats, "Scutum" + suffix)
+    roman_shield.place(shield, roman_hands.grip_axis_point(1), 1.0 / FINAL_SCALE)
+    made.append(shield)
+    if detail == 2:
+        tunic = objs["Tunic_1"]
+        yoke = roman_mail.build_yoke(tunic, mats)
+        made += [
+            roman_mail.build_shirt(tunic, mats),
+            yoke,
+            roman_mail.build_belt(tunic, mats),
+        ]
+    made.append(roman_mail.build_chest_hook(objs["Mail_yoke"], mats, detail, "Mail_hook" + suffix))
+    return made
+
+
+def stage_kit(args):
+    objs = bpy.data.objects
+    for side in (1, -1):
+        roman_hands.curl_hand(objs["New_arms"], side)
+    roman_hands.seat_sword(objs["Sword2_1"])
+    roman_source.scabbard_to_right_hip(objs["Scabbard"])
+    build_kit(2)
+
+
 STAGES = [
     ("source", stage_source),
     ("strip", stage_strip),
+    ("kit", stage_kit),
 ]
 
 

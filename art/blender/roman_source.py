@@ -114,3 +114,20 @@ def strip_imperial_kit():
     kept = mesh_objects()
     log("kept:", ", ".join(f"{o.name} ({triangle_count(o)})" for o in kept))
     return kept
+
+
+# How far the scabbard moves out to clear the mail shirt, after mirroring.
+SCABBARD_SHIFT = (-0.014, -0.010, 0.0)
+
+
+def scabbard_to_right_hip(scabbard):
+    """Mirror the scabbard to the right side. The source wears it on the
+    left, as later centurions did; Polybius (6.23.6) has the sword on the
+    right thigh."""
+    mesh = scabbard.data
+    for v in mesh.vertices:
+        v.co.x = -v.co.x + SCABBARD_SHIFT[0]
+        v.co.y += SCABBARD_SHIFT[1]
+        v.co.z += SCABBARD_SHIFT[2]
+    mesh.flip_normals()
+    mesh.update()

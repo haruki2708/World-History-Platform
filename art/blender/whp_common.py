@@ -6,7 +6,7 @@ Every entry script is run headless:
         --python art/blender/<script>.py -- <arguments>
 
 Source downloads live outside the repo, under WHP_ASSETS (default
-E:\World_History_Platform_assets). Intermediate files go to art/build/,
+E:/World_History_Platform_assets). Intermediate files go to art/build/,
 which is git-ignored.
 """
 
@@ -39,7 +39,8 @@ def log(*parts):
 
 
 def ensure_dir(path):
-    os.makedirs(path, exist_ok=True)
+    if path:
+        os.makedirs(path, exist_ok=True)
     return path
 
 
@@ -165,7 +166,7 @@ def import_fbx(path):
     if not os.path.isfile(path):
         raise FileNotFoundError(
             f"Source file not found: {path}\n"
-            "Set WHP_ASSETS to the folder that holds sources\ (see art/README.md)."
+            "Set WHP_ASSETS to the folder that holds sources/ (see art/README.md)."
         )
     before = set(bpy.data.objects)
     bpy.ops.import_scene.fbx(filepath=path)
