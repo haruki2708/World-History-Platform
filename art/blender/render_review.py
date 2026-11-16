@@ -412,7 +412,7 @@ def beside(template, unit, shoot):
     other = import_model(whp_build.glb_path(unit.BESIDE))
     figures = []
     for i, (model, turn) in enumerate(((other, 0.0), (template, 0.0), (other, -90.0), (template, -90.0))):
-        f = place(model, (1.35 * i + (0.5 if i >= 2 else 0.0), 0.0, 0.0), turn)
+        f = place(model, (1.3 * i + (0.25 if i >= 2 else 0.0), 0.0, 0.0), turn)
         play(f, "idle", 0)
         figures.append(f)
     scene = stage(1900, 1200)
