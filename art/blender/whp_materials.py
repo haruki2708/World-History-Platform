@@ -1,9 +1,12 @@
 """Procedural materials for the generated kit.
 
-The exported model carries one baked colour texture and one baked normal
-map, so these materials only have to look right as plain colour plus bump:
-the bake reads whatever feeds "Base Color" and the shading normal.
-Colours are linear RGB.
+The exported model carries one baked colour texture, one baked normal map
+and one baked metallicRoughness map, so these materials only have to look
+right as plain colour plus bump, plus a roughness and a metalness each: the
+bakes read whatever feeds "Base Color", the shading normal, and the
+Principled BSDF's Roughness and Metallic values (whp_lod.SurfaceSwap).
+Colours are linear RGB; for the metals the base colour is the colour of
+the metal's reflection.
 """
 
 import math
@@ -74,13 +77,13 @@ def _noise_mix(tree, bsdf, color_a, color_b, scale, detail=4.0, contrast=(0.35, 
 
 
 def bronze():
-    mat, tree, bsdf = _new("whp-bronze", 0.42)
+    mat, tree, bsdf = _new("whp-bronze", 0.38, metallic=1.0)
     _noise_mix(tree, bsdf, BRONZE, BRONZE_DARK, 30.0, contrast=(0.2, 0.75), bump=0.08)
     return mat
 
 
 def iron():
-    mat, tree, bsdf = _new("whp-iron", 0.5)
+    mat, tree, bsdf = _new("whp-iron", 0.45, metallic=1.0)
     _noise_mix(tree, bsdf, IRON, IRON_DARK, 45.0, contrast=(0.25, 0.6), bump=0.15)
     return mat
 
@@ -166,7 +169,7 @@ def _image(name, pixels, non_color):
 
 
 def mail():
-    mat, tree, bsdf = _new("whp-mail", 0.45)
+    mat, tree, bsdf = _new("whp-mail", 0.5, metallic=0.85)
     color, height = _mail_images()
     scale = 1.0 / (MAIL_PITCH * MAIL_RINGS)
     vector = _object_coords(tree, scale)

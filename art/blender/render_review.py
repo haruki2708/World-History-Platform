@@ -270,6 +270,36 @@ def compare(template, out):
         bpy.data.objects.remove(obj, do_unlink=True)
 
 
+def without_surface_map(figure):
+    """Show a figure with its material as it was before the metallicRoughness
+    map: roughness 0.72 everywhere, no metal."""
+    for obj in figure.meshes.values():
+        slot = obj.material_slots[0]
+        mat = slot.material.copy()
+        bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        for name, value in (("Roughness", 0.72), ("Metallic", 0.0)):
+            for link in list(bsdf.inputs[name].links):
+                mat.node_tree.links.remove(link)
+            bsdf.inputs[name].default_value = value
+        slot.link = "OBJECT"
+        slot.material = mat
+
+
+def metal(template, out, name="12-metal-before-after.jpg"):
+    """The upper body twice: left without the metallicRoughness map, right
+    as exported (bronze helmet, iron rim and boss plate, mail)."""
+    before = place(template, (-0.62, 0.0, 0.0), -18.0)
+    after = place(template, (0.62, 0.0, 0.0), -18.0)
+    for f in (before, after):
+        play(f, "idle", 0)
+    without_surface_map(before)
+    scene = stage(1800, 1100, samples=64)
+    lo, hi = bounds_of([before, after])
+    lo.z = 0.85
+    aim_camera(scene, *pad(lo, hi, 0.02), Vector((0.35, -1.0, 0.0)), ortho=True, margin=1.03, elevation=8)
+    render_jpeg(scene, os.path.join(out, name))
+
+
 def test_poses(template, out):
     """The skin under strain: arms raised, a long step, bent forward."""
     figures = []
@@ -292,6 +322,7 @@ IMAGES = {
     "animations": animations,
     "compare": compare,
     "test-poses": test_poses,
+    "metal": metal,
 }
 
 

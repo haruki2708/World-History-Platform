@@ -198,7 +198,8 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
         log(f"  image {image.get('name')}: {image.get('mimeType')} {w}x{h}, {view['byteLength'] / 1024:.0f} KB")
     if materials:
         pbr = materials[0].get("pbrMetallicRoughness", {})
-        for key, label, limit in (("baseColorTexture", "colour", color_max), (None, "normal", normal_max)):
+        for key, label, limit in (("baseColorTexture", "colour", color_max), (None, "normal", normal_max),
+                                  ("metallicRoughnessTexture", "metallicRoughness", normal_max)):
             ref = pbr.get(key) if key else materials[0].get("normalTexture")
             if ref is None:
                 if label == "colour":

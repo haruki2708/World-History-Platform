@@ -8,6 +8,8 @@ import os
 
 import bpy
 
+from whp_lod import METAL_FROM_GREY
+
 from whp_common import (
     SOURCES_DIR,
     apply_transform,
@@ -35,7 +37,11 @@ REMOVED = {
     "Full_figure_42_T_pose": "a patch of the torso that is fully hidden under the tunic",
 }
 
-# Roughness for the preview materials (the export bakes plain colour).
+# The sword's texture: a steel blade (grey) on a bone and wood grip.
+METAL_FROM_GREY_STEMS = {"Sword2_1"}
+
+# Roughness of the source materials; the export bakes it into the
+# metallicRoughness map. None of them is metal (but see METAL_FROM_GREY_STEMS).
 ROUGHNESS = {
     "New_head": 0.55,
     "New_arms": 0.55,
@@ -62,6 +68,8 @@ def _rebuild_material(mat, stem, folders):
     bsdf.inputs["Roughness"].default_value = ROUGHNESS.get(stem, 0.7)
     bsdf.inputs["Alpha"].default_value = 1.0
     tree.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    if stem in METAL_FROM_GREY_STEMS:
+        mat[METAL_FROM_GREY] = True
 
     color_path = find_texture(folders, stem + "_TXTR")
     if color_path:

@@ -30,10 +30,13 @@ LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 COLOR_SIZE = 2048
 NORMAL_BAKE_SIZE = 2048             # baked large, averaged down: smoother mail
 NORMAL_SIZE = 1024
+SURFACE_SIZE = 1024                 # metallicRoughness, baked at COLOR_SIZE and averaged down
 AO_SIZE = 1024
+ATLAS_MARGIN = 3                    # texels clear round each island at COLOR_SIZE (>= the bake margin)
 AO_DISTANCE = 0.10                  # metres
 AO_STRENGTH = 0.75
 SAMPLES = {"NORMAL": 4, "EMIT": 4, "AO": 32}
+SURFACE_DEFAULT = (1.0, 0.7, 0.0)   # unused texels: rough, not metal
 
 # LOD2: the body is a segmented stand-in (decimating the open LOD0 parts
 # that far tears them apart). These parts are closed already and keep
@@ -164,7 +167,8 @@ def bake_ao(scene, parts, image, material):
     for group in groups:
         changed = _hide_others(group)
         select_only(group)
-        bpy.ops.object.bake(type="AO", use_selected_to_active=False, margin=3, use_clear=False)
+        # AO is baked at half the atlas size: a one-texel margin stays clear of the next island.
+        bpy.ops.object.bake(type="AO", use_selected_to_active=False, margin=1, use_clear=False)
         _restore(changed)
         log("baked AO    " + ", ".join(o.name for o in group))
 
@@ -178,6 +182,25 @@ def _upsample(a, factor):
     for dx in (-1, 1):
         out += np.roll(a, dx, axis=1)
     return out / 5.0
+
+
+def compose_surface(surface_raw):
+    """The metallicRoughness image: baked large, averaged down over the
+    covered texels, padded, unused texels rough and not metal."""
+    raw = lod.pixels_of(surface_raw)
+    mask = raw[..., 3] > 0.5
+    factor = COLOR_SIZE // SURFACE_SIZE
+    total = lod.downsample(np.where(mask[..., None], raw[..., :3], 0.0), factor)
+    count = lod.downsample(mask[..., None].astype(np.float32), factor)[..., 0]
+    small = count > 0
+    rgb = total / np.maximum(count, 1e-6)[..., None]
+    rgb[..., 0] = 1.0
+    rgb, filled = lod.dilate(rgb, small, 8)
+    rgb[~filled] = SURFACE_DEFAULT
+    metal = rgb[..., 2][small]
+    log(f"surface map: {(metal > 0.5).mean() * 100:.1f}% of covered texels metal, "
+        f"roughness {rgb[..., 1][small].min():.2f}..{rgb[..., 1][small].max():.2f}")
+    return lod.save_image(f"{MODEL}-surface", rgb, os.path.join(WORK_DIR, f"{MODEL}-surface.png"), False)
 
 
 def compose_textures(color_raw, normal_raw, ao_raw):
@@ -327,7 +350,7 @@ def build():
     log(f"LOD0 total: {sum(triangle_count(p) for p in parts)} triangles")
     delete_objects(generated_low)
 
-    parts = lod.unwrap_atlas(parts)
+    parts = lod.unwrap_atlas(parts, pixels=ATLAS_MARGIN, size=COLOR_SIZE)
     material = lod.bake_material()
     for low in parts:
         lod.single_material(low, material)
@@ -336,13 +359,17 @@ def build():
     normal_raw = lod.new_target(f"{MODEL}-normal-raw", NORMAL_BAKE_SIZE, non_color=True)
     color_raw = lod.new_target(f"{MODEL}-color-raw", COLOR_SIZE)
     ao_raw = lod.new_target(f"{MODEL}-ao-raw", AO_SIZE, non_color=True)
+    surface_raw = lod.new_target(f"{MODEL}-surface-raw", COLOR_SIZE, non_color=True)
     bake_selected_to_active(scene, parts, "NORMAL", normal_raw, material)
     with lod.EmissionSwap(detailed):
         bake_selected_to_active(scene, parts, "EMIT", color_raw, material)
+    with lod.SurfaceSwap(detailed):
+        bake_selected_to_active(scene, parts, "EMIT", surface_raw, material)
     bake_ao(scene, parts, ao_raw, material)
 
     color_image, normal_image = compose_textures(color_raw, normal_raw, ao_raw)
-    final = lod.final_material(MODEL, color_image, normal_image)
+    surface_image = compose_surface(surface_raw)
+    final = lod.final_material(MODEL, color_image, normal_image, surface_image=surface_image)
 
     # LOD1 from the baked LOD0 parts; LOD2 from a segmented stand-in.
     levels = [[], [], []]
@@ -366,7 +393,7 @@ def build():
         obj.hide_set(True)
     for obj in lods[1:]:
         obj.hide_render = True
-    for image in (normal_raw, color_raw, ao_raw):
+    for image in (normal_raw, color_raw, ao_raw, surface_raw):
         bpy.data.images.remove(image)
     bpy.data.materials.remove(material)
     scene.render.engine = "BLENDER_EEVEE"
