@@ -19,6 +19,11 @@ export function phaseHours(battle: Battle, index: number): { start: number; end:
 
 const NUMBER_LOCALE: Record<Locale, string> = { en: "en-US", vi: "vi-VN" };
 
+/** A number of men as the locale writes it: "11,400", "11.400". */
+export function formatCount(count: number, locale: Locale): string {
+  return new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(count);
+}
+
 /** "86,000–87,200", or one figure when the sources agree. */
 export function formatNumberRange(range: NumberRange, locale: Locale): string {
   const format = new Intl.NumberFormat(NUMBER_LOCALE[locale]);

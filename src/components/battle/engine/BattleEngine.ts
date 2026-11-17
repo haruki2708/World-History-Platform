@@ -26,14 +26,53 @@ import { createFigureMaterials, type FigureMaterials, type FigureShared } from "
 import { type FramedBlock, frameBlocks, mainForces } from "./framing";
 import { buildUnitModel, type UnitModel } from "./figures/model";
 import { createPlaceholderSource } from "./figures/placeholder";
-import { hidden, type Occluder } from "./occlusion";
+import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { loadHeights, Terrain } from "./terrain";
-import { BattleClock, UnitTrack } from "./timeline";
+import { BattleClock, formationPoint, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, UnitBlock } from "./units";
 
 export type Quality = "high" | "low";
+
+/** A box on screen, CSS pixels from the top left of the scene. */
+export interface ScreenBox {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/** A unit as the scene shows it this frame: for its label and its card. */
+export interface UnitView {
+  /** BattleUnit.id */
+  id: string;
+  /** Figures standing; 0 once the unit has no men left on the field. */
+  standing: number;
+  /**
+   * Where its label may stand, best first: points on screen just above the
+   * block, over the middle of its front, then towards its left and right
+   * ends (UNIT_LABEL_SHARES). Null where that part is off screen, or hidden
+   * by a hill or another block (the block itself hides nothing of it).
+   */
+  anchors: ({ x: number; y: number } | null)[];
+  /** How large the block looks: its size over its distance from the camera. */
+  prominence: number;
+  /** Around the block on screen, from the ground to the heads; null when behind the camera. */
+  box: ScreenBox | null;
+}
+
+/** Across the front of a block, where its label may stand: middle, left, right. */
+export const UNIT_LABEL_SHARES = [0, -0.3, 0.3] as const;
+/** Labels and cards stand this far above the heads, as a share of the figure's height. */
+const LABEL_LIFT = 1.1;
+/** A click this many pixels off a block still picks it; at least PICK_METRES. */
+const PICK_PIXELS = 6;
+const PICK_METRES = 4;
+/** The flight of the camera to a unit picked from the list, milliseconds. */
+const FLIGHT_MS = 1200;
+/** Nearest the camera comes to a unit it flies to, metres. */
+const FLIGHT_NEAREST = 150;
 
 export interface EngineStats {
   fps: number;
@@ -154,6 +193,10 @@ export class BattleEngine {
   private readonly scratch = new Vector3();
   /** The blocks of troops as boxes, this frame: what may hide a place from view. */
   private readonly occluders: Occluder[] = [];
+  /** The block of each box in `occluders`. */
+  private readonly occluderOwners: UnitBlock[] = [];
+  /** What unitViews() returns, reused from frame to frame. */
+  private readonly views: UnitView[] = [];
   /** The opening move of the camera while it lasts (see introFromAbove). */
   private intro: {
     from: Spherical;
@@ -162,8 +205,19 @@ export class BattleEngine {
     toTarget: Vector3;
     start: number;
   } | null = null;
-  private readonly stopIntro = (): void => {
+  /** The camera on its way to a unit (focusUnit), while it lasts. */
+  private flight: {
+    block: UnitBlock;
+    from: Spherical;
+    fromTarget: Vector3;
+    radius: number;
+    phi: number;
+    start: number;
+  } | null = null;
+  /** Any drag, turn or zoom by the user ends a move of the camera. */
+  private readonly stopCameraMoves = (): void => {
     this.intro = null;
+    this.flight = null;
   };
 
   constructor(
@@ -213,8 +267,8 @@ export class BattleEngine {
     this.controls.zoomSpeed = 1.6;
     this.controls.minDistance = 10;
     this.controls.maxPolarAngle = (86 * Math.PI) / 180;
-    // Any drag, turn or zoom by the user ends the opening move of the camera.
-    this.controls.addEventListener("start", this.stopIntro);
+    // Any drag, turn or zoom by the user ends a move of the camera.
+    this.controls.addEventListener("start", this.stopCameraMoves);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(container);
@@ -267,13 +321,187 @@ export class BattleEngine {
     );
   }
 
+  /** The battle time drawn in the last frame, or the one asked for before the first. */
+  private get shownTime(): number {
+    const time = Number.isNaN(this.lastTime) ? this.options.getTime() : this.lastTime;
+    return Math.min(Math.max(time, 0), this.battle.phases.length);
+  }
+
+  /** Field metres (x east, y north, h up) to screen pixels; false behind the camera. */
+  private toScreen(x: number, y: number, h: number, out: { x: number; y: number }): boolean {
+    const v = this.scratch.set(x, h, -y).project(this.camera);
+    out.x = (v.x * 0.5 + 0.5) * this.width;
+    out.y = (-v.y * 0.5 + 0.5) * this.height;
+    return v.z > -1 && v.z < 1;
+  }
+
+  /**
+   * Every unit with figures, as the last frame showed it: for the labels and
+   * the card of a unit. The array and its entries are reused by the next
+   * call; read them before then.
+   */
+  unitViews(): readonly UnitView[] {
+    const terrain = this.terrain;
+    const views = this.views;
+    if (!terrain) return views;
+    const { heightAt } = terrain;
+    const time = this.shownTime;
+    const eye = this.camera.position;
+    const eyeField = { x: eye.x, y: -eye.z, h: eye.y };
+    const ownBox = new Map<UnitBlock, Occluder>();
+    this.occluderOwners.forEach((block, i) => ownBox.set(block, this.occluders[i]));
+    const at = { x: 0, y: 0 };
+    const front = { x: 0, y: 0 };
+    const back = { x: 0, y: 0 };
+
+    this.crowd.blocks.forEach((block, b) => {
+      let view = views[b];
+      if (!view) {
+        view = { id: block.track.unit.id, standing: 0, anchors: UNIT_LABEL_SHARES.map(() => null), prominence: 0, box: null };
+        views[b] = view;
+      }
+      view.standing = block.standing;
+      const f = block.track.formationAt(time);
+      const lift = block.model.height * FIGURE_SCALE * LABEL_LIFT;
+      const centerGround = heightAt(f.center.x, f.center.y);
+      view.prominence =
+        block.standing > 0
+          ? Math.sqrt(f.frontage * f.depth) /
+            Math.max(Math.hypot(f.center.x - eyeField.x, f.center.y - eyeField.y, centerGround - eyeField.h), 1)
+          : 0;
+
+      // The box on screen: the ends and the middle of the front and the rear,
+      // on the ground and at the heads.
+      let left = Infinity;
+      let top = Infinity;
+      let right = -Infinity;
+      let bottom = -Infinity;
+      for (const u of [-0.5, 0, 0.5]) {
+        for (const v of [0, 1]) {
+          formationPoint(f, u, v, at);
+          const ground = heightAt(at.x, at.y);
+          for (const h of [ground, ground + lift]) {
+            if (!this.toScreen(at.x, at.y, h, front)) continue;
+            left = Math.min(left, front.x);
+            right = Math.max(right, front.x);
+            top = Math.min(top, front.y);
+            bottom = Math.max(bottom, front.y);
+          }
+        }
+      }
+      view.box = left <= right ? { left, top, right, bottom } : null;
+
+      // Label anchors: above the heads, over the front or the rear, whichever
+      // shows higher on screen, so the label stands clear of the whole block.
+      const own = ownBox.get(block);
+      UNIT_LABEL_SHARES.forEach((u, k) => {
+        view.anchors[k] = null;
+        if (block.standing === 0) return;
+        formationPoint(f, u, 0, at);
+        const frontSeen = this.toScreen(at.x, at.y, heightAt(at.x, at.y) + lift, front);
+        formationPoint(f, u, 1, at);
+        const backSeen = this.toScreen(at.x, at.y, heightAt(at.x, at.y) + lift, back);
+        if (!frontSeen || !backSeen) return;
+        formationPoint(f, u, 0.5, at);
+        const point = { x: at.x, y: at.y, h: heightAt(at.x, at.y) + lift };
+        if (hidden(eyeField, point, heightAt, this.occluders, own)) return;
+        view.anchors[k] = { x: (front.x + back.x) / 2, y: Math.min(front.y, back.y) };
+      });
+    });
+    views.length = this.crowd.blocks.length;
+    return views;
+  }
+
+  /**
+   * The unit under a point of the scene (CSS pixels from its top left): the
+   * nearest block a ray from the camera meets, or null.
+   */
+  pickUnit(x: number, y: number): string | null {
+    const terrain = this.terrain;
+    if (!terrain || this.occluders.length === 0) return null;
+    const eye = this.camera.position;
+    const through = this.scratch
+      .set((x / this.width) * 2 - 1, 1 - (y / this.height) * 2, 0.5)
+      .unproject(this.camera)
+      .sub(eye)
+      .normalize();
+    const pixelsPerMetreAtOne = this.height / (2 * Math.tan((FOV * Math.PI) / 360));
+    // Up to the top of the heads, not only the shoulders as for hiding labels.
+    const boxes = this.occluders.map((box, i) => ({
+      ...box,
+      top: box.bottom + this.occluderOwners[i].model.height * FIGURE_SCALE,
+    }));
+    const margins = boxes.map((box) => {
+      const distance = Math.hypot(box.x - eye.x, box.y + eye.z, box.bottom - eye.y);
+      return Math.max(PICK_METRES, (PICK_PIXELS * distance) / pixelsPerMetreAtOne);
+    });
+    const hit = pick(
+      { x: eye.x, y: -eye.z, h: eye.y },
+      { x: through.x, y: -through.z, h: through.y },
+      boxes,
+      margins,
+      terrain.heightAt,
+    );
+    return hit >= 0 ? this.occluderOwners[hit].track.unit.id : null;
+  }
+
+  /**
+   * Flies the camera to a unit, keeping the direction it looks from, close
+   * enough to see the whole block. Jumps there when the user asks for
+   * reduced motion. A drag, turn or zoom by the user stops it.
+   */
+  focusUnit(id: string): void {
+    const block = this.crowd.blocks.find((b) => b.track.unit.id === id);
+    if (!block || !this.terrain) return;
+    this.intro = null;
+    const f = block.track.formationAt(this.shownTime);
+    const from = new Spherical().setFromVector3(
+      this.scratch.subVectors(this.camera.position, this.controls.target),
+    );
+    // The front, or the depth if larger, over about 60% of the view across.
+    const across = Math.tan((FOV * Math.PI) / 360) * Math.min(this.camera.aspect, 1.6);
+    const size = Math.max(f.frontage, f.depth);
+    const radius = Math.min(Math.max(size / (1.2 * across), FLIGHT_NEAREST), this.controls.maxDistance);
+    // Neither straight down nor skimming the ground.
+    const phi = Math.min(Math.max(from.phi, 0.35), 1.2);
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    this.flight = {
+      block,
+      from,
+      fromTarget: this.controls.target.clone(),
+      radius,
+      phi,
+      start: reduce ? -Infinity : performance.now(),
+    };
+  }
+
+  /** The camera at its place in the flight to a unit; true once it has arrived. */
+  private placeFlightCamera(now: number): boolean {
+    const flight = this.flight;
+    const terrain = this.terrain;
+    if (!flight || !terrain) return true;
+    const k = Math.min((now - flight.start) / FLIGHT_MS, 1);
+    const e = k * k * (3 - 2 * k);
+    // The unit may be on the move: aim at where it is now.
+    const f = flight.block.track.formationAt(this.shownTime);
+    const to = this.scratch.set(f.center.x, terrain.heightAt(f.center.x, f.center.y), -f.center.y);
+    this.controls.target.lerpVectors(flight.fromTarget, to, e);
+    const at = new Spherical(
+      flight.from.radius * (flight.radius / flight.from.radius) ** e,
+      flight.from.phi + (flight.phi - flight.from.phi) * e,
+      flight.from.theta,
+    );
+    this.camera.position.setFromSpherical(at).add(this.controls.target);
+    return k >= 1;
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
     this.abort.abort();
     cancelAnimationFrame(this.frameHandle);
     this.resizeObserver.disconnect();
-    this.controls.removeEventListener("start", this.stopIntro);
+    this.controls.removeEventListener("start", this.stopCameraMoves);
     this.controls.dispose();
     this.crowd.dispose();
     for (const materials of this.materials) materials.dispose();
@@ -526,6 +754,7 @@ export class BattleEngine {
       this.placeIntroCamera(k);
       if (k >= 1) this.intro = null;
     }
+    if (this.flight && this.placeFlightCamera(now)) this.flight = null;
     this.updateCamera(terrain);
     this.sky.setHour(hourAt(this.battle, time));
     const distance = this.camera.position.distanceTo(this.controls.target);
@@ -536,7 +765,7 @@ export class BattleEngine {
 
     this.shared.uTime.value = seconds;
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
-    this.crowd.occluders(time, terrain.heightAt, this.occluders);
+    this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(
       this.camera,
       this.height,

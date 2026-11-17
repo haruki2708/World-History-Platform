@@ -796,12 +796,15 @@ export class Crowd {
 
   /**
    * The blocks with men standing at `time`, as boxes that hide what lies
-   * behind them (see occlusion.ts). Written into `out`.
+   * behind them (see occlusion.ts). Written into `out`; `owners` gets the
+   * block of each box.
    */
-  occluders(time: number, heightAt: HeightAt, out: Occluder[]): void {
+  occluders(time: number, heightAt: HeightAt, out: Occluder[], owners: UnitBlock[]): void {
     out.length = 0;
+    owners.length = 0;
     for (const block of this.blocks) {
       if (block.standing === 0) continue;
+      owners.push(block);
       const f = block.track.formationAt(time);
       const sin = Math.sin(f.facing);
       const cos = Math.cos(f.facing);

@@ -1,6 +1,7 @@
 /**
- * Places the place-name labels of the battle scene on screen so that none
- * covers another. Pure 2D, no three.js and no DOM: the scene projects the
+ * Places the labels of the battle scene on screen, the names of places and
+ * of units together, so that none covers another; and the card of a unit
+ * beside its block. Pure 2D, no three.js and no DOM: the scene projects the
  * anchors and measures the labels, this decides where each one goes.
  *
  * Labels are taken in priority order. Each tries the spot it had in the
@@ -31,6 +32,8 @@ export interface LabelRequest {
   /** A dot marks the anchor (landmarks); it must stay visible too. */
   dot: boolean;
   previous: LabelSpot | null;
+  /** Room kept free around the text box, beyond the usual padding (unit labels). */
+  margin?: number;
 }
 
 export interface LabelPlacement extends LabelSpot {
@@ -94,6 +97,9 @@ export function layoutLabels(
   const free = (r: Rect) => inside(r) && !taken.some((t) => overlaps(r, t));
 
   return requests.map((request) => {
+    const grow = request.margin ?? 0;
+    const grown = (r: Rect): Rect =>
+      grow === 0 ? r : { left: r.left - grow, top: r.top - grow, right: r.right + grow, bottom: r.bottom + grow };
     const candidates: LabelSpot[] = [];
     if (request.previous) candidates.push(request.previous);
     request.anchors.forEach((_, anchor) => {
@@ -119,11 +125,51 @@ export function layoutLabels(
         right: point.x + dx + request.width,
         bottom: point.y + dy + request.height,
       };
-      if (!free(box)) continue;
-      taken.push(box);
+      if (!inside(box) || taken.some((t) => overlaps(grown(box), t))) continue;
+      taken.push(grown(box));
       if (dot) taken.push(dot);
       return { ...spot, x: point.x, y: point.y, dx, dy };
     }
     return null;
   });
+}
+
+/** Between a block and the card beside it, and the least room kept from the edges of the view. */
+const CARD_GAP = 10;
+const CARD_EDGE = 8;
+
+/**
+ * Where the card of a unit goes, top left corner: beside the block on screen
+ * (right, left, above, below, in that order), inside the view and clear of
+ * the overlays. When no side has room, beside the middle of the block,
+ * pushed inside the view. Null when the block is not on screen at all.
+ */
+export function placeCard(
+  block: LabelObstacle | null,
+  size: { width: number; height: number },
+  view: { width: number; height: number },
+  obstacles: readonly LabelObstacle[],
+): { x: number; y: number } | null {
+  if (!block) return null;
+  const { width, height } = size;
+  const clampX = (x: number) => Math.min(Math.max(x, CARD_EDGE), Math.max(view.width - width - CARD_EDGE, CARD_EDGE));
+  const clampY = (y: number) => Math.min(Math.max(y, CARD_EDGE), Math.max(view.height - height - CARD_EDGE, CARD_EDGE));
+  const middleX = (block.left + block.right) / 2;
+  const middleY = (block.top + block.bottom) / 2;
+  const candidates = [
+    { x: block.right + CARD_GAP, y: clampY(middleY - height / 2) },
+    { x: block.left - CARD_GAP - width, y: clampY(middleY - height / 2) },
+    { x: clampX(middleX - width / 2), y: block.top - CARD_GAP - height },
+    { x: clampX(middleX - width / 2), y: block.bottom + CARD_GAP },
+  ];
+  const fits = (c: { x: number; y: number }) =>
+    c.x >= CARD_EDGE &&
+    c.y >= CARD_EDGE &&
+    c.x + width <= view.width - CARD_EDGE &&
+    c.y + height <= view.height - CARD_EDGE;
+  const clear = (c: { x: number; y: number }) =>
+    !obstacles.some((o) => overlaps({ left: c.x, top: c.y, right: c.x + width, bottom: c.y + height }, o));
+  const best = candidates.find((c) => fits(c) && clear(c)) ?? candidates.find(fits);
+  if (best) return best;
+  return { x: clampX(middleX + CARD_GAP), y: clampY(middleY - height / 2) };
 }

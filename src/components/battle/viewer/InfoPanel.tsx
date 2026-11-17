@@ -1,16 +1,19 @@
 "use client";
 
+import { useId } from "react";
 import { getPolity } from "@/data";
-import type { Battle, NumberRange } from "@/lib/battle";
+import type { Battle, BattleSide, NumberRange } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
 import type { SourceRef } from "@/lib/types";
+import { useAppStore } from "@/store/useAppStore";
+import { roundMen, unitStateAt } from "../unitState";
 import {
   MODEL_CREDIT_LINKS,
   TERRAIN_ATTRIBUTION,
   TERRAIN_DISCLAIMER,
   TERRAIN_LICENCE,
 } from "./credits";
-import { formatNumberRange } from "./format";
+import { formatCount, formatNumberRange } from "./format";
 
 const HEADING = "text-xs font-semibold uppercase tracking-wide text-muted";
 const LINK =
@@ -21,11 +24,20 @@ export function sideColor(polityId: string): string | undefined {
   return getPolity(polityId)?.color;
 }
 
+interface InfoPanelProps {
+  battle: Battle;
+  /** The unit whose card is open on the scene. */
+  selectedUnit: string | null;
+  /** A unit chosen in the list: the scene flies to it and opens its card. */
+  onChooseUnit: (id: string, row: HTMLElement) => void;
+}
+
 /**
- * The facts of the battle: date, the two sides with their commanders and
- * numbers, what is disputed, sources and credits.
+ * The facts of the battle: date, the two sides with their commanders,
+ * numbers and units, what is disputed, sources and credits. The list of
+ * units is the way to a unit's card without a mouse.
  */
-export function InfoPanel({ battle }: { battle: Battle }) {
+export function InfoPanel({ battle, selectedUnit, onChooseUnit }: InfoPanelProps) {
   const { t, locale } = useT();
 
   return (
@@ -38,7 +50,7 @@ export function InfoPanel({ battle }: { battle: Battle }) {
       <section>
         <h3 className={HEADING}>{t("battle.info.sides")}</h3>
         <div className="mt-2 space-y-2.5">
-          {battle.sides.map((side) => (
+          {battle.sides.map((side, index) => (
             <div key={side.id} className="rounded-md border border-line p-3">
               <h4 className="flex items-center gap-2 font-semibold">
                 <span
@@ -64,6 +76,13 @@ export function InfoPanel({ battle }: { battle: Battle }) {
                   <Figures label={t("battle.info.casualties")} range={side.casualties} />
                 )}
               </dl>
+              <UnitList
+                battle={battle}
+                side={side}
+                hint={index === 0}
+                selectedUnit={selectedUnit}
+                onChoose={onChooseUnit}
+              />
             </div>
           ))}
         </div>
@@ -115,6 +134,59 @@ function Figures({ label, range }: { label: string; range: NumberRange }) {
           <p className="mt-0.5 text-xs leading-relaxed text-muted">{range.note[locale]}</p>
         )}
       </dd>
+    </div>
+  );
+}
+
+interface UnitListProps {
+  battle: Battle;
+  side: BattleSide;
+  /** Say what choosing a unit does (above the first list only). */
+  hint: boolean;
+  selectedUnit: string | null;
+  onChoose: (id: string, row: HTMLElement) => void;
+}
+
+/**
+ * The units of one side, each with its men at the battle time under way;
+ * follows the battle clock. Choosing one shows it on the field.
+ */
+function UnitList({ battle, side, hint, selectedUnit, onChoose }: UnitListProps) {
+  const { t, locale } = useT();
+  const headingId = useId();
+  const time = useAppStore((state) => Math.min(state.battleTime, battle.phases.length));
+  const units = battle.units.filter((unit) => unit.side === side.id);
+  if (units.length === 0) return null;
+
+  return (
+    <div className="mt-3">
+      <h5 id={headingId} className="text-xs text-muted">
+        {t("battle.info.units")}
+      </h5>
+      {hint && <p className="text-xs text-muted">{t("battle.info.units.hint")}</p>}
+      <ul aria-labelledby={headingId} className="mt-1 -mx-1.5">
+        {units.map((unit) => {
+          const men = roundMen(unitStateAt(battle, unit.id, time).men);
+          const current = unit.id === selectedUnit;
+          return (
+            <li key={unit.id}>
+              <button
+                type="button"
+                aria-current={current ? "true" : undefined}
+                onClick={(event) => onChoose(unit.id, event.currentTarget)}
+                className={`flex w-full items-baseline justify-between gap-3 rounded-sm px-1.5 py-1 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent ${
+                  current ? "bg-surface font-medium" : ""
+                }`}
+              >
+                <span className="min-w-0">{unit.name[locale]}</span>
+                <span className="shrink-0 text-xs text-muted tabular-nums">
+                  {t("battle.info.men").replace("{count}", formatCount(men, locale))}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
