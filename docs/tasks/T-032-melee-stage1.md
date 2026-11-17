@@ -3,6 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18, không giao lane).
 - **Model:** Fable 5.2, effort `xhigh`.
 - **Nhánh:** `batch-g/stage1-melee` (tạo từ `main`). Không commit thẳng vào `main`; commit sau mỗi phần lớn.
+- **Trạng thái:** xong 2026-11-18, chờ lane 3 đọc lại nhánh và người dùng duyệt gộp.
 - **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/data/battles/`, `scripts/battles/`, `docs/data/battles/`, `src/app/battle-lab/`, `src/lib/i18n/messages.ts`, `src/components/shell/AboutDialog.tsx`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G".
 
@@ -65,6 +66,7 @@ Làm 2026-11-18. Thiết kế đầy đủ ở `docs/ARCHITECTURE.md`, mục "Gi
 - `npm run lint`, `npm run validate`, `npx tsc --noEmit`, `npm run build` (dựng trong worktree tạm): qua.
 - Số người đầu hàng có đối thủ trong tầm, mỗi 1/4 giai đoạn: bảng ở `cannae.md`, mục 11. Giai đoạn 4: hastati 73–91 trên 93–94.
 - Hai phe không còn chồng lên nhau từ giai đoạn 3 (`check-overlap.mjs --min 0.04`).
+- Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản production của commit `539ae73`: 17/17 qua, console sạch.
 - Trong trình duyệt (Chrome không cửa sổ, RTX 3050): `/battle-lab?duel=1` và Cannae, lúc dừng và lúc phát, qua từng mốc 3–6; trận tổng hợp `?stress=7000`. Console sạch.
 - Chi phí tính mỗi khung (Node, Cannae): lấy vị trí mọi hình 0,17–0,19 ms, ghép cặp 0,09–0,12 ms. Dựng mọi `UnitTrack` lúc nạp: 65 ms.
 - Tốc độ khung hình, bản production, đo xen kẽ với `main`, hai vòng, không có Blender chạy:
@@ -81,7 +83,6 @@ Làm 2026-11-18. Thiết kế đầy đủ ở `docs/ARCHITECTURE.md`, mục "Gi
 
 ### Chưa làm, còn lại
 
-- **Hồi quy lõi** (`main-tools/reg-core.js`): xem dòng cuối mục này.
 - Hai người trong một cặp đánh lệch nhịp ngẫu nhiên, chưa luân phiên đều. Người bị đánh không phản ứng cho tới khi ngã. Cả hai thuộc chặng 2 (clip `block`, `hit`).
 - Lính nhẹ La Mã trong hộp ở giai đoạn 6 vẫn mất người theo cách cũ (335 hình, không ai đánh).
 - Hai sườn ở giai đoạn 6: mỗi hàng dọc mất một người sau khoảng 2 giây phát, người mới vừa bước lên đã ngã.

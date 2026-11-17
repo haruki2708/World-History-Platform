@@ -84,12 +84,13 @@ Người dùng duyệt 2026-11-18. **Phiên chính làm hết** (cảnh, dữ li
 
 **Người dùng chọn:**
 - Áp sát và đấu từng cặp: hàng đầu chạm nhau; người hàng đầu có đối thủ; clip đỡ đòn và trúng đòn mới; người ngã là người vừa bị đánh.
+- Trong chặng 1, đánh từ xa được ghi bằng hành động mới `skirmish` thay cho một cờ theo loại lính; `fight` từ nay là giáp lá cà và bị kiểm tra trong `npm run validate`.
 - Kỵ binh làm đủ như bộ binh (9 mô hình đánh gần); velites và lính ném đá đánh từ xa như hiện nay.
 - Chia ba chặng, lane 3 đọc lại nhánh và người dùng duyệt trước mỗi lần gộp:
 
 | Chặng | Nội dung | Task | Trạng thái |
 |---|---|---|---|
-| 1 | Cảnh và dữ liệu Cannae, dùng clip `attack` sẵn có: hàng đầu áp sát, ghép cặp, chỉ đánh khi có đối thủ trong tầm, người ngã là người vừa bị đánh, người sau bước lên. Thêm một câu về độ chính xác vào hộp thoại Giới thiệu | [T-032](tasks/T-032-melee-stage1.md) | Đang làm, nhánh `batch-g/stage1-melee` |
+| 1 | Cảnh và dữ liệu Cannae, dùng clip `attack` sẵn có: hàng đầu áp sát, ghép cặp, chỉ đánh khi có đối thủ trong tầm, người ngã là người vừa bị đánh, người sau bước lên. Thêm một câu về độ chính xác vào hộp thoại Giới thiệu | [T-032](tasks/T-032-melee-stage1.md) | Xong 2026-11-18 trên nhánh `batch-g/stage1-melee`; chờ lane 3 đọc lại và người dùng duyệt gộp |
 | 2 | Clip đỡ đòn (`block`) và trúng đòn (`hit`) cho 6 mô hình bộ binh đánh gần. Làm cặp `roman-legionary` với `gallic-infantry` trước, người dùng xem trong `/battle-lab?duel=1` rồi mới làm bốn mô hình còn lại | chưa viết | Chưa bắt đầu |
 | 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh | chưa viết | Chưa bắt đầu |
 
