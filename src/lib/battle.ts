@@ -15,10 +15,14 @@ export const MEN_PER_FIGURE = 20;
 
 /**
  * Animation clips a unit model carries, by name. idle, walk and attack are
- * required; the engine falls back to walk for run, and to removing the
- * figure without a clip for die.
+ * required; the engine falls back to walk for run, to removing the figure
+ * without a clip for die, and to walk and run alone without jog.
+ *
+ * jog (added after the others, so their indices stay as they were) is a
+ * steady run between walk and the fast run: the legs of a block moving at a
+ * middle speed. See docs/ARCHITECTURE.md, "Mô hình lính".
  */
-export const UNIT_CLIPS = ["idle", "walk", "run", "attack", "die"] as const;
+export const UNIT_CLIPS = ["idle", "walk", "run", "attack", "die", "jog"] as const;
 export type UnitClip = (typeof UNIT_CLIPS)[number];
 
 /** Mesh names inside a unit model, from most to least detailed. */

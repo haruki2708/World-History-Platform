@@ -7,7 +7,7 @@
  *   iPosYaw  xyz = world position of the feet, w = rotation about +Y
  *   iAnim    x = clip, y = clip to blend towards, z = blend 0..1,
  *            w = for a standing figure, the ground it has covered on foot
- *            (metres), which sets the pose of the walk and run clips; for a
+ *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
  *
@@ -29,7 +29,9 @@ import {
   MeshLambertMaterial,
   MeshStandardMaterial,
   Vector2,
+  Vector3,
 } from "three";
+import { UNIT_CLIPS } from "@/lib/battle";
 import { CLIP_INDEX, type UnitModel } from "./model";
 
 export interface FigureShared {
@@ -59,8 +61,9 @@ attribute vec4 aBoneIndex;
 attribute vec4 aBoneWeight;
 attribute float aTeam;
 uniform highp sampler2D uBoneTex;
-uniform vec4 uClips[5];
-uniform vec2 uStride;
+uniform vec4 uClips[${UNIT_CLIPS.length}];
+// Ground covered by one cycle of walk, run and jog, metres.
+uniform vec3 uStride;
 uniform float uTime;
 uniform float uFigScale;
 uniform vec3 uTeam;
@@ -77,10 +80,11 @@ float figFrame(float clip) {
   int index = int(clip + 0.5);
   vec4 info = uClips[index];
   float frame;
-  if (index == ${CLIP_INDEX.walk} || index == ${CLIP_INDEX.run}) {
-    // Walk and run follow the ground covered, not the clock: one cycle per
-    // stride of this figure, so a foot on the ground stays where it is.
-    float stride = (index == ${CLIP_INDEX.walk} ? uStride.x : uStride.y) * figSize;
+  if (index == ${CLIP_INDEX.walk} || index == ${CLIP_INDEX.run} || index == ${CLIP_INDEX.jog}) {
+    // Walk, run and jog follow the ground covered, not the clock: one cycle
+    // per stride of this figure, so a foot on the ground stays where it is.
+    float stride =
+      (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
   } else if (info.w > 0.5) {
     float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
@@ -184,7 +188,7 @@ export function createFigureMaterials(
   const uniforms = {
     uBoneTex: { value: model.boneTexture },
     uClips: { value: model.clipTable },
-    uStride: { value: new Vector2(model.gait.walk.metres, model.gait.run.metres) },
+    uStride: { value: new Vector3(model.gait.walk.metres, model.gait.run.metres, model.gait.jog.metres) },
     uTeam: { value: new Color(team) },
   };
   const bind = (shader: { uniforms: Record<string, IUniform> }) => {

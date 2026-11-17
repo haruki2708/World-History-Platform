@@ -44,6 +44,7 @@ const LOOPING: Record<UnitClip, boolean> = {
   run: true,
   attack: true,
   die: false,
+  jog: true,
 };
 
 /** Frames per second baked into the texture. */
@@ -59,11 +60,12 @@ export interface GaitCycle {
 }
 
 /**
- * Ground covered by one cycle of the walk and run clips, metres, for a model
- * whose stride cannot be measured (see plantedStride): what the clips of the
- * shared animation library measure on the Roman models.
+ * Ground covered by one cycle of the walk, run and jog clips, metres, for a
+ * model whose stride cannot be measured (see plantedStride): what the clips
+ * of the shared animation library measure on the Roman models (jog: a guess
+ * for a steady run of about 3 m/s).
  */
-const FALLBACK_STRIDES = { walk: 1.3, run: 5.5 };
+const FALLBACK_STRIDES = { walk: 1.3, run: 5.45, jog: 2.4 };
 /** Sole vertices: this close to the lowest point of the bind pose, metres. */
 const SOLE_HEIGHT = 0.03;
 /** No more sole vertices than this are followed. */
@@ -89,8 +91,10 @@ export interface UnitModel {
   dieSeconds: number;
   /** False when the model has no run clip and the scene plays walk instead. */
   hasRun: boolean;
-  /** The walk and run cycles, for matching the legs to the ground speed. */
-  gait: { walk: GaitCycle; run: GaitCycle };
+  /** True when the model has a jog clip: the scene then picks walk, jog or run. */
+  hasJog: boolean;
+  /** The walk, run and jog cycles, for matching the legs to the ground speed. */
+  gait: { walk: GaitCycle; run: GaitCycle; jog: GaitCycle };
   /** Height of the figure in its bind pose, metres. */
   height: number;
   /** Base colour texture, if the model has one. */
@@ -208,6 +212,8 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     run: byName.get("run") ?? walk,
     attack: byName.get("attack") ?? idle,
     die: byName.get("die") ?? null,
+    // Never chosen by the scene without a clip of its own (hasJog).
+    jog: byName.get("jog") ?? byName.get("run") ?? walk,
   };
 
   // Bake each distinct clip once. Without any clip, bake the rest pose.
@@ -310,15 +316,15 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
 
   lods[0].geometry.computeBoundingBox();
   const height = Math.max(lods[0].geometry.boundingBox?.max.y ?? 1.8, 0.5);
-  // How far one cycle of walk and run carries the figure, read off the
-  // baked clips themselves (without a run clip, run is the walk clip).
-  const gaitOf = (name: "walk" | "run"): GaitCycle => {
+  // How far one cycle of walk, run and jog carries the figure, read off the
+  // baked clips themselves (a missing run or jog is the clip it falls back to).
+  const gaitOf = (name: "walk" | "run" | "jog"): GaitCycle => {
     const clip = chosen[name];
     const frames = clip ? frameCount(clip) : 1;
     const measured = clip
       ? plantedStride(lods[0].geometry, data, width, firstRow.get(clip) ?? 0, frames, fps)
       : 0;
-    const fallback = name === "run" && chosen.run === chosen.walk ? "walk" : name;
+    const fallback = clip === chosen.walk ? "walk" : clip === chosen.run ? "run" : name;
     return {
       seconds: Math.max(frames / fps, 0.05),
       metres: measured > 0.05 ? measured : FALLBACK_STRIDES[fallback],
@@ -335,7 +341,8 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     hasDie: chosen.die !== null,
     dieSeconds: chosen.die?.duration ?? 0,
     hasRun: chosen.run !== chosen.walk,
-    gait: { walk: gaitOf("walk"), run: gaitOf("run") },
+    hasJog: chosen.jog !== chosen.run && chosen.jog !== chosen.walk,
+    gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
     height,
     map: source.map,
     surface: surface && {

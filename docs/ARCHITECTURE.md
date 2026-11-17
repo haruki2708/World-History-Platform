@@ -190,13 +190,16 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Ảnh độ nhám và kim loại nếu có (`metallicRoughnessTexture` của glTF: kênh G là độ nhám, kênh B là kim loại), tối đa 1024×1024. Dùng để đồng và sắt trông như kim loại.
 - **Hoạt hình:** đặt tên theo `UNIT_CLIPS`.
   - Bắt buộc: `idle`, `walk`, `attack`.
-  - Nên có: `run`, `die`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
+  - Nên có: `run`, `die`, `jog`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
+  - **`jog`** (thêm 2026-11-17, người dùng duyệt): chạy đều, chậm hơn `run`, khoảng 3 m/s ở cỡ người thật; với ngựa là nước kiệu hay nước kiệu nhanh. `run` của thư viện chung là chạy nhanh (5,8 m/s), nên khối quân đi vừa phải mà chỉ có `walk` và `run` thì trông như chạy nước rút quay chậm.
+    - Cảnh xếp các dáng đi của mô hình theo tốc độ tự nhiên (`walk`, `jog` nếu có, `run` nếu có) và chuyển từ dáng này sang dáng kế ở trung bình nhân của hai tốc độ, có khoảng đệm 10%. Mỗi dáng phát nhanh nhất 3 lần (`walk`), 1,8 lần (`jog`), 1,5 lần (`run`) tốc độ của nó.
+    - `jog` đứng cuối `UNIT_CLIPS`, nên chỉ số của các clip cũ không đổi. Mô hình chưa có `jog` vẫn chạy như trước.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
     - Số đo với thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương; T-024 đo lại theo cách của cảnh, bằng `art/tools/gait_check.py`): một vòng `walk` dài 1,333 s, đi được 1,30 m; một vòng `run` dài 0,933 s, đi được 5,45 m. Clip nguồn của `run` vốn là chạy nhanh (5,8 m/s ở cỡ người thật).
     - Chân trụ đã được khoá trong clip (`whp_clips.Builder.lock_feet`): trượt dưới 3% khi đi, khoảng 1% khi chạy.
-  - `idle`, `walk`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối, và lính ngã nằm lại đến hết trận.
+  - `idle`, `walk`, `jog`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối, và lính ngã nằm lại đến hết trận.
   - Độ dài `attack` khác nhau theo kiểu tấn công: 1,0 s (`sword-thrust`, `spear-thrust`), 1,333 s (`javelin-throw`, `sling`, `sword-slash`).
   - Clip có thể làm chuyển động mọi xương của khung, không chỉ xương có lưới da người: lính Baleares (`balearic-slinger`) dùng xương `ik_hand_gun` cho túi đá và dây ném; hastatus (`roman-hastatus`) dùng xương `ik_hand_l` cho hai cây *pilum*, có cả tỉ lệ trong clip (thu nhỏ còn 1% trong `attack` và `die`: coi như đã phóng). Cảnh phải nướng chuyển động của mọi xương mà lưới có dùng, gồm vị trí, góc quay và tỉ lệ.
 - **Chiều cao:** hình lính cao dưới 2,25 m tính cả ngù mũ; riêng mũi giáo của triarii (`roman-triarii`) lên tới khoảng 2,44 m. Khung bao dùng để cắt hình phải tính phần này.

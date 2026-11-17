@@ -62,21 +62,20 @@ const FIGURE_ORDER = 3;
  *
  * - Below MOVE_STOP of the walking speed a block idles; it starts to walk
  *   above MOVE_START (0.18 and 0.36 m/s).
- * - Walk turns into run where both clips are stretched by the same factor,
- *   the geometric mean of the two speeds (7.2 m/s), with GAIT_SLACK either
- *   way so a block on the threshold does not flicker (run above 8.0 m/s,
- *   walk again below 6.5 m/s).
+ * - The gaits of a model, slowest first, are walk, jog (when the model has
+ *   one) and run. One turns into the next where both clips are stretched by
+ *   the same factor, the geometric mean of their speeds (walk to run without
+ *   a jog: 7.2 m/s), with GAIT_SLACK either way so a block on a threshold
+ *   does not flicker (run above 8.0 m/s, walk again below 6.5 m/s).
  * - The clips play at the speed that matches the ground covered, up to
- *   MAX_WALK_RATE and MAX_RUN_RATE times their own (8.9 and 26.6 m/s). A
- *   battle is shown many times faster than it was fought, so blocks can
- *   move faster than that; the legs then keep the fastest pace that still
- *   looks like running, and the feet slide.
+ *   MAX_RATE times their own (walk 8.9 m/s, run 26.6 m/s). A battle is
+ *   shown many times faster than it was fought, so blocks can move faster
+ *   than that; the legs then keep the fastest pace that still looks like
+ *   running, and the feet slide.
  */
 const MOVE_START = 0.12;
 const MOVE_STOP = 0.06;
 const GAIT_SLACK = 0.1;
-const MAX_WALK_RATE = 3;
-const MAX_RUN_RATE = 1.5;
 /** Seconds over which the measured speed of a block is smoothed. */
 const SPEED_SMOOTHING = 0.12;
 /**
@@ -91,8 +90,18 @@ const MAX_STEP_SECONDS = 1;
 const IDLE = CLIP_INDEX.idle;
 const WALK = CLIP_INDEX.walk;
 const RUN = CLIP_INDEX.run;
+const JOG = CLIP_INDEX.jog;
 const ATTACK = CLIP_INDEX.attack;
 const DIE = CLIP_INDEX.die;
+
+/** How many times faster than its own speed each gait may play. */
+const MAX_RATE: Record<number, number> = { [WALK]: 3, [JOG]: 1.8, [RUN]: 1.5 };
+
+/** One gait of a model: its clip and its natural ground speed (m/s, as drawn). */
+interface Gait {
+  clip: number;
+  speed: number;
+}
 
 export interface LodSettings {
   /** A figure taller than this on screen (CSS pixels) gets LOD0. */
@@ -237,8 +246,9 @@ export class UnitBlock {
   private fromRest = IDLE;
   private toRest = IDLE;
   private blendStart = -Infinity;
-  /** IDLE, WALK or RUN: what the legs of the block do. */
+  /** IDLE, WALK, JOG or RUN: what the legs of the block do. */
   private gait = IDLE;
+  private gaitList: Gait[] | null = null;
   /** Ground speed of the block, metres per second of real time, smoothed. */
   private speed = 0;
   /** Where each figure stood in the last frame, to measure its step. */
@@ -348,7 +358,8 @@ export class UnitBlock {
     // block and not frame by frame: frame times are uneven, and a limit per
     // frame would clip steps that are within the pace on average.
     const stepping = march.step > 0 && this.placed;
-    const pace = this.gait === RUN ? this.runSpeed * MAX_RUN_RATE : this.walkSpeed * MAX_WALK_RATE;
+    const current = this.gaits.find((g) => g.clip === this.gait) ?? this.gaits[0];
+    const pace = current.speed * MAX_RATE[current.clip];
     const reach = this.speed > pace ? pace / this.speed : 1;
     const { lastX, lastY, walked } = this;
     let moved = 0;
@@ -439,27 +450,39 @@ export class UnitBlock {
     this.updateFootprint(time, heightAt);
   }
 
-  /** Natural ground speeds of the clips at the size figures are drawn, m/s. */
-  private get walkSpeed(): number {
-    const { walk } = this.model.gait;
-    return (walk.metres / walk.seconds) * FIGURE_SCALE;
+  /**
+   * The gaits of the model, slowest first: walk, then jog and run when it
+   * has them, each with its natural ground speed at the size figures are
+   * drawn.
+   */
+  private get gaits(): Gait[] {
+    if (this.gaitList) return this.gaitList;
+    const { gait, hasJog, hasRun } = this.model;
+    const speedOf = (cycle: { metres: number; seconds: number }) =>
+      (cycle.metres / cycle.seconds) * FIGURE_SCALE;
+    const list: Gait[] = [{ clip: WALK, speed: speedOf(gait.walk) }];
+    if (hasJog) list.push({ clip: JOG, speed: speedOf(gait.jog) });
+    if (hasRun) list.push({ clip: RUN, speed: speedOf(gait.run) });
+    this.gaitList = list.sort((a, b) => a.speed - b.speed);
+    return this.gaitList;
   }
 
-  private get runSpeed(): number {
-    const { run } = this.model.gait;
-    return (run.metres / run.seconds) * FIGURE_SCALE;
-  }
-
-  /** Idle, walk or run for the speed measured, with slack around each threshold. */
+  /** Idle or a gait for the speed measured, with slack around each threshold. */
   private pickGait(): number {
-    const { speed, gait } = this;
-    const walk = this.walkSpeed;
-    if (speed < walk * (gait === IDLE ? MOVE_START : MOVE_STOP)) return IDLE;
-    if (!this.model.hasRun) return WALK;
-    const change = Math.sqrt(walk * this.runSpeed);
-    if (gait === RUN) return speed < change * (1 - GAIT_SLACK) ? WALK : RUN;
-    if (gait === WALK) return speed > change * (1 + GAIT_SLACK) ? RUN : WALK;
-    return speed > change ? RUN : WALK;
+    const { speed, gait, gaits } = this;
+    if (speed < gaits[0].speed * (gait === IDLE ? MOVE_START : MOVE_STOP)) return IDLE;
+    // Where one gait gives way to the next.
+    const change = (i: number) => Math.sqrt(gaits[i].speed * gaits[i + 1].speed);
+    let i = gaits.findIndex((g) => g.clip === gait);
+    if (i < 0) {
+      // From standing: straight to the gait of this speed.
+      i = 0;
+      while (i + 1 < gaits.length && speed > change(i)) i++;
+      return gaits[i].clip;
+    }
+    while (i + 1 < gaits.length && speed > change(i) * (1 + GAIT_SLACK)) i++;
+    while (i > 0 && speed < change(i - 1) * (1 - GAIT_SLACK)) i--;
+    return gaits[i].clip;
   }
 
   private updateFootprint(time: number, heightAt: HeightAt): void {
