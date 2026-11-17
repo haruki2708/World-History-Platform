@@ -181,13 +181,13 @@ Xong cả ba phần. Nhánh `lane3/T-028-unit-labels`, các commit "T-028 step �
 | Bộ binh nhẹ đồng minh, t = 4,2 | tiến | 25° / 10% / 42% | không đổi (dưới ngưỡng) | không đổi |
 | Hastati, t = 4,2 | đánh | 49° / 34% / 75% | không đổi | 11° / 1,4% / 19% |
 | Principes, t = 4,2 | đánh | 111° / 136% / 94% | không đổi | bước lùi / 8,5% / 41% |
-| Hastati, t = 5,2 | đánh | 62° / 54% / 89% | không đổi | 17° / chưa ghi / 30% |
+| Hastati, t = 5,2 | đánh | 62° / 54% / 89% | không đổi | 17° / 3,9% / 30% |
 | Bộ binh đồng minh hàng trước, t = 4,2 | đánh | 108° / 130% / 95% | không đổi | bước lùi / 11% / 46% |
 | Gaul trái, t = 4,2 | đánh | 102° / 121% / 98% | không đổi | bước lùi / 16% / 54% |
 
 - "Bước lùi": khối dạt về phía sau, hình lính bước lùi mặt vẫn hướng về địch (lệch khoảng 150° so với hướng đi).
 - Phần trượt ngang còn lại ở velites và bộ binh nhẹ là do ngưỡng: lệch 25° thì chưa quay, lệch 45° thì quay một nửa. Hạ `TURN_FROM` xuống 20° thì hết, nhưng khi đó cả những khối chỉ dạt nhẹ cũng quay người.
-- Bảng "sau" đo trước hai sửa nhỏ ở commit step 3 (quyết định quay theo vận tốc của từng hình lính thay vì dáng đi của khối; chờ quay đầu xong). Hai sửa này không đổi gì giữa lúc khối đang đi, nhưng tôi chưa đo lại được (xem "Còn dở").
+- Bảng "sau" đo trước hai sửa nhỏ ở commit step 3 (quyết định quay theo vận tốc của từng hình lính thay vì dáng đi của khối; chờ quay đầu xong). Đo lại với code cuối ở T-031 (sau đợt E, dữ liệu Cannae đã đổi ở T-027): mọi dòng lệch không quá 1,5 điểm phần trăm so với bảng; ô còn thiếu của hastati ở t = 5,2 là số đo lần này. Chi tiết ở mục "Kết quả" của T-031.
 - Ảnh: `waiting45-libyans-left.png` (người Libya giữa lúc bẻ hướng, hai đầu khối quay mỗi đầu một khác), `waiting45-principes.png`, `waiting0-principes.png`.
 
 ### Kiểm tra chung
@@ -229,7 +229,7 @@ Bản production (`next build` rồi `next start` ở cổng 3113), Chrome khôn
 
 ### Còn dở
 
-Lúc 12:33, hệ thống dừng dev server (3103), server production (3113) và lượt đo hiệu năng vì máy thiếu RAM (Blender của lane 1 đang dùng 1,2 GB). Theo quy tắc, tôi không tự chạy lại. Còn ba việc cần server:
+Lúc 12:33, hệ thống dừng dev server (3103), server production (3113) và lượt đo hiệu năng vì máy thiếu RAM (Blender của lane 1 đang dùng 1,2 GB). Theo quy tắc, tôi không tự chạy lại. Còn ba việc cần server (cả ba đã làm ở T-031, xem mục "Kết quả" của T-031):
 1. Đo lại hiệu năng xen kẽ với `main`, ít nhất ba lượt sạch cho mỗi bên. Nếu lúc phát 1× vẫn chậm hơn rõ, đo xem phần nào tốn và giảm.
 2. Đo lại trượt chân với code cuối (sau commit step 3).
 3. Kiểm tra `/battle-lab`: bấm khối, Esc đóng thẻ (cảnh tự giữ khối đang chọn); kiểm tra nhãn bị khối khác che khi camera thấp (`s-hidden.mjs`, đã viết, chưa chạy).

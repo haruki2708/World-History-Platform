@@ -27,7 +27,7 @@ import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
 import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
-import { DYING, formationPoint, GONE, type UnitTrack } from "./timeline";
+import { DYING, GONE, type UnitTrack } from "./timeline";
 
 /**
  * Figures are drawn larger than life: one figure stands for twenty men, and
@@ -49,6 +49,12 @@ const BLEND_SECONDS = 0.35;
 export const FOOTPRINT_ORDER = 1;
 export const ARROW_ORDER = 2;
 const FIGURE_ORDER = 3;
+
+/**
+ * The layer of the meshes that only cast shadows: the camera of the shadow
+ * map sees it (the engine enables it there), the camera of the view does not.
+ */
+export const SHADOW_LAYER = 1;
 
 /**
  * What the legs do follows how fast a block really moves over the ground,
@@ -162,6 +168,62 @@ export interface CrowdCounts {
   lods: number[];
 }
 
+/** What the depth pass of the shadows reads from a figure mesh (see material.ts). */
+const DEPTH_ATTRIBUTES = ["position", "aBoneIndex", "aBoneWeight"] as const;
+const depthGeometries = new WeakMap<BufferGeometry, BufferGeometry>();
+
+/**
+ * The mesh the shadow of a figure is drawn from: the same triangles, with
+ * only what the depth pass reads, and every vertex that shares its position
+ * and skin with another merged into one. The models split a vertex wherever
+ * the texture coordinates of its faces differ, so most vertices of LOD1 and
+ * LOD2 come three or four times over; the depth pass does not read texture
+ * coordinates, so merged it draws the very same shadow, shading each point of
+ * the mesh once instead of three or four times (T-031).
+ */
+function depthGeometry(base: BufferGeometry): BufferGeometry {
+  const cached = depthGeometries.get(base);
+  if (cached) return cached;
+  const index = base.index;
+  const attributes = DEPTH_ATTRIBUTES.map((name) => base.getAttribute(name) as BufferAttribute | undefined);
+  if (!index || attributes.some((attribute) => !attribute || !(attribute instanceof BufferAttribute))) {
+    depthGeometries.set(base, base);
+    return base;
+  }
+  const sources = attributes as BufferAttribute[];
+  const count = sources[0].count;
+  const firstOf = new Map<string, number>();
+  const merged = new Uint32Array(count);
+  const kept: number[] = [];
+  for (let v = 0; v < count; v++) {
+    let key = "";
+    for (const source of sources) {
+      for (let c = 0; c < source.itemSize; c++) key += `${source.array[v * source.itemSize + c]},`;
+    }
+    let to = firstOf.get(key);
+    if (to === undefined) {
+      to = kept.length;
+      firstOf.set(key, to);
+      kept.push(v);
+    }
+    merged[v] = to;
+  }
+  const geometry = new BufferGeometry();
+  DEPTH_ATTRIBUTES.forEach((name, a) => {
+    const { array, itemSize, normalized } = sources[a];
+    const out = new Float32Array(kept.length * itemSize);
+    kept.forEach((v, i) => {
+      for (let c = 0; c < itemSize; c++) out[i * itemSize + c] = array[v * itemSize + c];
+    });
+    geometry.setAttribute(name, new BufferAttribute(out, itemSize, normalized));
+  });
+  const triangles = kept.length < 65536 ? new Uint16Array(index.count) : new Uint32Array(index.count);
+  for (let i = 0; i < index.count; i++) triangles[i] = merged[index.getX(i)];
+  geometry.setIndex(new BufferAttribute(triangles, 1));
+  depthGeometries.set(base, geometry);
+  return geometry;
+}
+
 class Chunk {
   readonly posYaw: InstancedBufferAttribute;
   readonly anim: InstancedBufferAttribute;
@@ -203,7 +265,8 @@ class Chunk {
       return geometry;
     };
     this.display = model.lods.map((lod) => instanced(lod.geometry));
-    this.shadow = model.lods.map((lod) => instanced(lod.geometry));
+    // Shadows are drawn from LOD1 and LOD2 only (see setLod).
+    this.shadow = model.lods.map((lod, level) => instanced(level === 0 ? lod.geometry : depthGeometry(lod.geometry)));
 
     this.mesh = new Mesh(this.display[2], materials.material);
     this.mesh.receiveShadow = true;
@@ -211,9 +274,11 @@ class Chunk {
     this.mesh.renderOrder = FIGURE_ORDER;
 
     // Shadows come from a coarser mesh than the one on screen. This second
-    // mesh has no instances in the main pass and gets them only while the
-    // shadow map is drawn.
+    // mesh stands on SHADOW_LAYER, which only the camera of the shadow map
+    // sees, so the main pass does not even set it up; it gets its instances
+    // only while the shadow map is drawn.
     this.shadowMesh = new Mesh(this.shadow[2], materials.material);
+    this.shadowMesh.layers.set(SHADOW_LAYER);
     this.shadowMesh.customDepthMaterial = materials.depthMaterial;
     this.shadowMesh.castShadow = true;
     this.shadowMesh.matrixAutoUpdate = false;
@@ -265,7 +330,6 @@ class Chunk {
 
 const FOOT_U = 24;
 const FOOT_V = 2;
-const point = { x: 0, y: 0 };
 
 /** From angle a to angle b the shorter way round, in (-π, π]. */
 function angleDelta(a: number, b: number): number {
@@ -274,6 +338,13 @@ function angleDelta(a: number, b: number): number {
   if (delta <= -Math.PI) delta += 2 * Math.PI;
   return delta;
 }
+
+/**
+ * A figure going within TURN_FROM of straight ahead, or of straight back,
+ * keeps the facing of its block. Tested on the cosine of the angle, so the
+ * angle itself (an atan2) is needed only for the few figures in between.
+ */
+const COS_TURN_FROM_SQUARED = Math.cos(TURN_FROM) ** 2;
 
 /**
  * How far a figure turns from the facing of its block, radians, when it goes
@@ -322,6 +393,12 @@ export class UnitBlock {
   private readonly back: Uint8Array;
   /** Some figure is still turned away from its block's facing. */
   private turned = false;
+  /** Where each figure last sampled the ground, and the height there: a figure that stays put need not sample again. */
+  private readonly groundX: Float32Array;
+  private readonly groundY: Float32Array;
+  private readonly groundH: Float32Array;
+  /** The formation the ground patch was last laid for (see updateFootprint). */
+  private readonly footprintKey = new Float64Array(6).fill(NaN);
   private lastNow = NaN;
   private lastTime = NaN;
   private lastBlend = NaN;
@@ -341,6 +418,9 @@ export class UnitBlock {
     this.velocityY = new Float32Array(track.count);
     this.turn = new Float32Array(track.count);
     this.back = new Uint8Array(track.count);
+    this.groundX = new Float32Array(track.count).fill(NaN);
+    this.groundY = new Float32Array(track.count).fill(NaN);
+    this.groundH = new Float32Array(track.count);
     const chunkCount = Math.ceil(track.count / CHUNK_SIZE);
     for (let c = 0; c < chunkCount; c++) {
       const first = Math.floor((c * track.count) / chunkCount);
@@ -444,7 +524,7 @@ export class UnitBlock {
     const current = this.gaits.find((g) => g.clip === this.gait) ?? this.gaits[0];
     const pace = current.speed * MAX_RATE[current.clip];
     const reach = this.speed > pace ? pace / this.speed : 1;
-    const { lastX, lastY, walked, velocityX, velocityY, turn, back } = this;
+    const { lastX, lastY, walked, velocityX, velocityY, turn, back, groundX, groundY, groundH } = this;
     // Marching askew (see TURN_FROM). While the clock stands still the men
     // hold the way they face: a pause keeps the moment as it was. Whether a
     // man is on the move is his own smoothed speed, not the gait of the
@@ -453,8 +533,11 @@ export class UnitBlock {
     const turnLimit = fighting ? WAITING_TURN : Math.PI;
     const turnStep = TURN_RATE * tick;
     const smoothing = stepping ? 1 - Math.exp(-march.step / VELOCITY_SMOOTHING) : 0;
+    // velocity += (step / seconds - velocity) * smoothing, without a division per figure.
+    const smoothingPerSecond = stepping ? smoothing / march.step : 0;
     // Slower than this a figure has no direction of its own to turn to.
     const slowest = this.gaits[0].speed * MOVE_START;
+    const slowestSquared = slowest * slowest;
     let turned = false;
     let moved = 0;
     let movers = 0;
@@ -476,7 +559,13 @@ export class UnitBlock {
         const x = track.x[i];
         const north = track.y[i];
         const z = -north;
-        const y = heightAt(x, north);
+        let y = groundH[i];
+        if (x !== groundX[i] || north !== groundY[i]) {
+          y = heightAt(x, north);
+          groundX[i] = x;
+          groundY[i] = north;
+          groundH[i] = y;
+        }
         const o = n * 4;
         if (status === DYING) {
           const since = track.since[i];
@@ -494,11 +583,16 @@ export class UnitBlock {
           if (stepping) {
             dx = x - lastX[i];
             dy = north - lastY[i];
-            step = Math.hypot(dx, dy);
-            velocityX[i] += (dx / march.step - velocityX[i]) * smoothing;
-            velocityY[i] += (dy / march.step - velocityY[i]) * smoothing;
+            step = Math.sqrt(dx * dx + dy * dy);
+            velocityX[i] += dx * smoothingPerSecond - velocityX[i] * smoothing;
+            velocityY[i] += dy * smoothingPerSecond - velocityY[i] * smoothing;
             movers++;
           }
+          // The way the formation faces this figure, worked out only when it
+          // moves or may turn: most of a still block needs none of it.
+          let sinHeading = 0;
+          let cosHeading = 0;
+          let headingKnown = false;
           // Facing the block, or turned towards where the figure goes. A man
           // turning about (timeline.ts) does that first.
           let target = 0;
@@ -506,12 +600,28 @@ export class UnitBlock {
           if (steer && limit > 0) {
             const vx = velocityX[i];
             const vy = velocityY[i];
-            if (vx * vx + vy * vy > slowest * slowest) {
-              const motion = angleDelta(heading, Math.atan2(vx, vy));
-              const off = Math.abs(motion);
-              if (off > Math.PI / 2 + BACK_SLACK) back[i] = 1;
-              else if (off < Math.PI / 2 - BACK_SLACK) back[i] = 0;
-              target = Math.min(Math.max(askewTurn(motion, back[i] === 1), -limit), limit);
+            const speedSquared = vx * vx + vy * vy;
+            if (speedSquared > slowestSquared) {
+              sinHeading = Math.sin(heading);
+              cosHeading = Math.cos(heading);
+              headingKnown = true;
+              // Speed times the cosine of the angle between facing and going,
+              // compared squared with the speed times cos(TURN_FROM).
+              const along = vx * sinHeading + vy * cosHeading;
+              const straight = along * along > COS_TURN_FROM_SQUARED * speedSquared;
+              if (straight && along > 0) {
+                // Within TURN_FROM of straight ahead: no turn.
+                back[i] = 0;
+              } else if (straight) {
+                // Within TURN_FROM of straight back: stepping back, no turn.
+                back[i] = 1;
+              } else {
+                const motion = Math.atan2(vx * cosHeading - vy * sinHeading, along);
+                const off = Math.abs(motion);
+                if (off > Math.PI / 2 + BACK_SLACK) back[i] = 1;
+                else if (off < Math.PI / 2 - BACK_SLACK) back[i] = 0;
+                target = Math.min(Math.max(askewTurn(motion, back[i] === 1), -limit), limit);
+              }
             }
           }
           let t = turn[i];
@@ -520,10 +630,19 @@ export class UnitBlock {
             turn[i] = t;
           }
           if (t !== 0) turned = true;
-          const facing = heading + t;
           if (step > 0) {
             // Giving ground while facing the enemy: the stride runs backwards.
-            const forward = dx * Math.sin(facing) + dy * Math.cos(facing);
+            let forward: number;
+            if (t === 0) {
+              if (!headingKnown) {
+                sinHeading = Math.sin(heading);
+                cosHeading = Math.cos(heading);
+              }
+              forward = dx * sinHeading + dy * cosHeading;
+            } else {
+              const facing = heading + t;
+              forward = dx * Math.sin(facing) + dy * Math.cos(facing);
+            }
             const stride = step * reach;
             walked[i] += forward < -0.5 * step ? -stride : stride;
             moved += step;
@@ -539,7 +658,7 @@ export class UnitBlock {
         posYaw[o + 1] = y;
         posYaw[o + 2] = z;
         // A fallen figure keeps the turn it had when it fell.
-        posYaw[o + 3] = Math.PI - (track.heading[i] + this.turn[i]);
+        posYaw[o + 3] = Math.PI - (track.heading[i] + turn[i]);
         seed[n] = track.seed[i];
         n++;
         if (x < minX) minX = x;
@@ -612,17 +731,46 @@ export class UnitBlock {
     this.footprint.visible = this.standing > 0;
     if (!this.footprint.visible) return;
     const formation = this.track.formationAt(time);
+    // A block standing still keeps its patch: the ground under it is the same.
+    const key = this.footprintKey;
+    if (
+      key[0] === formation.center.x &&
+      key[1] === formation.center.y &&
+      key[2] === formation.frontage &&
+      key[3] === formation.depth &&
+      key[4] === formation.facing &&
+      key[5] === formation.bulge
+    ) {
+      return;
+    }
+    key[0] = formation.center.x;
+    key[1] = formation.center.y;
+    key[2] = formation.frontage;
+    key[3] = formation.depth;
+    key[4] = formation.facing;
+    key[5] = formation.bulge;
     const position = this.footprint.geometry.attributes.position as BufferAttribute;
     const margin = 3 * FIGURE_SCALE;
     const wide = 1 + (2 * margin) / formation.frontage;
     const deep = 1 + (2 * margin) / formation.depth;
+    // formationPoint (timeline.ts), with its trigonometry taken out of the loop.
+    const { center, frontage, depth, bulge } = formation;
+    const sin = Math.sin(formation.facing);
+    const cos = Math.cos(formation.facing);
+    const array = position.array as Float32Array;
     let k = 0;
     for (let i = 0; i <= FOOT_U; i++) {
+      const u = (i / FOOT_U - 0.5) * wide;
+      const across = u * frontage;
+      const bulged = bulge * (1 - 4 * u * u);
       for (let j = 0; j <= FOOT_V; j++) {
-        const u = (i / FOOT_U - 0.5) * wide;
         const v = (j / FOOT_V - 0.5) * deep + 0.5;
-        formationPoint(formation, u, v, point);
-        position.setXYZ(k++, point.x, heightAt(point.x, point.y) + 0.3, -point.y);
+        const forward = depth * (0.5 - v) + bulged;
+        const x = center.x + cos * across + sin * forward;
+        const y = center.y - sin * across + cos * forward;
+        array[k++] = x;
+        array[k++] = heightAt(x, y) + 0.3;
+        array[k++] = -y;
       }
     }
     position.needsUpdate = true;
