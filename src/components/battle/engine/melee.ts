@@ -11,8 +11,10 @@
  * Who is nearest is measured between the places the heads of the files hold
  * in the front rank (`UnitTrack.frontX`), not between the men as they stand:
  * a man still stepping up into the place of the one who fell is already the
- * enemy of the man that one fought, so pairs change when files drift past
- * each other, not every time a man falls.
+ * enemy of the man that one fought, so pairs change less often than men
+ * fall. Only enemies who can close from where they stand are picked: a man
+ * far behind his place in the front rank (several fell ahead of him, or he
+ * drifts to another rank of the next formation) leaves his enemy to others.
  *
  * The result is a function of the battle time alone, so a seek gives the same
  * pairs as playing up to that moment; the scene (units.ts) eases the figures
@@ -284,8 +286,14 @@ export class Melee {
             const dy = ny[b] - ny[a];
             const squared = dx * dx + dy * dy;
             if (squared >= bestSquared) continue;
-            const reach = this.strikingDistance(unit, other) + 2 * MAX_STEP;
+            const apart = this.strikingDistance(unit, other);
+            const reach = apart + 2 * MAX_STEP;
             if (squared > reach * reach) continue;
+            // As they stand, the two can step up to where a blow lands.
+            const sx = px[b] - px[a];
+            const sy = py[b] - py[a];
+            const meet = apart * REACH_SLACK + 2 * MAX_STEP;
+            if (sx * sx + sy * sy > meet * meet) continue;
             const d = Math.sqrt(squared);
             if (d > 0.001) {
               // In front of a, and a in front of b.
@@ -353,12 +361,13 @@ export class Melee {
     for (let a = 0; a < n; a++) {
       const b = target[a];
       if (b === -1 || target[b] === a) continue;
-      // Which side of the way the enemy fights (or faces) this man comes from.
+      // Which side of the way the enemy fights (or faces) this man comes
+      // from, as they stand (the angle below is measured the same way).
       const partner = target[b];
       const mutual = partner !== -1 && target[partner] === b;
-      const rx = mutual ? nx[partner] - nx[b] : sin[b];
-      const ry = mutual ? ny[partner] - ny[b] : cos[b];
-      const onLeft = rx * (ny[a] - ny[b]) - ry * (nx[a] - nx[b]) > 0;
+      const rx = mutual ? ex[partner] - ex[b] : sin[b];
+      const ry = mutual ? ey[partner] - ey[b] : cos[b];
+      const onLeft = rx * (py[a] - ey[b]) - ry * (px[a] - ex[b]) > 0;
       const taken = onLeft ? left : right;
       if (taken[b] === -1 || distance[a] < distance[taken[b]]) taken[b] = a;
     }

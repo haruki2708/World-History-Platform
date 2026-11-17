@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (đợt G, người dùng chọn 2026-11-18).
 - **Model:** Fable 5.2, effort `xhigh` (người dùng đặt).
 - **Nhánh:** `batch-g/stage2-clips` (tạo từ `main` sau khi gộp chặng 1).
-- **Trạng thái:** xong 2026-11-18 (2a rồi 2b); chờ lane 3 đọc lại nhánh và người dùng duyệt gộp.
+- **Trạng thái:** xong 2026-11-18 (2a rồi 2b); lane 3 đã đọc lại (`T-033-review.md`), đã sửa theo review (mục "Sau review của lane 3"); chờ người dùng duyệt gộp.
 - **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/app/battle-lab/`, `art/`, `public/battles/models/`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G". Chặng 1: `T-032-melee-stage1.md`, review của lane 3: `T-032-review.md`.
 
@@ -101,6 +101,50 @@ Người dùng xem cặp thử và chọn "Ưng, làm tiếp 2b" (2026-11-18).
 
 - **Nhát chém của lính Gaul chạm khiên sớm hơn thời điểm cảnh coi là đòn chạm.** Cảnh lấy lúc vũ khí vươn xa nhất về trước (0,5 giây); với nhát bổ từ trên xuống, lưỡi kiếm đi qua mép trên khiên sớm hơn khoảng 2–3 khung, nên ở khung "đòn chạm" lưỡi kiếm đã xuống thấp bên cạnh khiên (hàng 3 của ảnh duyệt).
 - **Giai đoạn 5 của Cannae đổi đối thủ 1,2 giây một lần.** Muốn giảm thì sửa dữ liệu: giữ bề ngang mặt trận La Mã trong lúc đang đánh, cho việc dồn vào giữa xảy ra giữa các giai đoạn hoặc ở hàng sau.
-- Cannae: tỉ lệ người ngã có đòn chạm giảm từ 89% xuống 87% so với cuối chặng 1 (giai đoạn 6: 87% xuống 84%), do nhịp của một người đổi khi anh ta bước vào chu kỳ cuối trước lúc ngã.
+- ~~Cannae: tỉ lệ người ngã có đòn chạm giảm từ 89% xuống 87% so với cuối chặng 1.~~ Lý do ghi ở đây lúc đầu (đánh luân phiên) là sai: lane 3 đo ra nguyên nhân là cách chọn đối thủ theo chỗ ở hàng đầu. Đã sửa, xem mục "Sau review của lane 3".
 - Giáo của triarii dài hơn kiếm của đối thủ: hai người đứng theo tầm của vũ khí ngắn hơn, nên lúc đòn chạm mũi giáo đi quá khiên của đối thủ (ảnh duyệt triarii với Libya).
 - Kỵ binh chưa có `block`, `hit` (chặng 3).
+
+## Sau review của lane 3 (2026-11-18)
+
+Lane 3 đọc lại nhánh ở commit `6cb27d8`: `docs/tasks/T-033-review.md`. Không có lỗi làm hỏng cảnh; sáu clip cũ của sáu mô hình bộ binh giống hệt `main` từng byte; tốc độ khung hình giai đoạn 3–6 ngang `main` (+0,8% qua sáu lượt xen kẽ, `Crowd.update` tốn thêm 0,14 ms mỗi khung). Ba chỗ nên sửa và vài việc nhỏ.
+
+### Đã sửa
+
+- **Mục 1, cặp không đánh tới nhau** (`melee.ts`): vẫn chọn đối thủ theo chỗ ở hàng đầu, nhưng bỏ ứng viên mà hai người không bước tới nhau được từ chỗ đang đứng (điều kiện lane 3 đề nghị).
+- **Mục 2, clip đỡ đòn hiện giữa chừng hoặc bị cắt ngang** (`units.ts`): hình lính đang dở nhát đánh của mình thì không phản ứng (và phản ứng đang chạy ngầm bị bỏ); nhát đánh kế tiếp sẽ bắt đầu trước khi phản ứng phát xong thì không phản ứng; nhát đánh thường chờ phản ứng phát xong. Nhát hạ gục không chờ. Khác đề nghị của lane 3 ở một điểm: quy tắc thứ hai áp dụng cả sau khi tua, vì nó chỉ phụ thuộc đồng hồ trận.
+- **Người đánh kèm đứng bên nào** (`melee.ts`, việc nhỏ): chọn bên trái hay phải giờ tính theo chỗ đang đứng, cùng cách với góc đứng, nên hai người đánh kèm không còn bị xếp cùng một bên.
+- **Ghi công:** thêm `Hit_Chest` và hai clip mới vào `art/CREDITS.md`.
+
+### Số đo sau khi sửa
+
+Mô phỏng Node, 60 khung/giây cả trận. `main-tools/melee/falls.mjs` và bản chép `react-check.mjs` của lane 3 (`main-tools/melee/react-check.mjs`, `VARIANT=fix` chép lại đúng các quy tắc mới của `units.ts`); `tools/idlepairs.mjs` của lane 3.
+
+| | Trước review (`6cb27d8`) | Sau khi sửa |
+|---|---|---|
+| Cannae: người ngã có đòn chạm đúng lúc | 2 472 trên 2 834 (87%) | 2 557 trên 2 834 (90%) |
+| Trận thử: người ngã có đòn chạm đúng lúc | 610 trên 624 (98%) | 615 trên 624 (99%) |
+| Cannae: clip phản ứng hiện giữa chừng hoặc bị cắt ngang | 1 490 | 253 (đều là nhát hạ gục cắt ngang) |
+| Trận thử: như trên | 265 | 27 |
+| Cannae: nhát đánh chạm | 11 347 | 11 719 |
+| Cannae: lần phản ứng hiện ra | 9 196 | 8 580 |
+| Cannae: đổi đối thủ khi cả hai còn đứng | 3,4 giây một lần | 3,1 giây một lần |
+| Trận thử: đổi đối thủ | 20,8 giây một lần | 15,8 giây một lần |
+
+Người đầu hàng ở Cannae, tỉ lệ đang đánh / có đối thủ mà ngoài tầm / không có đối thủ:
+
+| Giai đoạn | Trước review | Sau khi sửa |
+|---|---|---|
+| 3 | 70,5% / 24,6% / 4,9% | 77,3% / 4,5% / 18,2% |
+| 4 | 88,9% / 9,4% / 1,7% | 91,3% / 4,8% / 3,9% |
+| 5 | 62,7% / 23,6% / 13,7% | 70,2% / 5,5% / 24,4% |
+| 6 | 76,0% / 13,8% / 10,2% | 80,0% / 4,8% / 15,2% |
+
+Cái giá: cặp đấu đổi đối thủ thường hơn một chút (bảng trên), và số lần phản ứng hiện ra giảm 7%: đó là những lần trước đây hiện giữa chừng.
+
+### Chưa sửa, chuyển sang chặng 3
+
+- **Mục 3, đỡ đòn mà không có đòn nào chạm:** 789 trên 8 580 lần phản ứng ở Cannae (trước review: 617 trên 9 196), 149 trên 2 578 ở trận thử. Phản ứng đi theo nhịp bị đánh của hình lính chứ không theo nhát đánh thật của địch. Cách sửa lane 3 đề nghị: `Crowd` giữ nhịp của "đòn sắp tới" cho từng hình, người đánh ghi vào lúc bắt đầu nhát đánh, người bị đánh phản ứng theo đó. Làm cùng chặng 3, khi kỵ binh có `block` và `hit`.
+- **Nhát hạ gục cắt ngang phản ứng** (253 lần ở Cannae): nhát này được phép bắt đầu muộn nên không chờ.
+- **Hai cây *pilum* của hastatus** biến đi rồi hiện lại mỗi lần phát `attack`, `block` hay `hit` (tới hai lần mỗi 2,4 giây). Lane 3 gợi ý cho hastatus không cầm *pilum* trong giai đoạn `fight`; chưa xem kỹ trong cảnh, chưa quyết.
+- Sau khi tua, clip đè lên của khoảng một phần tư số hình đang có clip khác với lúc phát liên tục tới đó (như `main`); tự khớp lại sau một nhát.
