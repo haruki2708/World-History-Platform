@@ -45,6 +45,8 @@ const TURN_STAGGER = 0.08;
  * does (`UnitTrack.beat`).
  */
 export const STRIKE_PERIOD = 2.4;
+/** How much less often a man falls at the head of a file with no enemy before it. */
+const UNOPPOSED = 0.02;
 /** A man waits this long, seconds of playback, after the man in front of him fell... */
 const STEP_UP_DELAY = 0.4;
 /** ...then takes this long to step up into his place. */
@@ -127,6 +129,81 @@ function steppedUp(seconds: number): number {
  */
 function reversed(key: UnitKey): UnitKey {
   return { ...key, center: { ...key.center }, facing: key.facing + Math.PI, bulge: -key.bulge };
+}
+
+/**
+ * The keyframes of a unit: `initial`, then the end of every phase. A unit
+ * missing from a phase holds its last state, and men never go up.
+ */
+export function unitKeys(battle: Battle, unit: BattleUnit): UnitKey[] {
+  const first = battle.initial.find((s) => s.unit === unit.id);
+  const start: UnitKey = first
+    ? toKey(first)
+    : {
+        center: { x: 0, y: 0 },
+        frontage: 100,
+        depth: 20,
+        facing: 0,
+        bulge: 0,
+        men: unit.men,
+        action: "stand",
+      };
+  const keys = [start];
+  for (const phase of battle.phases) {
+    const previous = keys[keys.length - 1];
+    const state = phase.units.find((s) => s.unit === unit.id);
+    const key = state ? toKey(state) : { ...previous, center: { ...previous.center } };
+    key.men = Math.min(key.men, previous.men);
+    keys.push(key);
+  }
+  return keys;
+}
+
+/**
+ * Whether an enemy unit that fights hand to hand in phase `phase` (0 for
+ * the first) has its front within reach of the point (x, y), `s` of the way
+ * through the phase.
+ */
+export type Opposed = (phase: number, s: number, x: number, y: number) => boolean;
+
+/** A front this close to a man, metres, is an enemy he can come to blows with (as melee.ts pairs them). */
+const OPPOSED_RANGE = 14;
+
+/**
+ * Where the enemies of `unit` stand ready to fight it hand to hand, from the
+ * formations alone: a man falls in a hand-to-hand fight only where there is
+ * an enemy to strike him.
+ */
+export function opposition(battle: Battle, unit: BattleUnit): Opposed {
+  const enemies = battle.units.filter((other) => other.side !== unit.side).map((other) => unitKeys(battle, other));
+  return (phase, s, x, y) => {
+    for (const keys of enemies) {
+      const a = keys[phase];
+      const end = keys[phase + 1];
+      if (!a || !end || end.action !== "fight") continue;
+      // An enemy that turns about fights with what was its rear rank.
+      const about = Math.abs(angleDelta(a.facing, end.facing)) >= ABOUT_FACE;
+      const b = about ? reversed(end) : end;
+      const frontage = lerp(a.frontage, b.frontage, s);
+      const depth = lerp(a.depth, b.depth, s);
+      const bulge = lerp(a.bulge, b.bulge, s);
+      const dx = x - lerp(a.center.x, b.center.x, s);
+      const dy = y - lerp(a.center.y, b.center.y, s);
+      const reach = frontage / 2 + depth + Math.abs(bulge) + OPPOSED_RANGE;
+      if (dx * dx + dy * dy > reach * reach) continue;
+      // The point in the frame of the formation, and the front edge beside it.
+      const facing = lerpAngle(a.facing, b.facing, s);
+      const sin = Math.sin(facing);
+      const cos = Math.cos(facing);
+      const across = dx * cos - dy * sin;
+      const forward = dx * sin + dy * cos;
+      const u = Math.min(Math.max(across / frontage, -0.5), 0.5);
+      const edge = (about ? -0.5 : 0.5) * depth + bulge * (1 - 4 * u * u);
+      const beside = Math.max(Math.abs(across) - frontage / 2, 0);
+      if ((forward - edge) * (forward - edge) + beside * beside < OPPOSED_RANGE * OPPOSED_RANGE) return true;
+    }
+    return false;
+  };
 }
 
 /** Battle time (in phases) to seconds of playback at normal speed. */
@@ -232,32 +309,17 @@ export class UnitTrack {
   private readonly clock: BattleClock;
   private readonly scratch: UnitKey;
 
-  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock) {
+  /**
+   * `opposed` (see `opposition`) says where the enemy stands ready to
+   * fight the unit hand to hand; without it men fall along the whole front.
+   */
+  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock, opposed?: Opposed) {
     this.unit = unit;
     this.clock = clock;
 
-    // One keyframe per phase boundary; a unit missing from a phase holds its
-    // last state, and men never go up.
-    const first = battle.initial.find((s) => s.unit === unit.id);
-    const start: UnitKey = first
-      ? toKey(first)
-      : {
-          center: { x: 0, y: 0 },
-          frontage: 100,
-          depth: 20,
-          facing: 0,
-          bulge: 0,
-          men: unit.men,
-          action: "stand",
-        };
-    this.keys = [start];
-    for (const phase of battle.phases) {
-      const previous = this.keys[this.keys.length - 1];
-      const state = phase.units.find((s) => s.unit === unit.id);
-      const key = state ? toKey(state) : { ...previous, center: { ...previous.center } };
-      key.men = Math.min(key.men, previous.men);
-      this.keys.push(key);
-    }
+    // One keyframe per phase boundary.
+    this.keys = unitKeys(battle, unit);
+    const start = this.keys[0];
     this.scratch = { ...start, center: { ...start.center } };
     const phases = this.keys.length - 1;
 
@@ -319,7 +381,7 @@ export class UnitTrack {
       const turn = angleDelta(from.facing, to.facing);
       const about = Math.abs(turn) >= ABOUT_FACE;
       const fighting = to.action === "fight";
-      const { rows, pitch } = grid(standing.length, from);
+      const { rows, pitch, margin } = grid(standing.length, from);
       const files = Math.ceil(standing.length / rows);
       // After an about-face the old rear rank leads.
       const toFront = about ? 1 : -1;
@@ -345,26 +407,59 @@ export class UnitTrack {
       // Who falls in this phase, in the order they fall.
       const left = Math.min(standing.length, Math.ceil(to.men / MEN_PER_FIGURE));
       const falls = standing.length - left;
+      // Hand to hand nobody falls in the last moments of the phase: the men
+      // behind must have stepped up by the keyframe, where the files regroup.
+      const seconds = clock.seconds(k + 1) - clock.seconds(k);
+      const span = fighting
+        ? 1 - Math.min((STEP_UP_DELAY + STEP_UP_SECONDS) / Math.max(seconds, 0.001), 0.25)
+        : 1;
+      /** When in the phase (0 to 1) the j-th man to fall does: men are lost evenly. */
+      const fallAt = (j: number): number => {
+        const threshold = (standing.length - 1 - j) * MEN_PER_FIGURE;
+        const lost = from.men - to.men;
+        return (lost > 0 ? Math.min(Math.max((from.men - threshold) / lost, 0), 1) : 1) * span;
+      };
       const fallen: number[] = [];
       if (falls > 0 && fighting) {
         // Hand to hand: the head of a file falls, then the man who stepped
         // up behind him, and so on. The file is drawn at random, a longer
-        // file more often; of three draws the file that lost a man longest
-        // ago is taken, so the next man has time to step up and fight.
+        // file more often, and hardly ever one with no enemy before it; of
+        // three draws the file that lost a man longest ago is taken, so the
+        // next man has time to step up and fight.
         const next = new Int32Array(files);
         const lastFall = new Int32Array(files).fill(-1);
-        for (let f = 0; f < files; f++) next[f] = f === 0 ? 0 : fileEnd[f - 1];
-        let remaining = standing.length;
+        const weight = new Float32Array(files);
+        const headU = new Float32Array(files);
+        for (let f = 0; f < files; f++) {
+          next[f] = f === 0 ? 0 : fileEnd[f - 1];
+          headU[f] = slots[order[next[f]] * 2];
+        }
+        const headV = about ? 1 - margin : margin;
+        const turned = about ? reversed(to) : null;
+        const head = { x: 0, y: 0 };
+        let total = 0;
         const draw = () => {
-          let r = Math.floor(random() * remaining);
+          let r = random() * total;
           for (let f = 0; f < files; f++) {
-            const size = fileEnd[f] - next[f];
-            if (r < size) return f;
-            r -= size;
+            if (r < weight[f]) return f;
+            r -= weight[f];
           }
+          for (let f = files - 1; f >= 0; f--) if (weight[f] > 0) return f;
           return files - 1;
         };
         for (let j = 0; j < falls; j++) {
+          const s = fallAt(j);
+          const formation = this.interpolate(k, s, turned);
+          total = 0;
+          for (let f = 0; f < files; f++) {
+            const size = fileEnd[f] - next[f];
+            weight[f] = size;
+            if (size > 0 && opposed) {
+              formationPoint(formation, headU[f], headV, head);
+              if (!opposed(k, s, head.x, head.y)) weight[f] = size * UNOPPOSED;
+            }
+            total += weight[f];
+          }
           let file = draw();
           for (let again = 0; again < 2; again++) {
             const other = draw();
@@ -372,7 +467,6 @@ export class UnitTrack {
           }
           fallen.push(order[next[file]++]);
           lastFall[file] = j;
-          remaining--;
         }
       } else if (falls > 0) {
         for (const i of fallOrder) {
@@ -380,20 +474,10 @@ export class UnitTrack {
           if (this.deathPhase[i] === -1) fallen.push(i);
         }
       }
-      // Hand to hand nobody falls in the last moments of the phase: the men
-      // behind must have stepped up by the keyframe, where the files regroup.
-      const seconds = clock.seconds(k + 1) - clock.seconds(k);
-      const span = fighting
-        ? 1 - Math.min((STEP_UP_DELAY + STEP_UP_SECONDS) / Math.max(seconds, 0.001), 0.25)
-        : 1;
       fallen.forEach((i, j) => {
-        // The share of the losses of the phase this man is: men are lost evenly.
-        const threshold = (standing.length - 1 - j) * MEN_PER_FIGURE;
-        const lost = from.men - to.men;
-        const fraction = lost > 0 ? Math.min(Math.max((from.men - threshold) / lost, 0), 1) : 1;
         this.deathPhase[i] = k;
-        this.deathTime[i] = k + fraction * span;
-        this.deathSeconds[i] = clock.seconds(k + fraction * span);
+        this.deathTime[i] = k + fallAt(j);
+        this.deathSeconds[i] = clock.seconds(k + fallAt(j));
       });
 
       // Where the queue of its file leaves each survivor at the end of the
