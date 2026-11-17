@@ -140,6 +140,8 @@ export class UnitTrack {
   readonly since: Float32Array;
   /** 0 at the front rank, 1 at the rear (ALIVE only). */
   readonly rank: Float32Array;
+  /** 1 while the figure is turning about (ALIVE only). */
+  readonly turningAbout: Uint8Array;
   /** A fixed random number in [0, 1) per figure. */
   readonly seed: Float32Array;
 
@@ -194,6 +196,7 @@ export class UnitTrack {
     this.status = new Uint8Array(n);
     this.since = new Float32Array(n);
     this.rank = new Float32Array(n);
+    this.turningAbout = new Uint8Array(n);
     this.seed = new Float32Array(n);
     this.deathTime = new Float32Array(n).fill(Infinity);
     this.deathSeconds = new Float32Array(n).fill(Infinity);
@@ -382,6 +385,7 @@ export class UnitTrack {
       this.status[i] = ALIVE;
       // Once turned, the rear of the old formation is the front.
       this.rank[i] = turned > 0.5 ? 1 - v : v;
+      this.turningAbout[i] = turned > 0 && turned < 1 ? 1 : 0;
       standing++;
     }
     return standing;

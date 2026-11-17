@@ -445,11 +445,11 @@ export class UnitBlock {
     const pace = current.speed * MAX_RATE[current.clip];
     const reach = this.speed > pace ? pace / this.speed : 1;
     const { lastX, lastY, walked, velocityX, velocityY, turn, back } = this;
-    // Marching askew (see TURN_FROM): only a block on the move turns its men.
-    // While the clock stands still they hold the way they face: a pause
-    // keeps the moment as it was.
+    // Marching askew (see TURN_FROM). While the clock stands still the men
+    // hold the way they face: a pause keeps the moment as it was. Whether a
+    // man is on the move is his own smoothed speed, not the gait of the
+    // block, which idles for a frame or two when playback resumes.
     const steer = !march.halted;
-    const askew = steer && this.gait !== IDLE;
     const turnLimit = fighting ? WAITING_TURN : Math.PI;
     const turnStep = TURN_RATE * tick;
     const smoothing = stepping ? 1 - Math.exp(-march.step / VELOCITY_SMOOTHING) : 0;
@@ -499,10 +499,11 @@ export class UnitBlock {
             velocityY[i] += (dy / march.step - velocityY[i]) * smoothing;
             movers++;
           }
-          // Facing the block, or turned towards where the figure goes.
+          // Facing the block, or turned towards where the figure goes. A man
+          // turning about (timeline.ts) does that first.
           let target = 0;
-          const limit = fighting && acts ? 0 : turnLimit;
-          if (askew && limit > 0) {
+          const limit = (fighting && acts) || track.turningAbout[i] ? 0 : turnLimit;
+          if (steer && limit > 0) {
             const vx = velocityX[i];
             const vy = velocityY[i];
             if (vx * vx + vy * vy > slowest * slowest) {
