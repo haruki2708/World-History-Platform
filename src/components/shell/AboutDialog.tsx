@@ -3,6 +3,12 @@
 import { Fragment, type ReactNode } from "react";
 import { borderSnapshots, events, hasBattle } from "@/data";
 import { MEN_PER_FIGURE } from "@/lib/battle";
+import {
+  MODEL_CREDIT_URLS,
+  TERRAIN_ATTRIBUTION,
+  TERRAIN_DISCLAIMER,
+  TERRAIN_LICENCE,
+} from "@/lib/credits";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { useT } from "@/lib/i18n/useT";
 import { YEAR_MAX, YEAR_MIN, formatYearRange } from "@/lib/years";
@@ -10,40 +16,22 @@ import { Modal } from "./Modal";
 
 /**
  * Links in the credits. Every source, licence and citation here must match
- * README.md ("Data credits") and docs/data/SOURCES.md; the 3D battle ones also
- * art/CREDITS.md, the battle viewer's credits
- * (src/components/battle/viewer/credits.ts, key battle.credits.models) and the
- * battle's own sources (src/data/battles/). Change them together.
+ * README.md ("Data credits") and docs/data/SOURCES.md; the 3D battle ones
+ * (in src/lib/credits.ts, shared with the battle viewer) also art/CREDITS.md,
+ * and the battle sources the battle's own data (src/data/battles/). Change
+ * them together.
  */
 const LINKS = {
   cliopatriaData: "https://github.com/Seshat-Global-History-Databank/cliopatria",
   cliopatriaPaper: "https://doi.org/10.1038/s41597-025-04516-9",
   ccBy: "https://creativecommons.org/licenses/by/4.0/",
-  ccBy3: "https://creativecommons.org/licenses/by/3.0/",
   naturalEarth: "https://www.naturalearthdata.com/",
-  romanSoldier: "https://sketchfab.com/3d-models/none-61cd5cae148042c38048bff2bd206af3",
-  celt: "https://sketchfab.com/3d-models/none-f727e3ecfe5642fdb85a2def36d57539",
-  horse: "https://blendswap.com/blend/17172",
-  horseRig: "https://blendswap.com/blend/28627",
-  animations: "https://quaternius.com/packs/universalanimationlibrary.html",
-  copernicusLicence:
-    "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N41_00_E016_00_DEM/INFO/eula_F.pdf",
   polybius: "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html",
   livy: "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22",
 } as const;
 
 const CLIOPATRIA_TITLE =
   "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE";
-
-/**
- * The Copernicus DEM licence asks for these two sentences word for word, so
- * they stay in English in both languages. They must read exactly as in
- * README.md ("Battle terrain") and the battle viewer's credits.
- */
-const TERRAIN_ATTRIBUTION =
-  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.";
-const TERRAIN_DISCLAIMER =
-  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.";
 
 /** Events that have a 3D battle scene, in the order of the event list. */
 const battleEvents = events.filter((event) => hasBattle(event.id));
@@ -193,34 +181,38 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                       attribution: <span lang="en">{TERRAIN_ATTRIBUTION}</span>,
                       disclaimer: <span lang="en">{TERRAIN_DISCLAIMER}</span>,
                       licence: (
-                        <ExternalLink href={LINKS.copernicusLicence}>
-                          Copernicus DEM GLO-30
-                        </ExternalLink>
+                        <ExternalLink href={TERRAIN_LICENCE.url}>{TERRAIN_LICENCE.title}</ExternalLink>
                       ),
                     })}
                   </li>
                   <li>
                     {fill(t("about.credits.models"), {
                       roman: (
-                        <ExternalLink href={LINKS.romanSoldier}>Roman Soldier - T pose</ExternalLink>
+                        <ExternalLink href={MODEL_CREDIT_URLS.romanSoldier}>
+                          Roman Soldier - T pose
+                        </ExternalLink>
                       ),
-                      celt: <ExternalLink href={LINKS.celt}>Celt - rigged for UE4/5</ExternalLink>,
-                      ccBy4: <ExternalLink href={LINKS.ccBy}>CC BY 4.0</ExternalLink>,
+                      celt: (
+                        <ExternalLink href={MODEL_CREDIT_URLS.celt}>Celt - rigged for UE4/5</ExternalLink>
+                      ),
+                      ccBy4: <ExternalLink href={MODEL_CREDIT_URLS.ccBy4}>CC BY 4.0</ExternalLink>,
                     })}
                   </li>
                   <li>
                     {fill(t("about.credits.horses"), {
-                      horse: <ExternalLink href={LINKS.horse}>Horse</ExternalLink>,
-                      ccBy3: <ExternalLink href={LINKS.ccBy3}>CC BY 3.0</ExternalLink>,
+                      horse: <ExternalLink href={MODEL_CREDIT_URLS.horse}>Horse</ExternalLink>,
+                      ccBy3: <ExternalLink href={MODEL_CREDIT_URLS.ccBy3}>CC BY 3.0</ExternalLink>,
                       rigged: (
-                        <ExternalLink href={LINKS.horseRig}>Horse Rigged All Gaits</ExternalLink>
+                        <ExternalLink href={MODEL_CREDIT_URLS.horseRig}>
+                          Horse Rigged All Gaits
+                        </ExternalLink>
                       ),
                     })}
                   </li>
                   <li>
                     {fill(t("about.credits.animations"), {
                       library: (
-                        <ExternalLink href={LINKS.animations}>
+                        <ExternalLink href={MODEL_CREDIT_URLS.animations}>
                           Universal Animation Library
                         </ExternalLink>
                       ),

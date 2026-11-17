@@ -3,16 +3,16 @@
 import { useId } from "react";
 import { getPolity } from "@/data";
 import type { Battle, BattleSide, NumberRange } from "@/lib/battle";
-import { useT } from "@/lib/i18n/useT";
-import type { SourceRef } from "@/lib/types";
-import { useAppStore } from "@/store/useAppStore";
-import { roundMen, unitStateAt } from "../unitState";
 import {
   MODEL_CREDIT_LINKS,
   TERRAIN_ATTRIBUTION,
   TERRAIN_DISCLAIMER,
   TERRAIN_LICENCE,
-} from "./credits";
+} from "@/lib/credits";
+import { useT } from "@/lib/i18n/useT";
+import type { SourceRef } from "@/lib/types";
+import { useAppStore } from "@/store/useAppStore";
+import { roundMen, unitStateAt } from "../unitState";
 import { formatCount, formatNumberRange } from "./format";
 
 const HEADING = "text-xs font-semibold uppercase tracking-wide text-muted";

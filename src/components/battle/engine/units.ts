@@ -100,8 +100,18 @@ const JOG = CLIP_INDEX.jog;
 const ATTACK = CLIP_INDEX.attack;
 const DIE = CLIP_INDEX.die;
 
-/** How many times faster than its own speed each gait may play. */
-const MAX_RATE: Record<number, number> = { [WALK]: 3, [JOG]: 1.8, [RUN]: 1.5 };
+/**
+ * How many times faster than its own speed each gait may play.
+ *
+ * The jog may play fast enough to reach the next gait: a gait gives way to
+ * the next at the geometric mean of their speeds, plus GAIT_SLACK. The horse
+ * gallops 5.8 times as fast as it trots (T-030), so its trot plays up to
+ * 2.65 times before the gallop takes over (cavalry: 6.6 m/s trotting, gallop
+ * above 17.4 m/s); a lower cap here made the hooves slide in between. On
+ * foot the jog gives way to the run at 1.6 times its speed, well below
+ * this cap.
+ */
+const MAX_RATE: Record<number, number> = { [WALK]: 3, [JOG]: 2.7, [RUN]: 1.5 };
 
 /**
  * Marching askew. The clips step straight ahead (or straight back), never
