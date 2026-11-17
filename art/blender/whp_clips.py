@@ -68,6 +68,9 @@ LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True, 
 # (REACTION_IMPACT in src/lib/battle.ts, in seconds), so a change here is a
 # change of the contract.
 REACT = dict(frames=30, impact=9, stand=("ual1", "Idle_Loop"), flinch=("ual1", "Hit_Chest"))
+# The models that fight at a distance (the scene's "skirmish") do not carry
+# them: their files stay as they were.
+THROWN = ("javelin-throw", "sling")
 
 # jog: a steady run of about 3 m/s, for a body of men keeping its order. The
 # library has a walk (1 m/s) and a fast run (5.8 m/s: long bounds, each foot
@@ -795,9 +798,9 @@ class Builder:
             self.die(),
             ATTACKS[self.kit.attack](self),
             self.jog(),             # after the first five: they come out as they did without it
-            self.block(),           # and so do the six before these two
-            self.hit(),
         ]
+        if self.kit.attack not in THROWN:
+            actions += [self.block(), self.hit()]       # and so do the six before these two
         self.armature.animation_data.action = None
         return actions
 

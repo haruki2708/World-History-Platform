@@ -202,7 +202,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - **`block`, `hit`** (thêm 2026-11-18, đợt G): phản ứng của người bị đánh trong giáp lá cà. `block`: đưa khiên ra đỡ, khiên bị dội lại. `hit`: đòn lọt qua, người giật lại.
     - Cả hai bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài 1,0 giây. Đòn của địch chạm ở giây thứ `REACTION_IMPACT` (0,3) của clip; cảnh canh giờ theo số này, nên đổi nó là đổi hợp đồng.
     - Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi. Mô hình chưa có hai clip này thì nhận đòn mà không phản ứng.
-    - Đã có: `roman-legionary`, `gallic-infantry` (chặng 2a). Bốn mô hình bộ binh đánh gần còn lại: chặng 2b. Kỵ binh: chặng 3.
+    - Có ở sáu mô hình bộ binh đánh gần: `roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`. Hai mô hình đánh từ xa (`roman-velites`, `balearic-slinger`) không có. Kỵ binh: chặng 3.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
@@ -288,7 +288,7 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Người ngã nằm lại ở chỗ đang đấu, không bị kéo về chỗ trong đội hình. Sau khi tua, người đã ngã nằm ở chỗ trong đội hình, lệch vài mét so với lúc phát liên tục.
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
-- **Chưa có:** `block` và `hit` cho bốn mô hình bộ binh còn lại (chặng 2b) và cho kỵ binh (chặng 3).
+- **Chưa có:** `block` và `hit` cho kỵ binh (chặng 3). Kỵ binh đấu từng cặp như bộ binh, nhưng nhận đòn mà không phản ứng.
 
 ### Khung xem trận (đợt C)
 

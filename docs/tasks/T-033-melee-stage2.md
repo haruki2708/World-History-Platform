@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (đợt G, người dùng chọn 2026-11-18).
 - **Model:** Fable 5.2, effort `xhigh` (người dùng đặt).
 - **Nhánh:** `batch-g/stage2-clips` (tạo từ `main` sau khi gộp chặng 1).
-- **Trạng thái:** phần 2a xong 2026-11-18, **chờ người dùng xem cặp thử** trong `/battle-lab?duel=1`. Phần 2b chưa làm.
+- **Trạng thái:** xong 2026-11-18 (2a rồi 2b); chờ lane 3 đọc lại nhánh và người dùng duyệt gộp.
 - **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/app/battle-lab/`, `art/`, `public/battles/models/`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G". Chặng 1: `T-032-melee-stage1.md`, review của lane 3: `T-032-review.md`.
 
@@ -14,7 +14,7 @@ File này vừa là đề bài vừa là nhật ký.
 Sau chặng 1, người bị đánh đứng yên cho tới lúc ngã. Chặng 2 cho họ phản ứng:
 
 - **2a (đã làm):** hợp đồng; hai clip `block` (đỡ đòn) và `hit` (trúng đòn) cho cặp thử `roman-legionary` (đâm) và `gallic-infantry` (chém); cảnh phát hai clip đó; hai người trong một cặp đánh luân phiên; cặp đấu ổn định hơn (mục 3 của review chặng 1). Người dùng xem rồi mới làm tiếp.
-- **2b (chưa làm):** dựng lại bốn mô hình bộ binh đánh gần còn lại (`roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`) với hai clip mới; ảnh duyệt; ghi công nếu cần.
+- **2b (đã làm, sau khi người dùng xem và ưng cặp thử):** dựng lại bốn mô hình bộ binh đánh gần còn lại (`roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`) với hai clip mới; ảnh duyệt; ghi công nếu cần.
 - Kỵ binh: chặng 3.
 
 ## Kết quả phần 2a
@@ -68,9 +68,25 @@ Trong trình duyệt (`/battle-lab?duel=1`, đang phát, sáu lần chụp cách
 - Tốc độ khung hình, bản production, hai vòng xen kẽ với bản `main` trước đợt G (cổng 3000), không có Blender chạy: mở cảnh 116,6 và 115,8 so với 116,4 và 117,0; phát giai đoạn 5: 71,9 và 71,5 so với 72,6 và 72,4; phát giai đoạn 6: 72,9 và 73,7 so với 75,4 và 74,7 (thấp hơn 2–3%).
 - Cannae trong trình duyệt, đang phát giai đoạn 4: `allied-infantry-front` (mô hình `roman-legionary`) và ba khối Gaul có đủ `attack`, `block`, `hit`; hastati và lính Iberia chỉ có `attack` (chờ 2b). Console sạch.
 
+## Kết quả phần 2b
+
+Người dùng xem cặp thử và chọn "Ưng, làm tiếp 2b" (2026-11-18).
+
+- Dựng lại `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry` với `block` và `hit`. Mỗi mô hình: bước kiểm tra của `build_model.py` qua; sáu clip cũ giống hệt từng byte; lưới không đổi kích thước.
+- Kích thước file (trần 4 MB): `roman-legionary` 2,35 MB, `roman-triarii` 2,36, `libyan-infantry` 2,36, `roman-hastatus` 2,04, `gallic-infantry` 1,98, `iberian-infantry` 1,88. Mỗi file nặng thêm khoảng 0,09 MB.
+- **Hai mô hình đánh từ xa không có hai clip này** (`roman-velites`, `balearic-slinger`): `whp_clips.THROWN` liệt kê các kiểu tấn công từ xa, `Builder.build` và `whp_build.clips_of` bỏ qua `block`, `hit` cho các mô hình đó, nên dựng lại chúng vẫn ra đúng file cũ.
+- `build_model.py -- --model all --check` (cả 11 mô hình): qua.
+- Ảnh duyệt thêm: `art/renders/duel-roman-hastatus-iberian-infantry.jpg`, `art/renders/duel-roman-triarii-libyan-infantry.jpg`.
+- Trong trình duyệt, đang phát, số hình phát `attack` / `block` / `hit` qua các lần chụp:
+  - `/battle-lab?duel=1`: ba cặp bộ binh đều có đủ (ví dụ cặp hastatus với Iberia: 46 / 27 / 14 và 58 / 20 / 18); cặp kỵ binh chỉ có `attack`.
+  - Cannae giai đoạn 4: hastati 159 / 83 / 43, bộ binh đồng minh hàng đầu 154 / 92 / 39, ba khối Gaul và hai khối Iberia đều có đủ.
+  - Cannae giai đoạn 6: thêm principes 40 / 2 / 16, triarii 78 / 33 / 27, lính Libya 54 / 17 / 5; kỵ binh Hasdrubal chỉ có `attack`. Ở hai sườn, phần lớn đòn là `hit` vì đó là đòn hạ gục.
+  - Console sạch.
+
 ### Còn lại, chưa ưng ý
 
 - **Nhát chém của lính Gaul chạm khiên sớm hơn thời điểm cảnh coi là đòn chạm.** Cảnh lấy lúc vũ khí vươn xa nhất về trước (0,5 giây); với nhát bổ từ trên xuống, lưỡi kiếm đi qua mép trên khiên sớm hơn khoảng 2–3 khung, nên ở khung "đòn chạm" lưỡi kiếm đã xuống thấp bên cạnh khiên (hàng 3 của ảnh duyệt).
 - **Giai đoạn 5 của Cannae đổi đối thủ 1,2 giây một lần.** Muốn giảm thì sửa dữ liệu: giữ bề ngang mặt trận La Mã trong lúc đang đánh, cho việc dồn vào giữa xảy ra giữa các giai đoạn hoặc ở hàng sau.
 - Cannae: tỉ lệ người ngã có đòn chạm giảm từ 89% xuống 87% so với cuối chặng 1 (giai đoạn 6: 87% xuống 84%), do nhịp của một người đổi khi anh ta bước vào chu kỳ cuối trước lúc ngã.
-- Bốn mô hình bộ binh còn lại chưa có clip mới; `build_model.py -- --model all --check` sẽ báo thiếu `block`, `hit` ở bốn mô hình đó cho tới khi làm 2b.
+- Giáo của triarii dài hơn kiếm của đối thủ: hai người đứng theo tầm của vũ khí ngắn hơn, nên lúc đòn chạm mũi giáo đi quá khiên của đối thủ (ảnh duyệt triarii với Libya).
+- Kỵ binh chưa có `block`, `hit` (chặng 3).

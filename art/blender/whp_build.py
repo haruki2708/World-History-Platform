@@ -61,7 +61,8 @@ from whp_render import render_views
 STAGES = ("source", "kit", "rig", "anim", "lod", "export")
 LODS = ("LOD0", "LOD1", "LOD2")
 CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
-REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models; the horsemen not yet
+REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models that fight
+                                    # hand to hand; the horsemen not yet
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 BONES = 67
 INDEX = os.path.join(MODELS_DIR, "index.json")
@@ -69,7 +70,9 @@ INDEX = os.path.join(MODELS_DIR, "index.json")
 
 def clips_of(unit):
     """The clips a model carries, in the order of UNIT_CLIPS in src/lib/battle.ts."""
-    return CLIPS if hasattr(unit, "HORSE") else CLIPS + REACTIONS
+    if hasattr(unit, "HORSE") or unit.KIT.attack in whp_clips.THROWN:
+        return CLIPS
+    return CLIPS + REACTIONS
 
 
 # --------------------------------------------------------------------------
