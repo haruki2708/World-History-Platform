@@ -48,6 +48,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Phiên chính gộp thử cả ba: không xung đột; validate, lint, build, tutor:check qua; hồi quy lõi 17/17; hộp thoại Giới thiệu đúng ở tiếng Anh nền sáng, tiếng Việt nền tối, 390 px (câu Copernicus khớp README từng chữ); ba file kỵ binh chỉ đổi `run` và `jog`; đo xen kẽ hai vòng với `main`: lúc phát 1× 63–67 khung/giây so với 47–54, p99 khoảng 20 ms so với hơn 40.
   - Sửa khi gộp: hằng ghi công dùng chung chuyển về `src/lib/credits.ts` (đề nghị của lane 1); trần `jog` 1,8 lên 2,7 lần để kỵ binh kiệu nhanh không trượt móng (đề nghị của lane 2, người dùng chọn): phần thời gian kiệu vượt trần 72% còn 0,5%. Trần phi để nguyên (người dùng chọn). ARCHITECTURE (kỵ binh, bóng, cách đọc p99, hộp thoại Giới thiệu), số `jog`/`run` trong `art/README.md`.
 - **2026-11-18:** Người dùng duyệt cuối giai đoạn 7 (trận đánh 3D: xem trận Cannae từ panel sự kiện). Các đề nghị còn lại ghi ở mục "Việc cho trận đánh 3D"; chưa giao task mới.
+- **2026-11-18:** Người dùng duyệt **đợt G (giáp lá cà)**: áp sát và đấu từng cặp, kỵ binh làm đủ như bộ binh, chia ba chặng, phiên chính làm hết (mục "Đợt G"). Bắt đầu chặng 1 (T-032) trên nhánh `batch-g/stage1-melee`.
 
 ## Việc để giai đoạn 5
 
@@ -72,11 +73,25 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - Tải sẵn (T-027): cảnh vẫn hỏi lại máy chủ (304) cho từng file đã tải sẵn, vì file trong `public/` có `max-age=0`. Đổi header `Cache-Control` cho `/battles/models/` và `/data/terrain/` thì bỏ được, nhưng người dùng có thể thấy mô hình cũ vài phút sau khi xuất lại (tên file không có mã băm). Chưa làm; xem lại khi deploy.
 - Đi xiên (sau T-027, T-028): khối co lại thì các hàng bước tới trong khi trượt ngang; có thể cho đứng hay bước ngang (đề nghị 4d của T-027).
 - Hiệu năng (sau T-031): phần chậm còn lại so với trước đợt E chủ yếu là nhãn khối quân (khoảng 0,6 ms mỗi khung). Đề nghị của lane 3: xuất LOD2 (và LOD1) với ít đường nối UV hơn (đo thử gộp đỉnh: GPU vẽ một khung ở góc nhìn mở 7,4 còn 4,6 ms); chọn mức chi tiết theo phần nhỏ hơn của khối hình (150 kỵ binh ở LOD0 chiếm 1,1 triệu tam giác khi nhìn từ 120 m).
-- **Giáp lá cà (người dùng hỏi 2026-11-18, chưa chọn mức làm):** khi giao chiến, hàng đầu hai bên đứng cách nhau một dải đất trống, thường vài chục mét trên sân (đo ở giai đoạn 4–5: 34–280 m giữa tâm hàng đầu của hai khối gần nhau nhất). Khoảng một phần ba số hàng trước phát `attack` vào khoảng không: không có đối thủ riêng, không đỡ đòn, không trúng đòn; người ngã được chọn ngẫu nhiên trong khối, không gắn với một nhát đánh. Ba mức phiên chính đã nêu:
-  1. Áp sát và đấu từng cặp (phiên chính đề nghị): hàng đầu chạm nhau; mỗi người ở hàng đầu có một đối thủ, hai bên đánh so le; clip đỡ đòn và trúng đòn mới; người ngã là người vừa bị đánh. Lane 1 (clip), lane 2 (dữ liệu cho hàng đầu áp sát), lane 3 (cảnh).
-  2. Chỉ cho hai hàng áp sát, giữ cách đánh hiện nay. Lane 2, lane 3.
-  3. Để sau.
+- **Giáp lá cà:** chuyển thành đợt G, xem mục "Đợt G" bên dưới.
 - Bộ binh chạy nhanh hơn trần `run` (1,5 lần) ở khoảng hai phần ba số lần đo lúc chạy (tới 124 m/s trên sân, 7 lần tốc độ clip), nên chân trượt khi chạy xa. Có từ trước (trận được nén thời gian); phiên chính ghi lại khi đo đợt F.
+
+## Đợt G: giáp lá cà trong trận đánh 3D
+
+Người dùng duyệt 2026-11-18. **Phiên chính làm hết** (cảnh, dữ liệu, clip Blender), không giao lane; người dùng chọn vì đây là việc khó. Trong lúc làm, các lane không nhận việc trong vùng trận đánh (`art/`, `public/battles/models/`, `src/components/battle/`, `src/data/battles/`, `scripts/battles/`).
+
+**Vấn đề** (đo 2026-11-18 bằng chính code của cảnh, từng hình lính): ở giai đoạn 4–6 của Cannae, người hàng đầu của các khối đang đánh đứng cách hình lính địch gần nhất 20–70 m (trung vị 30–50 m), không lúc nào dưới 8 m. Khoảng một phần ba số hàng trước phát `attack` vào khoảng không suốt giai đoạn; người ngã được chọn ngẫu nhiên, không gắn với nhát đánh nào.
+
+**Người dùng chọn:**
+- Áp sát và đấu từng cặp: hàng đầu chạm nhau; người hàng đầu có đối thủ; clip đỡ đòn và trúng đòn mới; người ngã là người vừa bị đánh.
+- Kỵ binh làm đủ như bộ binh (9 mô hình đánh gần); velites và lính ném đá đánh từ xa như hiện nay.
+- Chia ba chặng, lane 3 đọc lại nhánh và người dùng duyệt trước mỗi lần gộp:
+
+| Chặng | Nội dung | Task | Trạng thái |
+|---|---|---|---|
+| 1 | Cảnh và dữ liệu Cannae, dùng clip `attack` sẵn có: hàng đầu áp sát, ghép cặp, chỉ đánh khi có đối thủ trong tầm, người ngã là người vừa bị đánh, người sau bước lên. Thêm một câu về độ chính xác vào hộp thoại Giới thiệu | [T-032](tasks/T-032-melee-stage1.md) | Đang làm, nhánh `batch-g/stage1-melee` |
+| 2 | Clip đỡ đòn (`block`) và trúng đòn (`hit`) cho 6 mô hình bộ binh đánh gần. Làm cặp `roman-legionary` với `gallic-infantry` trước, người dùng xem trong `/battle-lab?duel=1` rồi mới làm bốn mô hình còn lại | chưa viết | Chưa bắt đầu |
+| 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh | chưa viết | Chưa bắt đầu |
 
 ## Không làm (điện thoại chỉ cần dùng được)
 
