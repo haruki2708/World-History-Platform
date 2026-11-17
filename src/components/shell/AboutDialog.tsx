@@ -1,7 +1,8 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import { borderSnapshots, events } from "@/data";
+import { borderSnapshots, events, hasBattle } from "@/data";
+import { MEN_PER_FIGURE } from "@/lib/battle";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { useT } from "@/lib/i18n/useT";
 import { YEAR_MAX, YEAR_MIN, formatYearRange } from "@/lib/years";
@@ -9,17 +10,43 @@ import { Modal } from "./Modal";
 
 /**
  * Links in the credits. Every source, licence and citation here must match
- * README.md ("Data credits") and docs/data/SOURCES.md; change them together.
+ * README.md ("Data credits") and docs/data/SOURCES.md; the 3D battle ones also
+ * art/CREDITS.md, the battle viewer's credits
+ * (src/components/battle/viewer/credits.ts, key battle.credits.models) and the
+ * battle's own sources (src/data/battles/). Change them together.
  */
 const LINKS = {
   cliopatriaData: "https://github.com/Seshat-Global-History-Databank/cliopatria",
   cliopatriaPaper: "https://doi.org/10.1038/s41597-025-04516-9",
   ccBy: "https://creativecommons.org/licenses/by/4.0/",
+  ccBy3: "https://creativecommons.org/licenses/by/3.0/",
   naturalEarth: "https://www.naturalearthdata.com/",
+  romanSoldier: "https://sketchfab.com/3d-models/none-61cd5cae148042c38048bff2bd206af3",
+  celt: "https://sketchfab.com/3d-models/none-f727e3ecfe5642fdb85a2def36d57539",
+  horse: "https://blendswap.com/blend/17172",
+  horseRig: "https://blendswap.com/blend/28627",
+  animations: "https://quaternius.com/packs/universalanimationlibrary.html",
+  copernicusLicence:
+    "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N41_00_E016_00_DEM/INFO/eula_F.pdf",
+  polybius: "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html",
+  livy: "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22",
 } as const;
 
 const CLIOPATRIA_TITLE =
   "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE";
+
+/**
+ * The Copernicus DEM licence asks for these two sentences word for word, so
+ * they stay in English in both languages. They must read exactly as in
+ * README.md ("Battle terrain") and the battle viewer's credits.
+ */
+const TERRAIN_ATTRIBUTION =
+  "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.";
+const TERRAIN_DISCLAIMER =
+  "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.";
+
+/** Events that have a 3D battle scene, in the order of the event list. */
+const battleEvents = events.filter((event) => hasBattle(event.id));
 
 interface AboutDialogProps {
   open: boolean;
@@ -31,6 +58,12 @@ interface AboutDialogProps {
 /** What the app is, how to use it, how far to trust it, and its sources. */
 export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps) {
   const { t, locale } = useT();
+  const battleCount = battleEvents.length;
+  const battleNames = new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    battleEvents.map((event) => event.title[locale]),
+  );
+  const pluralBattles = new Intl.PluralRules(locale).select(battleCount) === "one" ? "one" : "other";
+  const infoTab = t("battle.viewer.tab.info");
 
   return (
     <Modal
@@ -47,20 +80,31 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
               range: formatYearRange(YEAR_MIN, YEAR_MAX, locale),
               events: events.length,
               snapshots: borderSnapshots.length,
+              battles: fill(t(`about.what.battles.${pluralBattles}`), { count: battleCount }),
             })}
           </p>
         </Section>
 
         <Section heading={t("about.use.heading")}>
-          <Bullets
-            keys={[
-              "about.use.timeline",
-              "about.use.events",
-              "about.use.tutor",
-              "about.use.links",
-              "about.use.share",
-            ]}
-          />
+          <ul className="list-disc space-y-1.5 pl-5 marker:text-muted">
+            <li>{t("about.use.timeline")}</li>
+            <li>{t("about.use.events")}</li>
+            {battleCount > 0 && (
+              <li>
+                {fill(t("about.use.battle"), {
+                  battles: battleNames,
+                  button: t("battle.open"),
+                  space: <Key>Space</Key>,
+                  left: <Key>←</Key>,
+                  right: <Key>→</Key>,
+                  esc: <Key>Esc</Key>,
+                })}
+              </li>
+            )}
+            <li>{t("about.use.tutor")}</li>
+            <li>{t("about.use.links")}</li>
+            <li>{t("about.use.share")}</li>
+          </ul>
           <button
             type="button"
             onClick={onShowShortcuts}
@@ -85,7 +129,19 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
               "about.accuracy.dates",
               "about.accuracy.tutor",
             ]}
-          />
+          >
+            {battleCount > 0 && (
+              <li>
+                {t("about.accuracy.battle")}
+                <ul className="mt-1.5 list-[circle] space-y-1.5 pl-5 marker:text-muted">
+                  <li>{fill(t("about.accuracy.battle.positions"), { tab: infoTab })}</li>
+                  <li>{fill(t("about.accuracy.battle.figures"), { men: MEN_PER_FIGURE })}</li>
+                  <li>{t("about.accuracy.battle.time")}</li>
+                  <li>{t("about.accuracy.battle.colours")}</li>
+                </ul>
+              </li>
+            )}
+          </Bullets>
         </Section>
 
         <Section heading={t("about.credits.heading")}>
@@ -128,6 +184,58 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
               })}
             </li>
             <li>{t("about.credits.events")}</li>
+            {battleCount > 0 && (
+              <li>
+                {t("about.credits.battles")}
+                <ul className="mt-1.5 list-[circle] space-y-1.5 pl-5 marker:text-muted">
+                  <li>
+                    {fill(t("about.credits.terrain"), {
+                      attribution: <span lang="en">{TERRAIN_ATTRIBUTION}</span>,
+                      disclaimer: <span lang="en">{TERRAIN_DISCLAIMER}</span>,
+                      licence: (
+                        <ExternalLink href={LINKS.copernicusLicence}>
+                          Copernicus DEM GLO-30
+                        </ExternalLink>
+                      ),
+                    })}
+                  </li>
+                  <li>
+                    {fill(t("about.credits.models"), {
+                      roman: (
+                        <ExternalLink href={LINKS.romanSoldier}>Roman Soldier - T pose</ExternalLink>
+                      ),
+                      celt: <ExternalLink href={LINKS.celt}>Celt - rigged for UE4/5</ExternalLink>,
+                      ccBy4: <ExternalLink href={LINKS.ccBy}>CC BY 4.0</ExternalLink>,
+                    })}
+                  </li>
+                  <li>
+                    {fill(t("about.credits.horses"), {
+                      horse: <ExternalLink href={LINKS.horse}>Horse</ExternalLink>,
+                      ccBy3: <ExternalLink href={LINKS.ccBy3}>CC BY 3.0</ExternalLink>,
+                      rigged: (
+                        <ExternalLink href={LINKS.horseRig}>Horse Rigged All Gaits</ExternalLink>
+                      ),
+                    })}
+                  </li>
+                  <li>
+                    {fill(t("about.credits.animations"), {
+                      library: (
+                        <ExternalLink href={LINKS.animations}>
+                          Universal Animation Library
+                        </ExternalLink>
+                      ),
+                    })}
+                  </li>
+                  <li>
+                    {fill(t("about.credits.battleSources"), {
+                      polybius: <ExternalLink href={LINKS.polybius}>Polybius 3.107–118</ExternalLink>,
+                      livy: <ExternalLink href={LINKS.livy}>Livy 22.36–52</ExternalLink>,
+                      tab: infoTab,
+                    })}
+                  </li>
+                </ul>
+              </li>
+            )}
           </ul>
         </Section>
 
@@ -157,14 +265,26 @@ function Section({ heading, children }: { heading: string; children: ReactNode }
   );
 }
 
-function Bullets({ keys }: { keys: MessageKey[] }) {
+function Bullets({ keys, children }: { keys: MessageKey[]; children?: ReactNode }) {
   const { t } = useT();
   return (
     <ul className="list-disc space-y-1.5 pl-5 marker:text-muted">
       {keys.map((key) => (
         <li key={key}>{t(key)}</li>
       ))}
+      {children}
     </ul>
+  );
+}
+
+/** A key on the keyboard, as in the shortcuts dialog. */
+function Key({ children }: { children: ReactNode }) {
+  return (
+    <kbd
+      className="inline-flex min-w-5 items-center justify-center rounded border border-line border-b-2 bg-surface px-1 text-xs font-medium"
+    >
+      {children}
+    </kbd>
   );
 }
 
