@@ -6,7 +6,7 @@ Thư mục này chứa script Blender dựng mô hình lính, ảnh render để
 art/
   blender/      script Python chạy bằng Blender không giao diện
   tools/        script Python chạy ngoài Blender (numpy): gait_check.py đo sải
-                chân và độ trượt chân của walk/run trên file .glb như cảnh đo
+                chân và độ trượt chân của walk/jog/run trên file .glb như cảnh đo
   renders/      ảnh render để người dùng duyệt, mỗi mô hình một thư mục;
                 infantry-lineup.jpg: tám mô hình bộ binh đứng thành hàng
   build/        file trung gian (.blend, ảnh bake, ảnh xem thử); không đưa vào git
@@ -104,7 +104,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `source` | Tạo cảnh trống | `build_source()`: nhập mô hình nền, bỏ phần không hợp thời kỳ |
 | `kit` | | `build_kit()`: dựng trang bị, mỗi món thêm một bản ít tam giác (`.low`) cho LOD |
 | `rig` | Nhập khung xương Celt; đưa thân về tư thế chữ A và tỉ lệ của khung; chuyển trọng số theo điểm gần nhất, làm mượt; đưa về dạng chuẩn | `fit()`, `RIGID`, `SHARED`, `SMOOTHING`, `MERGE_FINGERS`, `rig_extras()` |
-| `anim` | Năm clip từ thư viện hoạt hình (`whp_clips.py`) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
+| `anim` | Sáu clip từ thư viện hoạt hình (`whp_clips.py`) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
 | `lod` | Phần ít tam giác, atlas, bake, một vật liệu, LOD0..2 (`whp_unit_lod.py`) | `PARTS` (các phần và ngân sách tam giác), `LOD2` |
 | `export` | Xuất `.glb`, thêm id vào `public/battles/models/index.json`, kiểm tra | `GROUND_CHECKS` nếu khác mặc định (giáo dựng đứng cao hơn người) |
 
@@ -133,7 +133,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 
 - **Tay cầm khiên.** Tay trái được giải lại bằng IK để khiên giữ một chỗ và một góc định sẵn trước ngực (`SHIELD_CARRY`: đứng, hành quân, chạy, thủ thế, đẩy khiên, ngã, ngồi bệt). Khung tham chiếu theo ngực một phần (`follow`), nên khiên nhún theo người mà không quay ngang khi thân xoay.
 - **Vũ khí.** Khi không đánh, cổ tay phải xoay cho lưỡi kiếm chĩa ra trước và xuống (`WEAPON_CARRY`). Khi đánh, tay phải đi theo một đường IK định sẵn, nhịp lấy theo độ duỗi tay của clip nguồn, và vũ khí được ngắm theo hướng đâm.
-- **Khoá chân trụ** (T-024, `Builder.lock_feet`). Clip `walk` của thư viện tự nó đã trượt chân lúc bàn chân lăn: lúc mũi chân đẩy rời đất, mũi chân trượt ra trước (tới 80% tốc độ mặt đất trong vài khung). Với `walk` và `run`, script dựng clip ba lượt nữa. Mỗi lượt, với từng bàn chân đang chạm đất, dời mắt cá theo chiều ngang để đỉnh thấp nhất của đế lùi đúng tốc độ mặt đất từ khung này sang khung sau. Độ dời được canh giữa trong mỗi lần chạm đất, rồi trả về dần trong lúc chân ở trên không. Mắt cá dời tối đa 2,1 cm (`walk`) và 0,8 cm (`run`). Độ trượt lớn nhất của chân trụ trên LOD0 của file `.glb`: `walk` từ 81% xuống 3–6%, `run` từ 6% xuống 1%. Log của giai đoạn `anim` ghi các số này cho từng mô hình.
+- **Khoá chân trụ** (T-024, `Builder.lock_feet`). Clip `walk` của thư viện tự nó đã trượt chân lúc bàn chân lăn: lúc mũi chân đẩy rời đất, mũi chân trượt ra trước (tới 80% tốc độ mặt đất trong vài khung). Với `walk`, `jog` và `run`, script dựng clip ba lượt nữa. Mỗi lượt, với từng bàn chân đang chạm đất, dời mắt cá theo chiều ngang để đỉnh thấp nhất của đế lùi đúng tốc độ mặt đất từ khung này sang khung sau. Độ dời được canh giữa trong mỗi lần chạm đất, rồi trả về dần trong lúc chân ở trên không. Mắt cá dời tối đa 2,1 cm (`walk`, `jog`) và 0,8 cm (`run`). Độ trượt lớn nhất của chân trụ trên LOD0 của file `.glb`: `walk` từ 81% xuống 2–3%, `jog` từ 25% xuống 0%, `run` từ 6% xuống 1–2%. Log của giai đoạn `anim` ghi các số này cho từng mô hình.
 - **`die`.** Người mặc giáp nằm cao hơn hình nộm của thư viện: sau khi dựng, script đo điểm thấp nhất của mọi lưới ở khung cuối và nâng hông lên cho vừa chạm đất (lính La Mã: 8,2 cm). Khi đã nằm, đầu cúi vừa đủ để ngù lông mũ nằm dọc mặt đất thay vì cắm xuống. Khiên nằm trên người.
 
 **Clip** (giống nhau cho mọi mô hình; số đo của hai mô hình La Mã):
@@ -143,6 +143,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `idle` | `Idle_Loop` (UAL 1) | 2,5 s (75 khung) | Đứng thở, khiên chếch bên trái, kiếm chĩa xuống. Lặp. |
 | `walk` | `Walk_Loop` (UAL 1) | 1,333 s (40 khung) | Đi tại chỗ. **Một vòng = 1,30 m**, tức 0,975 m/s. Lặp. |
 | `run` | `Jog_Fwd_Loop` (UAL 1) | 0,933 s (28 khung) | Chạy tại chỗ, khiên cao hơn. **Một vòng = 5,45 m**, tức 5,84 m/s: chạy rất nhanh, gần chạy nước rút (xem dưới). Lặp. |
+| `jog` | `Walk_Loop` và `Jog_Fwd_Loop` (UAL 1) trộn theo pha | 0,733 s (22 khung) | Chạy đều, giữ đội hình: khiên và vũ khí giữ như khi đi. **Một vòng = 2,07–2,10 m**, tức 2,8–2,9 m/s. Lặp. Cách dựng: xem dưới. |
 | `attack` | tuỳ mô hình, xem dưới | | Lặp. |
 | `die` | `Death01` (UAL 1) | 2,4 s (72 khung) | Ngã ngửa, nằm yên từ khoảng khung 50. **Không lặp**: cảnh giữ khung cuối. |
 
@@ -155,6 +156,17 @@ Số cũ (1,00 m và 1,99 m, từ T-019 tới T-021) sai: script cộng quãng l
 Muốn đi nhanh hơn thì cảnh tăng tốc độ phát clip theo tỉ lệ: tốc độ phát = tốc độ di chuyển / (quãng đường một vòng / độ dài clip).
 
 **`run` là chạy nhanh từ clip nguồn, không phải do đổi đích.** Bản có chuyển động gốc của thư viện (`UAL1_Standard_RM.glb`) đi 5,00 m trong một vòng `Jog_Fwd_Loop` (5,36 m/s); bản tại chỗ mà ta dùng cho chân trụ lùi 5,9 m/s. Đổi đích giữ nguyên tỉ lệ (chân của khung xương dài bằng 0,998 lần chân hình nộm). Clip có nhịp 129 bước/phút, mỗi bước 2,7 m, mỗi bàn chân chỉ chạm đất 4–5 trên 28 khung (khoảng 16% vòng): dáng của chạy nước rút. Thư viện không có clip chạy chậm nào khác. Đề xuất cách xử lý ghi ở mục "Kết quả" của T-024.
+
+**`jog`** (T-022, `whp_clips.JOG`, `Builder.jog`). Thư viện chỉ có đi (1 m/s) và chạy nhanh (5,8 m/s), không có gì ở giữa. Clip `jog` trộn hai clip đó theo pha:
+
+- Hai clip được canh cho chân trái chạm đất cùng lúc (`Walk_Loop` khung 0, `Jog_Fwd_Loop` khung 1).
+- Trộn thẳng thì thời gian chạm đất do clip chạy quyết định: mỗi bàn chân chỉ chạm đất 29% một bước, còn lại là bay, nên vẫn ra dáng chạy nước rút. Vì vậy clip chạy được kéo giãn thời gian trong từng bước trước khi trộn: 4 khung chạm đất của nó chiếm 65% bước của `jog` (`contact`), pha bay bị nén lại; đường cong thời gian là một đường bậc ba đơn điệu, không gãy.
+- Rồi lấy một phần của clip chạy đặt lên clip đi, theo nhóm xương (`share`): chân và hông 65%, thân 45%, tay 50%.
+- Hông của clip chạy nhún 25 cm mỗi bước; `jog` giữ 60% (`bounce`), IK của chân bù phần còn lại.
+- Một vòng 22 khung (0,733 s, 164 bước mỗi phút). Khiên giữ thế `march` như khi đi, vũ khí giữ như khi đi.
+- Cuối cùng khoá chân trụ như `walk`, `run`.
+
+Số đo trên LOD0 của file `.glb` (`gait_check.py`): 2,07–2,10 m mỗi vòng, 2,82–2,86 m/s, chân trụ trượt dưới 1%. Năm clip cũ không đổi (dữ liệu hoạt hình giống hệt từng byte); `jog` được dựng sau cùng. Mỗi file nặng thêm khoảng 48 KB.
 
 **Các kiểu tấn công** (`whp_clips.ATTACKS`; tên clip trong file `.glb` luôn là `attack`):
 
@@ -197,7 +209,7 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
   - một khung xương 67 xương;
   - ba lưới `LOD0`, `LOD1`, `LOD2` trong giới hạn tam giác;
   - một vật liệu; ảnh màu tối đa 2048, ảnh pháp tuyến và ảnh độ nhám/kim loại tối đa 1024;
-  - năm clip `idle`, `walk`, `run`, `attack`, `die`;
+  - sáu clip `idle`, `walk`, `run`, `attack`, `die`, `jog`;
   - đứng trên y = 0, ngón chân hướng +Z, đầu hướng +Y;
   - dung lượng tối đa 4 MB; có tên trong `index.json`.
 
@@ -229,7 +241,7 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 | `whp_anim.py` | `Poser`: dựng tư thế theo trục của người lính (xoay, ngắm, đặt hướng xương, IK hai đoạn) và ghi keyframe. |
 | `whp_ual.py` | Đọc file `.glb` của thư viện hoạt hình bằng numpy, lấy mẫu clip. |
 | `whp_retarget.py` | Đổi đích tư thế từ thư viện sang khung xương chung. |
-| `whp_clips.py` | Năm clip chuẩn, tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử. |
+| `whp_clips.py` | Sáu clip chuẩn, tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử. |
 | `whp_lod.py` | Phần ít tam giác, atlas UV, bake, xử lý ảnh, vật liệu cuối. |
 | `whp_unit_lod.py` | Giai đoạn `lod` chung: các phần, bake, ghép ảnh, LOD0..2. |
 | `whp_proxy.py` | Hình người đơn giản theo khung xương cho LOD2. |

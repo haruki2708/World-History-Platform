@@ -68,25 +68,30 @@ def _body_shell(body):
     return shell
 
 
-def low_parts():
+TACK = ("mane", "tail", "cloth", "bridle", "neckrope")
+
+
+def low_parts(keys=TACK, uv=1.0):
     """LOD0 parts, each with its own UV islands, and the detailed objects
-    each bakes from."""
+    each bakes from: the body, and the pieces in `keys` (default all; a
+    rider model takes the tack its horsemen used). `uv`: texel density
+    weight (whp_lod.set_uv_weight) when the horse shares an atlas."""
     parts, sources = [], []
     body = bpy.data.objects[rig.BODY_NAME]
     shell = _body_shell(body)
     lod.triangulate(shell)
-    lod.set_uv_weight(shell, lambda slot: 1.0)
+    lod.set_uv_weight(shell, lambda slot: uv)
     lod.project_uvs(shell)
     lod.decimate(shell, BUDGET["body"][0])
     parts.append(shell)
     sources.append([body])
-    for key in ("mane", "tail", "cloth", "bridle", "neckrope"):
+    for key in keys:
         obj = bpy.data.objects[SOURCE[key]]
         low = duplicate_object(obj, key)
         low.modifiers.clear()
         low.parent = None
         lod.triangulate(low)
-        lod.set_uv_weight(low, lambda slot: 1.0)
+        lod.set_uv_weight(low, lambda slot: uv)
         lod.project_uvs(low)
         parts.append(low)
         sources.append([obj])
@@ -95,7 +100,9 @@ def low_parts():
     return parts, sources
 
 
-class _Spec:
+class Spec:
+    """What whp_unit_lod's bakes need to know of a horse part."""
+
     def __init__(self, name, sources, ao_alone):
         self.name = name
         self.bake = [o.name for o in sources]
@@ -104,39 +111,35 @@ class _Spec:
         self.ao_alone = ao_alone
 
 
+def specs(parts, sources):
+    return [Spec(p.name, s, p.name in ("cloth", "bridle", "neckrope")) for p, s in zip(parts, sources)]
+
+
+class Unskinned:
+    """The detailed objects bake in their rest pose, without the armature:
+    their modifiers are switched off for rendering meanwhile."""
+
+    def __init__(self, objs):
+        self.objs = objs
+
+    def __enter__(self):
+        for o in self.objs:
+            for m in o.modifiers:
+                m.show_render = False
+        return self
+
+    def __exit__(self, *exc):
+        for o in self.objs:
+            for m in o.modifiers:
+                m.show_render = True
+        return False
+
+
 def bake(parts, sources):
-    scene = bpy.context.scene
-    specs = [_Spec(p.name, s, p.name in ("cloth", "bridle", "neckrope")) for p, s in zip(parts, sources)]
-    parts = lod.unwrap_atlas(parts, pixels=ul.ATLAS_MARGIN, size=ul.COLOR_SIZE)
-    material = lod.bake_material()
-    for low in parts:
-        lod.single_material(low, material)
-    lod.setup_cycles(scene, 4)
-    normal_raw = lod.new_target(f"{MODEL}-normal-raw", ul.NORMAL_BAKE_SIZE, non_color=True)
-    color_raw = lod.new_target(f"{MODEL}-color-raw", ul.COLOR_SIZE)
-    ao_raw = lod.new_target(f"{MODEL}-ao-raw", ul.AO_SIZE, non_color=True)
-    surface_raw = lod.new_target(f"{MODEL}-surface-raw", ul.COLOR_SIZE, non_color=True)
     detailed = [o for s in sources for o in s]
-    # The detailed objects bake in their rest pose, without the armature.
-    undo = [(o, o.parent) for o in detailed]
-    for o in detailed:
-        for m in o.modifiers:
-            m.show_render = False
-    ul.bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
-    with lod.EmissionSwap(detailed):
-        ul.bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
-    with lod.SurfaceSwap(detailed):
-        ul.bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
-    ul.bake_ao(scene, specs, parts, ao_raw, material)
-    for o, _p in undo:
-        for m in o.modifiers:
-            m.show_render = True
-    color_image, normal_image = ul.compose_textures(MODEL, color_raw, normal_raw, ao_raw)
-    surface_image = ul.compose_surface(MODEL, surface_raw)
-    final = lod.final_material(MODEL, color_image, normal_image, surface_image=surface_image)
-    for image in (normal_raw, color_raw, ao_raw, surface_raw):
-        bpy.data.images.remove(image)
-    bpy.data.materials.remove(material)
+    with Unskinned(detailed):
+        parts, final, color_image, clean_up = ul.bake_atlas(MODEL, specs(parts, sources), parts, detailed)
+    clean_up()
     return parts, final, color_image
 
 
@@ -224,12 +227,14 @@ def _push_out(obj, distance):
     mesh.update()
 
 
-def build(armature, rest):
-    parts, sources = low_parts()
-    parts, final, color_image = bake(parts, sources)
+def levels(parts, rest, color_image):
+    """The pieces of each group's LOD0, LOD1 and LOD2 from the baked LOD0
+    parts: {group: [[LOD0 objects], [LOD1], [LOD2]]}, for the parts there are."""
     by_name = {p.name: p for p in parts}
     levels = {g: [[], [], []] for g in GROUPS}
     for key, budget in BUDGET.items():
+        if key not in by_name:
+            continue
         group = GROUP_OF[key]
         low = by_name[key]
         levels[group][0].append(low)
@@ -247,15 +252,22 @@ def build(armature, rest):
             if key == "cloth":
                 _push_out(copy, 0.02)
             levels[group][2].append(copy)
+    return levels
+
+
+def build(armature, rest):
+    parts, sources = low_parts()
+    parts, final, color_image = bake(parts, sources)
+    levels_ = levels(parts, rest, color_image)
     out = {}
     totals = [0, 0, 0]
     for group in GROUPS:
         for i in range(3):
-            objs = levels[group][i]
+            objs = levels_[group][i]
             if not objs:
                 continue
             name = f"{group}_LOD{i}"
-            obj = ul._finish_lod(objs, name, LIMITS[i], armature, final)
+            obj = ul.finish_lod(objs, name, LIMITS[i], armature, final)
             # The coat colours live in the atlas now; a colour attribute
             # left on the mesh would be exported (COLOR_0) and multiply it.
             for attr in list(obj.data.color_attributes):

@@ -8,7 +8,7 @@ runs here, in stages:
     kit      build the kit: helmet, shield, armour, weapons...      unit.build_kit()
     rig      fit the body to the shared rig, transfer skin weights  unit.fit(), RIGID, SHARED, SMOOTHING,
                                                                      unit.rig_extras()
-    anim     the five clips from the animation library             unit.KIT (whp_clips)
+    anim     the six clips from the animation library              unit.KIT (whp_clips)
     lod      LOD0..2, the atlas, the bakes, the one material        unit.PARTS, unit.LOD2 (whp_unit_lod)
     export   write the .glb, check it, list it in index.json
 
@@ -57,7 +57,7 @@ from whp_render import render_views
 
 STAGES = ("source", "kit", "rig", "anim", "lod", "export")
 LODS = ("LOD0", "LOD1", "LOD2")
-CLIPS = ("idle", "walk", "run", "attack", "die")
+CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 BONES = 67
 INDEX = os.path.join(MODELS_DIR, "index.json")
