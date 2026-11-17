@@ -72,6 +72,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - Tải sẵn (T-027): cảnh vẫn hỏi lại máy chủ (304) cho từng file đã tải sẵn, vì file trong `public/` có `max-age=0`. Đổi header `Cache-Control` cho `/battles/models/` và `/data/terrain/` thì bỏ được, nhưng người dùng có thể thấy mô hình cũ vài phút sau khi xuất lại (tên file không có mã băm). Chưa làm; xem lại khi deploy.
 - Đi xiên (sau T-027, T-028): khối co lại thì các hàng bước tới trong khi trượt ngang; có thể cho đứng hay bước ngang (đề nghị 4d của T-027).
 - Hiệu năng (sau T-031): phần chậm còn lại so với trước đợt E chủ yếu là nhãn khối quân (khoảng 0,6 ms mỗi khung). Đề nghị của lane 3: xuất LOD2 (và LOD1) với ít đường nối UV hơn (đo thử gộp đỉnh: GPU vẽ một khung ở góc nhìn mở 7,4 còn 4,6 ms); chọn mức chi tiết theo phần nhỏ hơn của khối hình (150 kỵ binh ở LOD0 chiếm 1,1 triệu tam giác khi nhìn từ 120 m).
+- **Giáp lá cà (người dùng hỏi 2026-11-18, chưa chọn mức làm):** khi giao chiến, hàng đầu hai bên đứng cách nhau một dải đất trống, thường vài chục mét trên sân (đo ở giai đoạn 4–5: 34–280 m giữa tâm hàng đầu của hai khối gần nhau nhất). Khoảng một phần ba số hàng trước phát `attack` vào khoảng không: không có đối thủ riêng, không đỡ đòn, không trúng đòn; người ngã được chọn ngẫu nhiên trong khối, không gắn với một nhát đánh. Ba mức phiên chính đã nêu:
+  1. Áp sát và đấu từng cặp (phiên chính đề nghị): hàng đầu chạm nhau; mỗi người ở hàng đầu có một đối thủ, hai bên đánh so le; clip đỡ đòn và trúng đòn mới; người ngã là người vừa bị đánh. Lane 1 (clip), lane 2 (dữ liệu cho hàng đầu áp sát), lane 3 (cảnh).
+  2. Chỉ cho hai hàng áp sát, giữ cách đánh hiện nay. Lane 2, lane 3.
+  3. Để sau.
 - Bộ binh chạy nhanh hơn trần `run` (1,5 lần) ở khoảng hai phần ba số lần đo lúc chạy (tới 124 m/s trên sân, 7 lần tốc độ clip), nên chân trượt khi chạy xa. Có từ trước (trận được nén thời gian); phiên chính ghi lại khi đo đợt F.
 
 ## Không làm (điện thoại chỉ cần dùng được)
