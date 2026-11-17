@@ -97,6 +97,41 @@ const DIE = CLIP_INDEX.die;
 /** How many times faster than its own speed each gait may play. */
 const MAX_RATE: Record<number, number> = { [WALK]: 3, [JOG]: 1.8, [RUN]: 1.5 };
 
+/**
+ * Marching askew. The clips step straight ahead (or straight back), never
+ * sideways, so a figure that faces one way and goes another slides its
+ * planted foot. When a block that is not fighting moves well off the way it
+ * faces, each figure turns towards where it goes, and turns back to the
+ * facing of the block when the block stops or starts to fight.
+ *
+ * - The angle is taken per figure, between the facing the formation gives it
+ *   and its own direction over the ground (smoothed over VELOCITY_SMOOTHING),
+ *   so the ends of a wheeling block turn each by their own amount.
+ * - Off by less than TURN_FROM (35°) a figure keeps the facing of the block;
+ *   from TURN_FULL (55°) it faces the way it goes; in between it turns part
+ *   of the way, so nothing snaps when the angle passes the threshold (45°).
+ * - Going more back than forward, a figure steps back facing the enemy as
+ *   before and turns only to step straight back: off by 120° it turns 60°,
+ *   not 120°. Forward and back trade places past 90° ± BACK_SLACK, so a
+ *   figure moving straight sideways does not flip between the two.
+ * - Turning is at most TURN_RATE (about a quarter turn in half a second, as a
+ *   man turns), in real time, whatever the playback speed. While the battle
+ *   clock is paused the figures hold the way they face; after a jump (a seek)
+ *   they stand facing their block.
+ * - The figures that strike in a fight face the block. The others of a
+ *   fighting block (the ranks waiting their turn) may turn towards where they
+ *   go by at most WAITING_TURN (45°), so the press of a melee drifting
+ *   sideways does not leave every rear rank walking crabwise. Set it to 0 to
+ *   keep a whole fighting block facing the enemy.
+ */
+const TURN_FROM = (35 * Math.PI) / 180;
+const TURN_FULL = (55 * Math.PI) / 180;
+const BACK_SLACK = (12 * Math.PI) / 180;
+const TURN_RATE = 3;
+const WAITING_TURN = Math.PI / 4;
+/** Seconds over which the direction of each figure over the ground is smoothed. */
+const VELOCITY_SMOOTHING = 0.25;
+
 /** One gait of a model: its clip and its natural ground speed (m/s, as drawn). */
 interface Gait {
   clip: number;
@@ -232,6 +267,27 @@ const FOOT_U = 24;
 const FOOT_V = 2;
 const point = { x: 0, y: 0 };
 
+/** From angle a to angle b the shorter way round, in (-π, π]. */
+function angleDelta(a: number, b: number): number {
+  let delta = (b - a) % (2 * Math.PI);
+  if (delta > Math.PI) delta -= 2 * Math.PI;
+  if (delta <= -Math.PI) delta += 2 * Math.PI;
+  return delta;
+}
+
+/**
+ * How far a figure turns from the facing of its block, radians, when it goes
+ * `motion` radians off it (see TURN_FROM). `back` is whether it steps back.
+ */
+function askewTurn(motion: number, back: boolean): number {
+  const off = back ? angleDelta(Math.PI, motion) : motion;
+  const size = Math.abs(off);
+  if (size <= TURN_FROM) return 0;
+  if (size >= TURN_FULL) return off;
+  const k = (size - TURN_FROM) / (TURN_FULL - TURN_FROM);
+  return off * k * k * (3 - 2 * k);
+}
+
 export class UnitBlock {
   readonly chunks: Chunk[] = [];
   /** A tinted patch of ground under the block, so it reads from far away. */
@@ -257,6 +313,16 @@ export class UnitBlock {
   private placed = false;
   /** Ground each figure has covered on foot, metres: the phase of its stride. */
   private readonly walked: Float32Array;
+  /** Velocity of each figure over the ground, m/s of real time, smoothed. */
+  private readonly velocityX: Float32Array;
+  private readonly velocityY: Float32Array;
+  /** How far each figure has turned from the facing of its block (see TURN_FROM). */
+  private readonly turn: Float32Array;
+  /** 1 while a figure steps back, facing away from where it goes. */
+  private readonly back: Uint8Array;
+  /** Some figure is still turned away from its block's facing. */
+  private turned = false;
+  private lastNow = NaN;
   private lastTime = NaN;
   private lastBlend = NaN;
   private readonly center = new Vector3();
@@ -271,6 +337,10 @@ export class UnitBlock {
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
+    this.velocityX = new Float32Array(track.count);
+    this.velocityY = new Float32Array(track.count);
+    this.turn = new Float32Array(track.count);
+    this.back = new Uint8Array(track.count);
     const chunkCount = Math.ceil(track.count / CHUNK_SIZE);
     for (let c = 0; c < chunkCount; c++) {
       const first = Math.floor((c * track.count) / chunkCount);
@@ -330,7 +400,8 @@ export class UnitBlock {
       this.gait = this.pickGait();
     }
     // In a fight the front ranks strike; everyone else keeps pace with the block.
-    const acting = track.actionAt(time) === "fight" ? ATTACK : this.gait;
+    const fighting = track.actionAt(time) === "fight";
+    const acting = fighting ? ATTACK : this.gait;
     if (acting !== this.toActing || this.gait !== this.toRest) {
       this.fromActing = this.toActing;
       this.fromRest = this.toRest;
@@ -339,7 +410,19 @@ export class UnitBlock {
       this.blendStart = Number.isNaN(this.lastTime) ? -Infinity : now;
     }
     const blend = Math.min((now - this.blendStart) / BLEND_SECONDS, 1);
-    if (time === this.lastTime && blend === this.lastBlend) return;
+    // Wall-clock seconds since the last frame, for turning.
+    const tick = Number.isNaN(this.lastNow) ? 0 : Math.min(Math.max(now - this.lastNow, 0), MAX_STEP_SECONDS);
+    this.lastNow = now;
+    if (march.jumped) {
+      // After a jump the figures stand facing their block, without a turn to play out.
+      this.turn.fill(0);
+      this.back.fill(0);
+      this.velocityX.fill(0);
+      this.velocityY.fill(0);
+      this.turned = false;
+    }
+    // Still frames are skipped, unless figures are still turning.
+    if (time === this.lastTime && blend === this.lastBlend && (!this.turned || march.halted)) return;
     this.lastTime = time;
     this.lastBlend = blend;
 
@@ -361,7 +444,18 @@ export class UnitBlock {
     const current = this.gaits.find((g) => g.clip === this.gait) ?? this.gaits[0];
     const pace = current.speed * MAX_RATE[current.clip];
     const reach = this.speed > pace ? pace / this.speed : 1;
-    const { lastX, lastY, walked } = this;
+    const { lastX, lastY, walked, velocityX, velocityY, turn, back } = this;
+    // Marching askew (see TURN_FROM). While the clock stands still the men
+    // hold the way they face: a pause keeps the moment as it was. Whether a
+    // man is on the move is his own smoothed speed, not the gait of the
+    // block, which idles for a frame or two when playback resumes.
+    const steer = !march.halted;
+    const turnLimit = fighting ? WAITING_TURN : Math.PI;
+    const turnStep = TURN_RATE * tick;
+    const smoothing = stepping ? 1 - Math.exp(-march.step / VELOCITY_SMOOTHING) : 0;
+    // Slower than this a figure has no direction of its own to turn to.
+    const slowest = this.gaits[0].speed * MOVE_START;
+    let turned = false;
     let moved = 0;
     let movers = 0;
 
@@ -391,24 +485,51 @@ export class UnitBlock {
           anim[o + 2] = 0;
           anim[o + 3] = since;
         } else {
+          const heading = track.heading[i];
+          // In a fight only the front ranks strike; the rest wait their turn.
+          const acts = track.rank[i] <= 0.34 || track.seed[i] <= 0.2;
+          let dx = 0;
+          let dy = 0;
+          let step = 0;
           if (stepping) {
-            const dx = x - lastX[i];
-            const dy = north - lastY[i];
-            const step = Math.hypot(dx, dy);
-            if (step > 0) {
-              // Giving ground while facing the enemy: the stride runs backwards.
-              const heading = track.heading[i];
-              const forward = dx * Math.sin(heading) + dy * Math.cos(heading);
-              const stride = step * reach;
-              walked[i] += forward < -0.5 * step ? -stride : stride;
-              moved += step;
-            }
+            dx = x - lastX[i];
+            dy = north - lastY[i];
+            step = Math.hypot(dx, dy);
+            velocityX[i] += (dx / march.step - velocityX[i]) * smoothing;
+            velocityY[i] += (dy / march.step - velocityY[i]) * smoothing;
             movers++;
+          }
+          // Facing the block, or turned towards where the figure goes. A man
+          // turning about (timeline.ts) does that first.
+          let target = 0;
+          const limit = (fighting && acts) || track.turningAbout[i] ? 0 : turnLimit;
+          if (steer && limit > 0) {
+            const vx = velocityX[i];
+            const vy = velocityY[i];
+            if (vx * vx + vy * vy > slowest * slowest) {
+              const motion = angleDelta(heading, Math.atan2(vx, vy));
+              const off = Math.abs(motion);
+              if (off > Math.PI / 2 + BACK_SLACK) back[i] = 1;
+              else if (off < Math.PI / 2 - BACK_SLACK) back[i] = 0;
+              target = Math.min(Math.max(askewTurn(motion, back[i] === 1), -limit), limit);
+            }
+          }
+          let t = turn[i];
+          if (steer && t !== target) {
+            t = target > t ? Math.min(t + turnStep, target) : Math.max(t - turnStep, target);
+            turn[i] = t;
+          }
+          if (t !== 0) turned = true;
+          const facing = heading + t;
+          if (step > 0) {
+            // Giving ground while facing the enemy: the stride runs backwards.
+            const forward = dx * Math.sin(facing) + dy * Math.cos(facing);
+            const stride = step * reach;
+            walked[i] += forward < -0.5 * step ? -stride : stride;
+            moved += step;
           }
           lastX[i] = x;
           lastY[i] = north;
-          // In a fight only the front ranks strike; the rest wait their turn.
-          const acts = track.rank[i] <= 0.34 || track.seed[i] <= 0.2;
           anim[o] = acts ? fromActing : fromRest;
           anim[o + 1] = acts ? this.toActing : this.toRest;
           anim[o + 2] = weight;
@@ -417,7 +538,8 @@ export class UnitBlock {
         posYaw[o] = x;
         posYaw[o + 1] = y;
         posYaw[o + 2] = z;
-        posYaw[o + 3] = Math.PI - track.heading[i];
+        // A fallen figure keeps the turn it had when it fell.
+        posYaw[o + 3] = Math.PI - (track.heading[i] + this.turn[i]);
         seed[n] = track.seed[i];
         n++;
         if (x < minX) minX = x;
@@ -442,6 +564,7 @@ export class UnitBlock {
     }
 
     this.placed = true;
+    this.turned = turned;
     if (march.step > 0) {
       const measured = movers > 0 ? moved / movers / march.step : 0;
       this.speed += (measured - this.speed) * (1 - Math.exp(-march.step / SPEED_SMOOTHING));
@@ -536,6 +659,8 @@ export interface March {
   step: number;
   /** The clock is stopped or has jumped: figures stand at ease. */
   halted: boolean;
+  /** The clock has jumped (a seek): the figures are placed afresh. */
+  jumped: boolean;
 }
 
 const frustum = new Frustum();
@@ -546,7 +671,7 @@ export class Crowd {
   readonly blocks: UnitBlock[] = [];
   private readonly chunks: Chunk[] = [];
   private readonly ordered: Chunk[] = [];
-  private readonly march: March = { step: 0, halted: true };
+  private readonly march: March = { step: 0, halted: true, jumped: false };
   private lastNow = NaN;
   private lastClock = NaN;
 
@@ -574,6 +699,8 @@ export class Crowd {
       if (rate < 0 || rate > MAX_PLAYBACK_RATE) march.halted = true;
       else if (rate > 0) march.step = elapsed;
     }
+    // The clock moved, but not as a march.
+    march.jumped = advance !== 0 && march.step === 0;
     for (const block of this.blocks) block.update(time, now, march, heightAt);
   }
 
@@ -670,12 +797,15 @@ export class Crowd {
 
   /**
    * The blocks with men standing at `time`, as boxes that hide what lies
-   * behind them (see occlusion.ts). Written into `out`.
+   * behind them (see occlusion.ts). Written into `out`; `owners` gets the
+   * block of each box.
    */
-  occluders(time: number, heightAt: HeightAt, out: Occluder[]): void {
+  occluders(time: number, heightAt: HeightAt, out: Occluder[], owners: UnitBlock[]): void {
     out.length = 0;
+    owners.length = 0;
     for (const block of this.blocks) {
       if (block.standing === 0) continue;
+      owners.push(block);
       const f = block.track.formationAt(time);
       const sin = Math.sin(f.facing);
       const cos = Math.cos(f.facing);

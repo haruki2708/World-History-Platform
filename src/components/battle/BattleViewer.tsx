@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { getEvent, loadBattle, unitTypes } from "@/data";
 import type { Battle } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
@@ -59,6 +59,12 @@ function ViewerDialog({ battleId }: { battleId: string }) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("story");
+  /** The unit whose card is open on the scene. */
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  /** Bumped by a choice in the list of units: the camera flies to the unit. */
+  const [unitFocus, setUnitFocus] = useState(0);
+  /** The row of the list that opened the card, to take the focus back. */
+  const unitOpener = useRef<HTMLElement | null>(null);
   const battle = load.status === "ready" ? load.battle : null;
   const playback = usePlayback(battle);
   const event = getEvent(battleId);
@@ -138,6 +144,26 @@ function ViewerDialog({ battleId }: { battleId: string }) {
     );
     opener?.focus({ preventScroll: true });
   };
+
+  // A click on the scene picks a unit or closes its card; Esc and the close
+  // button of the card close it too. Closed from inside the card, the focus
+  // goes back to the row of the list that opened it, or to Play.
+  const selectUnit = useCallback((id: string | null) => {
+    const fromCard = document.activeElement?.closest("[data-battle-card]") != null;
+    if (id !== null) unitOpener.current = null;
+    setSelectedUnit(id);
+    if (id === null && fromCard) {
+      const opener = unitOpener.current;
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+      else dialogRef.current?.querySelector<HTMLElement>("[data-battle-play]")?.focus();
+    }
+  }, []);
+
+  const chooseUnit = useCallback((id: string, row: HTMLElement) => {
+    unitOpener.current = row;
+    setSelectedUnit(id);
+    setUnitFocus((n) => n + 1);
+  }, []);
 
   const selectTab = (next: PanelTab) => {
     setTab(next);
@@ -232,7 +258,14 @@ function ViewerDialog({ battleId }: { battleId: string }) {
               {/* On a phone the scene takes the upper part of the screen and
                   the panel scrolls below it. */}
               <div className="relative h-[42dvh] min-h-52 lg:h-auto lg:min-h-0 lg:flex-1">
-                <BattleScene battle={battle} unitTypes={unitTypes} introFromAbove />
+                <BattleScene
+                  battle={battle}
+                  unitTypes={unitTypes}
+                  introFromAbove
+                  selectedUnit={selectedUnit}
+                  onSelectUnit={selectUnit}
+                  unitFocusRequest={unitFocus}
+                />
               </div>
               <ControlBar battle={battle} playback={playback} />
             </div>
@@ -283,7 +316,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                 {tab === "story" ? (
                   <StoryPanel battle={battle} onPhase={playback.goToPhase} />
                 ) : (
-                  <InfoPanel battle={battle} />
+                  <InfoPanel battle={battle} selectedUnit={selectedUnit} onChooseUnit={chooseUnit} />
                 )}
               </div>
             </aside>
