@@ -148,8 +148,8 @@ set(4, "triarii", { formation: fromFront(-60, -170, 560, 26, 180) });
 // line has turned out to both flanks; the triarii have turned about to close
 // the rear; the light troops are inside.
 const BOX = {
-  5: { flank: 220, west: 110, east: 120, rear: 40, libyan: 240, north: 90, cavalry: 60 },
-  6: { flank: 170, west: 60, east: 70, rear: 40, libyan: 200, north: 0, cavalry: 60 },
+  5: { flank: 220, west: 110, east: 120, rear: 40, libyan: 240, north: 45, cavalry: 60 },
+  6: { flank: 170, west: 60, east: 70, rear: 40, libyan: 200, north: 15, cavalry: 60 },
 };
 for (const key of [5, 6]) {
   const box = BOX[key];
@@ -179,7 +179,10 @@ for (const key of [5, 6]) {
   set(key, "principes", { formation: fromFront(xWest, middle, box.flank, box.west, 270) });
   set(key, "allied-infantry-rear", { formation: fromFront(xEast, middle, box.flank, box.east, 90) });
   // The Libyans come round the outside of the crescent's wings, so at the
-  // end of phase 5 they stand further north than the flank they strike.
+  // end of phase 5 they stand a little further north than the flank they
+  // strike. They must cover that flank all the same: men fall only in the
+  // files that have an enemy before them, so a flank half covered loses
+  // every man of its covered half and none of the other.
   set(key, "libyans-left", { formation: fromFront(xWest - GAP, middle + box.north, box.libyan, 60, 90) });
   set(key, "libyans-right", { formation: fromFront(xEast + GAP, middle + box.north, box.libyan, 60, 270) });
   // The rear: the triarii across the whole width, Hasdrubal's horse against them.

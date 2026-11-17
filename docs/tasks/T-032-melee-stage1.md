@@ -3,10 +3,10 @@
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18, không giao lane).
 - **Model:** Fable 5.2, effort `xhigh`.
 - **Nhánh:** `batch-g/stage1-melee` (tạo từ `main`). Không commit thẳng vào `main`; commit sau mỗi phần lớn.
-- **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/data/battles/`, `scripts/battles/`, `docs/data/battles/`, `src/app/battle-lab/`, `src/lib/i18n/messages.ts` (`about.*`), `docs/`.
+- **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/data/battles/`, `scripts/battles/`, `docs/data/battles/`, `src/app/battle-lab/`, `src/lib/i18n/messages.ts`, `src/components/shell/AboutDialog.tsx`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G".
 
-File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Tiến độ" ở cuối trước.
+File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" ở cuối trước.
 
 ## Vấn đề
 
@@ -18,50 +18,79 @@ File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp th�
 - Lưỡi liềm là năm khối thẳng xếp bậc thang, còn mặt trận La Mã là hai khối cong: hai đường không trùng nhau.
 - Cảnh: hàng trước (`rank ≤ 0,34`) phát `attack` suốt giai đoạn `fight`; người ngã chọn ngẫu nhiên lúc dựng `UnitTrack`.
 
-## Thiết kế
-
-### Hợp đồng (`src/lib/battle.ts`)
-
-- `UnitType.ranged`: loại lính đánh từ xa (lao, đá ném). Không áp sát, giữ cách đánh hiện nay.
-- Clip `block`, `hit` để chặng 2 thêm.
-
-### Dữ liệu Cannae
-
-Nguyên tắc: hai khối đánh gần nhau thì **mép trước trùng nhau** (lệch tối đa vài mét) ở **cả hai mốc** của giai đoạn, và đi cùng nhau ở giữa. Chỉ như vậy cảnh mới thấy đánh suốt giai đoạn, vì giữa hai mốc là nội suy thẳng.
-
-- Mốc 3: bộ binh nặng La Mã đã chạm lưỡi liềm (còn lồi). Giai đoạn 4 là đánh trong lúc lưỡi liềm bị đẩy từ lồi sang lõm.
-- Mép trước của năm khối lưỡi liềm nằm trên một cung tròn liền nhau; mặt trận La Mã nằm trên cùng cung đó.
-- Mốc 5: lính Libya đã chạm hai sườn; principes và bộ binh đồng minh hàng sau đã quay ra đối mặt. Giai đoạn 6 đánh ở sườn suốt giai đoạn.
-- Kỵ binh, lưng quân La Mã: xem mục "Tiến độ" (cần quyết cách cho kỵ binh tới sớm trong giai đoạn 6).
-- `ranged: true` cho velites, lính ném đá, lính giáo nhẹ, kỵ binh Numidia.
-- Script kiểm tra trong `npm run validate`: khối đánh gần có `fight` phải chạm một khối địch; hai khối địch không được xuyên vào nhau.
-
-### Cảnh
-
-Dữ liệu thuần (không three.js), thử được bằng Node:
-
-- **Ai ngã** (`timeline.ts`): trong giai đoạn `fight` của khối đánh gần, người ngã là người đứng đầu một hàng dọc; trong mỗi hàng dọc người ngã lần lượt từ trước ra sau. Giai đoạn khác giữ cách chọn cũ.
-- **Người sau bước lên:** vị trí trong hàng dọc tính theo số người phía trước còn đứng, làm mượt 1,5 giây sau mỗi người ngã. Là hàm của thời gian, nên tua được.
-- **Xếp lại ở mỗi mốc:** người còn đứng được chia vào hàng dọc mới theo vị trí ngang, trong mỗi hàng xếp theo thứ tự trước sau cũ (trước đây xếp theo số thứ tự, làm người hàng sau đổi chỗ với người hàng trước).
-- **Ghép cặp** (`melee.ts`, mỗi khung): người đầu hàng dọc của khối đánh gần đang `fight` tìm người đầu hàng địch gần nhất trong tầm và trong góc trước mặt. Hai người chọn nhau thì bước lại tới khoảng cách đấu và quay mặt vào nhau; người thừa đánh kèm.
-- **Nhịp đánh:** mỗi người bị đánh theo nhịp riêng, chu kỳ 2,4 giây phát. Người sắp ngã có nhịp neo vào đúng lúc ngã, nên nhát cuối của đối thủ rơi đúng lúc đó. Người đánh phát `attack` một lần mỗi chu kỳ, canh cho lúc đòn chạm (đo từ clip) trùng nhịp của đối thủ; phần còn lại của chu kỳ đứng thủ (`idle`).
-- **Không có đối thủ trong tầm thì không đánh.**
-- Trạng thái làm mượt theo từng hình (độ dời, góc quay) đặt lại khi tua, như phần đi xiên.
-
-### Trang thử
-
-`/battle-lab?duel=1`: trận nhỏ dựng từ trận đang chọn (cùng địa hình), vài cặp khối đối mặt: tiến, chạm, đánh, bị đẩy lùi.
-
 ## Xong khi
 
-- Cannae: ở giai đoạn 4–6, người đầu hàng của các khối đánh gần có đối thủ trong tầm (đo bằng script, ghi số vào đây).
+- Cannae: ở giai đoạn 4–6, người đầu hàng của các khối đánh gần có đối thủ trong tầm (đo bằng script).
 - Không khối nào đánh vào khoảng không; người ngã trong khối đang đánh là người đầu hàng, ngã đúng lúc đòn chạm.
 - Tua tới cùng một thời điểm ra cùng người đứng, người ngã.
 - Tốc độ khung hình không thấp hơn `main` khi đo xen kẽ.
 - `npm run lint`, `npm run validate`, `npm run build` qua; hồi quy lõi qua.
-- Hộp thoại Giới thiệu có câu: các cặp đấu là minh hoạ, một hình bằng 20 người.
+- Hộp thoại Giới thiệu có câu: các cặp đấu là minh hoạ.
 - `docs/ARCHITECTURE.md` (mục "Giáp lá cà"), `docs/data/battles/cannae.md` cập nhật.
 
-## Tiến độ
+## Kết quả
 
-- 2026-11-18: đo vấn đề, chốt thiết kế, mở nhánh.
+Làm 2026-11-18. Thiết kế đầy đủ ở `docs/ARCHITECTURE.md`, mục "Giáp lá cà (đợt G)"; căn cứ dữ liệu ở `docs/data/battles/cannae.md`, mục 11.
+
+### Đã làm
+
+**Hợp đồng (`src/lib/battle.ts`)**
+
+- `UnitAction` thêm `skirmish` (đánh từ xa). `fight` từ nay là giáp lá cà: mép trước của khối phải nằm trên mép trước của một khối địch cũng `fight`, ở cả mốc đầu lẫn mốc cuối giai đoạn.
+- Lúc đầu định thêm cờ `UnitType.ranged`; bỏ, vì cùng một loại lính có lúc đánh xa có lúc đánh gần.
+- Nhãn trong thẻ khối quân: `battle.action.fight` thành "Giáp lá cà" / "Fighting hand to hand", thêm `battle.action.skirmish` ("Đánh từ xa" / "Skirmishing").
+
+**Cảnh (`src/components/battle/engine/`)**
+
+- `timeline.ts`: người ngã trong giai đoạn `fight` là người đầu hàng dọc, và chỉ ở hàng dọc có địch trước mặt (`opposition`); người sau bước lên; xếp lại hàng ở mỗi mốc theo vị trí đang đứng; hàng đầu sát mép trước của khối; mỗi hình có nhịp bị đánh (`beat`).
+- `melee.ts` (mới): ghép cặp người đầu hàng hai bên mỗi khung hình.
+- `units.ts`: hình lính có đối thủ thì bước tới, quay mặt và đánh theo nhịp của đối thủ; không có đối thủ thì không đánh; `Crowd.engage()`.
+- `figures/model.ts`: đo từ clip `attack` lúc nạp mô hình thời điểm đòn chạm và tầm với (`UnitModel.strike`). Số đo được: đâm kiếm chạm ở 0,30 s, tầm 1,07 m; chém (Gaul) 0,50 s, 0,98 m; giáo triarii 1,93 m; kỵ binh 0,47 s, tầm 2,0 m, đầu ngựa nhô 1,47 m.
+- `figures/material.ts`: thuộc tính `iStrike` cho từng hình.
+- `stress.ts`: hai hàng khối đầu của trận tổng hợp chạm nhau.
+
+**Dữ liệu Cannae**
+
+- `scripts/battles/cannae-lines.mjs` (mới) dựng bố cục các mốc 1–6 và ghi vào file trận.
+- Lời dẫn giai đoạn 2–5 và mũi tên giai đoạn 2–6 sửa theo bố cục mới (bảng trong `cannae.md`, mục 6).
+- `scripts/battles/validate-battles.mjs`: quy tắc khối `fight` phải chạm địch ở cả hai mốc. Dữ liệu cũ sai quy tắc này.
+
+**Khác**
+
+- `/battle-lab?duel=1` (`src/app/battle-lab/duelBattle.ts`).
+- Hộp thoại Giới thiệu: thêm dòng `about.accuracy.battle.duels`.
+
+### Đã kiểm tra
+
+- `npm run lint`, `npm run validate`, `npx tsc --noEmit`, `npm run build` (dựng trong worktree tạm): qua.
+- Số người đầu hàng có đối thủ trong tầm, mỗi 1/4 giai đoạn: bảng ở `cannae.md`, mục 11. Giai đoạn 4: hastati 73–91 trên 93–94.
+- Hai phe không còn chồng lên nhau từ giai đoạn 3 (`check-overlap.mjs --min 0.04`).
+- Trong trình duyệt (Chrome không cửa sổ, RTX 3050): `/battle-lab?duel=1` và Cannae, lúc dừng và lúc phát, qua từng mốc 3–6; trận tổng hợp `?stress=7000`. Console sạch.
+- Chi phí tính mỗi khung (Node, Cannae): lấy vị trí mọi hình 0,17–0,19 ms, ghép cặp 0,09–0,12 ms. Dựng mọi `UnitTrack` lúc nạp: 65 ms.
+- Tốc độ khung hình, bản production, đo xen kẽ với `main`, hai vòng, không có Blender chạy:
+
+| Lúc | `main` | Nhánh |
+|---|---|---|
+| Mở cảnh, dừng | 101, 111 | 109, 110 |
+| Phát giai đoạn 3 | 70, 72 | 68, 72 |
+| Phát giai đoạn 4 | 65, 73 | 69, 65 |
+| Phát giai đoạn 5 | 55, 61 | 66, 61 |
+| Phát giai đoạn 6 | 73, 68 | 60, 64 |
+
+  Giai đoạn 6 thấp hơn 7–18% ở phép đo này. Đo lại bằng cách khác (số khung trong 7 giây, không đọc pixel): 848 và 764 khung ở `main`, 798 và 840 ở nhánh; thời gian `Crowd.update` mỗi khung 2,1 và 2,9 ms ở `main`, 3,0 và 2,7 ms ở nhánh. Hai phép đo trái chiều nhau, nên chưa kết luận được là giai đoạn 6 chậm hơn; cần đo thêm vài vòng khi review.
+
+### Chưa làm, còn lại
+
+- **Hồi quy lõi** (`main-tools/reg-core.js`): xem dòng cuối mục này.
+- Hai người trong một cặp đánh lệch nhịp ngẫu nhiên, chưa luân phiên đều. Người bị đánh không phản ứng cho tới khi ngã. Cả hai thuộc chặng 2 (clip `block`, `hit`).
+- Lính nhẹ La Mã trong hộp ở giai đoạn 6 vẫn mất người theo cách cũ (335 hình, không ai đánh).
+- Hai sườn ở giai đoạn 6: mỗi hàng dọc mất một người sau khoảng 2 giây phát, người mới vừa bước lên đã ngã.
+- Giai đoạn 5: các khối La Mã đổi chỗ nhiều, còn khối cùng phe đi cắt qua nhau vài giây (tối đa 18%).
+- Lính giáo nhẹ của Hannibal dùng mô hình `iberian-infantry` (đâm kiếm), nên ở giai đoạn 2 (`skirmish`) vẫn đâm kiếm từ xa như trước. Có từ trước đợt G.
+- Khối đi xiên nhiều hơn trước: `check-facing.mjs --min 0.25` in 53 dòng (46 sau T-027), phần lớn ở giai đoạn 5–6, lúc quân La Mã dồn thành hộp. Lính Libya ở giai đoạn 6 vừa đánh vừa dịch 158 m lệch 55° so với hướng mặt.
+- Câu lời dẫn giai đoạn 2–5 đã đổi: người dùng nên đọc lại.
+
+### Đề nghị cho chặng 2
+
+- Hợp đồng: thêm `block`, `hit` vào cuối `UNIT_CLIPS`; quy ước thời điểm đòn chạm trong hai clip này.
+- Cảnh: cho hai người trong một cặp luân phiên (hiện nhịp của mỗi người là riêng, neo vào lúc ngã).

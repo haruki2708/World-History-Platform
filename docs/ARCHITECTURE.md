@@ -169,6 +169,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `battleTime` trong store chạy từ 0 tới số giai đoạn. Giữa hai mốc, cảnh tự nội suy.
   - `phaseAt` và `hourAt` trong `battle.ts` quy đổi `battleTime` ra giai đoạn đang diễn ra và giờ trong ngày.
 - **Quân số:** một hình lính bằng `MEN_PER_FIGURE` (20) người. Số người `men` của một đơn vị chỉ giảm, không tăng; `npm run validate` có kiểm tra.
+- **Hành động** (`UnitAction`): có hai kiểu đánh (đợt G, xem mục "Giáp lá cà").
+  - `skirmish`: đánh từ xa (lao, đá ném). Hàng trước ném từ chỗ đứng; hai khối không cần chạm nhau.
+  - `fight`: giáp lá cà. Mép trước của khối phải nằm trên mép trước của một khối địch cũng `fight`, ở **cả mốc đầu lẫn mốc cuối** của giai đoạn, vì giữa hai mốc cảnh nội suy thẳng. `npm run validate` kiểm tra (ít nhất 15% bề ngang cách mép trước của địch không quá 8 m).
+  - Khối chỉ tới chỗ địch ở cuối một giai đoạn thì giai đoạn đó ghi `advance` hay `charge`, giai đoạn sau mới ghi `fight`.
 - **Địa hình:**
   - Lưới độ cao trong `public/data/terrain/`: số Int16 little-endian, đơn vị decimet, hàng chạy từ bắc xuống nam, cột từ tây sang đông.
   - Sông và địa danh (trại, đồi, thành) đi kèm trong `terrain`.
@@ -197,7 +201,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
     - `jog` đứng cuối `UNIT_CLIPS`, nên chỉ số của các clip cũ không đổi. Mô hình chưa có `jog` vẫn chạy như trước.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
-    - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
+    - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
     - Số đo với thư viện hoạt hình chung của lane 1 (Quaternius, đổi đích sang khung 67 xương; T-024 đo lại theo cách của cảnh, bằng `art/tools/gait_check.py`): một vòng `walk` dài 1,333 s, đi được 1,30 m; một vòng `run` dài 0,933 s, đi được 5,45 m. Clip nguồn của `run` vốn là chạy nhanh (5,8 m/s ở cỡ người thật).
     - `jog` của bộ binh (T-022): trộn `Walk_Loop` và `Jog_Fwd_Loop` theo pha, kéo giãn để chân chạm đất 65% mỗi bước, rồi khoá chân trụ. Một vòng 0,733 s, đi được 2,07–2,10 m (2,8–2,9 m/s ở cỡ người thật).
     - Chân trụ đã được khoá trong clip (`whp_clips.Builder.lock_feet`): trượt dưới 3% khi đi, khoảng 1% khi chạy.
@@ -247,7 +251,34 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `?battle=<id>`: chọn trận;
   - `?stats=1`: hiện số khung hình/giây và số hình lính;
   - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng;
+  - `?duel=1`: trận nhỏ để xem giáp lá cà (`src/app/battle-lab/duelBattle.ts`): năm cặp khối trên địa hình của trận đang chọn, tiến lại, chạm nhau, đánh tại chỗ, rồi một bên bị đẩy lùi; cặp thứ năm đánh từ xa;
   - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt.
+
+### Giáp lá cà (đợt G)
+
+Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của khối đấu với người đầu hàng của địch; ai không có đối thủ trong tầm thì không đánh. Phần tính toán là dữ liệu thuần (không three.js), chạy thử được bằng Node qua `src/server/tutor/tools/register.mjs`.
+
+- **Ai ngã** (`engine/timeline.ts`):
+  - Trong giai đoạn `fight`, người ngã là người đầu hàng dọc; trong một hàng dọc người ngã lần lượt từ trước ra sau. Hàng dọc không có địch trước mặt (`opposition`: tính từ đội hình các khối địch đang `fight`) gần như không mất người.
+  - Giai đoạn khác giữ cách chọn cũ: ngẫu nhiên, nghiêng về hàng trước.
+  - Số người ngã theo thời gian vẫn chia đều theo `men` của hai mốc. Riêng giai đoạn `fight`, không ai ngã trong 1,9 giây phát cuối, để người phía sau kịp bước lên trước mốc.
+- **Người sau bước lên:** vị trí trước sau của một người trong hàng dọc bằng vị trí ở mốc đầu trừ số người phía trước đã ngã; mỗi người ngã được tính dần trong 1,5 giây phát (sau 0,4 giây chờ). Đây là hàm của thời gian, nên tua tới đâu cũng ra cùng một cảnh.
+- **Xếp lại ở mỗi mốc:** người còn đứng được chia vào các hàng dọc của lưới mới theo vị trí ngang, trong mỗi hàng xếp theo thứ tự trước sau đang có. Không ai đi xuyên qua ai, và người đang ở phía trước vẫn ở phía trước. Sau một lần quay đầu, khung của mốc là khung cũ nhìn từ phía sau.
+- **Hàng đầu sát mép trước:** hàng đầu đứng sau mép trước của khối 3,2 m (hay nửa khoảng cách hàng, nếu nhỏ hơn), kể cả khi khối chỉ còn vài người trên một bề ngang rộng.
+- **Ghép cặp** (`engine/melee.ts`, mỗi khung hình, sau khi mọi khối đã được tính vị trí):
+  - Mỗi người đầu hàng chọn người đầu hàng địch gần nhất, trong tầm (khoảng cách đấu cộng 10 m) và trong góc 70° trước mặt của cả hai.
+  - Hai người chọn nhau thì mỗi người bước tối đa 5 m để đứng cách nhau đúng khoảng cách đấu, mặt quay vào nhau.
+  - Người có đối thủ đang bận với người khác thì đánh kèm từ bên cạnh, lệch ít nhất 55°; mỗi bên của một người chỉ có một người đánh kèm.
+  - Khoảng cách đấu lấy từ mô hình (`UnitModel.strike`, đo từ clip `attack` lúc nạp): tầm của vũ khí lúc đòn chạm, và phần thân (khiên, đầu ngựa) nhô ra trước lúc đứng.
+  - Kết quả chỉ phụ thuộc thời gian trong trận.
+- **Nhịp đánh:** mỗi hình lính có một nhịp bị đánh (`UnitTrack.beat`), chu kỳ `STRIKE_PERIOD` (2,4 giây phát). Nhịp của người sẽ ngã chính là lúc người đó ngã. Người đánh phát clip `attack` một lần mỗi chu kỳ, đặt sao cho lúc đòn chạm trùng nhịp của đối thủ, nên nhát cuối rơi đúng lúc đối thủ ngã. Giữa hai nhát, hình lính đứng thủ (`idle`).
+- **Vẽ** (`engine/units.ts`):
+  - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối.
+  - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`. Giá trị âm thì clip lặp theo đồng hồ như trước (dùng cho `skirmish`).
+  - Một nhát đã bắt đầu thì phát hết, dù đối thủ đã ngã; nhát mới chỉ bắt đầu ở đầu clip. Sau khi tua, hình lính đứng ngay vào chỗ đấu và vào đúng khung của nhát đang diễn ra.
+  - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
+  - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
+- **Chưa có** (chặng 2 và 3): clip đỡ đòn và trúng đòn. Hiện người bị đánh không phản ứng cho tới khi ngã. Hai người trong một cặp đánh lệch nhịp ngẫu nhiên, không luân phiên đều.
 
 ### Khung xem trận (đợt C)
 

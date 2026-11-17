@@ -1045,7 +1045,7 @@
         },
         {
           "unit": "libyans-left",
-          "formation": { "center": { "x": -389.8, "y": -134.8 }, "frontage": 240, "depth": 60, "facing": 90 },
+          "formation": { "center": { "x": -389.8, "y": -179.8 }, "frontage": 240, "depth": 60, "facing": 90 },
           "action": "charge",
           "men": 4000
         },
@@ -1081,7 +1081,7 @@
         },
         {
           "unit": "libyans-right",
-          "formation": { "center": { "x": 267.8, "y": -134.8 }, "frontage": 240, "depth": 60, "facing": 270 },
+          "formation": { "center": { "x": 267.8, "y": -179.8 }, "frontage": 240, "depth": 60, "facing": 270 },
           "action": "charge",
           "men": 4000
         },
@@ -1197,7 +1197,7 @@
         },
         {
           "unit": "libyans-left",
-          "formation": { "center": { "x": -298.4, "y": -323.9 }, "frontage": 200, "depth": 60, "facing": 90 },
+          "formation": { "center": { "x": -298.4, "y": -308.9 }, "frontage": 200, "depth": 60, "facing": 90 },
           "action": "fight",
           "men": 3750
         },
@@ -1233,7 +1233,7 @@
         },
         {
           "unit": "libyans-right",
-          "formation": { "center": { "x": 178.4, "y": -323.9 }, "frontage": 200, "depth": 60, "facing": 270 },
+          "formation": { "center": { "x": 178.4, "y": -308.9 }, "frontage": 200, "depth": 60, "facing": 270 },
           "action": "fight",
           "men": 3750
         },
