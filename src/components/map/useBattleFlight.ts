@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleFlight } from "./battleFlight";
+import { prefetchBattleAssets } from "./battlePrefetch";
 
 /**
  * Answers store.battleRequest: flies the map to the battlefield, then opens
  * the battle (see BattleFlight). Without a map (still loading, or it failed)
  * the battle opens at once. When the battle closes, the map flies back.
+ * Either way the scene's files start loading at the request
+ * (prefetchBattleAssets), so the scene finds them in the cache.
  *
  * Returns true while the map is on its way to a battlefield.
  */
@@ -19,8 +22,11 @@ export function useBattleFlight(map: MapLibreMap | null): boolean {
     const flight = map
       ? new BattleFlight(map, (id) => useAppStore.getState().openBattle(id), setFlying)
       : null;
-    const request = (id: string) =>
-      flight ? flight.request(id) : useAppStore.getState().openBattle(id);
+    const request = (id: string) => {
+      prefetchBattleAssets(id);
+      if (flight) flight.request(id);
+      else useAppStore.getState().openBattle(id);
+    };
 
     // A request this effect has not seen yet: one left by a flight that was
     // disposed, when the map was recreated or the component remounted.
