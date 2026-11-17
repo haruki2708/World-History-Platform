@@ -1,6 +1,6 @@
 # Trận Cannae (216 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-16 (T-016). File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
+Cập nhật: 2026-11-17 (T-027; lập ở T-016). File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
 
 Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và lý do, để người sau kiểm tra hoặc sửa.
 
@@ -186,7 +186,9 @@ GLO-30 là mô hình bề mặt (DSM): đo cả cây và nhà, không chỉ mặ
 - Mọi điểm của sông phải nằm trong vùng địa hình.
 - `dayOfYear`, nếu có, là số nguyên từ 1 tới 366 (T-020).
 
-`scripts/battles/check-overlap.mjs` (T-020, không nằm trong `npm run validate`) báo các khối chồng nhau ở mọi mốc **và giữa các mốc** (mỗi 1/4 giai đoạn), cả cùng phe lẫn hai phe, tính cả `bulge`, đúng như cảnh di chuyển chúng (nội suy tuyến tính). Dùng khi sửa dữ liệu: `node scripts/battles/check-overlap.mjs --min 0.05`.
+`scripts/battles/check-overlap.mjs` (T-020, không nằm trong `npm run validate`) báo các khối chồng nhau ở mọi mốc **và giữa các mốc** (mỗi 1/4 giai đoạn), cả cùng phe lẫn hai phe, tính cả `bulge`, đúng như cảnh di chuyển chúng (nội suy tuyến tính). Từ T-027, hướng đổi từ 135° trở lên được tính là quay đầu tại chỗ như cảnh của T-026, không xoay cả khối. Dùng khi sửa dữ liệu: `node scripts/battles/check-overlap.mjs --min 0.05`.
+
+`scripts/battles/check-facing.mjs` (T-027, không nằm trong `npm run validate`) liệt kê các khối có lính đi lệch hướng mặt quá 45° (đi ngang hay đi lùi), xem mục 10.
 
 ## 9. Chỉnh khi xem trong cảnh thật (T-020)
 
@@ -220,4 +222,46 @@ Xem cả 6 giai đoạn trong `/battle-lab?stats=1` (cảnh của T-015, T-018),
 - Giữa giai đoạn 3, lính nhẹ hai bên lui về **qua** hàng bộ binh nặng của mình (Polybius 3.115: lính nhẹ rút qua khoảng hở giữa các đơn vị). Ở mức khối quân, việc này hiện thành khối xuyên qua khối, khoảng 2–4 giây khi phát.
 - Giai đoạn 5, kỵ binh Numidia đuổi sát và lẫn vào kỵ binh đồng minh đang quay đầu bỏ chạy (chồng tối đa 14% giữa giai đoạn).
 - Giai đoạn 6, các khối La Mã bị dồn chặt khi quay ra hai sườn, chồng nhau tối đa 14% giữa giai đoạn, không chồng ở cuối giai đoạn.
-- **Triarii vẫn quay mặt về nam ở giai đoạn 6**, dù kỵ binh Hasdrubal đánh từ phía bắc: cảnh xoay cả khối quanh tâm khi `facing` đổi, nên quay đầu 180° làm một khối rộng 820 m quét ngang cả đạo quân. Đề nghị cho lane 3 ghi trong mục "Kết quả" của T-020.
+- ~~Triarii vẫn quay mặt về nam ở giai đoạn 6~~: đã sửa ở T-027 (mục 10), sau khi T-026 cho khối quay đầu tại chỗ.
+
+## 10. Hướng mặt và hướng đi (T-027)
+
+Cảnh cho chân bước theo hướng mặt của từng hình lính, với tốc độ bằng quãng đường hình lính đi được. Khối nào đi ngang hay đi lùi so với hướng mặt thì chân trụ trượt (lane 1 đo được 32–48% ở giai đoạn 5–6, ghi chú ở T-024).
+
+### Script kiểm tra
+
+`node scripts/battles/check-facing.mjs [--min 0.25] [--angle 45]`
+- Mô phỏng chuyển động như cảnh (`src/components/battle/engine/timeline.ts`): tâm, bề ngang, chiều sâu, độ phình nội suy tuyến tính; hướng xoay theo chiều ngắn; đổi từ 135° trở lên là quay đầu tại chỗ, mỗi người quay trong khoảng 8% đầu giai đoạn.
+- Lấy mẫu 21 ô trong khối (7 hàng ngang × 3 hàng dọc), 19 thời điểm mỗi giai đoạn. Coi như mỗi người giữ ô của mình suốt giai đoạn; bỏ qua việc cảnh xếp lại ô khi có người ngã.
+- Với mỗi khối và mỗi giai đoạn: tỉ lệ thời gian khối đi nhanh hơn ngưỡng đi bộ của cảnh (0,36 m/s), và trong lúc đó tỉ lệ mẫu đi lệch hướng mặt quá 45°. Cột `side` là đi ngang (45°–135°), `back` là đi lùi (trên 135°); `centre` là góc giữa đường đi của tâm khối và hướng mặt ở giữa giai đoạn.
+- Số dòng từ 25% trở lên: 54 trước khi sửa, 46 sau khi sửa. Giai đoạn 3 hết hẳn (4 → 0), giai đoạn 4 còn 6 (từ 8), giai đoạn 6 còn 14 (từ 16).
+
+### Đã sửa
+
+1. **Triarii, giai đoạn 6: quay về bắc** (0°). Kỵ binh Hasdrubal đánh vào lưng các quân đoàn từ phía bắc (Polybius 3.116), mà triarii là hàng cuối, nên hàng này quay lại đối mặt. Khối quay đầu tại chỗ (T-026): đứng nguyên chỗ, chỉ co bề ngang từ 820 m xuống 460 m như trước.
+2. **Lính nhẹ La Mã (velites, bộ binh nhẹ đồng minh), giai đoạn 6: quay về bắc.** Ở mục 9 hai khối này bị kẹt giữa triarii và kỵ binh Hasdrubal, đang đánh (`fight`) và mất phần lớn quân, nhưng lại quay lưng về phía kỵ binh.
+3. **Lính nhẹ lui qua hàng quân mình thì quay lưng mà đi**, thay vì đi giật lùi hàng trăm mét. Polybius 3.115 chỉ nói lính nhẹ rút qua khoảng hở giữa các đơn vị, không nói họ vừa lùi vừa quay mặt về địch; với lính nhẹ, quay lưng chạy về là cách tự nhiên.
+   - La Mã: quay về bắc ở giai đoạn 3 (lui 200 m ra sau bộ binh nặng), quay lại hướng nam ở giai đoạn 4 khi theo sau bộ binh nặng.
+   - Carthage (lính ném đá Baleares, lính giáo nhẹ): quay về nam ở giai đoạn 3–4 (lui 430 m qua lưỡi liềm, rồi 160 m nữa); quay lại hướng bắc tại chỗ ở giai đoạn 5. `action` giai đoạn 5 đổi từ `retreat` thành `stand`, vì khối không còn di chuyển.
+4. **Lính nhẹ Carthage, giai đoạn 6: đứng yên.** Trước đây ghi `stand` nhưng khối vẫn trôi lùi 40 m (cảnh cho lính đi giật lùi).
+5. **Kỵ binh đồng minh, giai đoạn 4: không bị đẩy lùi.** Polybius 3.116 tả kỵ binh Numidia đánh quấy, vòng lên rồi rút, cầm chân kỵ binh đồng minh chứ không đánh lui. Đoạn lùi 106 m chỉ còn 14 m, đủ để khỏi chạm góc khối kỵ binh Numidia.
+
+`check-overlap.mjs --min 0.05` cho đúng danh sách như trước khi sửa (các chỗ chồng có chủ ý ở mục 9). Sau các thay đổi, dữ liệu có 14 lần quay đầu, 11 trong số đó mới thêm ở T-027.
+
+**Phụ thuộc vào cảnh.** Hiện cảnh vẽ quay đầu chưa đúng ý: từng hình lính đi tới vị trí đối xứng qua tâm khối, nên giữa giai đoạn cả khối co lại gần tâm rồi giãn ra. Đề nghị sửa ở `docs/tasks/T-027-prefetch-cannae-data.md`, mục "Kết quả". Lỗi này có từ T-026 và ảnh hưởng cả 3 lần quay đầu đã có từ trước (kỵ binh La Mã giai đoạn 3, kỵ binh đồng minh giai đoạn 5, lực lượng ở trại lớn giai đoạn 6).
+
+### Còn đi xiên, có chủ ý
+
+Dữ liệu không sửa được những chỗ dưới đây mà vẫn đúng nguồn, hoặc phải dàn lại cả phần mở đầu:
+
+| Giai đoạn | Khối | Kiểu | Lý do giữ |
+|---|---|---|---|
+| 1 | 12 khối của Hannibal | Đi ngang 77°, 70 m/s | Cả đạo quân đi 1,7 km về hướng đông bắc trong khi quay mặt về bắc. Muốn đi thẳng thì phải dàn lại thế đứng ban đầu thành hàng dọc (các khối đang đứng cạnh nhau theo trục đông tây, lính nhẹ đứng trước, sẽ chồng lên nhau khi xoay). Ở 70 m/s chân vẫn trượt vì nhanh hơn trần của clip chạy (26,6 m/s) |
+| 4, 5, 6 | Lưỡi liềm (Gaul, Iberia) | Đi lùi, có lúc đi ngang | Polybius 3.115, Livy 22.47: lưỡi liềm vừa đánh vừa lùi, mặt vẫn hướng về quân La Mã. Đi lùi khi giao chiến là đúng |
+| 4 | Kỵ binh đồng minh | Xoay 10° tại chỗ, 1,2 m/s | Rất nhỏ (mục "Đã sửa", 5) |
+| 5, 6 | Các khối bộ binh La Mã (hastati, principes, triarii, bộ binh đồng minh, lính nhẹ) | Đi ngang 50–75° | Vòng vây khép dần: các khối co bề ngang và dồn vào giữa trong khi vẫn quay mặt ra ngoài (Polybius 3.116; Livy 22.47). Người ở hai đầu khối bước ngang |
+| 5 | Lính Libya hai cánh | Đi ngang khoảng một nửa thời gian | Polybius 3.115: lính châu Phi quay mặt vào trong rồi đánh vào sườn. Cảnh xoay khối đều trong cả giai đoạn trong khi khối tiến 100–140 m, nên nửa đầu khối đi ngang |
+| 6 | Principes, bộ binh đồng minh hàng sau | Đi ngang khoảng 60° | Quay 90° ra hai sườn và đi tới đó trong cùng một giai đoạn. Cũng như lính Libya: quay xong rồi mới đi thì không còn xiên |
+| 6 | Kỵ binh Hasdrubal (hai khối) | Đi ngang 80–100°, 37 m/s | Vòng từ phía đông về đánh vào lưng quân La Mã: đi về hướng tây nam, quay mặt từ đông nam sang nam. Ở tốc độ này chân vẫn trượt |
+
+Cả bảng này là việc của cảnh, không phải của dữ liệu; đề nghị cụ thể ở mục "Kết quả" của T-027.
