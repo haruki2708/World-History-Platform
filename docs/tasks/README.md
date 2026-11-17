@@ -46,3 +46,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-025](T-025-battle-flight.md) | 2 | Trận đánh 3D: bản đồ bay tới chiến trường trước khi mở trận, bay về khi đóng | Xong, đã gộp 2026-11-17 |
 | [T-026](T-026-scene-fixes.md) | 3 | Trận đánh 3D: sửa cảnh (quay đầu tại chỗ, chuẩn bị kỵ binh, mức chi tiết, vùng màu, nhãn) | Xong, đã gộp 2026-11-17 (phiên chính làm thay lane 3) |
 | [T-027](T-027-prefetch-cannae-data.md) | 2 | Trận đánh 3D: tải sẵn tài nguyên cảnh trong lúc bay; triarii quay đầu, các khối đi xiên | Đang làm (giao 2026-11-17) |
+| [T-028](T-028-unit-labels.md) | 3 | Trận đánh 3D: tên khối quân trên cảnh, thẻ thông tin khi bấm, khối đi xiên | Đang làm (giao 2026-11-17) |
