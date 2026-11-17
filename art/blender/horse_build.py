@@ -10,7 +10,9 @@ alone with --from):
              -> source.npz                                   (horse_source)
     rig      game rig, body, coat, mane, tail, tack          (horse_rig, horse_kit)
              -> 1-rig.blend
-    anim     idle, walk, run, die (+ trot, canter)           (horse_clips)
+    anim     idle, walk, run, die (+ trot, canter)           (horse_clips;
+             run rebuilt with a full stride and trot's hooves
+             locked: horse_gallop)
              -> 2-anim.blend
     lod      LOD0..2 per group, atlas, bakes, one material   (horse_lod)
              -> 3-lod.blend
@@ -32,6 +34,7 @@ import bpy  # noqa: E402
 import numpy as np  # noqa: E402
 
 import horse_clips  # noqa: E402
+import horse_gallop  # noqa: E402
 import horse_kit  # noqa: E402
 import horse_lod  # noqa: E402
 import horse_rig as rig  # noqa: E402
@@ -113,8 +116,15 @@ def stage_anim():
     weights = rig.game_weights(data)
     info = {"fps": rig.FPS, "clips": {}}
 
+    hooves = horse_gallop.Hooves(body_co, weights, rest)
     for name, key in horse_clips.GAITS.items():
         basis = horse_clips.gait(data, frame, key, rest)
+        source_m, source_slip = horse_gallop.stride(basis, rest, hooves)
+        if name == "run":
+            basis = horse_gallop.gallop(basis, rest, hooves)          # T-030: a full stride
+        elif name in horse_gallop.LOCKED:
+            basis, _speed = horse_gallop.lock(basis, rest, hooves)    # T-030: planted hooves locked
+        scene_m, slip = horse_gallop.stride(basis, rest, hooves)
         rig.key_clip(armature, name, basis, loop=True)
         pose = rig.from_basis(basis, rest)
         count = len(basis["horse_hips"])
@@ -123,9 +133,12 @@ def stage_anim():
         lows = horse_clips.ground_report(name, pose, rest, body_co, weights)
         info["clips"][name] = {"source": key, "frames": count - 1, "seconds": round(seconds, 3),
                                "cycle_m": round(distance, 2), "speed_m_s": round(speed, 2),
+                               "scene_m": round(scene_m, 3), "scene_slip": round(slip, 3),
+                               "source_scene_m": round(source_m, 3), "source_scene_slip": round(source_slip, 3),
                                "lowest_m": [round(float(lows.min()), 3), round(float(lows.max()), 3)]}
         log(f"{name} (source {key}): {count - 1} frames, {seconds:.3f} s, one cycle {distance:.2f} m "
-            f"({speed:.2f} m/s; per hoof {per_hoof})")
+            f"({speed:.2f} m/s; per hoof {per_hoof}); as the scene reads it {scene_m:.3f} m a loop, "
+            f"planted hooves slip at most {slip * 100:.0f}% (source {source_m:.3f} m, {source_slip * 100:.0f}%)")
 
     basis = horse_clips.idle(data, frame, rest)
     rig.key_clip(armature, "idle", basis, loop=True)
