@@ -8,7 +8,7 @@ Các mô hình trong `public/battles/models/` được dựng bằng script tron
 - Link: https://quaternius.com/packs/universalanimationlibrary.html, https://quaternius.com/packs/universalanimationlibrary2.html (tải từ https://quaternius.itch.io/universal-animation-library và https://quaternius.itch.io/universal-animation-library-2, ngày 2026-11-16).
 - Giấy phép: [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (đọc trên hai trang và trong `License.txt` của mỗi file zip). CC0 không bắt ghi công; ghi ở đây cho minh bạch.
 - Phần dùng: chuyển động của các clip `Idle_Loop`, `Walk_Loop`, `Jog_Fwd_Loop`, `Death01`, `Punch_Cross` (bản 1) và `OverhandThrow` (bản 2: phóng lao của velites, ném đá của lính Baleares, chém kiếm của người Gaul). Hình nộm và khung xương của thư viện không có trong file xuất.
-- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK, chân trụ của `walk` và `run` được khoá theo mặt đất; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân (chân của phóng lao và ném đá còn một phần tư); túi đá của dây ném đi theo một xương riêng. Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
+- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK, chân trụ của `walk` và `run` được khoá theo mặt đất; `jog` (T-022) trộn `Walk_Loop` và `Jog_Fwd_Loop` theo pha, kéo giãn pha chạm đất của clip chạy; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân (chân của phóng lao và ném đá còn một phần tư); túi đá của dây ném đi theo một xương riêng. Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
 
 ## `roman-legionary.glb`: lính bộ binh La Mã thời Cộng hoà
 
@@ -198,3 +198,53 @@ Ngựa không xuất thành file `.glb` riêng: T-022 ghép người cưỡi lê
 
 - Tiếng Việt: *Ngựa dựa trên "Horse" của Tarnyloo (Blend Swap, CC BY 3.0), khung xương và dáng đi từ "Horse Rigged All Gaits" của fdoss001 (Blend Swap, CC0); đã sửa đổi.*
 - English: *Horse based on "Horse" by Tarnyloo (Blend Swap, CC BY 3.0), with the rig and gaits of "Horse Rigged All Gaits" by fdoss001 (Blend Swap, CC0); modified.*
+
+## Ba mô hình kỵ binh của T-022
+
+Mỗi mô hình kỵ binh là **một người cưỡi trên một con ngựa**, trong cùng một file. Người cưỡi dựng trên cùng mô hình nền và khung xương như `roman-legionary`: **"Roman Soldier - T pose - free download"** và khung xương của **"Celt - rigged for UE4/5"**, cùng của **Andywoodhead**, giấy phép [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (link ở mục `roman-legionary`). Ngựa là con ngựa của mục "Ngựa" dưới đây: lưới **"Horse"** của **Tarnyloo** (Blend Swap, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), bắt buộc nêu tên tác giả); khung xương và dáng đi từ **"Horse Rigged All Gaits"** của **fdoss001** (Blend Swap, CC0).
+
+Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
+
+1. **Người cưỡi:** bỏ các phần thời Đế chế như `roman-legionary` (mục 1); đổi tư thế, tỉ lệ, gắn khung xương như mục 3–5.
+2. **Ghép người và ngựa:** tư thế gốc của người được nhấc lên lưng ngựa; hai khung xương ghép thành một (67 + 40 = 107 xương); ba xương gốc của người treo vào xương yên `horse_saddle`.
+3. **Hoạt hình:**
+   - ngựa: `idle`, `walk`, `run` (phi), `die` của con ngựa; `jog` là nước kiệu (`trot`) của file gốc; `attack` là tư thế đứng của ngựa, thêm nhịp thở và gật đầu, tự làm;
+   - người: tư thế ngồi, cầm cương, mang vũ khí, đâm giáo hay phóng lao tự dựng bằng IK; cú ngã dùng `Death01` của thư viện Quaternius (CC0), trộn từ tư thế ngồi khi bị văng khỏi ngựa.
+4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân.
+
+### `roman-cavalry.glb`: kỵ binh La Mã và đồng minh
+
+- **Như `roman-legionary`:** mũ Montefortino có má che và ngù, giáp lưới có lớp che vai và móc ngực, áo đỏ, đai.
+- **Thêm:** khiên tròn đường kính 0,66 m (dựng như khiên *parma* của velites, nhỏ hơn) đeo ở cẳng tay trái; giáo dài 2,5 m có đế sắt nhọn trong tay phải.
+- **Sửa:** kiếm của mô hình nền cất vào bao ở hông phải.
+- **Ngựa:** vải lót yên len đỏ, đai bụng, dây cương; tay trái người cầm dây cương.
+- **Hoạt hình:** `attack` là đâm giáo qua vai, qua bên phải đầu ngựa.
+
+### `iberian-gallic-cavalry.glb`: kỵ binh Iberia và Gaul
+
+- **Như `iberian-infantry`:** áo nhuộm trắng như vải lanh, viền đỏ tía 5 cm; da màu ô liu; mũ bằng gân; đai.
+- **Thêm:** khiên bầu dục dài kiểu La Tène như của bộ binh Iberia nhưng nhỏ hơn (0,92 × 0,50 m), đeo ở cẳng tay trái; giáo 2,3 m trong tay phải.
+- **Sửa:** kiếm cất vào bao.
+- **Ngựa:** vải lót yên nhuộm lại màu len xanh đen, viền vàng đất; đai bụng, dây cương; tay trái cầm cương.
+- **Hoạt hình:** `attack` là đâm giáo qua vai.
+
+### `numidian-cavalry.glb`: kỵ binh Numidia
+
+- **Bỏ thêm:** không giáp, không mũ; bỏ kiếm và bao kiếm; không đai (áo không thắt lưng).
+- **Sửa:** áo nhuộm màu len mộc, viền rộng 10 cm màu nâu đỏ sẫm ở gấu; da sẫm như người Libya.
+- **Thêm:** tóc và râu sẫm (vỏ dựng từ lưới đầu); khiên tròn nhỏ bằng da sống, đường kính 0,52 m, cầm trong tay trái; ba cây lao 1,5 m mũi rộng (một trong tay phải, hai sau khiên).
+- **Ngựa:** thu nhỏ còn 0,95 lần (cao 1,33 m tới vai); không yên, không cương, chỉ dây quàng cổ.
+- **Hoạt hình:** `attack` là phóng lao.
+
+### Dòng ghi công gợi ý (cho khung xem trận, hộp thoại Giới thiệu, README)
+
+Thay dòng chung của các mô hình lính (mục `roman-legionary`) bằng:
+
+- Tiếng Việt: *Các mô hình lính dựa trên "Roman Soldier - T pose" và "Celt - rigged for UE4/5", cùng của Andywoodhead (Sketchfab, CC BY 4.0). Ngựa dựa trên "Horse" của Tarnyloo (Blend Swap, CC BY 3.0), khung xương và dáng đi từ "Horse Rigged All Gaits" của fdoss001 (Blend Swap, CC0). Đã sửa đổi. Hoạt hình từ Universal Animation Library của Quaternius (CC0).*
+- English: *Soldier models based on "Roman Soldier - T pose" and "Celt - rigged for UE4/5", both by Andywoodhead (Sketchfab, CC BY 4.0). Horses based on "Horse" by Tarnyloo (Blend Swap, CC BY 3.0), with the rig and gaits of "Horse Rigged All Gaits" by fdoss001 (Blend Swap, CC0). Modified. Animations from the Universal Animation Library by Quaternius (CC0).*
+
+Link cho khung xem trận (`MODEL_CREDIT_LINKS`), thêm vào các link đã có:
+
+- "Horse" (Tarnyloo): https://blendswap.com/blend/17172
+- "Horse Rigged All Gaits" (fdoss001): https://blendswap.com/blend/28627
+- CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
