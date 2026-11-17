@@ -36,6 +36,21 @@ export const UNIT_LODS = ["LOD0", "LOD1", "LOD2"] as const;
  */
 export const MODEL_INDEX_URL = "/battles/models/index.json";
 
+/**
+ * Where a unit model file is served (ModelIndex.models / UnitType.model). The
+ * scene loads it from here and the map prefetches it from here, so both must
+ * build the URL with this function: a URL that differs by one character is a
+ * second download.
+ */
+export function modelUrl(model: string): string {
+  return `/battles/models/${encodeURIComponent(model)}.glb`;
+}
+
+/** Where a terrain grid (BattleTerrain.file) is served; see modelUrl. */
+export function terrainUrl(file: string): string {
+  return `/data/terrain/${file}`;
+}
+
 export interface ModelIndex {
   /** File stems, e.g. "roman-legionary" for roman-legionary.glb. */
   models: string[];

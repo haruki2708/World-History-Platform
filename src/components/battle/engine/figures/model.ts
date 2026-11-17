@@ -65,7 +65,7 @@ export interface GaitCycle {
  * of the shared animation library measure on the Roman models (jog: a guess
  * for a steady run of about 3 m/s).
  */
-const FALLBACK_STRIDES = { walk: 1.3, run: 5.45, jog: 2.4 };
+const FALLBACK_STRIDES = { walk: 1.3, run: 5.45, jog: 2.1 };
 /** Sole vertices: this close to the lowest point of the bind pose, metres. */
 const SOLE_HEIGHT = 0.03;
 /** No more sole vertices than this are followed. */

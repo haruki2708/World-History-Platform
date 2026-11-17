@@ -1,5 +1,5 @@
 import { loadBattle, unitTypes } from "@/data";
-import { type Battle, MODEL_INDEX_URL } from "@/lib/battle";
+import { type Battle, MODEL_INDEX_URL, modelUrl, terrainUrl } from "@/lib/battle";
 
 /*
  * Puts the files the battle scene loads first (BattleEngine.load in
@@ -8,10 +8,8 @@ import { type Battle, MODEL_INDEX_URL } from "@/lib/battle";
  * models the battle uses. Plain requests only: nothing here pulls in three.js.
  *
  * The scene requests these files with fetch() and its default cache mode, so
- * the URLs below must be the very ones it builds:
- * - terrain: src/components/battle/engine/terrain.ts (loadHeights);
- * - models: src/components/battle/engine/figures/loader.ts (loadModelIndex,
- *   loadModelSource).
+ * the URLs must be the very ones it asks for: both sides build them with
+ * modelUrl and terrainUrl from src/lib/battle.ts (and MODEL_INDEX_URL).
  *
  * Static files are served with `Cache-Control: public, max-age=0`, so the
  * scene's own request for a file already in the cache is still checked with
@@ -24,16 +22,6 @@ import { type Battle, MODEL_INDEX_URL } from "@/lib/battle";
  * viewer's own code, and keeps nothing in memory here. Browsers without it
  * (Safari) get low-priority fetches instead.
  */
-
-/** Must match loadHeights in src/components/battle/engine/terrain.ts. */
-function terrainUrl(battle: Battle): string {
-  return `/data/terrain/${battle.terrain.file}`;
-}
-
-/** Must match loadModelSource in src/components/battle/engine/figures/loader.ts. */
-function modelUrl(model: string): string {
-  return `/battles/models/${encodeURIComponent(model)}.glb`;
-}
 
 const modelOfType = new Map(unitTypes.map((type) => [type.id, type.model]));
 
@@ -109,7 +97,7 @@ async function prefetchBattle(id: string): Promise<boolean> {
   // Already loading for the flight: the same import, no second request.
   const battle = await loadBattle(id).catch(() => undefined);
   if (!battle) return false;
-  const terrain = prefetch(terrainUrl(battle));
+  const terrain = prefetch(terrainUrl(battle.terrain.file));
   const available = await readModelIndex();
   await Promise.all([terrain, ...modelsOf(battle, available).map((model) => prefetch(modelUrl(model)))]);
   return true;

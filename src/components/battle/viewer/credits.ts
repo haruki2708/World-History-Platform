@@ -3,7 +3,7 @@
  * ("Data credits") and art/CREDITS.md; change one and change the others.
  */
 
-/** Works the soldier models and their animations are built from. */
+/** Works the soldier and horse models and their animations are built from. */
 export const MODEL_CREDIT_LINKS: { title: string; url: string }[] = [
   {
     title: "Roman Soldier - T pose (Andywoodhead)",
@@ -14,6 +14,9 @@ export const MODEL_CREDIT_LINKS: { title: string; url: string }[] = [
     url: "https://sketchfab.com/3d-models/none-f727e3ecfe5642fdb85a2def36d57539",
   },
   { title: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
+  { title: "Horse (Tarnyloo)", url: "https://blendswap.com/blend/17172" },
+  { title: "Horse Rigged All Gaits (fdoss001)", url: "https://blendswap.com/blend/28627" },
+  { title: "CC BY 3.0", url: "https://creativecommons.org/licenses/by/3.0/" },
   {
     title: "Universal Animation Library (Quaternius)",
     url: "https://quaternius.com/packs/universalanimationlibrary.html",

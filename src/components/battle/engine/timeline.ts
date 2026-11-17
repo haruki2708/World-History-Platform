@@ -257,6 +257,25 @@ export class UnitTrack {
       return slots;
     });
 
+    // After an about-face the men keep their places: the old rear rank is
+    // the front and the files run the other way. So every keyframe after an
+    // odd number of about-faces is filled mirrored, (u, v) to (-u, 1 - v),
+    // the same formation (the bulge is even in u) with each man where he
+    // stood. Without this the men of the old front walk through the block to
+    // the far side, and it shrinks to its middle halfway through the turn.
+    let mirrored = false;
+    for (let k = 1; k < this.keys.length; k++) {
+      if (Math.abs(angleDelta(this.keys[k - 1].facing, this.keys[k].facing)) >= ABOUT_FACE) {
+        mirrored = !mirrored;
+      }
+      if (!mirrored) continue;
+      const slots = this.slots[k];
+      for (let i = 0; i < n; i++) {
+        slots[i * 2] = -slots[i * 2];
+        slots[i * 2 + 1] = 1 - slots[i * 2 + 1];
+      }
+    }
+
     // About-faces: the end of the phase in the frame of its start.
     this.aboutFace = this.keys.slice(1).map((to, k) => {
       const delta = angleDelta(this.keys[k].facing, to.facing);

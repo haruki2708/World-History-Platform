@@ -16,7 +16,7 @@ import {
   MeshLambertMaterial,
   Vector3,
 } from "three";
-import type { BattleTerrain, FieldPoint } from "@/lib/battle";
+import { type BattleTerrain, type FieldPoint, terrainUrl } from "@/lib/battle";
 
 export type HeightAt = (x: number, y: number) => number;
 
@@ -42,7 +42,7 @@ export async function loadHeights(
   const cells = terrain.width * terrain.height;
   const heights = new Float32Array(cells);
   try {
-    const response = await fetch(`/data/terrain/${terrain.file}`, { signal });
+    const response = await fetch(terrainUrl(terrain.file), { signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const buffer = await response.arrayBuffer();
     if (buffer.byteLength < cells * 2) {

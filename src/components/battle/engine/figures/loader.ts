@@ -17,7 +17,7 @@ import {
 } from "three";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { MODEL_INDEX_URL, type ModelIndex, UNIT_LODS } from "@/lib/battle";
+import { MODEL_INDEX_URL, type ModelIndex, modelUrl, UNIT_LODS } from "@/lib/battle";
 import type { SkinnedSource, SurfaceMaps } from "./model";
 
 function isSkinnedMesh(object: Object3D): object is SkinnedMesh {
@@ -102,7 +102,7 @@ export async function loadModelSource(
   model: string,
   signal: AbortSignal,
 ): Promise<SkinnedSource | null> {
-  const url = `/battles/models/${encodeURIComponent(model)}.glb`;
+  const url = modelUrl(model);
   let buffer: ArrayBuffer;
   try {
     const response = await fetch(url, { signal });
