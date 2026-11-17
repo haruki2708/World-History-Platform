@@ -17,12 +17,16 @@ const en = {
   "about.hint.dismiss": "Dismiss this tip",
   "about.what.heading": "What this is",
   "about.what.body":
-    "Explore the Roman Republic and the Mediterranean world, {range}, through a timeline, a map and an AI tutor. The app holds {events} events and {snapshots} border snapshots, in English and Vietnamese.",
+    "Explore the Roman Republic and the Mediterranean world, {range}, through a timeline, a map and an AI tutor. The app holds {events} events, {snapshots} border snapshots and {battles}, in English and Vietnamese.",
+  "about.what.battles.one": "{count} battle to watch in 3D",
+  "about.what.battles.other": "{count} battles to watch in 3D",
   "about.use.heading": "How to use it",
   "about.use.timeline":
     "Drag the timeline at the bottom of the page, or press play to watch the years go by. The borders on the map follow the year.",
   "about.use.events":
     "Click an event in the list, on the map or on the timeline to read its summary and sources. The map flies to where it happened.",
+  "about.use.battle":
+    "Battles with a 3D scene (so far: {battles}) have a “{button}” button in their event panel. The map flies to the battlefield, then the battle opens: play it or scrub through it, read the narration phase by phase and what is known of the two sides. {space} plays or pauses, {left} and {right} go to the previous or next phase, {esc} closes it.",
   "about.use.tutor":
     "Ask the AI tutor about what you are looking at. Every question is sent with the year and the part of the map in view.",
   "about.use.links":
@@ -41,6 +45,14 @@ const en = {
     "Many dates of the early Republic are traditional rather than certain; an event's summary says so when its date is traditional or disputed. Sites that are uncertain are marked as approximate on the map.",
   "about.accuracy.tutor":
     "The AI tutor can be wrong. Check what it says against the sources listed under each event.",
+  "about.accuracy.battle": "Battles in 3D are reconstructions:",
+  "about.accuracy.battle.positions":
+    "where the units stood and how they moved follow Polybius and Livy, and much of it is disputed; the “{tab}” tab of the battle view says what is uncertain;",
+  "about.accuracy.battle.figures":
+    "each figure stands for {men} men, and the figures are drawn larger than life;",
+  "about.accuracy.battle.time": "Cannae, a battle of about 11 hours, plays in a few minutes;",
+  "about.accuracy.battle.colours":
+    "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
   "about.credits.heading": "Sources and credits",
   "about.credits.borders":
     "Borders are redrawn by hand, with these references:",
@@ -55,6 +67,15 @@ const en = {
     "Base map (sea, lakes and rivers): {link}, public domain.",
   "about.credits.events":
     "Events: summaries written for this project. Each event cites its own sources, mostly ancient authors such as Livy, Polybius, Plutarch and Appian, most with a link to a translation or reference page online.",
+  "about.credits.battles": "3D battles:",
+  "about.credits.terrain": "Battle terrain: {attribution} {disclaimer} Licence: {licence}.",
+  "about.credits.models":
+    'Soldier models based on "{roman}" and "{celt}", both by Andywoodhead (Sketchfab, {ccBy4}). Modified.',
+  "about.credits.horses":
+    'Horses based on "{horse}" by Tarnyloo (Blend Swap, {ccBy3}), with the rig and gaits of "{rigged}" by fdoss001 (Blend Swap, CC0). Modified.',
+  "about.credits.animations": "Animations from the {library} by Quaternius (CC0).",
+  "about.credits.battleSources":
+    "Sources of the battle of Cannae: {polybius} and {livy}. Each battle lists its own sources in the “{tab}” tab of the battle view.",
   "about.tutor.heading": "About the AI tutor",
   "about.tutor.model": "The tutor uses Claude, an AI model made by Anthropic.",
   "about.tutor.context":
@@ -255,12 +276,16 @@ const vi: Record<MessageKey, string> = {
   "about.hint.dismiss": "Đóng gợi ý",
   "about.what.heading": "App này là gì",
   "about.what.body":
-    "Khám phá Cộng hoà La Mã và thế giới Địa Trung Hải, {range}, qua dòng thời gian, bản đồ và gia sư AI. Dữ liệu gồm {events} sự kiện và {snapshots} mốc biên giới, bằng tiếng Anh và tiếng Việt.",
+    "Khám phá Cộng hoà La Mã và thế giới Địa Trung Hải, {range}, qua dòng thời gian, bản đồ và gia sư AI. Dữ liệu gồm {events} sự kiện, {snapshots} mốc biên giới và {battles}, bằng tiếng Anh và tiếng Việt.",
+  "about.what.battles.one": "{count} trận đánh xem được dạng 3D",
+  "about.what.battles.other": "{count} trận đánh xem được dạng 3D",
   "about.use.heading": "Cách dùng",
   "about.use.timeline":
     "Kéo thanh thời gian ở cuối trang, hoặc bấm phát để xem các năm trôi qua. Biên giới trên bản đồ đổi theo năm.",
   "about.use.events":
     "Bấm một sự kiện trong danh sách, trên bản đồ hoặc trên dòng thời gian để đọc tóm tắt và nguồn. Bản đồ bay tới nơi diễn ra sự kiện.",
+  "about.use.battle":
+    "Trận đánh có cảnh 3D (hiện có: {battles}) có nút “{button}” trong panel sự kiện. Bản đồ bay tới chiến trường rồi khung xem trận mở ra: phát hoặc tua trận, đọc lời dẫn theo từng giai đoạn và thông tin về hai bên. {space} phát hoặc dừng, {left} và {right} sang giai đoạn trước hoặc sau, {esc} đóng khung xem trận.",
   "about.use.tutor":
     "Hỏi gia sư AI về những gì bạn đang xem. Mỗi câu hỏi luôn được gửi kèm năm và vùng bản đồ đang xem.",
   "about.use.links":
@@ -279,6 +304,14 @@ const vi: Record<MessageKey, string> = {
     "Nhiều mốc năm thời đầu Cộng hoà là theo truyền thống, chưa chắc chắn; phần tóm tắt của sự kiện nói rõ khi mốc năm theo truyền thống hoặc còn tranh cãi. Địa điểm chưa chắc chắn được đánh dấu là vị trí ước lượng trên bản đồ.",
   "about.accuracy.tutor":
     "Gia sư AI có thể sai. Hãy đối chiếu với các nguồn ghi ở từng sự kiện.",
+  "about.accuracy.battle": "Trận đánh 3D là phỏng dựng:",
+  "about.accuracy.battle.positions":
+    "vị trí và đường đi của các khối quân dựa theo Polybius và Livy, nhiều chỗ còn tranh cãi; tab “{tab}” trong khung xem trận ghi rõ những gì chưa chắc chắn;",
+  "about.accuracy.battle.figures":
+    "mỗi hình lính tượng trưng cho {men} người, và hình lính được vẽ to hơn thật;",
+  "about.accuracy.battle.time": "trận Cannae kéo dài khoảng 11 giờ được phát trong vài phút;",
+  "about.accuracy.battle.colours":
+    "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
   "about.credits.heading": "Nguồn và ghi công",
   "about.credits.borders": "Biên giới được vẽ tay, tham chiếu:",
   "about.credits.shepherd":
@@ -292,6 +325,15 @@ const vi: Record<MessageKey, string> = {
     "Bản đồ nền (biển, hồ, sông): {link}, phạm vi công cộng.",
   "about.credits.events":
     "Sự kiện: tóm tắt tự viết cho dự án. Mỗi sự kiện dẫn nguồn riêng, chủ yếu là sử liệu cổ như Livy, Polybius, Plutarch, Appian; phần lớn có link tới bản dịch hoặc bài tham khảo trực tuyến.",
+  "about.credits.battles": "Trận đánh 3D:",
+  "about.credits.terrain": "Địa hình trận đánh: {attribution} {disclaimer} Giấy phép: {licence}.",
+  "about.credits.models":
+    'Các mô hình lính dựa trên "{roman}" và "{celt}", cùng của Andywoodhead (Sketchfab, {ccBy4}). Đã sửa đổi.',
+  "about.credits.horses":
+    'Ngựa dựa trên "{horse}" của Tarnyloo (Blend Swap, {ccBy3}), khung xương và dáng đi từ "{rigged}" của fdoss001 (Blend Swap, CC0). Đã sửa đổi.',
+  "about.credits.animations": "Hoạt hình từ {library} của Quaternius (CC0).",
+  "about.credits.battleSources":
+    "Nguồn của trận Cannae: {polybius} và {livy}. Mỗi trận ghi nguồn riêng ở tab “{tab}” trong khung xem trận.",
   "about.tutor.heading": "Về gia sư AI",
   "about.tutor.model": "Gia sư dùng Claude, mô hình AI của Anthropic.",
   "about.tutor.context":
