@@ -63,7 +63,7 @@ $blender = "D:\Tools\Blender\5.2.2\blender.exe"
 # Dựng một mô hình từ file gốc: xuất public/battles/models/<id>.glb, thêm vào index.json, kiểm tra (khoảng 2–2,5 phút)
 & $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model roman-hastatus
 
-# Dựng mọi mô hình
+# Dựng mọi mô hình (kỵ binh cần dựng ngựa trước: mục "Kỵ binh")
 & $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model all
 
 # Chạy lại từ một giai đoạn (dùng file .blend của giai đoạn trước trong art/build/<id>/)
@@ -485,7 +485,7 @@ Ngựa Numidia (thân và dây quàng cổ) có 3 036, 651 và 111 tam giác. C�
 
 **Không có `attack`.** T-022 dựng `attack` của kỵ binh bằng clip đánh của người, cộng `idle` (hoặc `walk`) của ngựa lặp lại.
 
-**Clip thêm:** bộ xuất của lane 1 (`whp_export`, chế độ ACTIONS) xuất mọi action trong file, kể cả `trot` và `canter`. Bản xuất thử có 6 action. T-022 xoá hai action này nếu không dùng.
+**Clip thêm:** `trot` và `canter` nằm trong `horse.blend`. Từ T-022, `whp_export.export_glb` xoá các action không có trong danh sách clip trước khi xuất, nên bản xuất thử chỉ có 4 action; kỵ binh dùng `trot` làm `jog`.
 
 ### Ảnh duyệt: `art/renders/horse/`
 
@@ -621,7 +621,7 @@ Chưa làm; đề xuất ở mục "Kết quả" của T-022.
 - Mật độ điểm ảnh của ngựa bằng 0,62 lần của người (`Horse.uv`): lông ngựa gần như một màu, người cần điểm ảnh hơn.
 - **AO** bake riêng cho người và cho ngựa (ở tư thế gốc, người đứng xuyên qua lưng ngựa).
 - Lưới chi tiết của ngựa bake ở tư thế nghỉ, tắt armature (như lane 2).
-- **Ngân sách:** ngựa đủ yên cương chiếm 3 376 tam giác ở LOD0 (thân 2 738, bờm, đuôi, vải lót yên, dây cương), ngựa Numidia 3 036; người lấy phần còn lại. Số tam giác ở mục "Kết quả" của T-022.
+- **Ngân sách:** ngựa đủ yên cương chiếm 3 344 tam giác ở LOD0 (thân 2 738, bờm, đuôi, vải lót yên, dây cương), ngựa Numidia 3 036; người lấy phần còn lại (3 873–4 248). Số tam giác của từng mô hình ở mục "Kết quả" của T-022.
 - **LOD2 của người** là hình đơn giản theo khung xương như lính bộ binh, nhưng không có bàn tay, bàn chân và váy (`LOD2["feet"] = False`, `"skirt": None`): 150 tam giác; thêm khiên và giáo hay lao.
 
 ### Kích thước
