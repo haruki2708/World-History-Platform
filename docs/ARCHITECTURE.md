@@ -199,6 +199,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - **`jog`** (thêm 2026-11-17, người dùng duyệt): chạy đều, chậm hơn `run`, khoảng 3 m/s ở cỡ người thật; với ngựa là nước kiệu hay nước kiệu nhanh. `run` của thư viện chung là chạy nhanh (5,8 m/s), nên khối quân đi vừa phải mà chỉ có `walk` và `run` thì trông như chạy nước rút quay chậm.
     - Cảnh xếp các dáng đi của mô hình theo tốc độ tự nhiên (`walk`, `jog` nếu có, `run` nếu có) và chuyển từ dáng này sang dáng kế ở trung bình nhân của hai tốc độ, có khoảng đệm 10%. Mỗi dáng phát nhanh nhất 3 lần (`walk`), 2,7 lần (`jog`), 1,5 lần (`run`) tốc độ của nó. Trần của `jog` phải tới được chỗ đổi sang `run` (trung bình nhân, cộng khoảng đệm): ngựa phi nhanh gấp 5,8 lần kiệu, nên kiệu phát tới 2,65 lần rồi mới đổi sang phi (17,4 m/s trên sân). Trần cũ 1,8 làm móng trượt khi kiệu nhanh; nâng khi gộp T-030 (người dùng chọn). Bộ binh đổi sang `run` ở 1,6 lần tốc độ `jog`, nên không bị ảnh hưởng.
     - `jog` đứng cuối `UNIT_CLIPS`, nên chỉ số của các clip cũ không đổi. Mô hình chưa có `jog` vẫn chạy như trước.
+  - **`block`, `hit`** (thêm 2026-11-18, đợt G): phản ứng của người bị đánh trong giáp lá cà. `block`: đưa khiên ra đỡ, khiên bị dội lại. `hit`: đòn lọt qua, người giật lại.
+    - Cả hai bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài 1,0 giây. Đòn của địch chạm ở giây thứ `REACTION_IMPACT` (0,3) của clip; cảnh canh giờ theo số này, nên đổi nó là đổi hợp đồng.
+    - Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi. Mô hình chưa có hai clip này thì nhận đòn mà không phản ứng.
+    - Đã có: `roman-legionary`, `gallic-infantry` (chặng 2a). Bốn mô hình bộ binh đánh gần còn lại: chặng 2b. Kỵ binh: chặng 3.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
@@ -268,21 +272,23 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
 - **Xếp lại ở mỗi mốc:** người còn đứng được chia vào các hàng dọc của lưới mới theo vị trí ngang, trong mỗi hàng xếp theo thứ tự trước sau đang có. Không ai đi xuyên qua ai, và người đang ở phía trước vẫn ở phía trước. Sau một lần quay đầu, khung của mốc là khung cũ nhìn từ phía sau.
 - **Hàng đầu sát mép trước:** hàng đầu đứng sau mép trước của khối 3,2 m (hay nửa khoảng cách hàng, nếu nhỏ hơn), kể cả khi khối chỉ còn vài người trên một bề ngang rộng.
 - **Ghép cặp** (`engine/melee.ts`, mỗi khung hình, sau khi mọi khối đã được tính vị trí):
-  - Mỗi người đầu hàng chọn người đầu hàng địch gần nhất, trong tầm (khoảng cách đấu cộng 10 m) và trong góc 70° trước mặt của cả hai.
+  - Mỗi người đầu hàng chọn người đầu hàng địch gần nhất, trong tầm (khoảng cách đấu cộng 10 m) và trong góc 70° trước mặt của cả hai. Khoảng cách đo giữa **chỗ của họ ở hàng đầu** (`UnitTrack.frontX/Y`), không phải chỗ đang đứng: người vừa thành đầu hàng, còn đang bước lên, đã là đối thủ của người mà người trước đấu. Nhờ vậy cặp chỉ đổi khi hai hàng dọc trượt ngang qua nhau, không đổi mỗi lần có người ngã.
   - Hai người chọn nhau thì mỗi người bước tối đa 5 m để đứng cách nhau đúng khoảng cách đấu, mặt quay vào nhau.
   - Người có đối thủ đang bận với người khác thì đánh kèm từ bên cạnh, lệch ít nhất 55°; mỗi bên của một người chỉ có một người đánh kèm.
   - Người sẽ ngã trong một chu kỳ tới mà chưa ai chọn thì đối thủ anh ta đã chọn sẽ quay sang anh ta, trừ khi đối thủ đó là người duy nhất đang nhắm một người khác cũng sắp ngã.
   - Khoảng cách đấu lấy từ mô hình (`UnitModel.strike`, đo từ clip `attack` lúc nạp): tầm của vũ khí lúc đòn chạm, và phần thân (khiên, đầu ngựa) nhô ra trước lúc đứng.
   - Kết quả chỉ phụ thuộc thời gian trong trận.
 - **Nhịp đánh:** mỗi hình lính có một nhịp bị đánh (`UnitTrack.beat`), chu kỳ `STRIKE_PERIOD` (2,4 giây phát). Nhịp của người sẽ ngã chính là lúc người đó ngã. Người đánh phát clip `attack` một lần mỗi chu kỳ, đặt sao cho lúc đòn chạm trùng nhịp của đối thủ, nên nhát cuối rơi đúng lúc đối thủ ngã. Giữa hai nhát, hình lính đứng thủ (`idle`).
+  - **Luân phiên:** hai người chọn nhau thì nhịp bị đánh lệch nhau nửa chu kỳ, tức người này đánh xong 1,2 giây thì người kia đánh. Người sắp ngã giữ nhịp riêng (lúc ngã), người kia theo đó.
+- **Nhận đòn** (`engine/units.ts`): hình lính bị địch trong tầm đánh thì phát `block` hoặc `hit` một lần, bắt đầu `REACTION_IMPACT` trước khi đòn chạm, trừ khi nó đang dở nhát đánh của mình. Ba trên mười đòn lọt qua (`hit`); đòn hạ gục luôn lọt qua. Chọn clip nào là cố định theo từng hình và từng đòn.
 - **Vẽ** (`engine/units.ts`):
   - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối.
-  - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`. Giá trị âm thì clip lặp theo đồng hồ như trước (dùng cho `skirmish`).
+  - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).
   - Một nhát đã bắt đầu thì phát hết, dù đối thủ đã ngã; nhát mới chỉ bắt đầu ở đầu clip (`swingBeat` trong `melee.ts`). Ngoại lệ là nhát hạ gục đối thủ: nó được bắt đầu muộn, bất cứ lúc nào trước khi đòn chạm, và cắt ngang nhát đang dở. Sau khi tua, hình lính đứng ngay vào chỗ đấu và vào đúng khung của nhát đang diễn ra.
   - Người ngã nằm lại ở chỗ đang đấu, không bị kéo về chỗ trong đội hình. Sau khi tua, người đã ngã nằm ở chỗ trong đội hình, lệch vài mét so với lúc phát liên tục.
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
-- **Chưa có** (chặng 2 và 3): clip đỡ đòn và trúng đòn. Hiện người bị đánh không phản ứng cho tới khi ngã. Hai người trong một cặp đánh lệch nhịp ngẫu nhiên, không luân phiên đều.
+- **Chưa có:** `block` và `hit` cho bốn mô hình bộ binh còn lại (chặng 2b) và cho kỵ binh (chặng 3).
 
 ### Khung xem trận (đợt C)
 

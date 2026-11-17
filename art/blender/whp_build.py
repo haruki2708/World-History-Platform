@@ -8,7 +8,7 @@ runs here, in stages:
     kit      build the kit: helmet, shield, armour, weapons...      unit.build_kit()
     rig      fit the body to the shared rig, transfer skin weights  unit.fit(), RIGID, SHARED, SMOOTHING,
                                                                      unit.rig_extras()
-    anim     the six clips from the animation library              unit.KIT (whp_clips)
+    anim     the clips from the animation library                  unit.KIT (whp_clips)
     lod      LOD0..2, the atlas, the bakes, the one material        unit.PARTS, unit.LOD2 (whp_unit_lod)
     export   write the .glb, check it, list it in index.json
 
@@ -61,9 +61,15 @@ from whp_render import render_views
 STAGES = ("source", "kit", "rig", "anim", "lod", "export")
 LODS = ("LOD0", "LOD1", "LOD2")
 CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
+REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models; the horsemen not yet
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 BONES = 67
 INDEX = os.path.join(MODELS_DIR, "index.json")
+
+
+def clips_of(unit):
+    """The clips a model carries, in the order of UNIT_CLIPS in src/lib/battle.ts."""
+    return CLIPS if hasattr(unit, "HORSE") else CLIPS + REACTIONS
 
 
 # --------------------------------------------------------------------------
@@ -193,7 +199,7 @@ def stage_export(unit):
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
     meshes = [bpy.data.objects[name] for name in LODS]
     os.makedirs(MODELS_DIR, exist_ok=True)
-    whp_export.export_glb(glb_path(unit.MODEL), armature, meshes, CLIPS)
+    whp_export.export_glb(glb_path(unit.MODEL), armature, meshes, clips_of(unit))
     update_index(unit.MODEL)
 
 
@@ -217,7 +223,7 @@ def check_model(model):
     if not os.path.isfile(path):
         return [f"{path} does not exist"]
     unit = load_unit(model)
-    problems = whp_export.check_glb(path, LODS, LIMITS, CLIPS, bone_count=getattr(unit, "BONES", BONES))
+    problems = whp_export.check_glb(path, LODS, LIMITS, clips_of(unit), bone_count=getattr(unit, "BONES", BONES))
     ground = getattr(unit, "GROUND_CHECKS", whp_export.GROUND_CHECKS)
     problems += whp_export.reimport(path, LODS, ground)
     with open(INDEX, encoding="utf-8") as f:
@@ -263,7 +269,7 @@ def preview(model, name):
                          views=("front34", "back34"))
         whp_skeleton.reset_pose(armature)
     if armature is not None and name.endswith("anim"):
-        for clip in CLIPS:
+        for clip in clips_of(load_unit(model)):
             action = whp_anim.set_action(armature, clip)
             for frame in sorted({0, int(action.frame_end * 0.25), int(action.frame_end * 0.5), int(action.frame_end)}):
                 scene.frame_set(frame)

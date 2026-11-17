@@ -7,6 +7,8 @@
                                      last frame is the one the scene holds
     attack  one of ATTACKS, chosen per model (the clip is always "attack")
     jog     Walk_Loop + Jog_Fwd_Loop a steady run of about 3 m/s (JOG); loops
+    block   Idle_Loop + Hit_Chest    takes a blow on the shield (REACT)
+    hit     Idle_Loop + Hit_Chest    the blow gets through: he flinches (REACT)
 
 The whole body comes from the library clip (whp_retarget), then the arms
 are adjusted for what the man holds (`Kit`):
@@ -50,7 +52,22 @@ BASE = {
     "run": ("ual1", "Jog_Fwd_Loop"),
     "die": ("ual1", "Death01"),
 }
-LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True, "jog": True}
+LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True, "jog": True,
+         "block": False, "hit": False}
+
+# Taking a blow hand to hand (batch G): two clips the scene lays over idle
+# when an enemy's blow lands on the man.
+#
+#     block   he meets the blow with his shield: raises it and pushes it out,
+#             it is driven back on him, he recovers
+#     hit     the blow gets through: he flinches (Hit_Chest, UAL 1), the
+#             shield arm is knocked open, he recovers
+#
+# Both start and end standing as in idle and are REACT["frames"] long. The
+# blow lands REACT["impact"] frames in: the scene times them by that
+# (REACTION_IMPACT in src/lib/battle.ts, in seconds), so a change here is a
+# change of the contract.
+REACT = dict(frames=30, impact=9, stand=("ual1", "Idle_Loop"), flinch=("ual1", "Hit_Chest"))
 
 # jog: a steady run of about 3 m/s, for a body of men keeping its order. The
 # library has a walk (1 m/s) and a fast run (5.8 m/s: long bounds, each foot
@@ -158,6 +175,15 @@ SHIELD_CARRY = {
     # over the thighs instead of standing in the ground.
     "seated": dict(wrist=(0.22, -0.40, -0.10), down=(0.0, -0.8, -0.6), out=(0.2, -0.6, 0.8),
                    elbow=(1.0, 0.2, -0.3), follow=1.0),
+    # Meeting a blow: raised and square before the body, pushed out to take it.
+    "block": dict(wrist=(0.20, -0.52, -0.21), down=(0.0, -0.14, -1.0), out=(0.10, -1.0, 0.06),
+                  elbow=(1.0, 0.15, -0.5), follow=0.3),
+    # The blow lands on it: driven back on the chest, its top tipped towards him.
+    "jolt": dict(wrist=(0.22, -0.37, -0.25), down=(0.0, -0.32, -1.0), out=(0.22, -1.0, 0.14),
+                 elbow=(1.0, 0.3, -0.5), follow=0.5),
+    # The blow got through: the shield arm knocked open, the board out at his left and low.
+    "open": dict(wrist=(0.33, -0.24, -0.41), down=(0.08, -0.12, -1.0), out=(0.72, -0.69, 0.0),
+                 elbow=(1.0, 0.4, -0.35), follow=0.8),
 }
 
 # How a weapon is carried when not in use, in the same kind of frame:
@@ -182,7 +208,7 @@ SLING_T = "whp_sling_t"             # point attribute: 0 at the fist, 1 at the p
 # bone no mesh uses, so that a clip can take it away: in SPARE_GONE it is
 # scaled down to SPARE_SCALE about the wrist, inside the hand.
 SPARE_BONE = "ik_hand_l"
-SPARE_GONE = ("attack", "die")
+SPARE_GONE = ("attack", "die", "block", "hit")      # the clips of the fight hand to hand, and of its end
 SPARE_SCALE = 0.01
 
 
@@ -707,6 +733,60 @@ class Builder:
     def p(self):
         return self.poser
 
+    def react(self, name, amount, shield):
+        """A clip of REACT: the man stands as in idle; from the frame the
+        blow lands, `amount` of the library's flinch is laid over that, and
+        it goes out again over the last third of the clip. `shield(frame,
+        frames)` is the carry of the shield at each frame."""
+        pack, stand = REACT["stand"]
+        _pack, flinch = REACT["flinch"]
+        rt = self.retarget(pack)
+        frames, impact = REACT["frames"], REACT["impact"]
+        length = rt.pack.clip(flinch).frames
+
+        def pose_at(frame):
+            # The flinch starts a frame before the blow, so its first pose (standing) is under the blow's frame.
+            at = min(max(frame - impact + 1, 0), length)
+            weight = amount * smooth((frame - impact + 2) / 2.0) * (1.0 - smooth((frame - (frames - 10)) / 10.0))
+            rt.pose(rt.pack.blend((stand, frame), (flinch, at), weight))
+            self.dress(frame, frames, shield)
+
+        return self.clip(name, frames, pose_at, loop=LOOPS[name])
+
+    def block(self):
+        """He meets the blow with the shield (see REACT). Without a shield
+        he only braces."""
+        impact = REACT["impact"]
+        carry = SHIELD_CARRY
+
+        def shield(frame, frames):
+            if frame <= impact - 2:
+                return blend_carry(carry["rest"], carry["block"], smooth(frame / (impact - 2)))
+            if frame <= impact:
+                return carry["block"]
+            if frame <= impact + 3:
+                return blend_carry(carry["block"], carry["jolt"], smooth((frame - impact) / 3.0))
+            if frame <= impact + 9:
+                return blend_carry(carry["jolt"], carry["guard"], smooth((frame - impact - 3) / 6.0))
+            return blend_carry(carry["guard"], carry["rest"], smooth((frame - impact - 9) / (frames - impact - 9)))
+
+        return self.react("block", 0.35, shield)
+
+    def hit(self):
+        """The blow gets through (see REACT): the whole flinch, the shield
+        arm knocked open."""
+        impact = REACT["impact"]
+        carry = SHIELD_CARRY
+
+        def shield(frame, frames):
+            if frame <= impact:
+                return carry["rest"]
+            if frame <= impact + 4:
+                return blend_carry(carry["rest"], carry["open"], smooth((frame - impact) / 4.0))
+            return blend_carry(carry["open"], carry["rest"], smooth((frame - impact - 4) / (frames - impact - 4)))
+
+        return self.react("hit", 1.0, shield)
+
     def build(self):
         actions = [
             self.base("idle", "rest"),
@@ -714,7 +794,9 @@ class Builder:
             self.base("run", "run"),
             self.die(),
             ATTACKS[self.kit.attack](self),
-            self.jog(),             # last: the clips before it come out as they did without it
+            self.jog(),             # after the first five: they come out as they did without it
+            self.block(),           # and so do the six before these two
+            self.hit(),
         ]
         self.armature.animation_data.action = None
         return actions

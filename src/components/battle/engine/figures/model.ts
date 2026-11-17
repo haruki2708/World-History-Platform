@@ -45,6 +45,8 @@ const LOOPING: Record<UnitClip, boolean> = {
   attack: true,
   die: false,
   jog: true,
+  block: false,
+  hit: false,
 };
 
 /** Frames per second baked into the texture. */
@@ -109,6 +111,8 @@ export interface UnitModel {
   gait: { walk: GaitCycle; run: GaitCycle; jog: GaitCycle };
   /** The blow of the attack clip. */
   strike: Strike;
+  /** Length of the clips block and hit, seconds; 0 for a clip the model does not have. */
+  reaction: { block: number; hit: number };
   /** Height of the figure in its bind pose, metres. */
   height: number;
   /** Base colour texture, if the model has one. */
@@ -228,6 +232,9 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     die: byName.get("die") ?? null,
     // Never chosen by the scene without a clip of its own (hasJog).
     jog: byName.get("jog") ?? byName.get("run") ?? walk,
+    // Without them the figure takes a blow without moving (reaction).
+    block: byName.get("block") ?? null,
+    hit: byName.get("hit") ?? null,
   };
 
   // Bake each distinct clip once. Without any clip, bake the rest pose.
@@ -368,6 +375,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     hasJog: chosen.jog !== chosen.run && chosen.jog !== chosen.walk,
     gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
     strike,
+    reaction: { block: chosen.block?.duration ?? 0, hit: chosen.hit?.duration ?? 0 },
     height,
     map: source.map,
     surface: surface && {

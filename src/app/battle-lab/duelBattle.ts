@@ -22,8 +22,9 @@ interface Block {
 }
 
 const BLOCKS: Block[] = [
-  { north: ["roman-hastati"], south: ["gallic-infantry"], northFront: 130, southFront: 130, depth: 36, men: 3200 },
-  { north: ["roman-principes", "socii-infantry"], south: ["iberian-infantry"], northFront: 150, southFront: 105, depth: 36, men: 3000 },
+  // The first pair is the one the clips block and hit were tried on first (a thrust against a slash).
+  { north: ["roman-principes", "socii-infantry"], south: ["gallic-infantry"], northFront: 130, southFront: 130, depth: 36, men: 3200 },
+  { north: ["roman-hastati"], south: ["iberian-infantry"], northFront: 150, southFront: 105, depth: 36, men: 3000 },
   { north: ["roman-triarii"], south: ["libyan-infantry"], northFront: 100, southFront: 130, depth: 30, men: 2400 },
   { north: ["roman-cavalry", "allied-cavalry"], south: ["iberian-gallic-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
   { north: ["roman-velites"], south: ["balearic-slingers"], northFront: 140, southFront: 140, depth: 16, men: 1600, apart: 45 },

@@ -10,9 +10,9 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
- *   iStrike  seconds into the attack clip for a figure fighting hand to hand
- *            (engine/melee.ts times its blows), or negative: the clip then
- *            loops on the clock like idle
+ *   iStrike  seconds into the clip for a figure fighting hand to hand
+ *            (attack, block or hit; engine/melee.ts times the blows), or
+ *            negative: attack then loops on the clock like idle
  *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
@@ -90,8 +90,8 @@ float figFrame(float clip) {
     float stride =
       (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
-  } else if (index == ${CLIP_INDEX.attack} && iStrike >= 0.0) {
-    // A blow timed by the fight: played once, from the moment given.
+  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit}) && iStrike >= 0.0) {
+    // A blow struck or taken, timed by the fight: played once, from the moment given.
     frame = min(iStrike * info.z, info.y - 1.0);
   } else if (info.w > 0.5) {
     float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
