@@ -50,6 +50,8 @@ const en = {
     "where the units stood and how they moved follow Polybius and Livy, and much of it is disputed; the “{tab}” tab of the battle view says what is uncertain;",
   "about.accuracy.battle.figures":
     "each figure stands for {men} men, and the figures are drawn larger than life;",
+  "about.accuracy.battle.duels":
+    "the men who fight in pairs show what hand-to-hand fighting was like; they are not a record of who fought whom;",
   "about.accuracy.battle.time": "Cannae, a battle of about 11 hours, plays in a few minutes;",
   "about.accuracy.battle.colours":
     "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
@@ -251,7 +253,8 @@ const en = {
   "battle.action.stand": "Standing",
   "battle.action.advance": "Advancing",
   "battle.action.charge": "Charging",
-  "battle.action.fight": "Fighting",
+  "battle.action.fight": "Fighting hand to hand",
+  "battle.action.skirmish": "Skirmishing",
   "battle.action.retreat": "Falling back",
   "battle.action.rout": "Fleeing",
   "battle.action.pursue": "Pursuing",
@@ -309,6 +312,8 @@ const vi: Record<MessageKey, string> = {
     "vị trí và đường đi của các khối quân dựa theo Polybius và Livy, nhiều chỗ còn tranh cãi; tab “{tab}” trong khung xem trận ghi rõ những gì chưa chắc chắn;",
   "about.accuracy.battle.figures":
     "mỗi hình lính tượng trưng cho {men} người, và hình lính được vẽ to hơn thật;",
+  "about.accuracy.battle.duels":
+    "các cặp lính đấu với nhau là minh hoạ cho cảnh giáp lá cà, không phải ghi chép ai đánh với ai;",
   "about.accuracy.battle.time": "trận Cannae kéo dài khoảng 11 giờ được phát trong vài phút;",
   "about.accuracy.battle.colours":
     "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
@@ -510,7 +515,8 @@ const vi: Record<MessageKey, string> = {
   "battle.action.stand": "Đứng yên",
   "battle.action.advance": "Tiến lên",
   "battle.action.charge": "Xung phong",
-  "battle.action.fight": "Giao chiến",
+  "battle.action.fight": "Giáp lá cà",
+  "battle.action.skirmish": "Đánh từ xa",
   "battle.action.retreat": "Rút lui",
   "battle.action.rout": "Tháo chạy",
   "battle.action.pursue": "Truy kích",

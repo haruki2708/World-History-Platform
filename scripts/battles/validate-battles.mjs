@@ -14,7 +14,7 @@ const battlesDir = join(root, "src", "data", "battles");
 const terrainDir = join(root, "public", "data", "terrain");
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const ACTIONS = new Set(["stand", "advance", "charge", "fight", "retreat", "rout", "pursue"]);
+const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "retreat", "rout", "pursue"]);
 const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
 
 const errors = [];
@@ -230,6 +230,82 @@ for (const file of battleFiles) {
     const changed = [...after].some(([id, s]) => !before.has(id) || !sameState(before.get(id), s));
     if (!changed) fail(`${where}.phases[${i}]`, "no unit changes position, action or men");
     before = after;
+  }
+
+  // Hand to hand (`fight`, src/lib/battle.ts): the scene pairs the front men
+  // of a unit off with the enemy's, so the front of the unit must lie on the
+  // front of an enemy unit that fights too, at the start of the phase as well
+  // as at its end (in between, units move in a straight line). Checked at
+  // FRONT_SAMPLES points across the front: at least MIN_CONTACT of them must
+  // be within CONTACT metres of an enemy front. Bulge is included. A unit that
+  // turns about in the phase fights with what was its rear rank.
+  const CONTACT = 8;
+  const MIN_CONTACT = 0.15;
+  /** Below this share the data passes, with a warning: much of the front has nobody to fight. */
+  const WARN_CONTACT = 0.5;
+  const FRONT_SAMPLES = 21;
+  const ABOUT_FACE = 135;
+  const turnsAbout = (from, to) => {
+    const turn = Math.abs((((to.facing - from.facing) % 360) + 540) % 360 - 180);
+    return turn >= ABOUT_FACE;
+  };
+  /** The fighting edge of a formation: its front, or its rear when `rear`. */
+  const edgeOf = (f, rear) => {
+    const a = (f.facing * Math.PI) / 180;
+    return { f, sin: Math.sin(a), cos: Math.cos(a), sign: rear ? -1 : 1 };
+  };
+  const edgePoint = (edge, u) => {
+    const { f, sin, cos, sign } = edge;
+    const across = u * f.frontage;
+    const forward = sign * (f.depth / 2) + (f.bulge ?? 0) * (1 - 4 * u * u);
+    return { x: f.center.x + cos * across + sin * forward, y: f.center.y - sin * across + cos * forward };
+  };
+  const distanceToEdge = (edge, point) => {
+    const { f, sin, cos, sign } = edge;
+    const dx = point.x - f.center.x;
+    const dy = point.y - f.center.y;
+    const across = dx * cos - dy * sin;
+    const forward = dx * sin + dy * cos;
+    const u = Math.min(Math.max(across / f.frontage, -0.5), 0.5);
+    const at = sign * (f.depth / 2) + (f.bulge ?? 0) * (1 - 4 * u * u);
+    return Math.hypot(forward - at, Math.max(Math.abs(across) - f.frontage / 2, 0));
+  };
+  {
+    let start = new Map((Array.isArray(b.initial) ? b.initial : []).map((state) => [state.unit, state]));
+    for (const [i, phase] of (b.phases ?? []).entries()) {
+      const end = new Map((Array.isArray(phase.units) ? phase.units : []).map((state) => [state.unit, state]));
+      const fighters = [...end.values()].filter(
+        (state) => state.action === "fight" && units.has(state.unit) && start.has(state.unit) && isNumber(state.formation?.facing),
+      );
+      for (const state of fighters) {
+        for (const [moment, states] of [["start", start], ["end", end]]) {
+          const edges = (who) => {
+            const rear = moment === "start" && turnsAbout(start.get(who.unit).formation, who.formation);
+            return edgeOf(states.get(who.unit).formation, rear);
+          };
+          const own = edges(state);
+          const enemies = fighters.filter((other) => units.get(other.unit).side !== units.get(state.unit).side).map(edges);
+          let touching = 0;
+          for (let k = 0; k < FRONT_SAMPLES; k++) {
+            const point = edgePoint(own, (k + 0.5) / FRONT_SAMPLES - 0.5);
+            if (enemies.some((enemy) => distanceToEdge(enemy, point) <= CONTACT)) touching++;
+          }
+          if (touching >= MIN_CONTACT * FRONT_SAMPLES && touching < WARN_CONTACT * FRONT_SAMPLES) {
+            warn(
+              `${where}.phases[${i}]`,
+              `${state.unit} fights hand to hand, but at the ${moment} of the phase only ${touching} of ${FRONT_SAMPLES} points of its front are on the front of an enemy unit that fights; the rest of its men have nobody to fight.`,
+            );
+          }
+          if (touching < MIN_CONTACT * FRONT_SAMPLES) {
+            fail(
+              `${where}.phases[${i}]`,
+              `${state.unit} fights hand to hand, but at the ${moment} of the phase its front is not on the front of an enemy unit that fights (${touching} of ${FRONT_SAMPLES} points within ${CONTACT} m). Use "skirmish" for a fight at a distance, or bring the fronts together.`,
+            );
+          }
+        }
+      }
+      start = end;
+    }
   }
 
   if (!isNumber(b.startHour) || b.startHour < 0 || b.startHour >= 24) fail(where, "startHour must be in [0, 24)");

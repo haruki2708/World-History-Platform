@@ -73,6 +73,18 @@ const SOLE_SAMPLES = 240;
 /** A sole this close to the lowest point of the clip is on the ground, metres. */
 const GROUND_REACH = 0.02;
 
+/** The blow of the attack clip, for fighting hand to hand (engine/melee.ts). */
+export interface Strike {
+  /** Length of the attack clip, seconds. */
+  seconds: number;
+  /** When in the clip the blow lands, seconds: the weapon is at its farthest forward. */
+  impact: number;
+  /** How far in front of the figure the weapon reaches at that moment, metres at the size of the model. */
+  reach: number;
+  /** How far in front of where it stands the figure reaches at rest (its shield, the head of its horse), metres. */
+  front: number;
+}
+
 export interface FigureLod {
   geometry: BufferGeometry;
   triangles: number;
@@ -95,6 +107,8 @@ export interface UnitModel {
   hasJog: boolean;
   /** The walk, run and jog cycles, for matching the legs to the ground speed. */
   gait: { walk: GaitCycle; run: GaitCycle; jog: GaitCycle };
+  /** The blow of the attack clip. */
+  strike: Strike;
   /** Height of the figure in its bind pose, metres. */
   height: number;
   /** Base colour texture, if the model has one. */
@@ -330,6 +344,16 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
       metres: measured > 0.05 ? measured : FALLBACK_STRIDES[fallback],
     };
   };
+  const attack = chosen.attack ?? rest;
+  const strike = measureStrike(
+    lods[lods.length - 1].geometry,
+    data,
+    width,
+    firstRow.get(attack) ?? 0,
+    frameCount(attack),
+    firstRow.get(chosen.idle ?? rest) ?? 0,
+    fps,
+  );
   const geometries = new Set(lods.map((lod) => lod.geometry));
 
   return {
@@ -343,6 +367,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     hasRun: chosen.run !== chosen.walk,
     hasJog: chosen.jog !== chosen.run && chosen.jog !== chosen.walk,
     gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
+    strike,
     height,
     map: source.map,
     surface: surface && {
@@ -431,6 +456,83 @@ function plantedStride(
   if (speeds.length < 3) return 0;
   speeds.sort((p, q) => p - q);
   return (speeds[Math.floor(speeds.length / 2)] * frames) / fps;
+}
+
+/** How many of the vertices that move most in the attack clip stand for the weapon. */
+const WEAPON_SHARE = 0.04;
+
+/**
+ * Reads the blow off the baked attack clip. The vertices that travel
+ * furthest forward and back over the clip are the weapon and the hand that
+ * holds it; the blow lands in the frame where they are furthest forward.
+ * How far the figure reaches then, and at rest (the first frame of idle), is
+ * the largest z of any vertex: the figure faces +Z.
+ */
+function measureStrike(
+  geometry: BufferGeometry,
+  bones: Float32Array,
+  width: number,
+  attackRow: number,
+  frames: number,
+  idleRow: number,
+  fps: number,
+): Strike {
+  const seconds = Math.max(frames / fps, 0.05);
+  const fallback: Strike = { seconds, impact: seconds / 2, reach: 1.1, front: 0.45 };
+  const position = geometry.attributes.position;
+  const boneIndex = geometry.attributes.aBoneIndex;
+  const boneWeight = geometry.attributes.aBoneWeight;
+  if (!position || !boneIndex || !boneWeight || position.count === 0) return fallback;
+  const count = position.count;
+
+  // How far forward vertex v is in the frame baked in `row`: skinned as the shader does.
+  const forward = (v: number, row: number): number => {
+    const x = position.getX(v);
+    const y = position.getY(v);
+    const z = position.getZ(v);
+    let out = 0;
+    for (let k = 0; k < 4; k++) {
+      const weight = boneWeight.getComponent(v, k);
+      if (weight <= 0) continue;
+      const r = (row * width + Math.round(boneIndex.getComponent(v, k)) * 3 + 2) * 4;
+      out += weight * (bones[r] * x + bones[r + 1] * y + bones[r + 2] * z + bones[r + 3]);
+    }
+    return out;
+  };
+
+  const z = new Float32Array(frames * count);
+  const travel = new Float32Array(count);
+  for (let v = 0; v < count; v++) {
+    let low = Infinity;
+    let high = -Infinity;
+    for (let f = 0; f < frames; f++) {
+      const value = forward(v, attackRow + f);
+      z[f * count + v] = value;
+      if (value < low) low = value;
+      if (value > high) high = value;
+    }
+    travel[v] = high - low;
+  }
+  const order = Array.from({ length: count }, (_, v) => v).sort((a, b) => travel[b] - travel[a]);
+  const weapon = order.slice(0, Math.max(Math.ceil(count * WEAPON_SHARE), 1));
+  let impactFrame = 0;
+  let furthest = -Infinity;
+  for (let f = 0; f < frames; f++) {
+    let sum = 0;
+    for (const v of weapon) sum += z[f * count + v];
+    if (sum > furthest) {
+      furthest = sum;
+      impactFrame = f;
+    }
+  }
+  let reach = -Infinity;
+  let front = -Infinity;
+  for (let v = 0; v < count; v++) {
+    reach = Math.max(reach, z[impactFrame * count + v]);
+    front = Math.max(front, forward(v, idleRow));
+  }
+  if (!Number.isFinite(reach) || !Number.isFinite(front)) return fallback;
+  return { seconds, impact: impactFrame / fps, reach: Math.max(reach, 0.3), front: Math.max(front, 0.1) };
 }
 
 /**

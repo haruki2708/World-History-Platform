@@ -30,7 +30,7 @@ import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { loadHeights, Terrain } from "./terrain";
-import { BattleClock, formationPoint, UnitTrack } from "./timeline";
+import { BattleClock, formationPoint, opposition, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
 
 export type Quality = "high" | "low";
@@ -626,10 +626,12 @@ export class BattleEngine {
         materialCache.set(cacheKey, materials);
         this.materials.push(materials);
       }
-      const track = new UnitTrack(battle, unit, clock);
+      const track = new UnitTrack(battle, unit, clock, opposition(battle, unit));
       if (track.count === 0) continue;
-      this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group));
+      const side = battle.sides.findIndex((s) => s.id === unit.side);
+      this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group, side));
     }
+    this.crowd.engage();
 
     this.arrows = new ArrowLayer(battle, colorOfSide, terrain.heightAt);
     this.scene.add(this.arrows.group);

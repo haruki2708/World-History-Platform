@@ -1,6 +1,6 @@
 # Trận Cannae (216 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-17 (T-027; lập ở T-016). File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
+Cập nhật: 2026-11-18 (T-032, giáp lá cà: mục 11; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
 
 Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và lý do, để người sau kiểm tra hoặc sửa.
 
@@ -125,6 +125,16 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 | 4. Lưỡi liềm bị đẩy lõm | 11:00 | 25 | Polybius 3.115 và Livy 22.47: lính Gaul và Iberia trụ một lúc rồi lùi; lưỡi liềm lõm vào; quân La Mã dồn từ hai cánh vào giữa. Mặt trận La Mã được đặt cách mép lưỡi liềm 6 m, xoay và phình theo đúng chỗ lõm (mục 9) |
 | 5. Cái bẫy sập | 12:30 | 25 | Polybius 3.115: lính châu Phi hai bên quay vào đánh sườn. Polybius 3.116: Hasdrubal vòng sang giúp kỵ binh Numidia, kỵ binh đồng minh bỏ chạy, ông để Numidia đuổi theo |
 | 6. Vòng vây khép lại | 17:00 | 30 | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
+
+**Từ T-032 (mục 11)** các mốc giờ và căn cứ trên không đổi, nhưng một số chuyển động được vẽ sớm hơn một giai đoạn, để hai bên đã chạm nhau ở đầu giai đoạn chúng đánh nhau:
+
+| Giai đoạn | Thêm hay đổi so với bảng trên |
+|---|---|
+| 2 | Kỵ binh hai bên ở cánh sát sông tiến sát vào nhau (Polybius 3.115: kỵ binh Iberia và Gaul đụng kỵ binh La Mã ngay sau khi lính nhẹ giao chiến) |
+| 3 | Kỵ binh bên sông đánh nhau suốt giai đoạn, quân La Mã bị đẩy lùi 80 m và mất phần lớn quân; chưa tháo chạy. Bộ binh nặng tiến tới chạm lưỡi liềm, lúc này còn lồi |
+| 4 | Lưỡi liềm vừa đánh vừa lùi từ lồi sang lõm, mặt trận La Mã bám theo. Kỵ binh La Mã tháo chạy dọc bờ sông; Hasdrubal vòng ra sau lưng quân La Mã, hướng sang cánh bên kia (Polybius 3.116) |
+| 5 | Lính Libya quay vào và tới sườn quân La Mã ở cuối giai đoạn; hàng sau của La Mã quay ra hai sườn; triarii quay đầu. Kỵ binh đồng minh bỏ chạy khi Hasdrubal tới gần; ông quay sang lưng các quân đoàn và tới nơi ở cuối giai đoạn |
+| 6 | Bốn phía cùng đánh suốt giai đoạn: lưỡi liềm ở mặt trước, lính Libya ở hai sườn, kỵ binh Hasdrubal ở sau lưng |
 
 Chi tiết không vẽ thành chuyển động riêng: mưu 500 kỵ binh Numidia giả hàng (Livy 22.48), cảnh Lentulus gặp Paullus (Livy 22.49), các toán chạy thoát về hai trại và làng Cannae (Livy 22.49–50).
 
@@ -265,3 +275,61 @@ Dữ liệu không sửa được những chỗ dưới đây mà vẫn đúng n
 | 6 | Kỵ binh Hasdrubal (hai khối) | Đi ngang 80–100°, 37 m/s | Vòng từ phía đông về đánh vào lưng quân La Mã: đi về hướng tây nam, quay mặt từ đông nam sang nam. Ở tốc độ này chân vẫn trượt |
 
 Cả bảng này là việc của cảnh, không phải của dữ liệu; đề nghị cụ thể ở mục "Kết quả" của T-027.
+
+## 11. Giáp lá cà (T-032)
+
+Từ đợt G, cảnh cho người đầu mỗi hàng dọc đấu với người đầu hàng của địch, và chỉ người có đối thủ trong tầm mới đánh (`docs/ARCHITECTURE.md`, mục "Giáp lá cà"). Dữ liệu cũ không dùng được với cách này: đo bằng code của cảnh, ở giai đoạn 4–6 người hàng đầu của các khối đang đánh cách hình lính địch gần nhất 20–70 m, và hai chiến tuyến chỉ gặp nhau đúng ở mốc cuối giai đoạn 4.
+
+### Nguyên tắc
+
+- Hai khối đánh giáp lá cà thì **mép trước nằm trên cùng một đường**, cách nhau 1,5 m, ở **cả mốc đầu lẫn mốc cuối** của giai đoạn. Giữa hai mốc cảnh nội suy thẳng, nên chỉ như vậy hai hàng đầu mới ở trong tầm nhau suốt giai đoạn.
+- Khối tới chỗ địch trong một giai đoạn thì giai đoạn đó ghi `advance` hay `charge`; giai đoạn sau mới ghi `fight`.
+- Đánh từ xa ghi `skirmish`: lính nhẹ ở giai đoạn 2, kỵ binh Numidia ở giai đoạn 3–4, lực lượng ở trại lớn đánh trại Hannibal ở giai đoạn 3–5 (toán giữ trại không có đơn vị riêng, nên cuộc đánh trại được vẽ như đánh từ xa).
+- Kỵ binh đồng minh bị kỵ binh Numidia cầm chân ở giai đoạn 3–4 ghi `stand`.
+
+### Script dựng bố cục
+
+`node scripts/battles/cannae-lines.mjs` in các đội hình; thêm `--write` thì ghi vào file trận. Script chỉ đổi `formation`, `action`, `men` của các đơn vị nó liệt kê, từ mốc 1 tới mốc 6. Lời dẫn và mũi tên sửa tay trong file.
+
+- **Đường chung của lưỡi liềm và mặt trận La Mã** là một cung tròn. Mốc 1–3: lồi về phía bắc, bán kính 1450 m, đỉnh ở (−60, −152), tức lồi khoảng 90 m như trước. Mốc 4: lõm, bán kính 975 m, đỉnh (−60, −462). Mốc 5: bán kính 800 m, đỉnh (−60, −495). Mốc 6: bán kính 550 m, đỉnh (−60, −510).
+- Năm khối của lưỡi liềm nằm liền nhau trên cung, mỗi khối quay mặt theo pháp tuyến ở giữa khối, `bulge` bằng độ võng của cung trên bề ngang khối. Hai khối La Mã hàng đầu (hastati, bộ binh đồng minh hàng đầu) nằm ở phía bắc cùng cung đó.
+- **Giai đoạn 4 không co bề ngang.** Mặt trận La Mã rộng 1260 m ở cả mốc 3 và mốc 4. Nếu vừa co bề ngang vừa đổi từ lồi sang lõm thì giữa giai đoạn hai đầu mặt trận La Mã cắt qua khối Gaul (đã thử: lệch tới 35 m). Việc dồn vào giữa được vẽ ở giai đoạn 3 (1500 m còn 1260 m), ở hàng sau trong giai đoạn 4, và ở giai đoạn 5–6 (1260, 640, 440 m).
+- **Hàng sau** (principes, bộ binh đồng minh hàng sau): mốc 3 dài bằng hàng đầu, cách 12 m; mốc 4 dồn vào sau trung quân, dài 300 m, sâu 90–100 m; mốc 5 đã quay ra hai sườn.
+- **Hàng ba:** lính nhẹ lui qua hàng ngũ ở giai đoạn 3 rồi đứng sau hàng hai; triarii đứng sau cùng.
+- **Giai đoạn 5–6, quân La Mã là một cái hộp.** Mặt trước nằm trên cung; principes ở sườn tây và bộ binh đồng minh hàng sau ở sườn đông, quay mặt ra ngoài; triarii quay đầu, khép mặt sau; lính nhẹ ở bên trong. Hộp ở mốc 5 rộng khoảng 600 m, sâu khoảng 430 m ở giữa; ở mốc 6 rộng khoảng 410 m, sâu khoảng 320 m.
+- **Lính Libya** đứng yên tới hết giai đoạn 4, quay vào trong ở giai đoạn 5 và chạm sườn ở mốc 5. Ở mốc 5 họ đứng lệch về bắc 45 m so với sườn mà họ đánh, vì phải đi vòng ngoài đầu mút của lưỡi liềm. Không lệch nhiều hơn được: người chỉ ngã ở hàng dọc có địch trước mặt, nên một sườn chỉ bị che một nửa sẽ mất hết người ở nửa đó và không mất ai ở nửa kia (đã thử với 90 m: principes còn 0 trên 9 người đầu hàng có đối thủ ở 3/4 giai đoạn 6).
+- **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau.
+
+### Quân số
+
+Tổng của mỗi bên ở từng mốc cuối trận không đổi so với trước (La Mã còn 8 900 người trong vòng vây ở mốc 6). Cách chia giữa các đơn vị đổi để người ngã rơi vào chỗ có địch:
+
+- Hàng sau và triarii không mất người khi chưa chạm địch (giai đoạn 4). Principes: 11 400, 11 400, 10 000, 500 ở mốc 3–6; bộ binh đồng minh hàng sau: 14 000, 14 000, 12 400, 600; triarii: 4 200 tới mốc 5, rồi 300.
+- Lính nhẹ La Mã ở bên trong hộp, không chạm địch, nên mất ít hơn trước: 7 000 còn 3 300 và 6 300 còn 3 300 ở giai đoạn 6 (trước: còn 900 mỗi khối). Bù lại các khối ở vành ngoài mất nhiều hơn: hastati còn 400, bộ binh đồng minh hàng đầu còn 500.
+- Hai khối Gaul ngoài cùng mất người ở giai đoạn 4 (5 000 còn 4 100) và 5 (còn 4 000), lúc còn đối mặt quân La Mã. Ở giai đoạn 5–6 họ ghi `advance`: mặt trận La Mã đã co vào giữa, trước mặt họ không còn địch.
+- Kỵ binh La Mã: 2 400 còn 900 ở giai đoạn 3 (đang đánh), còn 300 ở giai đoạn 4 (tháo chạy).
+- Số "còn lại" vẫn chỉ để cảnh biết vẽ bao nhiêu hình lính, không phải con số lịch sử (mục 5).
+
+### Kiểm tra
+
+- `npm run validate`: khối `fight` phải có ít nhất 15% bề ngang cách mép trước của một khối địch cũng `fight` không quá 8 m, ở mốc đầu và mốc cuối giai đoạn. Dữ liệu cũ sai quy tắc này ở mọi giai đoạn có `fight`.
+- `check-overlap.mjs --min 0.04` từ giai đoạn 3: không còn chỗ nào hai phe chồng lên nhau. Cùng phe còn chồng thoáng qua, tối đa 18%: hàng sau dồn vào sau hàng đầu ở giai đoạn 4 (hastati với principes 18%), lính Libya lướt qua đầu mút khối Gaul ở đầu giai đoạn 5 (14%), principes xoay ra sườn qua chỗ lính nhẹ (10%).
+- Đo bằng code của cảnh, mỗi 1/4 giai đoạn, số người đầu hàng có đối thủ trong tầm trên tổng số người đầu hàng:
+
+| Khối | Giai đoạn 4 | Giai đoạn 5 | Giai đoạn 6 |
+|---|---|---|---|
+| Hastati | 91/94, 84/93, 73/94 | 49/79, 42/79, 44/79 | 28/33, 27/33, 25/32 |
+| Gaul giữa | 48/49, 45/49, 38/49 | 31/41, 26/41, 32/40 | 30/37, 32/37, 29/36 |
+| Principes (sườn tây) | | | 13/23, 16/25, 21/24 |
+| Lính Libya trái | | | 18/29, 22/29, 17/28 |
+| Triarii (mặt sau) | | | 43/50, 44/50, 37/40 |
+| Kỵ binh Hasdrubal, khối sau | | | 25/25, 21/25, 17/25 |
+
+  Ở giai đoạn 5, hai đầu của hastati không có đối thủ vì hai khối Gaul ngoài cùng đã thôi đánh trong lúc mặt trận La Mã co vào giữa.
+
+### Còn lại
+
+- Trong giai đoạn 5 các khối La Mã đổi chỗ nhiều (hàng sau ra sườn, lính nhẹ vào trong, triarii quay đầu), nên vẫn còn khối đi cắt qua nhau trong vài giây.
+- Người ngã ở hai sườn trong giai đoạn 6 rất dày: mỗi hàng dọc của principes mất một người sau khoảng 2 giây phát.
+- Lính Libya ở giai đoạn 6 vừa đánh vừa dịch 158 m, lệch 55° so với hướng mặt (`check-facing.mjs`): cái hộp của quân La Mã co chủ yếu từ phía bắc, nên sườn dịch dần về nam. `check-facing.mjs --min 0.25` in 53 dòng với dữ liệu mới (46 sau T-027), phần lớn ở giai đoạn 5–6.
+- Lính nhẹ La Mã bên trong hộp vẫn mất người theo cách cũ (ngẫu nhiên, không ai đánh): 185 và 150 hình trong giai đoạn 6.

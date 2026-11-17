@@ -25,9 +25,10 @@ import {
 } from "three";
 import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
+import { Melee, type MeleeFigures, swingBeat, swingInto } from "./melee";
 import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
-import { DYING, GONE, type UnitTrack } from "./timeline";
+import { DYING, GONE, STRIKE_PERIOD, type UnitTrack } from "./timeline";
 
 /**
  * Figures are drawn larger than life: one figure stands for twenty men, and
@@ -148,6 +149,40 @@ const WAITING_TURN = Math.PI / 4;
 /** Seconds over which the direction of each figure over the ground is smoothed. */
 const VELOCITY_SMOOTHING = 0.25;
 
+/**
+ * Hand to hand (melee.ts, and "Giáp lá cà" in docs/ARCHITECTURE.md). In a
+ * unit whose action is `fight` only the men with an enemy in reach strike:
+ * the heads of the files, paired off by melee.ts.
+ *
+ * - A figure with an enemy leaves its place in the formation for where
+ *   melee.ts wants it, and goes back when the enemy is gone, at CLOSE_SPEED
+ *   in real time. After a jump it stands there at once.
+ * - It turns to face its enemy, at most FIGHT_TURN from the facing of its
+ *   block, at TURN_RATE like any other turn.
+ * - Its blows are timed by the battle clock, not by the wall clock: the
+ *   attack clip plays once every STRIKE_PERIOD seconds of playback, placed so
+ *   that the blow lands on the beat of the enemy (the moment he falls, if he
+ *   does), and the figure stands on guard in between. A blow that has begun
+ *   is played to its end even if the enemy has fallen meanwhile; a new one
+ *   begins only at the start of the clip, so nothing pops. Only the blow
+ *   that fells the enemy may begin late and cut another short (swingBeat in
+ *   melee.ts).
+ * - The blow fades in over STRIKE_IN and out over STRIKE_OUT seconds on top
+ *   of what the legs do.
+ * - A figure that falls lies where it fought: it keeps the place it had left
+ *   its file for. (After a jump the fallen lie in their files, a few metres
+ *   off: where a man stood to fight is not known without playing up to it.)
+ * - In a block that stands still, a figure that moves (to close with an
+ *   enemy, to step up behind a man who fell) walks: between STEP_FROM and
+ *   STEP_FULL times the walking speed its legs go from idle to the walk.
+ */
+const CLOSE_SPEED = 6;
+const FIGHT_TURN = (80 * Math.PI) / 180;
+const STRIKE_IN = 0.15;
+const STRIKE_OUT = 0.25;
+const STEP_FROM = 0.12;
+const STEP_FULL = 0.45;
+
 /** One gait of a model: its clip and its natural ground speed (m/s, as drawn). */
 interface Gait {
   clip: number;
@@ -238,6 +273,7 @@ class Chunk {
   readonly posYaw: InstancedBufferAttribute;
   readonly anim: InstancedBufferAttribute;
   readonly seed: InstancedBufferAttribute;
+  readonly strike: InstancedBufferAttribute;
   readonly sphere = new Sphere();
   readonly display: InstancedBufferGeometry[];
   readonly shadow: InstancedBufferGeometry[];
@@ -258,7 +294,8 @@ class Chunk {
     this.posYaw = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.anim = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.seed = new InstancedBufferAttribute(new Float32Array(count), 1);
-    for (const attribute of [this.posYaw, this.anim, this.seed]) {
+    this.strike = new InstancedBufferAttribute(new Float32Array(count).fill(-1), 1);
+    for (const attribute of [this.posYaw, this.anim, this.seed, this.strike]) {
       attribute.setUsage(DynamicDrawUsage);
     }
     const instanced = (base: BufferGeometry) => {
@@ -270,6 +307,7 @@ class Chunk {
       geometry.setAttribute("iPosYaw", this.posYaw);
       geometry.setAttribute("iAnim", this.anim);
       geometry.setAttribute("iSeed", this.seed);
+      geometry.setAttribute("iStrike", this.strike);
       geometry.boundingSphere = this.sphere;
       geometry.instanceCount = 0;
       return geometry;
@@ -413,6 +451,15 @@ export class UnitBlock {
   private lastTime = NaN;
   private lastBlend = NaN;
   private readonly center = new Vector3();
+  /** What the hand-to-hand fight asks of each figure (see CLOSE_SPEED); set by Crowd.engage. */
+  fight: MeleeFigures | null = null;
+  /** How far each figure stands from its place in the formation, field metres east and north. */
+  private readonly offX: Float32Array;
+  private readonly offY: Float32Array;
+  /** The beat of the blow each figure is striking, or -1 between blows. */
+  private readonly swing: Float32Array;
+  /** When that blow began, seconds of playback: it fades in from there. */
+  private readonly swingFrom: Float32Array;
 
   constructor(
     readonly track: UnitTrack,
@@ -420,7 +467,13 @@ export class UnitBlock {
     materials: FigureMaterials,
     private readonly color: Color,
     group: Group,
+    /** Blocks with different numbers are enemies. */
+    readonly side = 0,
   ) {
+    this.offX = new Float32Array(track.count);
+    this.offY = new Float32Array(track.count);
+    this.swing = new Float32Array(track.count).fill(-1);
+    this.swingFrom = new Float32Array(track.count).fill(-Infinity);
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
@@ -476,12 +529,21 @@ export class UnitBlock {
     group.add(this.footprint);
   }
 
+  /** Works out where the figures stand at `time` (the track); `update` then draws them there. */
+  sample(time: number): void {
+    // The fallen stay where they fell for the rest of the battle: the die
+    // clip plays once and holds its last frame. Without a die clip a figure
+    // that falls is simply no longer drawn.
+    this.standing = this.track.sample(time, this.model.hasDie ? Infinity : 0);
+  }
+
   /**
-   * Moves the figures to where they stand at `time`. `now` is wall-clock
-   * seconds. `march` says how the battle clock got here: figures step only
-   * while it runs, and stand at ease when it is stopped or jumps.
+   * Moves the figures to where they stand at `time`, as last sampled. `clock`
+   * is `time` in seconds of playback, `now` is wall-clock seconds. `march`
+   * says how the battle clock got here: figures step only while it runs, and
+   * stand at ease when it is stopped or jumps.
    */
-  update(time: number, now: number, march: March, heightAt: HeightAt): void {
+  update(time: number, clock: number, now: number, march: March, heightAt: HeightAt): void {
     const { track, model } = this;
     if (march.halted) {
       this.speed = 0;
@@ -489,9 +551,13 @@ export class UnitBlock {
     } else {
       this.gait = this.pickGait();
     }
-    // In a fight the front ranks strike; everyone else keeps pace with the block.
-    const fighting = track.actionAt(time) === "fight";
-    const acting = fighting ? ATTACK : this.gait;
+    // In a fight at a distance (skirmish) the front ranks throw; everyone
+    // else keeps pace with the block. Hand to hand (fight), a man strikes
+    // when he has an enemy in reach (see CLOSE_SPEED).
+    const action = track.actionAt(time);
+    const throwing = action === "skirmish";
+    const fighting = throwing || action === "fight";
+    const acting = throwing ? ATTACK : this.gait;
     if (acting !== this.toActing || this.gait !== this.toRest) {
       this.fromActing = this.toActing;
       this.fromRest = this.toRest;
@@ -516,10 +582,6 @@ export class UnitBlock {
     this.lastTime = time;
     this.lastBlend = blend;
 
-    // The fallen stay where they fell for the rest of the battle: the die
-    // clip plays once and holds its last frame. Without a die clip a figure
-    // that falls is simply no longer drawn.
-    this.standing = track.sample(time, model.hasDie ? Infinity : 0);
     const figureHeight = model.height * FIGURE_SCALE;
     const done = blend >= 1;
     const fromActing = done ? this.toActing : this.fromActing;
@@ -551,11 +613,24 @@ export class UnitBlock {
     let turned = false;
     let moved = 0;
     let movers = 0;
+    // Hand to hand (see CLOSE_SPEED).
+    const { offX, offY, swing, swingFrom } = this;
+    const figures = track.fighting ? this.fight : null;
+    // After a jump, and when first placed, the figures stand where the fight has them.
+    const snap = march.jumped || !this.placed;
+    const closeStep = CLOSE_SPEED * march.step;
+    const strikeSeconds = Math.min(model.strike.seconds, STRIKE_PERIOD * 0.8);
+    const strikeImpact = Math.min(model.strike.impact, strikeSeconds);
+    // In a block that stands, the legs of a figure that moves on its own.
+    const ownLegs = track.fighting && fromRest === IDLE && this.toRest === IDLE;
+    const stepFrom = this.gaits[0].speed * STEP_FROM;
+    const stepFull = this.gaits[0].speed * STEP_FULL;
 
     for (const chunk of this.chunks) {
       const posYaw = chunk.posYaw.array as Float32Array;
       const anim = chunk.anim.array as Float32Array;
       const seed = chunk.seed.array as Float32Array;
+      const strike = chunk.strike.array as Float32Array;
       let n = 0;
       let minX = Infinity;
       let minY = Infinity;
@@ -566,8 +641,37 @@ export class UnitBlock {
       for (let i = chunk.first; i < chunk.first + chunk.count; i++) {
         const status = track.status[i];
         if (status === GONE) continue;
-        const x = track.x[i];
-        const north = track.y[i];
+        // A figure with an enemy stands where the fight has it; one without,
+        // or fallen, goes back to its place in the formation.
+        let opponent = -1;
+        let wantX = 0;
+        let wantY = 0;
+        if (figures !== null && status !== DYING) {
+          opponent = figures.opponent[i];
+          if (opponent !== -1) {
+            wantX = figures.offsetX[i];
+            wantY = figures.offsetY[i];
+          }
+        }
+        let ox = offX[i];
+        let oy = offY[i];
+        // The fallen lie where they fought; after a jump, in their files.
+        if ((ox !== wantX || oy !== wantY) && (status !== DYING || snap)) {
+          const dx = wantX - ox;
+          const dy = wantY - oy;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (snap || d <= closeStep) {
+            ox = wantX;
+            oy = wantY;
+          } else if (closeStep > 0) {
+            ox += (dx / d) * closeStep;
+            oy += (dy / d) * closeStep;
+          }
+          offX[i] = ox;
+          offY[i] = oy;
+        }
+        const x = track.x[i] + ox;
+        const north = track.y[i] + oy;
         const z = -north;
         let y = groundH[i];
         if (x !== groundX[i] || north !== groundY[i]) {
@@ -583,10 +687,12 @@ export class UnitBlock {
           anim[o + 1] = DIE;
           anim[o + 2] = 0;
           anim[o + 3] = since;
+          strike[n] = -1;
+          swing[i] = -1;
         } else {
           const heading = track.heading[i];
-          // In a fight only the front ranks strike; the rest wait their turn.
-          const acts = track.rank[i] <= 0.34 || track.seed[i] <= 0.2;
+          // In a fight at a distance only the front ranks throw; the rest wait their turn.
+          const acts = throwing && (track.rank[i] <= 0.34 || track.seed[i] <= 0.2);
           let dx = 0;
           let dy = 0;
           let step = 0;
@@ -606,8 +712,18 @@ export class UnitBlock {
           // Facing the block, or turned towards where the figure goes. A man
           // turning about (timeline.ts) does that first.
           let target = 0;
+          let t = turn[i];
+          // The men who throw face the way of the block; so does a man turning about.
           const limit = (fighting && acts) || track.turningAbout[i] ? 0 : turnLimit;
-          if (steer && limit > 0) {
+          if (opponent !== -1 && figures !== null) {
+            // Hand to hand: facing his enemy.
+            target = Math.min(Math.max(angleDelta(heading, figures.bearing[i]), -FIGHT_TURN), FIGHT_TURN);
+            back[i] = 0;
+            if (snap) {
+              t = target;
+              turn[i] = t;
+            }
+          } else if (steer && limit > 0) {
             const vx = velocityX[i];
             const vy = velocityY[i];
             const speedSquared = vx * vx + vy * vy;
@@ -634,7 +750,6 @@ export class UnitBlock {
               }
             }
           }
-          let t = turn[i];
           if (steer && t !== target) {
             t = target > t ? Math.min(t + turnStep, target) : Math.max(t - turnStep, target);
             turn[i] = t;
@@ -659,10 +774,52 @@ export class UnitBlock {
           }
           lastX[i] = x;
           lastY[i] = north;
-          anim[o] = acts ? fromActing : fromRest;
-          anim[o + 1] = acts ? this.toActing : this.toRest;
-          anim[o + 2] = weight;
+          // What the legs do: as the block, or the figure's own steps in a
+          // block that stands (see STEP_FROM).
+          const from = acts ? fromActing : fromRest;
+          let to = acts ? this.toActing : this.toRest;
+          let mix = weight;
+          if (ownLegs) {
+            const vx = velocityX[i];
+            const vy = velocityY[i];
+            const speedSquared = vx * vx + vy * vy;
+            if (speedSquared > stepFrom * stepFrom) {
+              to = WALK;
+              mix = Math.min((Math.sqrt(speedSquared) - stepFrom) / (stepFull - stepFrom), 1);
+            }
+          }
+          // The blow on top: the one under way, or one that begins now.
+          let into = -1;
+          if (throwing) {
+            swing[i] = -1;
+          } else {
+            const engaged = figures !== null && opponent !== -1;
+            const beat = swingBeat(
+              swing[i],
+              engaged ? figures.beat[i] : -1,
+              engaged && figures.kill[i] === 1,
+              snap,
+              clock,
+              strikeSeconds,
+              strikeImpact,
+            );
+            if (beat !== swing[i]) {
+              swing[i] = beat;
+              swingFrom[i] = snap ? -Infinity : clock;
+            }
+            if (beat >= 0) into = swingInto(beat, clock, strikeImpact);
+          }
+          if (into >= 0) {
+            anim[o] = mix > 0.5 ? to : from;
+            anim[o + 1] = ATTACK;
+            anim[o + 2] = Math.min((clock - swingFrom[i]) / STRIKE_IN, (strikeSeconds - into) / STRIKE_OUT, 1);
+          } else {
+            anim[o] = from;
+            anim[o + 1] = to;
+            anim[o + 2] = mix;
+          }
           anim[o + 3] = walked[i];
+          strike[n] = into;
         }
         posYaw[o] = x;
         posYaw[o + 1] = y;
@@ -682,7 +839,7 @@ export class UnitBlock {
       for (const geometry of chunk.display) geometry.instanceCount = n;
       chunk.mesh.visible = n > 0;
       if (n === 0) continue;
-      for (const attribute of [chunk.posYaw, chunk.anim, chunk.seed]) {
+      for (const attribute of [chunk.posYaw, chunk.anim, chunk.seed, chunk.strike]) {
         attribute.clearUpdateRanges();
         attribute.addUpdateRange(0, n * attribute.itemSize);
         attribute.needsUpdate = true;
@@ -832,10 +989,31 @@ export class Crowd {
   private readonly march: March = { step: 0, halted: true, jumped: false };
   private lastNow = NaN;
   private lastClock = NaN;
+  private melee: Melee | null = null;
 
   add(block: UnitBlock): void {
     this.blocks.push(block);
     this.chunks.push(...block.chunks);
+  }
+
+  /**
+   * Sets up the hand-to-hand fighting between the blocks (melee.ts): call
+   * once every block is added. How far a figure strikes and how much room it
+   * takes come from its model, at the size figures are drawn.
+   */
+  engage(): void {
+    const melee = new Melee(
+      this.blocks.map((block) => ({
+        track: block.track,
+        side: block.side,
+        reach: block.model.strike.reach * FIGURE_SCALE,
+        front: block.model.strike.front * FIGURE_SCALE,
+      })),
+    );
+    this.melee = melee;
+    this.blocks.forEach((block, b) => {
+      block.fight = melee.figures[b];
+    });
   }
 
   /**
@@ -859,7 +1037,12 @@ export class Crowd {
     }
     // The clock moved, but not as a march.
     march.jumped = advance !== 0 && march.step === 0;
-    for (const block of this.blocks) block.update(time, now, march, heightAt);
+    // Where everybody stands, then who fights whom, then the figures.
+    if (advance !== 0) {
+      for (const block of this.blocks) block.sample(time);
+      this.melee?.update(clock);
+    }
+    for (const block of this.blocks) block.update(time, clock, now, march, heightAt);
   }
 
   /**
