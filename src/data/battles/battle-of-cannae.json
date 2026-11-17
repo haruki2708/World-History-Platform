@@ -664,13 +664,13 @@
         },
         {
           "unit": "roman-velites",
-          "formation": { "center": { "x": -375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "formation": { "center": { "x": -375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 0 },
           "action": "retreat",
           "men": 7500
         },
         {
           "unit": "allied-light-infantry",
-          "formation": { "center": { "x": 375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "formation": { "center": { "x": 375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 0 },
           "action": "retreat",
           "men": 6650
         },
@@ -718,13 +718,13 @@
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": -250, "y": -420 }, "frontage": 500, "depth": 15, "facing": 0 },
+          "formation": { "center": { "x": -250, "y": -420 }, "frontage": 500, "depth": 15, "facing": 180 },
           "action": "retreat",
           "men": 1900
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 290, "y": -430 }, "frontage": 500, "depth": 20, "facing": 0 },
+          "formation": { "center": { "x": 290, "y": -430 }, "frontage": 500, "depth": 20, "facing": 180 },
           "action": "retreat",
           "men": 5750
         },
@@ -869,13 +869,13 @@
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": -200, "y": -580 }, "frontage": 450, "depth": 15, "facing": 0 },
+          "formation": { "center": { "x": -200, "y": -580 }, "frontage": 450, "depth": 15, "facing": 180 },
           "action": "retreat",
           "men": 1900
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 300, "y": -590 }, "frontage": 550, "depth": 20, "facing": 0 },
+          "formation": { "center": { "x": 300, "y": -590 }, "frontage": 550, "depth": 20, "facing": 180 },
           "action": "retreat",
           "men": 5750
         },
@@ -1020,13 +1020,13 @@
         {
           "unit": "balearic-slingers",
           "formation": { "center": { "x": -200, "y": -580 }, "frontage": 450, "depth": 15, "facing": 0 },
-          "action": "retreat",
+          "action": "stand",
           "men": 1900
         },
         {
           "unit": "light-spearmen",
           "formation": { "center": { "x": 300, "y": -590 }, "frontage": 550, "depth": 20, "facing": 0 },
-          "action": "retreat",
+          "action": "stand",
           "men": 5750
         },
         {
