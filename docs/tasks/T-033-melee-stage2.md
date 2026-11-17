@@ -83,6 +83,20 @@ Người dùng xem cặp thử và chọn "Ưng, làm tiếp 2b" (2026-11-18).
   - Cannae giai đoạn 6: thêm principes 40 / 2 / 16, triarii 78 / 33 / 27, lính Libya 54 / 17 / 5; kỵ binh Hasdrubal chỉ có `attack`. Ở hai sườn, phần lớn đòn là `hit` vì đó là đòn hạ gục.
   - Console sạch.
 
+### Kiểm tra cuối chặng 2 (commit `3fb8cba`)
+
+- `npm run lint`, `npm run validate`, `npx tsc --noEmit`: qua. `npm run build` (worktree tạm): qua. Hồi quy lõi của app trên bản đó: 17/17, console sạch.
+- Tốc độ khung hình, bản production, đo xen kẽ với bản `main` trước đợt G (cổng 3000), không có Blender chạy. Máy lúc đo dao động nhiều (lúc mở cảnh: 89 tới 114 khung/giây ở cả hai bản):
+
+| Lúc | `main` trước đợt G | Nhánh (2b) |
+|---|---|---|
+| Phát giai đoạn 3 (bốn vòng) | 75,2 / 61,8 / 69,3 / 73,3 | 66,5 / 62,1 / 67,3 / 71,5 |
+| Phát giai đoạn 4 (bốn vòng) | 69,9 / 66,5 / 59,4 / 72,1 | 59,4 / 63,8 / 66,0 / 69,3 |
+| Phát giai đoạn 5 (hai vòng) | 61,5 / 55,1 | 57,8 / 56,4 |
+| Phát giai đoạn 6 (hai vòng) | 62,4 / 58,5 | 63,5 / 63,0 |
+
+  Trung bình giai đoạn 3 và 4 thấp hơn khoảng 4%; giai đoạn 5 và 6 ngang nhau. Mức chênh nằm trong độ dao động giữa các vòng, nên chưa kết luận được là chậm hơn.
+
 ### Còn lại, chưa ưng ý
 
 - **Nhát chém của lính Gaul chạm khiên sớm hơn thời điểm cảnh coi là đòn chạm.** Cảnh lấy lúc vũ khí vươn xa nhất về trước (0,5 giây); với nhát bổ từ trên xuống, lưỡi kiếm đi qua mép trên khiên sớm hơn khoảng 2–3 khung, nên ở khung "đòn chạm" lưỡi kiếm đã xuống thấp bên cạnh khiên (hàng 3 của ảnh duyệt).
