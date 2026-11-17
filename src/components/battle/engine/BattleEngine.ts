@@ -626,10 +626,13 @@ export class BattleEngine {
         materialCache.set(cacheKey, materials);
         this.materials.push(materials);
       }
-      const track = new UnitTrack(battle, unit, clock);
+      // Every kind of soldier fights hand to hand unless the data says it fights at a distance.
+      const track = new UnitTrack(battle, unit, clock, !typeById.get(unit.type)?.ranged);
       if (track.count === 0) continue;
-      this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group));
+      const side = battle.sides.findIndex((s) => s.id === unit.side);
+      this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group, side));
     }
+    this.crowd.engage();
 
     this.arrows = new ArrowLayer(battle, colorOfSide, terrain.heightAt);
     this.scene.add(this.arrows.group);

@@ -18,9 +18,13 @@ const BLOCK_FIGURES = 250;
 const FRONTAGE = 150;
 const DEPTH = 56;
 const GAP = 30;
-/** Half the distance between the two front lines, at the start and in contact. */
+/**
+ * Half the distance between the two front lines, at the start and in
+ * contact: the fronts of the first row of blocks meet, so their men fight
+ * hand to hand (melee.ts).
+ */
 const START_HALF_GAP = 250;
-const CONTACT_HALF_GAP = 12;
+const CONTACT_HALF_GAP = 0;
 
 const FIRST_PHASE_ACTIONS: UnitAction[] = ["advance", "charge", "fight"];
 

@@ -109,6 +109,13 @@ export interface UnitType {
   model: string;
   /** Horsemen: the model includes the horse. */
   mounted?: boolean;
+  /**
+   * Fights from a distance (javelins, sling stones) and does not close with
+   * the enemy. Every other kind fights hand to hand: where the data says
+   * `fight`, the scene pairs its front men off with the enemy's, and the data
+   * must bring the two fronts together. See docs/ARCHITECTURE.md, "Giáp lá cà".
+   */
+  ranged?: boolean;
 }
 
 export interface BattleSide {

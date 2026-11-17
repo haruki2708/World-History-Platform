@@ -10,6 +10,9 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
+ *   iStrike  seconds into the attack clip for a figure fighting hand to hand
+ *            (engine/melee.ts times its blows), or negative: the clip then
+ *            loops on the clock like idle
  *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
@@ -57,6 +60,7 @@ const PARS = /* glsl */ `
 attribute vec4 iPosYaw;
 attribute vec4 iAnim;
 attribute float iSeed;
+attribute float iStrike;
 attribute vec4 aBoneIndex;
 attribute vec4 aBoneWeight;
 attribute float aTeam;
@@ -86,6 +90,9 @@ float figFrame(float clip) {
     float stride =
       (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
+  } else if (index == ${CLIP_INDEX.attack} && iStrike >= 0.0) {
+    // A blow timed by the fight: played once, from the moment given.
+    frame = min(iStrike * info.z, info.y - 1.0);
   } else if (info.w > 0.5) {
     float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
     frame = mod(seconds * info.z, info.y);

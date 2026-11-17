@@ -5,6 +5,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { loadBattle, unitTypes } from "@/data";
 import { type Battle, hourAt, phaseAt } from "@/lib/battle";
 import { useAppStore } from "@/store/useAppStore";
+import { makeDuelBattle } from "./duelBattle";
 
 // three.js runs only in the browser, and only once the lab opens.
 const BattleScene = dynamic(
@@ -16,7 +17,7 @@ const DEFAULT_BATTLE = "battle-of-cannae";
 
 const noSubscribe = () => () => {};
 
-/** ?battle=<event id>&stats=1&stress=<figures>&lang=vi */
+/** ?battle=<event id>&stats=1&stress=<figures>&duel=1&lang=vi */
 function useLabParams() {
   const search = useSyncExternalStore(
     noSubscribe,
@@ -29,6 +30,7 @@ function useLabParams() {
     battleId: params.get("battle") ?? DEFAULT_BATTLE,
     showStats: params.get("stats") === "1",
     stressFigures: Number.isInteger(stress) && stress > 0 ? stress : undefined,
+    duel: params.get("duel") === "1",
     locale: params.get("lang") === "vi" ? ("vi" as const) : ("en" as const),
   };
 }
@@ -41,7 +43,7 @@ function formatHour(hour: number): string {
 }
 
 export function BattleLab() {
-  const { battleId, showStats, stressFigures, locale } = useLabParams();
+  const { battleId, showStats, stressFigures, duel, locale } = useLabParams();
   const setLocale = useAppStore((s) => s.setLocale);
   useEffect(() => setLocale(locale), [locale, setLocale]);
   const [battle, setBattle] = useState<Battle | null>(null);
@@ -57,14 +59,15 @@ export function BattleLab() {
     openBattle(battleId);
     loadBattle(battleId).then((loaded) => {
       if (!alive) return;
-      if (loaded) setBattle(loaded);
+      // ?duel=1: a few pairs of blocks that fight hand to hand, on the ground of the battle.
+      if (loaded) setBattle(duel ? makeDuelBattle(loaded, unitTypes) : loaded);
       else setMissing(true);
     });
     return () => {
       alive = false;
       closeBattle();
     };
-  }, [battleId, openBattle, closeBattle]);
+  }, [battleId, duel, openBattle, closeBattle]);
 
   // Playback: each phase takes its own playSeconds.
   useEffect(() => {
