@@ -1,7 +1,10 @@
 // Reports where unit blocks of a battle run into each other, at every phase
 // boundary and in between (every quarter phase), the way the scene moves them:
 // straight-line interpolation of centre, size and bulge, facing the shorter
-// way round. Bulge is included. Not part of `npm run validate`: some overlap
+// way round; a turn of 135° or more is an about-face, interpolated towards the
+// end formation seen from behind, so the block turns where it stands
+// (src/components/battle/engine/timeline.ts). Bulge is included. Not part of
+// `npm run validate`: some overlap
 // while moving is intended (light troops falling back through their own lines,
 // a pursuit), so this is a tool for editing the data, read by eye.
 //
@@ -22,6 +25,8 @@ const id = args.find((arg, i) => !arg.startsWith("--") && i !== minIndex + 1) ??
 const battle = JSON.parse(readFileSync(join(root, "src", "data", "battles", `${id}.json`), "utf8"));
 
 const DEG = Math.PI / 180;
+/** Degrees; as ABOUT_FACE in timeline.ts. */
+const ABOUT_FACE = 135;
 const STEP = 0.25;
 const SAMPLES = 14;
 
@@ -47,7 +52,10 @@ function stateAt(unit, time) {
   if (!a) return null;
   const b = keys[k + 1].get(unit) ?? a;
   const fa = a.formation;
-  const fb = b.formation;
+  let fb = b.formation;
+  if (Math.abs(lerpAngle(0, fb.facing - fa.facing, 1)) >= ABOUT_FACE) {
+    fb = { ...fb, facing: fb.facing + 180, bulge: -(fb.bulge ?? 0) };
+  }
   return {
     men: lerp(a.men, b.men, s),
     x: lerp(fa.center.x, fb.center.x, s),
