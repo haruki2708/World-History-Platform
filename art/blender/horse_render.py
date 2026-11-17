@@ -168,8 +168,8 @@ def main(argv):
         combine(paths, os.path.join(OUT, "03-lods.jpg"))
 
     show(0)
-    # The run's frames: the hind hooves land (0), the leading hind is down
-    # (3), both fores are down (6). Before T-030 the run had 12 frames and
+    # The run's frames: the trailing (left) hind lands (0), the leading hind
+    # is down (3), both fores are down (6). Before T-030 the run had 12 frames and
     # these were 0, 4, 8.
     clips = (("idle", (0, 40, 100), "left"), ("walk", (0, 12, 25), "left"), ("run", (0, 3, 6), "left"),
              ("die", (12, 30, 59), "front34"))
