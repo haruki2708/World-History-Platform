@@ -148,3 +148,13 @@ Cái giá: cặp đấu đổi đối thủ thường hơn một chút (bảng t
 - **Nhát hạ gục cắt ngang phản ứng** (253 lần ở Cannae): nhát này được phép bắt đầu muộn nên không chờ.
 - **Hai cây *pilum* của hastatus** biến đi rồi hiện lại mỗi lần phát `attack`, `block` hay `hit` (tới hai lần mỗi 2,4 giây). Lane 3 gợi ý cho hastatus không cầm *pilum* trong giai đoạn `fight`; chưa xem kỹ trong cảnh, chưa quyết.
 - Sau khi tua, clip đè lên của khoảng một phần tư số hình đang có clip khác với lúc phát liên tục tới đó (như `main`); tự khớp lại sau một nhát.
+
+### Kiểm tra sau khi sửa (commit `e48e155`)
+
+- `npm run lint`, `npm run validate`, `npx tsc --noEmit`: qua. `npm run build` (worktree tạm): qua.
+- Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản production đó: 17/17, console sạch.
+- Trong trình duyệt (dev, đang phát), số hình phát `attack` / `block` / `hit` qua các lần chụp, console sạch:
+  - `/battle-lab?duel=1`: cặp thử 58 / 33 / 11 và 81 / 27 / 18; hastatus với Iberia 46 / 25 / 16 và 56 / 22 / 18; triarii với Libya 47 / 34 / 8 và 57 / 23 / 15; cặp kỵ binh chỉ có `attack`.
+  - Cannae giai đoạn 4: hastati 186 / 107 / 46, bộ binh đồng minh hàng đầu 192 / 109 / 44, ba khối Gaul và hai khối Iberia đều có đủ.
+  - Cannae giai đoạn 6: hastati 79 / 24 / 29, principes 47 / 7 / 22, triarii 99 / 42 / 32, hai khối Libya 62 / 17 / 5 và 64 / 12 / 3, Gaul giữa 100 / 33 / 18.
+- Không đo lại tốc độ khung hình: phần sửa chỉ thêm vài phép so sánh cho mỗi người đầu hàng; lane 3 đã đo nhánh ngang `main` trước khi sửa.
