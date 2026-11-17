@@ -47,6 +47,6 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-026](T-026-scene-fixes.md) | 3 | Trận đánh 3D: sửa cảnh (quay đầu tại chỗ, chuẩn bị kỵ binh, mức chi tiết, vùng màu, nhãn) | Xong, đã gộp 2026-11-17 (phiên chính làm thay lane 3) |
 | [T-027](T-027-prefetch-cannae-data.md) | 2 | Trận đánh 3D: tải sẵn tài nguyên cảnh trong lúc bay; triarii quay đầu, các khối đi xiên | Xong, đã gộp 2026-11-17 |
 | [T-028](T-028-unit-labels.md) | 3 | Trận đánh 3D: tên khối quân trên cảnh, thẻ thông tin khi bấm, khối đi xiên | Xong, đã gộp 2026-11-17 |
-| [T-029](T-029-about-battle-credits.md) | 1 | Trận đánh 3D trong hộp thoại Giới thiệu: cách dùng, độ chính xác, ghi công | Đang làm (giao 2026-11-17) |
-| [T-030](T-030-horse-gallop.md) | 2 | Trận đánh 3D: clip phi nước đại mới cho ngựa (sải 4,5–6 m), xuất lại ba mô hình kỵ binh | Đang làm (giao 2026-11-17) |
-| [T-031](T-031-scene-performance.md) | 3 | Trận đánh 3D: lấy lại hiệu năng của cảnh sau đợt E (nhãn khối quân, mức chi tiết của kỵ binh); việc dở của T-028 | Đang làm (giao 2026-11-17) |
+| [T-029](T-029-about-battle-credits.md) | 1 | Trận đánh 3D trong hộp thoại Giới thiệu: cách dùng, độ chính xác, ghi công | Xong, đã gộp 2026-11-17 |
+| [T-030](T-030-horse-gallop.md) | 2 | Trận đánh 3D: clip phi nước đại mới cho ngựa (sải 4,5–6 m), xuất lại ba mô hình kỵ binh | Xong, đã gộp 2026-11-17 |
+| [T-031](T-031-scene-performance.md) | 3 | Trận đánh 3D: lấy lại hiệu năng của cảnh sau đợt E (nhãn khối quân, mức chi tiết của kỵ binh); việc dở của T-028 | Xong, đã gộp 2026-11-17 |

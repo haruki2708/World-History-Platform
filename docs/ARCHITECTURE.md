@@ -116,7 +116,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 
 - **Địa chỉ trang** phản ánh trạng thái đang xem: `/?year=-216&event=battle-of-cannae&lang=vi`. `src/components/shell/UrlSync.tsx` áp tham số khi mở trang (tham số sai bị bỏ qua từng cái) và cập nhật địa chỉ bằng `history.replaceState`: ngay khi chọn sự kiện hay đổi ngôn ngữ, sau 400 ms năm đứng yên khi đổi năm. Tham số lạ khác trên link được giữ nguyên.
 - **Phát tự động:** đang phát mà năm bị đổi từ nơi khác (kéo, phím, nút của gia sư) hoặc có sự kiện được chọn thì dừng phát.
-- **Giới thiệu** (`src/components/shell/AboutDialog.tsx`, mở bằng nút ở header): app là gì, cách dùng, độ chính xác, nguồn và ghi công, cách gia sư hoạt động. Nguồn, giấy phép và trích dẫn ở đây phải khớp với `README.md` (mục "Data credits") và `docs/data/SOURCES.md`; đổi một chỗ thì đổi cả ba. Lần đầu mở app, header có một gợi ý mời xem phần này; đóng gợi ý hoặc mở Giới thiệu thì ghi `localStorage` khoá `whp.aboutSeen` và gợi ý không hiện lại.
+- **Giới thiệu** (`src/components/shell/AboutDialog.tsx`, mở bằng nút ở header): app là gì, cách dùng, độ chính xác, nguồn và ghi công, cách gia sư hoạt động. Nguồn, giấy phép và trích dẫn ở đây phải khớp với `README.md` (mục "Data credits") và `docs/data/SOURCES.md`; đổi một chỗ thì đổi cả ba. Từ T-029 hộp thoại nói về trận đánh 3D trong các mục cách dùng, độ chính xác, ghi công: số trận và tên trận lấy từ dữ liệu (`hasBattle`), ghi công trận đánh (câu Copernicus, link mô hình) dùng chung `src/lib/credits.ts` với khung xem trận; riêng hai khoá viết cho Cannae (`about.accuracy.battle.time`, `about.credits.battleSources`) phải sửa tay khi thêm trận thứ hai. Lần đầu mở app, header có một gợi ý mời xem phần này; đóng gợi ý hoặc mở Giới thiệu thì ghi `localStorage` khoá `whp.aboutSeen` và gợi ý không hiện lại.
 - **Phím tắt** (`src/components/shell/keyboard.ts`): Space phát hoặc tạm dừng, ←/→ đổi 1 năm (Shift: 10 năm), Home/End về hai đầu, `/` vào ô hỏi gia sư, Esc rời ô nhập, `?` mở bảng phím tắt. Mỗi phần tự đăng ký phím của mình bằng `useShortcuts`; phím tắt không chạy khi đang gõ chữ, đang giữ Ctrl/Alt/Cmd, đang dùng bộ gõ, đang mở hộp thoại, focus ở trên bản đồ, hoặc Space khi focus ở một nút.
 
 ## AI tutor (giai đoạn 4)
@@ -193,7 +193,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Bắt buộc: `idle`, `walk`, `attack`.
   - Nên có: `run`, `die`, `jog`. Thiếu `run` thì cảnh dùng `walk` thay; thiếu `die` thì cảnh bỏ hình lính đi mà không có hoạt hình ngã.
   - **`jog`** (thêm 2026-11-17, người dùng duyệt): chạy đều, chậm hơn `run`, khoảng 3 m/s ở cỡ người thật; với ngựa là nước kiệu hay nước kiệu nhanh. `run` của thư viện chung là chạy nhanh (5,8 m/s), nên khối quân đi vừa phải mà chỉ có `walk` và `run` thì trông như chạy nước rút quay chậm.
-    - Cảnh xếp các dáng đi của mô hình theo tốc độ tự nhiên (`walk`, `jog` nếu có, `run` nếu có) và chuyển từ dáng này sang dáng kế ở trung bình nhân của hai tốc độ, có khoảng đệm 10%. Mỗi dáng phát nhanh nhất 3 lần (`walk`), 1,8 lần (`jog`), 1,5 lần (`run`) tốc độ của nó.
+    - Cảnh xếp các dáng đi của mô hình theo tốc độ tự nhiên (`walk`, `jog` nếu có, `run` nếu có) và chuyển từ dáng này sang dáng kế ở trung bình nhân của hai tốc độ, có khoảng đệm 10%. Mỗi dáng phát nhanh nhất 3 lần (`walk`), 2,7 lần (`jog`), 1,5 lần (`run`) tốc độ của nó. Trần của `jog` phải tới được chỗ đổi sang `run` (trung bình nhân, cộng khoảng đệm): ngựa phi nhanh gấp 5,8 lần kiệu, nên kiệu phát tới 2,65 lần rồi mới đổi sang phi (17,4 m/s trên sân). Trần cũ 1,8 làm móng trượt khi kiệu nhanh; nâng khi gộp T-030 (người dùng chọn). Bộ binh đổi sang `run` ở 1,6 lần tốc độ `jog`, nên không bị ảnh hưởng.
     - `jog` đứng cuối `UNIT_CLIPS`, nên chỉ số của các clip cũ không đổi. Mô hình chưa có `jog` vẫn chạy như trước.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
@@ -211,12 +211,13 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Ngựa (T-020, lane 2): `art/build/horse/horse.blend`, dựng bằng `art/blender/horse_build.py`. Cao 1,40 m tới vai, 40 xương tên `horse_*`; người cưỡi gắn vào xương `horse_saddle`, yên cao 1,35 m. Chi tiết ở `art/README.md`, mục "Ngựa" và "Gắn người cưỡi".
   - Ba mô hình kỵ binh (T-022, lane 1): `roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`. Tư thế gốc của người được nhấc lên lưng ngựa; hai khung xương nối thành một (107 xương); `pelvis`, `ik_foot_root`, `ik_hand_root` treo vào `horse_saddle`. Người và ngựa chung một atlas, một vật liệu. Tay trái người cưỡi giữ dây cương; xương `ik_hand_l` mang khiên của kỵ binh La Mã và Iberia/Gaul. Người Numidia cưỡi ngựa trần, ngựa thu còn 0,95 lần.
   - Clip: `jog` là nước kiệu; `attack` là ngựa đứng, người đâm giáo (người Numidia phóng lao); `die` là ngựa ngã, người văng xuống nằm cạnh.
-  - Sải móng đo như cảnh (T-022): `walk` 1,08 m / 1,667 s; `jog` 1,82 m / 0,833 s; `run` (phi nước đại) 1,09 m / 0,400 s. Kỵ binh Cannae phi nhanh hơn mức clip phi chịu được (1,5 lần tốc độ của nó), nên móng trượt khi phi.
+  - Sải móng đo như cảnh: `walk` 1,08 m / 1,667 s (dáng đi gốc, móng trượt vài khung); `jog` 1,82 m / 0,833 s, móng trụ khoá ở T-030 (trượt 1%); `run` (phi nước đại bốn nhịp, dựng lại ở T-030, `art/blender/horse_gallop.py`) 5,51 m / 0,433 s, trượt 1%. Ngựa Numidia ngắn hơn 5%.
+  - Trần phi khoảng 57 m/s trên sân (Numidia 54). Kỵ binh Cannae vượt trần khoảng 20% thời gian di chuyển (Hasdrubal, Numidia, 62–70 m/s), lúc đó móng trượt 8–22%. Người dùng chọn để nguyên (2026-11-17).
   - Ghi công ngựa: lưới "Horse" của Tarnyloo (Blend Swap, CC BY 3.0, bắt buộc nêu tên tác giả); khung xương và dáng đi của fdoss001 (CC0). Đã có trong khung xem trận và README (T-022).
 - **File gốc:** các file tải từ Sketchfab để ngoài repo, ở `E:\World_History_Platform_assets\sources\`. Trong repo chỉ có script `art/blender/` và file `.glb` đã xuất. Chạy lại script bằng Blender 5.2.2 không giao diện là dựng lại được mô hình.
 - **Giấy phép và ghi công:**
   - Mô hình nền có giấy phép CC BY 4.0 (Andywoodhead, Sketchfab). Ghi công trong `art/CREDITS.md`, kèm mô tả những gì đã sửa.
-  - Khi trận đánh vào app chính, ghi công thêm ở hộp thoại Giới thiệu và README.
+  - Ghi công có ở khung xem trận, hộp thoại Giới thiệu (T-029) và README. Hai nơi trong app dùng chung `src/lib/credits.ts`.
   - Không dùng mô hình trích từ game thương mại (Total War hay game khác).
 
 ### Cảnh 3D
@@ -240,6 +241,8 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - Mục tiêu: khoảng 7 000 hình lính, từ 50 khung hình/giây trở lên ở 1280×800 trên máy của người dùng (laptop RTX 3050).
   - Có mức chất lượng thấp cho máy yếu.
   - Mở rồi đóng cảnh nhiều lần không rò bộ nhớ (giải phóng WebGL).
+  - Bóng của hình lính (T-031) vẽ từ lưới đã gộp đỉnh (`depthGeometry` trong `units.ts`). Mô hình tách đỉnh theo đường nối UV (LOD1, LOD2 gấp 3–4 lần), còn lượt vẽ bóng không đọc UV, nên gộp lại ra đúng bóng cũ mà rẻ hơn. Lưới chỉ để đổ bóng nằm ở `SHADOW_LAYER`: camera của bóng thấy, camera chính không thấy.
+  - Đo khung hình: dấu thời gian của `requestAnimationFrame` nhảy theo nhịp, nên khi khung dài quá khoảng 16,7 ms thì p99 theo dấu thời gian này lên khoảng 35 ms. Đọc kèm p99 theo đồng hồ thật (`performance.now()` lúc callback chạy), như `s-perf.mjs` của T-031 in ra.
 - **Trang thử `/battle-lab`:** chỉ chạy với `npm run dev`. Gồm cảnh, nút phát và thanh tua. Tham số:
   - `?battle=<id>`: chọn trận;
   - `?stats=1`: hiện số khung hình/giây và số hình lính;
@@ -253,7 +256,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Khung:** `BattleViewer` phủ kín trang, nằm trong một `<dialog>` mở bằng `showModal()`. Nhờ vậy các phím tắt chung của trang (`src/components/shell/keyboard.ts`) tự đứng ngoài khi trận đang mở; khung xem trận tự xử lý phím của nó. Esc hoặc nút đóng gọi `closeBattle()`, và focus trở về nút đã mở trận.
 - **Thời gian:** khung xem trận là nơi duy nhất ghi `battleTime` trong app chính (phát, tua, chuyển giai đoạn). Trang `/battle-lab` vẫn tự ghi như trước.
 - **Bố cục** (T-023): cảnh và thanh điều khiển bên trái; khung bên 360 px bên phải, thu gọn được, có hai tab "Lời dẫn" và "Thông tin trận" (hai bên, nguồn, ghi công). Ở bề ngang hẹp, khung bên nằm dưới cảnh.
-- **Ghi công trong khung:** `src/components/battle/viewer/credits.ts`. Phải khớp với README ("Data credits") và `art/CREDITS.md`. Thêm mô hình mới (T-021, T-022) thì thêm dòng ở cả ba chỗ.
+- **Ghi công trong khung:** `src/lib/credits.ts`, dùng chung với hộp thoại Giới thiệu (gộp khi gộp T-029). Phải khớp với README ("Data credits") và `art/CREDITS.md`. Thêm mô hình mới thì thêm dòng ở cả ba chỗ.
 - **Lớp phủ:** phần tử nào của khung nằm đè lên cảnh thì có thuộc tính `data-battle-overlay`; nhãn địa danh của cảnh tránh các phần tử này.
 - **Khối quân** (T-028):
   - nút "Tên khối quân" bật/tắt nhãn khối quân, ghi nhớ trong `localStorage` khoá `whp.battleUnitNames`;

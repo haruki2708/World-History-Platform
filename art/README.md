@@ -513,8 +513,7 @@ Clip phi của file gốc đúng thứ tự chân, nhưng mỗi móng chỉ lùi
 
 **Lưu ý cho cảnh (lane 3):**
 - `run` tự nhiên ở 12,7 m/s cỡ thật, tức **38,1 m/s trên sân** (×3). Với `MAX_RATE` 1,5 thì trần phi là **57,2 m/s trên sân** (Numidia 54,4 m/s), trước là 12,3 m/s.
-- Nước kiệu giờ phải gánh khoảng tốc độ rộng hơn trước (từ chỗ đổi với `walk` tới chỗ đổi với `run`) nhưng trần `jog` vẫn là 1,8 lần, nên móng trượt khi kiệu nhanh. Số liệu và đề xuất ở mục "Kết quả" của T-030.
-- Các số về `jog`/`run` trong mục "Kỵ binh" dưới đây (bảng clip, bảng sải) là trước T-030; số mới ở mục "Kết quả" của T-030.
+- Nước kiệu giờ phải gánh khoảng tốc độ rộng hơn trước (từ chỗ đổi với `walk` tới chỗ đổi với `run`). Khi gộp T-030, trần `jog` của cảnh nâng từ 1,8 lên 2,7 lần, đủ tới chỗ đổi sang `run` (17,4 m/s trên sân), nên kiệu nhanh không trượt móng.
 
 **Không có `attack`.** T-022 dựng `attack` của kỵ binh bằng clip đánh của người, cộng `idle` (hoặc `walk`) của ngựa lặp lại.
 
@@ -619,7 +618,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 | `idle` | `idle` của ngựa | ngồi, thở, quay đầu nhìn sang trái rồi trở lại | 4,967 s (149 khung) |
 | `walk` | `walk` | ngồi, đung đưa theo ngựa | 1,667 s (50 khung) |
 | `jog` | `trot` (nước kiệu) | ngồi nước kiệu, thân đỡ nhịp | 0,833 s (25 khung) |
-| `run` | `run` (phi) | ngả ra trước, giáo chĩa ra trước | 0,400 s (12 khung) |
+| `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo chĩa ra trước | 0,433 s (13 khung) |
 | `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, hoặc phóng lao | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
 | `die` | `die` của ngựa | ngã theo ngựa, rồi văng khỏi lưng, nằm yên | 1,967 s (59 khung), không lặp |
 
@@ -641,17 +640,10 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 | Clip | Một vòng | Tốc độ ở cỡ thật | Trượt lớn nhất của móng trụ trong một khung |
 |---|---|---|---|
 | `walk` | 1,08 m / 1,667 s | 0,65 m/s | 101% |
-| `jog` | 1,82 m / 0,833 s | 2,19 m/s | 88% |
-| `run` | 1,09 m / 0,400 s | 2,73 m/s | 269% |
+| `jog` | 1,82 m / 0,833 s | 2,19 m/s | 1% (trước T-030: 88%) |
+| `run` | 5,51 m / 0,433 s | 12,7 m/s | 1% (trước T-030: 1,09 m / 0,400 s, 269%) |
 
-Đây là dáng đi của file gốc (lane 2 lấy mẫu lại); độ trượt có sẵn trong file gốc, ở vài khung lúc móng chạm và rời đất. Ngựa Numidia nhỏ hơn nên sải ngắn hơn 5%.
-
-**Sải phi chưa dài hơn.** Task đề nghị cho `run` sải 4–6 m mỗi vòng nếu không tốn nhiều công.
-- Clip phi của file gốc có móng chạm đất trong 8 trên 12 khung và lùi chậm khi chạm đất.
-- Kéo giãn thời gian (nén pha chạm đất, giãn pha bay) chỉ lợi được khoảng 1,3 lần, mà mỗi móng chỉ còn chạm đất 1–2 khung, cảnh khó đo.
-- Muốn sải dài thật phải dựng lại chuyển động chân lúc chạm đất (IK cho chân ngựa nhiều đoạn), hoặc lấy clip phi khác.
-
-Chưa làm; đề xuất ở mục "Kết quả" của T-022.
+`walk` là dáng đi của file gốc (lane 2 lấy mẫu lại); độ trượt có sẵn trong file gốc, ở vài khung lúc móng chạm và rời đất. `run` dựng lại và `jog` khoá móng ở T-030 (mục "Clip phi" ở trên). Ngựa Numidia nhỏ hơn nên sải ngắn hơn 5%.
 
 ### Giai đoạn `lod`
 
