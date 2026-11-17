@@ -64,7 +64,9 @@ Trong trình duyệt (`/battle-lab?duel=1`, đang phát, sáu lần chụp cách
 ### Đã kiểm tra
 
 - `npm run lint`, `npm run validate`, `npx tsc --noEmit`: qua.
-- `npm run build` và hồi quy lõi: xem dòng cuối mục "Còn lại".
+- `npm run build` (worktree tạm, commit `01def40`): qua. Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản đó: 17/17, console sạch.
+- Tốc độ khung hình, bản production, hai vòng xen kẽ với bản `main` trước đợt G (cổng 3000), không có Blender chạy: mở cảnh 116,6 và 115,8 so với 116,4 và 117,0; phát giai đoạn 5: 71,9 và 71,5 so với 72,6 và 72,4; phát giai đoạn 6: 72,9 và 73,7 so với 75,4 và 74,7 (thấp hơn 2–3%).
+- Cannae trong trình duyệt, đang phát giai đoạn 4: `allied-infantry-front` (mô hình `roman-legionary`) và ba khối Gaul có đủ `attack`, `block`, `hit`; hastati và lính Iberia chỉ có `attack` (chờ 2b). Console sạch.
 
 ### Còn lại, chưa ưng ý
 
@@ -72,4 +74,3 @@ Trong trình duyệt (`/battle-lab?duel=1`, đang phát, sáu lần chụp cách
 - **Giai đoạn 5 của Cannae đổi đối thủ 1,2 giây một lần.** Muốn giảm thì sửa dữ liệu: giữ bề ngang mặt trận La Mã trong lúc đang đánh, cho việc dồn vào giữa xảy ra giữa các giai đoạn hoặc ở hàng sau.
 - Cannae: tỉ lệ người ngã có đòn chạm giảm từ 89% xuống 87% so với cuối chặng 1 (giai đoạn 6: 87% xuống 84%), do nhịp của một người đổi khi anh ta bước vào chu kỳ cuối trước lúc ngã.
 - Bốn mô hình bộ binh còn lại chưa có clip mới; `build_model.py -- --model all --check` sẽ báo thiếu `block`, `hit` ở bốn mô hình đó cho tới khi làm 2b.
-- Tốc độ khung hình chưa đo lại ở chặng này.
