@@ -56,12 +56,24 @@ export interface ModelIndex {
   models: string[];
 }
 
-/** What a unit is doing during a phase; the engine picks clips from it. */
+/**
+ * What a unit is doing during a phase; the engine picks clips from it.
+ *
+ * Two of them are fighting. `skirmish` is at a distance (javelins, sling
+ * stones): the front ranks throw from where they stand. `fight` is hand to
+ * hand: the scene pairs the men at the head of the files off with the
+ * enemy's, and only a man with an enemy in reach strikes. So for a phase of
+ * `fight` the data brings the front of the unit onto the front of an enemy
+ * unit, at the start of the phase as well as at its end (the scene moves
+ * units in a straight line between the two). `npm run validate` checks it.
+ * See docs/ARCHITECTURE.md, "Giáp lá cà".
+ */
 export type UnitAction =
   | "stand"
   | "advance"
   | "charge"
   | "fight"
+  | "skirmish"
   | "retreat"
   | "rout"
   | "pursue";
@@ -109,13 +121,6 @@ export interface UnitType {
   model: string;
   /** Horsemen: the model includes the horse. */
   mounted?: boolean;
-  /**
-   * Fights from a distance (javelins, sling stones) and does not close with
-   * the enemy. Every other kind fights hand to hand: where the data says
-   * `fight`, the scene pairs its front men off with the enemy's, and the data
-   * must bring the two fronts together. See docs/ARCHITECTURE.md, "Giáp lá cà".
-   */
-  ranged?: boolean;
 }
 
 export interface BattleSide {

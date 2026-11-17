@@ -14,7 +14,7 @@ const battlesDir = join(root, "src", "data", "battles");
 const terrainDir = join(root, "public", "data", "terrain");
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const ACTIONS = new Set(["stand", "advance", "charge", "fight", "retreat", "rout", "pursue"]);
+const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "retreat", "rout", "pursue"]);
 const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
 
 const errors = [];

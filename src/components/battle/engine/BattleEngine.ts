@@ -626,8 +626,7 @@ export class BattleEngine {
         materialCache.set(cacheKey, materials);
         this.materials.push(materials);
       }
-      // Every kind of soldier fights hand to hand unless the data says it fights at a distance.
-      const track = new UnitTrack(battle, unit, clock, !typeById.get(unit.type)?.ranged);
+      const track = new UnitTrack(battle, unit, clock);
       if (track.count === 0) continue;
       const side = battle.sides.findIndex((s) => s.id === unit.side);
       this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group, side));

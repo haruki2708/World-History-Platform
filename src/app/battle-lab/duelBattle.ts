@@ -79,18 +79,20 @@ export function makeDuelBattle(battle: Battle, unitTypes: UnitType[]): Battle {
   ): UnitState[] => {
     const { x, block } = places[b];
     const distance = block.apart === undefined ? apart : Math.max(apart, block.apart);
+    // A pair that keeps its distance throws; the others fight hand to hand.
+    const doing: UnitAction = block.apart !== undefined && action === "fight" ? "skirmish" : action;
     const y = LINE_Y - pushed;
     return [
       {
         unit: `duel-n${b}`,
         formation: { center: { x, y: y + distance / 2 + block.depth / 2 }, frontage: block.northFront, depth: block.depth, facing: 180, bulge },
-        action,
+        action: doing,
         men: Math.round(block.men * northLeft),
       },
       {
         unit: `duel-s${b}`,
         formation: { center: { x, y: y - distance / 2 - block.depth / 2 }, frontage: block.southFront, depth: block.depth, facing: 0, bulge: -bulge },
-        action,
+        action: doing,
         men: Math.round(block.men * southLeft),
       },
     ];

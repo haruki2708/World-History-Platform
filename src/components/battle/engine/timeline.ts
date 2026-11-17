@@ -7,9 +7,9 @@
  * of the formation in files (front to back, then the next file), so when men
  * fall the files behind close up and the block shrinks sideways.
  *
- * Hand to hand (a unit that is not `ranged`, in a phase whose action is
- * `fight`), the men who fall are the men at the head of a file, one after
- * the other, and the men behind step up into their place. See "Giáp lá cà" in
+ * Hand to hand (a phase whose action is `fight`), the men who fall are the
+ * men at the head of a file, one after the other, and the men behind step up
+ * into their place. See "Giáp lá cà" in
  * docs/ARCHITECTURE.md and melee.ts, which pairs the heads of the files off
  * with the enemy's.
  */
@@ -49,8 +49,19 @@ export const STRIKE_PERIOD = 2.4;
 const STEP_UP_DELAY = 0.4;
 /** ...then takes this long to step up into his place. */
 const STEP_UP_SECONDS = 1.5;
-/** A man with fewer than this many men standing in front of him leads his file. */
-const HEAD_DEPTH = 0.6;
+/**
+ * A man with fewer than this many men standing in front of him leads his
+ * file: the man behind the head takes over as soon as he starts to step up.
+ */
+const HEAD_DEPTH = 0.999;
+/**
+ * The front rank stands this far behind the front edge of the formation,
+ * metres, and the rear rank as far inside the rear edge, or half a rank
+ * where the ranks are closer than that. So the front rank of a thin block
+ * (a few men left on a wide front) still stands at its front edge, within
+ * reach of the enemy.
+ */
+const EDGE_INSET = 3.2;
 
 export interface UnitKey {
   center: { x: number; y: number };
@@ -165,8 +176,6 @@ interface FightPhase {
 
 export class UnitTrack {
   readonly unit: BattleUnit;
-  /** The unit fights hand to hand (its type is not `ranged`). */
-  readonly melee: boolean;
   /** Figures at the start of the battle. */
   readonly count: number;
   readonly keys: UnitKey[];
@@ -223,9 +232,8 @@ export class UnitTrack {
   private readonly clock: BattleClock;
   private readonly scratch: UnitKey;
 
-  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock, melee = false) {
+  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock) {
     this.unit = unit;
-    this.melee = melee;
     this.clock = clock;
 
     // One keyframe per phase boundary; a unit missing from a phase holds its
@@ -285,7 +293,7 @@ export class UnitTrack {
 
     // Who falls first outside a hand-to-hand fight (missiles, a rout):
     // random, leaning towards the front ranks.
-    const startRows = gridRows(n, start);
+    const startRows = grid(n, start).rows;
     const fallOrder = Array.from({ length: n }, (_, i) => ({
       i,
       key: random() + 0.6 * ((i % startRows) / Math.max(startRows - 1, 1)),
@@ -310,8 +318,8 @@ export class UnitTrack {
       const slots = this.slots[k];
       const turn = angleDelta(from.facing, to.facing);
       const about = Math.abs(turn) >= ABOUT_FACE;
-      const fighting = melee && to.action === "fight";
-      const rows = gridRows(standing.length, from);
+      const fighting = to.action === "fight";
+      const { rows, pitch } = grid(standing.length, from);
       const files = Math.ceil(standing.length / rows);
       // After an about-face the old rear rank leads.
       const toFront = about ? 1 : -1;
@@ -391,7 +399,7 @@ export class UnitTrack {
       // Where the queue of its file leaves each survivor at the end of the
       // phase, in the frame of the start keyframe: stepped up by as many
       // ranks as men fell in front of him.
-      const step = 1 / rows;
+      const step = pitch;
       const endV = new Float32Array(n);
       {
         let p = 0;
@@ -417,7 +425,7 @@ export class UnitTrack {
         across[i] = about ? -slots[i * 2] : slots[i * 2];
         along[i] = about ? 1 - endV[i] : endV[i];
       }
-      const nextRows = gridRows(standing.length, to);
+      const nextRows = grid(standing.length, to).rows;
       standing.sort((a, b) => across[a] - across[b] || a - b);
       for (let begin = 0; begin < standing.length; begin += nextRows) {
         const file = standing.slice(begin, begin + nextRows).sort((a, b) => along[a] - along[b] || a - b);
@@ -474,7 +482,7 @@ export class UnitTrack {
   ): Float32Array {
     const slots = new Float32Array(this.count * 2).fill(NaN);
     if (ranked.length === 0) return slots;
-    const rows = gridRows(ranked.length, key);
+    const { rows, margin, pitch } = grid(ranked.length, key);
     const files = Math.ceil(ranked.length / rows);
     ranked.forEach((i, slot) => {
       const file = Math.floor(slot / rows);
@@ -482,7 +490,7 @@ export class UnitTrack {
       fileOf[i] = file;
       rowOf[i] = row;
       slots[i * 2] = (file + 0.5 + jitterU[i] * 0.45) / files - 0.5;
-      slots[i * 2 + 1] = (row + 0.5 + jitterV[i] * 0.45) / rows;
+      slots[i * 2 + 1] = margin + row * pitch + jitterV[i] * 0.9 * margin;
     });
     return slots;
   }
@@ -698,9 +706,17 @@ export function formationPoint(
   out.y = f.center.y - sin * across + cos * forward;
 }
 
-/** Ranks (front to back) for `count` figures: cells as square as possible. */
-function gridRows(count: number, key: { frontage: number; depth: number }): number {
-  if (count <= 1) return 1;
-  const rows = Math.round(Math.sqrt((count * key.depth) / key.frontage));
-  return Math.min(Math.max(rows, 1), count);
+/**
+ * The grid `count` figures stand in: ranks (front to back) so that the
+ * cells are as square as possible; `margin`, the place of the front rank as
+ * a share of the depth (v); `pitch`, from one rank to the next (see
+ * EDGE_INSET).
+ */
+function grid(
+  count: number,
+  key: { frontage: number; depth: number },
+): { rows: number; margin: number; pitch: number } {
+  const rows = count <= 1 ? 1 : Math.min(Math.max(Math.round(Math.sqrt((count * key.depth) / key.frontage)), 1), count);
+  const margin = Math.min(EDGE_INSET / key.depth, 0.5 / rows);
+  return { rows, margin, pitch: rows > 1 ? (1 - 2 * margin) / (rows - 1) : 0 };
 }

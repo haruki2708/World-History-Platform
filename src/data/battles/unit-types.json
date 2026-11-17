@@ -1,16 +1,16 @@
 [
-  { "id": "roman-velites", "name": { "en": "Velites (Roman light infantry)", "vi": "Velites (bộ binh nhẹ La Mã)" }, "model": "roman-velites", "ranged": true },
+  { "id": "roman-velites", "name": { "en": "Velites (Roman light infantry)", "vi": "Velites (bộ binh nhẹ La Mã)" }, "model": "roman-velites" },
   { "id": "roman-hastati", "name": { "en": "Hastati", "vi": "Hastati (lính trẻ)" }, "model": "roman-hastatus" },
   { "id": "roman-principes", "name": { "en": "Principes", "vi": "Principes (lính trung niên)" }, "model": "roman-legionary" },
   { "id": "roman-triarii", "name": { "en": "Triarii", "vi": "Triarii (lính già)" }, "model": "roman-triarii" },
   { "id": "socii-infantry", "name": { "en": "Allied infantry (socii)", "vi": "Bộ binh đồng minh (socii)" }, "model": "roman-legionary" },
   { "id": "roman-cavalry", "name": { "en": "Roman cavalry", "vi": "Kỵ binh La Mã" }, "model": "roman-cavalry", "mounted": true },
   { "id": "allied-cavalry", "name": { "en": "Allied cavalry", "vi": "Kỵ binh đồng minh" }, "model": "roman-cavalry", "mounted": true },
-  { "id": "balearic-slingers", "name": { "en": "Balearic slingers", "vi": "Lính ném đá Baleares" }, "model": "balearic-slinger", "ranged": true },
-  { "id": "light-spearmen", "name": { "en": "Light spearmen", "vi": "Lính giáo nhẹ" }, "model": "iberian-infantry", "ranged": true },
+  { "id": "balearic-slingers", "name": { "en": "Balearic slingers", "vi": "Lính ném đá Baleares" }, "model": "balearic-slinger" },
+  { "id": "light-spearmen", "name": { "en": "Light spearmen", "vi": "Lính giáo nhẹ" }, "model": "iberian-infantry" },
   { "id": "iberian-infantry", "name": { "en": "Iberian infantry", "vi": "Bộ binh Iberia" }, "model": "iberian-infantry" },
   { "id": "gallic-infantry", "name": { "en": "Gallic infantry", "vi": "Bộ binh Gaul" }, "model": "gallic-infantry" },
   { "id": "libyan-infantry", "name": { "en": "Libyan infantry", "vi": "Bộ binh Libya" }, "model": "libyan-infantry" },
   { "id": "iberian-gallic-cavalry", "name": { "en": "Iberian and Gallic cavalry", "vi": "Kỵ binh Iberia và Gaul" }, "model": "iberian-gallic-cavalry", "mounted": true },
-  { "id": "numidian-cavalry", "name": { "en": "Numidian cavalry", "vi": "Kỵ binh Numidia" }, "model": "numidian-cavalry", "mounted": true, "ranged": true }
+  { "id": "numidian-cavalry", "name": { "en": "Numidian cavalry", "vi": "Kỵ binh Numidia" }, "model": "numidian-cavalry", "mounted": true }
 ]

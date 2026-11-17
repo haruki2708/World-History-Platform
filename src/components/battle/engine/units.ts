@@ -151,7 +151,7 @@ const VELOCITY_SMOOTHING = 0.25;
 
 /**
  * Hand to hand (melee.ts, and "Giáp lá cà" in docs/ARCHITECTURE.md). In a
- * unit that fights hand to hand only the men with an enemy in reach strike:
+ * unit whose action is `fight` only the men with an enemy in reach strike:
  * the heads of the files, paired off by melee.ts.
  *
  * - A figure with an enemy leaves its place in the formation for where
@@ -545,11 +545,13 @@ export class UnitBlock {
     } else {
       this.gait = this.pickGait();
     }
-    // In a fight at a distance the front ranks throw; everyone else keeps
-    // pace with the block. Hand to hand, a man strikes when he has an enemy
-    // in reach (see CLOSE_SPEED).
-    const fighting = track.actionAt(time) === "fight";
-    const acting = fighting && !track.melee ? ATTACK : this.gait;
+    // In a fight at a distance (skirmish) the front ranks throw; everyone
+    // else keeps pace with the block. Hand to hand (fight), a man strikes
+    // when he has an enemy in reach (see CLOSE_SPEED).
+    const action = track.actionAt(time);
+    const throwing = action === "skirmish";
+    const fighting = throwing || action === "fight";
+    const acting = throwing ? ATTACK : this.gait;
     if (acting !== this.toActing || this.gait !== this.toRest) {
       this.fromActing = this.toActing;
       this.fromRest = this.toRest;
@@ -683,7 +685,7 @@ export class UnitBlock {
         } else {
           const heading = track.heading[i];
           // In a fight at a distance only the front ranks throw; the rest wait their turn.
-          const acts = !track.melee && (track.rank[i] <= 0.34 || track.seed[i] <= 0.2);
+          const acts = throwing && (track.rank[i] <= 0.34 || track.seed[i] <= 0.2);
           let dx = 0;
           let dy = 0;
           let step = 0;
@@ -781,7 +783,7 @@ export class UnitBlock {
           }
           // The blow on top: the one under way, or one that begins now.
           let into = -1;
-          if (track.melee) {
+          if (!throwing) {
             let beat = snap ? -1 : swing[i];
             if (beat >= 0) {
               into = (((clock - beat + strikeImpact) % STRIKE_PERIOD) + STRIKE_PERIOD) % STRIKE_PERIOD;

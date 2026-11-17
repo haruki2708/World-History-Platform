@@ -444,31 +444,31 @@
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "formation": { "center": { "x": -552.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 339.8, "bulge": 5.6 },
           "action": "advance",
           "men": 5000
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "formation": { "center": { "x": -310, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 349.9, "bulge": 5.6 },
           "action": "advance",
           "men": 4000
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "formation": { "center": { "x": -60, "y": -175.8 }, "frontage": 254.5, "depth": 35, "facing": 0, "bulge": 5.6 },
           "action": "advance",
           "men": 6000
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "formation": { "center": { "x": 190, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 10.1, "bulge": 5.6 },
           "action": "advance",
           "men": 4000
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "formation": { "center": { "x": 432.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 20.2, "bulge": 5.6 },
           "action": "advance",
           "men": 5000
         },
@@ -507,20 +507,20 @@
       "units": [
         {
           "unit": "roman-cavalry",
-          "formation": { "center": { "x": -1050, "y": 320 }, "frontage": 500, "depth": 70, "facing": 180 },
-          "action": "stand",
+          "formation": { "center": { "x": -1075, "y": 75.8 }, "frontage": 450, "depth": 70, "facing": 180 },
+          "action": "advance",
           "men": 2400
         },
         {
           "unit": "roman-velites",
           "formation": { "center": { "x": -375, "y": 60 }, "frontage": 750, "depth": 20, "facing": 180 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 7600
         },
         {
           "unit": "allied-light-infantry",
           "formation": { "center": { "x": 375, "y": 60 }, "frontage": 750, "depth": 20, "facing": 180 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 6700
         },
         {
@@ -568,25 +568,25 @@
         {
           "unit": "balearic-slingers",
           "formation": { "center": { "x": -330, "y": 5 }, "frontage": 700, "depth": 15, "facing": 0 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 1900
         },
         {
           "unit": "light-spearmen",
           "formation": { "center": { "x": 400, "y": 5 }, "frontage": 800, "depth": 20, "facing": 0 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 5800
         },
         {
           "unit": "hasdrubal-cavalry-front",
-          "formation": { "center": { "x": -1150, "y": -255 }, "frontage": 350, "depth": 50, "facing": 0 },
-          "action": "stand",
+          "formation": { "center": { "x": -1100, "y": 14.3 }, "frontage": 400, "depth": 50, "facing": 0 },
+          "action": "advance",
           "men": 3000
         },
         {
           "unit": "hasdrubal-cavalry-rear",
-          "formation": { "center": { "x": -1150, "y": -325 }, "frontage": 350, "depth": 50, "facing": 0 },
-          "action": "stand",
+          "formation": { "center": { "x": -1100, "y": -55 }, "frontage": 400, "depth": 50, "facing": 0 },
+          "action": "advance",
           "men": 3000
         },
         {
@@ -597,31 +597,31 @@
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "formation": { "center": { "x": -552.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 339.8, "bulge": 5.6 },
           "action": "stand",
           "men": 5000
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "formation": { "center": { "x": -310, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 349.9, "bulge": 5.6 },
           "action": "stand",
           "men": 4000
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "formation": { "center": { "x": -60, "y": -175.8 }, "frontage": 254.5, "depth": 35, "facing": 0, "bulge": 5.6 },
           "action": "stand",
           "men": 6000
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "formation": { "center": { "x": 190, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 10.1, "bulge": 5.6 },
           "action": "stand",
           "men": 4000
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "formation": { "center": { "x": 432.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 20.2, "bulge": 5.6 },
           "action": "stand",
           "men": 5000
         },
@@ -658,62 +658,62 @@
       "units": [
         {
           "unit": "roman-cavalry",
-          "formation": { "center": { "x": -1120, "y": 620 }, "frontage": 300, "depth": 80, "facing": 20 },
-          "action": "rout",
-          "men": 600
+          "formation": { "center": { "x": -1090, "y": 160.8 }, "frontage": 300, "depth": 80, "facing": 180 },
+          "action": "fight",
+          "men": 900
         },
         {
           "unit": "roman-velites",
-          "formation": { "center": { "x": -375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 0 },
+          "formation": { "center": { "x": -290.9, "y": -56 }, "frontage": 441.5, "depth": 24, "facing": 351.5, "bulge": 15.6 },
           "action": "retreat",
           "men": 7500
         },
         {
           "unit": "allied-light-infantry",
-          "formation": { "center": { "x": 375, "y": 260 }, "frontage": 750, "depth": 20, "facing": 0 },
+          "formation": { "center": { "x": 170.9, "y": -56 }, "frontage": 441.5, "depth": 24, "facing": 8.5, "bulge": 15.6 },
           "action": "retreat",
           "men": 6650
         },
         {
           "unit": "hastati",
-          "formation": { "center": { "x": -375, "y": 120 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "formation": { "center": { "x": -369.2, "y": -201.1 }, "frontage": 625.4, "depth": 36, "facing": 167.6, "bulge": -34.1 },
           "action": "advance",
           "men": 11400
         },
         {
           "unit": "principes",
-          "formation": { "center": { "x": -375, "y": 165 }, "frontage": 750, "depth": 30, "facing": 180 },
+          "formation": { "center": { "x": -379.3, "y": -155.3 }, "frontage": 646.1, "depth": 36, "facing": 167.6, "bulge": -35.2 },
           "action": "advance",
           "men": 11400
         },
         {
           "unit": "triarii",
-          "formation": { "center": { "x": -375, "y": 207 }, "frontage": 750, "depth": 20, "facing": 180 },
+          "formation": { "center": { "x": -60, "y": -26.6 }, "frontage": 724.1, "depth": 24, "facing": 180, "bulge": -41.4 },
           "action": "advance",
           "men": 4200
         },
         {
           "unit": "allied-infantry-front",
-          "formation": { "center": { "x": 375, "y": 125 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "formation": { "center": { "x": 250.1, "y": -197.2 }, "frontage": 625.4, "depth": 44, "facing": 192.4, "bulge": -34.1 },
           "action": "advance",
           "men": 14000
         },
         {
           "unit": "allied-infantry-rear",
-          "formation": { "center": { "x": 375, "y": 180 }, "frontage": 750, "depth": 40, "facing": 180 },
+          "formation": { "center": { "x": 261.9, "y": -143.8 }, "frontage": 649.5, "depth": 44, "facing": 192.4, "bulge": -35.4 },
           "action": "advance",
           "men": 14000
         },
         {
           "unit": "allied-cavalry",
           "formation": { "center": { "x": 1080, "y": 250 }, "frontage": 600, "depth": 40, "facing": 180 },
-          "action": "fight",
+          "action": "stand",
           "men": 3750
         },
         {
           "unit": "camp-force",
           "formation": { "center": { "x": -3250, "y": -260 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 9500
         },
         {
@@ -730,15 +730,15 @@
         },
         {
           "unit": "hasdrubal-cavalry-front",
-          "formation": { "center": { "x": -1080, "y": 420 }, "frontage": 350, "depth": 60, "facing": 10 },
-          "action": "pursue",
-          "men": 2950
+          "formation": { "center": { "x": -1100, "y": 89.3 }, "frontage": 350, "depth": 60, "facing": 0 },
+          "action": "fight",
+          "men": 2920
         },
         {
           "unit": "hasdrubal-cavalry-rear",
-          "formation": { "center": { "x": -1050, "y": 250 }, "frontage": 350, "depth": 60, "facing": 0 },
-          "action": "fight",
-          "men": 2950
+          "formation": { "center": { "x": -1100, "y": 10 }, "frontage": 350, "depth": 60, "facing": 0 },
+          "action": "advance",
+          "men": 3000
         },
         {
           "unit": "libyans-left",
@@ -748,31 +748,31 @@
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -560, "y": -270 }, "frontage": 255, "depth": 30, "facing": 346, "bulge": 8 },
+          "formation": { "center": { "x": -552.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 339.8, "bulge": 5.6 },
           "action": "stand",
           "men": 5000
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -310, "y": -210 }, "frontage": 255, "depth": 30, "facing": 353, "bulge": 8 },
+          "formation": { "center": { "x": -310, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 349.9, "bulge": 5.6 },
           "action": "stand",
           "men": 4000
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -60, "y": -180 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": 10 },
+          "formation": { "center": { "x": -60, "y": -175.8 }, "frontage": 254.5, "depth": 35, "facing": 0, "bulge": 5.6 },
           "action": "stand",
           "men": 6000
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 190, "y": -210 }, "frontage": 255, "depth": 30, "facing": 7, "bulge": 8 },
+          "formation": { "center": { "x": 190, "y": -195.4 }, "frontage": 254.5, "depth": 30, "facing": 10.1, "bulge": 5.6 },
           "action": "stand",
           "men": 4000
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 440, "y": -270 }, "frontage": 255, "depth": 30, "facing": 14, "bulge": 8 },
+          "formation": { "center": { "x": 432.2, "y": -260.8 }, "frontage": 254.5, "depth": 30, "facing": 20.2, "bulge": 5.6 },
           "action": "stand",
           "men": 5000
         },
@@ -785,7 +785,7 @@
         {
           "unit": "numidians",
           "formation": { "center": { "x": 1180, "y": 80 }, "frontage": 600, "depth": 60, "facing": 0 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 3990
         }
       ],
@@ -815,56 +815,56 @@
         },
         {
           "unit": "roman-velites",
-          "formation": { "center": { "x": -280, "y": -165 }, "frontage": 480, "depth": 25, "facing": 180 },
+          "formation": { "center": { "x": -165, "y": -210 }, "frontage": 200, "depth": 60, "facing": 180 },
           "action": "advance",
           "men": 7400
         },
         {
           "unit": "allied-light-infantry",
-          "formation": { "center": { "x": 230, "y": -165 }, "frontage": 480, "depth": 25, "facing": 180 },
+          "formation": { "center": { "x": 45, "y": -210 }, "frontage": 200, "depth": 60, "facing": 180 },
           "action": "advance",
           "men": 6600
         },
         {
           "unit": "hastati",
-          "formation": { "center": { "x": -276.1, "y": -371.2 }, "frontage": 486, "depth": 45, "facing": 189.2, "bulge": 2 },
+          "formation": { "center": { "x": -346.2, "y": -341.7 }, "frontage": 618.6, "depth": 45, "facing": 198.5, "bulge": 50.4 },
           "action": "fight",
           "men": 9800
         },
         {
           "unit": "principes",
-          "formation": { "center": { "x": -266.5, "y": -312.5 }, "frontage": 486, "depth": 50, "facing": 189.2, "bulge": 2 },
+          "formation": { "center": { "x": -200.7, "y": -336.8 }, "frontage": 281.1, "depth": 90, "facing": 189.4, "bulge": 10.8 },
           "action": "advance",
-          "men": 10600
+          "men": 11400
         },
         {
           "unit": "triarii",
-          "formation": { "center": { "x": -25, "y": -215 }, "frontage": 900, "depth": 30, "facing": 180 },
+          "formation": { "center": { "x": -60, "y": -157 }, "frontage": 560, "depth": 26, "facing": 180 },
           "action": "advance",
-          "men": 4100
+          "men": 4200
         },
         {
           "unit": "allied-infantry-front",
-          "formation": { "center": { "x": 221.8, "y": -368.1 }, "frontage": 493, "depth": 45, "facing": 166.7, "bulge": 13 },
+          "formation": { "center": { "x": 226.2, "y": -341.7 }, "frontage": 618.6, "depth": 45, "facing": 161.5, "bulge": 50.4 },
           "action": "fight",
           "men": 12500
         },
         {
           "unit": "allied-infantry-rear",
-          "formation": { "center": { "x": 208.1, "y": -310.2 }, "frontage": 493, "depth": 50, "facing": 166.7, "bulge": 13 },
+          "formation": { "center": { "x": 79.9, "y": -331.9 }, "frontage": 281.1, "depth": 100, "facing": 170.6, "bulge": 10.8 },
           "action": "advance",
-          "men": 13200
+          "men": 14000
         },
         {
           "unit": "allied-cavalry",
           "formation": { "center": { "x": 1090, "y": 260 }, "frontage": 600, "depth": 50, "facing": 170 },
-          "action": "fight",
+          "action": "stand",
           "men": 3500
         },
         {
           "unit": "camp-force",
           "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 9000
         },
         {
@@ -881,15 +881,15 @@
         },
         {
           "unit": "hasdrubal-cavalry-front",
-          "formation": { "center": { "x": -600, "y": 560 }, "frontage": 350, "depth": 60, "facing": 90 },
-          "action": "pursue",
-          "men": 2930
+          "formation": { "center": { "x": 300, "y": 420 }, "frontage": 350, "depth": 60, "facing": 95 },
+          "action": "advance",
+          "men": 2920
         },
         {
           "unit": "hasdrubal-cavalry-rear",
-          "formation": { "center": { "x": -850, "y": 520 }, "frontage": 350, "depth": 60, "facing": 80 },
+          "formation": { "center": { "x": -50, "y": 470 }, "frontage": 350, "depth": 60, "facing": 95 },
           "action": "advance",
-          "men": 2940
+          "men": 3000
         },
         {
           "unit": "libyans-left",
@@ -899,33 +899,33 @@
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -580, "y": -360 }, "frontage": 255, "depth": 30, "facing": 30, "bulge": -8 },
+          "formation": { "center": { "x": -537.7, "y": -350.8 }, "frontage": 219.7, "depth": 35, "facing": 28.9, "bulge": -6.2 },
           "action": "fight",
-          "men": 4600
+          "men": 4100
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -330, "y": -420 }, "frontage": 255, "depth": 30, "facing": 15, "bulge": -8 },
+          "formation": { "center": { "x": -314, "y": -436 }, "frontage": 254.5, "depth": 30, "facing": 15, "bulge": -8.3 },
           "action": "fight",
           "men": 3750
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -60, "y": -470 }, "frontage": 255, "depth": 35, "facing": 0, "bulge": -10 },
+          "formation": { "center": { "x": -60, "y": -471.9 }, "frontage": 254.5, "depth": 35, "facing": 0, "bulge": -8.3 },
           "action": "fight",
           "men": 4900
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 210, "y": -430 }, "frontage": 255, "depth": 30, "facing": 345, "bulge": -8 },
+          "formation": { "center": { "x": 194, "y": -436 }, "frontage": 254.5, "depth": 30, "facing": 345, "bulge": -8.3 },
           "action": "fight",
           "men": 3750
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 460, "y": -360 }, "frontage": 255, "depth": 30, "facing": 330, "bulge": -8 },
+          "formation": { "center": { "x": 417.7, "y": -350.8 }, "frontage": 219.7, "depth": 35, "facing": 331.1, "bulge": -6.2 },
           "action": "fight",
-          "men": 4600
+          "men": 4100
         },
         {
           "unit": "libyans-right",
@@ -936,7 +936,7 @@
         {
           "unit": "numidians",
           "formation": { "center": { "x": 1200, "y": 160 }, "frontage": 650, "depth": 70, "facing": 350 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 3980
         }
       ],
@@ -965,45 +965,45 @@
         },
         {
           "unit": "roman-velites",
-          "formation": { "center": { "x": -240, "y": -205 }, "frontage": 420, "depth": 30, "facing": 180 },
+          "formation": { "center": { "x": -155.2, "y": -224.8 }, "frontage": 170.3, "depth": 216, "facing": 180 },
           "action": "advance",
           "men": 7000
         },
         {
           "unit": "allied-light-infantry",
-          "formation": { "center": { "x": 200, "y": -205 }, "frontage": 420, "depth": 30, "facing": 180 },
+          "formation": { "center": { "x": 23.2, "y": -224.8 }, "frontage": 170.3, "depth": 216, "facing": 180 },
           "action": "advance",
           "men": 6300
         },
         {
           "unit": "hastati",
-          "formation": { "center": { "x": -238.8, "y": -396.2 }, "frontage": 420, "depth": 50, "facing": 182.8 },
+          "formation": { "center": { "x": -207.7, "y": -423.5 }, "frontage": 317.6, "depth": 80, "facing": 191.5, "bulge": 15.9 },
           "action": "fight",
           "men": 6800
         },
         {
           "unit": "principes",
-          "formation": { "center": { "x": -235.7, "y": -331.8 }, "frontage": 420, "depth": 55, "facing": 182.8 },
-          "action": "fight",
-          "men": 8400
+          "formation": { "center": { "x": -303.3, "y": -224.8 }, "frontage": 220, "depth": 110, "facing": 270 },
+          "action": "advance",
+          "men": 10000
         },
         {
           "unit": "triarii",
-          "formation": { "center": { "x": -20, "y": -245 }, "frontage": 820, "depth": 35, "facing": 180 },
-          "action": "fight",
-          "men": 3800
+          "formation": { "center": { "x": -61, "y": -84.8 }, "frontage": 594.7, "depth": 40, "facing": 0 },
+          "action": "advance",
+          "men": 4200
         },
         {
           "unit": "allied-infantry-front",
-          "formation": { "center": { "x": 193.6, "y": -404.7 }, "frontage": 428, "depth": 50, "facing": 169.2, "bulge": 9.1 },
+          "formation": { "center": { "x": 86.7, "y": -418.6 }, "frontage": 317.6, "depth": 90, "facing": 168.5, "bulge": 15.9 },
           "action": "fight",
           "men": 9800
         },
         {
           "unit": "allied-infantry-rear",
-          "formation": { "center": { "x": 181.5, "y": -341.3 }, "frontage": 428, "depth": 55, "facing": 169.2, "bulge": 9.1 },
-          "action": "fight",
-          "men": 11400
+          "formation": { "center": { "x": 176.3, "y": -224.8 }, "frontage": 220, "depth": 120, "facing": 90 },
+          "action": "advance",
+          "men": 12400
         },
         {
           "unit": "allied-cavalry",
@@ -1014,7 +1014,7 @@
         {
           "unit": "camp-force",
           "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "fight",
+          "action": "skirmish",
           "men": 8500
         },
         {
@@ -1031,57 +1031,57 @@
         },
         {
           "unit": "hasdrubal-cavalry-front",
-          "formation": { "center": { "x": 1100, "y": 520 }, "frontage": 350, "depth": 60, "facing": 120 },
+          "formation": { "center": { "x": 87.7, "y": -33.3 }, "frontage": 293.3, "depth": 60, "facing": 180 },
           "action": "charge",
-          "men": 2925
+          "men": 2920
         },
         {
           "unit": "hasdrubal-cavalry-rear",
-          "formation": { "center": { "x": 700, "y": 560 }, "frontage": 350, "depth": 60, "facing": 100 },
-          "action": "advance",
-          "men": 2930
+          "formation": { "center": { "x": -209.7, "y": -33.3 }, "frontage": 293.3, "depth": 60, "facing": 180 },
+          "action": "charge",
+          "men": 3000
         },
         {
           "unit": "libyans-left",
-          "formation": { "center": { "x": -680, "y": -310 }, "frontage": 300, "depth": 60, "facing": 85 },
+          "formation": { "center": { "x": -389.8, "y": -134.8 }, "frontage": 240, "depth": 60, "facing": 90 },
           "action": "charge",
-          "men": 3900
+          "men": 4000
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -520, "y": -430 }, "frontage": 200, "depth": 35, "facing": 40, "bulge": -6 },
-          "action": "fight",
-          "men": 4300
+          "formation": { "center": { "x": -520.6, "y": -363.7 }, "frontage": 199.7, "depth": 35, "facing": 34.6, "bulge": -6.2 },
+          "action": "advance",
+          "men": 4000
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -320, "y": -460 }, "frontage": 255, "depth": 30, "facing": 15, "bulge": -8 },
+          "formation": { "center": { "x": -312.5, "y": -460 }, "frontage": 254.2, "depth": 30, "facing": 18.3, "bulge": -10.1 },
           "action": "fight",
           "men": 3500
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -80, "y": -500 }, "frontage": 255, "depth": 40, "facing": 0, "bulge": -12 },
+          "formation": { "center": { "x": -60, "y": -505.6 }, "frontage": 254.2, "depth": 40, "facing": 0, "bulge": -10.1 },
           "action": "fight",
           "men": 4400
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 180, "y": -470 }, "frontage": 255, "depth": 30, "facing": 345, "bulge": -8 },
+          "formation": { "center": { "x": 192.5, "y": -460 }, "frontage": 254.2, "depth": 30, "facing": 341.7, "bulge": -10.1 },
           "action": "fight",
           "men": 3500
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 400, "y": -430 }, "frontage": 200, "depth": 35, "facing": 320, "bulge": -6 },
-          "action": "fight",
-          "men": 4300
+          "formation": { "center": { "x": 400.6, "y": -363.7 }, "frontage": 199.7, "depth": 35, "facing": 325.4, "bulge": -6.2 },
+          "action": "advance",
+          "men": 4000
         },
         {
           "unit": "libyans-right",
-          "formation": { "center": { "x": 600, "y": -310 }, "frontage": 300, "depth": 60, "facing": 275 },
+          "formation": { "center": { "x": 267.8, "y": -134.8 }, "frontage": 240, "depth": 60, "facing": 270 },
           "action": "charge",
-          "men": 3900
+          "men": 4000
         },
         {
           "unit": "numidians",
@@ -1116,45 +1116,45 @@
         },
         {
           "unit": "roman-velites",
-          "formation": { "center": { "x": -150, "y": -182 }, "frontage": 280, "depth": 30, "facing": 0 },
-          "action": "fight",
-          "men": 900
+          "formation": { "center": { "x": -134, "y": -323.9 }, "frontage": 129.9, "depth": 166, "facing": 180 },
+          "action": "stand",
+          "men": 3300
         },
         {
           "unit": "allied-light-infantry",
-          "formation": { "center": { "x": 150, "y": -182 }, "frontage": 280, "depth": 30, "facing": 0 },
-          "action": "fight",
-          "men": 900
+          "formation": { "center": { "x": 4, "y": -323.9 }, "frontage": 129.9, "depth": 166, "facing": 180 },
+          "action": "stand",
+          "men": 3300
         },
         {
           "unit": "hastati",
-          "formation": { "center": { "x": -142.3, "y": -434.1 }, "frontage": 283, "depth": 50, "facing": 188.3, "bulge": 28.2 },
+          "formation": { "center": { "x": -162, "y": -463.1 }, "frontage": 218.2, "depth": 50, "facing": 191.5, "bulge": 10.9 },
           "action": "fight",
-          "men": 1200
+          "men": 400
         },
         {
           "unit": "principes",
-          "formation": { "center": { "x": -345, "y": -300 }, "frontage": 160, "depth": 90, "facing": 270 },
+          "formation": { "center": { "x": -236.9, "y": -323.9 }, "frontage": 170, "depth": 60, "facing": 270 },
           "action": "fight",
-          "men": 1500
+          "men": 500
         },
         {
           "unit": "triarii",
-          "formation": { "center": { "x": -20, "y": -240 }, "frontage": 460, "depth": 50, "facing": 0 },
+          "formation": { "center": { "x": -60, "y": -208.9 }, "frontage": 413.9, "depth": 40, "facing": 0 },
           "action": "fight",
-          "men": 900
+          "men": 300
         },
         {
           "unit": "allied-infantry-front",
-          "formation": { "center": { "x": 132.3, "y": -434.1 }, "frontage": 283, "depth": 50, "facing": 171.7, "bulge": 28.2 },
+          "formation": { "center": { "x": 42, "y": -463.1 }, "frontage": 218.2, "depth": 50, "facing": 168.5, "bulge": 10.9 },
           "action": "fight",
-          "men": 1500
+          "men": 500
         },
         {
           "unit": "allied-infantry-rear",
-          "formation": { "center": { "x": 325, "y": -300 }, "frontage": 160, "depth": 90, "facing": 90 },
+          "formation": { "center": { "x": 111.9, "y": -323.9 }, "frontage": 170, "depth": 70, "facing": 90 },
           "action": "fight",
-          "men": 2000
+          "men": 600
         },
         {
           "unit": "allied-cavalry",
@@ -1182,55 +1182,55 @@
         },
         {
           "unit": "hasdrubal-cavalry-front",
-          "formation": { "center": { "x": 190, "y": -105 }, "frontage": 360, "depth": 60, "facing": 190 },
-          "action": "charge",
-          "men": 2920
+          "formation": { "center": { "x": 43.5, "y": -157.4 }, "frontage": 202.9, "depth": 60, "facing": 180 },
+          "action": "fight",
+          "men": 2900
         },
         {
           "unit": "hasdrubal-cavalry-rear",
-          "formation": { "center": { "x": -220, "y": -105 }, "frontage": 360, "depth": 60, "facing": 170 },
-          "action": "charge",
-          "men": 2920
+          "formation": { "center": { "x": -163.5, "y": -157.4 }, "frontage": 202.9, "depth": 60, "facing": 180 },
+          "action": "fight",
+          "men": 2940
         },
         {
           "unit": "libyans-left",
-          "formation": { "center": { "x": -430, "y": -270 }, "frontage": 250, "depth": 60, "facing": 90 },
+          "formation": { "center": { "x": -298.4, "y": -323.9 }, "frontage": 200, "depth": 60, "facing": 90 },
           "action": "fight",
           "men": 3750
         },
         {
           "unit": "gauls-left",
-          "formation": { "center": { "x": -385, "y": -480 }, "frontage": 170, "depth": 35, "facing": 40, "bulge": -6 },
-          "action": "fight",
+          "formation": { "center": { "x": -421.8, "y": -389.6 }, "frontage": 169.6, "depth": 35, "facing": 40.1, "bulge": -6.6 },
+          "action": "advance",
           "men": 4000
         },
         {
           "unit": "iberians-left",
-          "formation": { "center": { "x": -230, "y": -500 }, "frontage": 180, "depth": 30, "facing": 20, "bulge": -8 },
+          "formation": { "center": { "x": -268.1, "y": -478.2 }, "frontage": 179.4, "depth": 30, "facing": 21.9, "bulge": -7.4 },
           "action": "fight",
           "men": 3500
         },
         {
           "unit": "gauls-centre",
-          "formation": { "center": { "x": -5, "y": -515 }, "frontage": 240, "depth": 40, "facing": 0, "bulge": -12 },
+          "formation": { "center": { "x": -60, "y": -517.7 }, "frontage": 238.4, "depth": 40, "facing": 0, "bulge": -13.1 },
           "action": "fight",
           "men": 4000
         },
         {
           "unit": "iberians-right",
-          "formation": { "center": { "x": 220, "y": -500 }, "frontage": 180, "depth": 30, "facing": 340, "bulge": -8 },
+          "formation": { "center": { "x": 148.1, "y": -478.2 }, "frontage": 179.4, "depth": 30, "facing": 338.1, "bulge": -7.4 },
           "action": "fight",
           "men": 3500
         },
         {
           "unit": "gauls-right",
-          "formation": { "center": { "x": 375, "y": -480 }, "frontage": 170, "depth": 35, "facing": 320, "bulge": -6 },
-          "action": "fight",
+          "formation": { "center": { "x": 301.8, "y": -389.6 }, "frontage": 169.6, "depth": 35, "facing": 319.9, "bulge": -6.6 },
+          "action": "advance",
           "men": 4000
         },
         {
           "unit": "libyans-right",
-          "formation": { "center": { "x": 410, "y": -270 }, "frontage": 250, "depth": 60, "facing": 270 },
+          "formation": { "center": { "x": 178.4, "y": -323.9 }, "frontage": 200, "depth": 60, "facing": 270 },
           "action": "fight",
           "men": 3750
         },
