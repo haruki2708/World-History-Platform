@@ -499,8 +499,8 @@
       "id": "skirmish",
       "title": { "en": "The light troops clash", "vi": "Lính nhẹ đụng độ" },
       "narration": {
-        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A south-easterly wind, which the locals call Volturnus, blows dust into the Romans' faces. Meanwhile the force from the large camp marches on Hannibal's camp.",
-        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Gió đông nam, người địa phương gọi là Volturnus, thổi bụi vào mặt quân La Mã. Trong lúc đó, lực lượng từ trại lớn tiến về trại của Hannibal."
+        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A south-easterly wind, which the locals call Volturnus, blows dust into the Romans' faces. By the river the cavalry of both sides rides up to close quarters, while the force from the large camp marches on Hannibal's camp.",
+        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Gió đông nam, người địa phương gọi là Volturnus, thổi bụi vào mặt quân La Mã. Bên bờ sông, kỵ binh hai bên tiến sát vào nhau, trong lúc lực lượng từ trại lớn tiến về trại của Hannibal."
       },
       "endHour": 9,
       "playSeconds": 15,
@@ -643,6 +643,8 @@
         { "side": "rome", "points": [{ "x": 375, "y": 140 }, { "x": 375, "y": 75 }] },
         { "side": "carthage", "points": [{ "x": -330, "y": -50 }, { "x": -330, "y": -5 }] },
         { "side": "carthage", "points": [{ "x": 400, "y": -50 }, { "x": 400, "y": -5 }] },
+        { "side": "rome", "points": [{ "x": -1050, "y": 290 }, { "x": -1075, "y": 125 }] },
+        { "side": "carthage", "points": [{ "x": -1150, "y": -220 }, { "x": -1100, "y": -20 }] },
         { "side": "rome", "points": [{ "x": -1650, "y": 1100 }, { "x": -2400, "y": 450 }, { "x": -2900, "y": 50 }] }
       ]
     },
@@ -650,8 +652,8 @@
       "id": "cavalry-by-the-river",
       "title": { "en": "Hasdrubal breaks the Roman horse", "vi": "Hasdrubal đánh tan kỵ binh La Mã" },
       "narration": {
-        "en": "On the narrow strip by the river, Hasdrubal's Iberian and Gallic horsemen meet the Roman cavalry head on. There is no room to wheel, so many men dismount and fight on foot. The Romans are cut down or driven off along the bank. The light troops fall back through the ranks and the heavy infantry moves up, while on the far wing the Numidians tie down the allied horse.",
-        "vi": "Trên dải đất hẹp ven sông, kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã. Không có chỗ để xoay trở, nên nhiều người xuống ngựa đánh bộ. Quân La Mã bị chém ngã hoặc bị đuổi chạy dọc bờ sông. Lính nhẹ lui về qua hàng ngũ và bộ binh nặng tiến lên, trong khi ở cánh bên kia kỵ binh Numidia cầm chân kỵ binh đồng minh."
+        "en": "On the narrow strip by the river, Hasdrubal's Iberian and Gallic horsemen meet the Roman cavalry head on. There is no room to wheel, so many men dismount and fight on foot, and the Romans are cut down where they stand. The light troops fall back through the ranks and the heavy infantry moves up until it meets the crescent, while on the far wing the Numidians tie down the allied horse.",
+        "vi": "Trên dải đất hẹp ven sông, kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã. Không có chỗ để xoay trở, nên nhiều người xuống ngựa đánh bộ, và quân La Mã bị chém ngã ngay tại chỗ. Lính nhẹ lui về qua hàng ngũ và bộ binh nặng tiến lên cho tới khi chạm lưỡi liềm, trong khi ở cánh bên kia kỵ binh Numidia cầm chân kỵ binh đồng minh."
       },
       "endHour": 9.75,
       "playSeconds": 20,
@@ -790,10 +792,9 @@
         }
       ],
       "arrows": [
-        { "side": "carthage", "points": [{ "x": -1150, "y": -200 }, { "x": -1100, "y": 250 }, { "x": -1080, "y": 450 }] },
-        { "side": "rome", "points": [{ "x": -1050, "y": 360 }, { "x": -1120, "y": 600 }, { "x": -1170, "y": 790 }] },
-        { "side": "rome", "points": [{ "x": -375, "y": 260 }, { "x": -375, "y": 150 }] },
-        { "side": "rome", "points": [{ "x": 375, "y": 265 }, { "x": 375, "y": 160 }] },
+        { "side": "carthage", "points": [{ "x": -1100, "y": 45 }, { "x": -1100, "y": 110 }] },
+        { "side": "rome", "points": [{ "x": -375, "y": 250 }, { "x": -375, "y": -130 }] },
+        { "side": "rome", "points": [{ "x": 375, "y": 255 }, { "x": 310, "y": -125 }] },
         { "side": "carthage", "points": [{ "x": 1150, "y": -260 }, { "x": 1180, "y": 40 }] }
       ]
     },
@@ -801,8 +802,8 @@
       "id": "crescent-pushed-back",
       "title": { "en": "The legions push in the crescent", "vi": "Bộ binh La Mã đẩy lõm lưỡi liềm" },
       "narration": {
-        "en": "The deep Roman formation crashes into the thin crescent of Gauls and Iberians, who hold for a while and then give ground. As they fall back the bulge flattens and then bends inwards, and the Romans crowd from the wings towards the centre to press the attack. Without knowing it, they are marching deeper and deeper between the two blocks of Libyan infantry, which have not yet moved.",
-        "vi": "Đội hình dày đặc của La Mã đâm vào lưỡi liềm mỏng của lính Gaul và Iberia; họ trụ được một lúc rồi lùi dần. Khi họ lùi, chỗ phình phẳng ra rồi lõm vào, và quân La Mã từ hai cánh dồn vào giữa để đánh tiếp. Không hề hay biết, họ đang tiến ngày càng sâu vào khoảng giữa hai khối bộ binh Libya vẫn còn đứng yên."
+        "en": "The deep Roman formation presses on the thin crescent of Gauls and Iberians, who hold for a while and then give ground. As they fall back the bulge flattens and then bends inwards, and the Roman rear lines crowd in behind the centre to press the attack. Without knowing it, they are marching deeper and deeper between the two blocks of Libyan infantry, which have not yet moved. By the river the last of the Roman horse flees along the bank, and Hasdrubal leads his horsemen round behind the Roman army towards the far wing.",
+        "vi": "Đội hình dày đặc của La Mã ép vào lưỡi liềm mỏng của lính Gaul và Iberia; họ trụ được một lúc rồi lùi dần. Khi họ lùi, chỗ phình phẳng ra rồi lõm vào, và các hàng sau của La Mã dồn vào sau trung quân để đánh tiếp. Không hề hay biết, họ đang tiến ngày càng sâu vào khoảng giữa hai khối bộ binh Libya vẫn còn đứng yên. Bên bờ sông, số kỵ binh La Mã còn lại bỏ chạy dọc bờ, và Hasdrubal dẫn kỵ binh vòng ra sau lưng quân La Mã, hướng sang cánh bên kia."
       },
       "endHour": 11,
       "playSeconds": 25,
@@ -941,18 +942,19 @@
         }
       ],
       "arrows": [
-        { "side": "rome", "points": [{ "x": -375, "y": 100 }, { "x": -280, "y": -340 }] },
-        { "side": "rome", "points": [{ "x": 375, "y": 100 }, { "x": 230, "y": -340 }] },
-        { "side": "carthage", "points": [{ "x": -60, "y": -200 }, { "x": -60, "y": -450 }] },
-        { "side": "carthage", "points": [{ "x": -1050, "y": 300 }, { "x": -800, "y": 520 }, { "x": -600, "y": 560 }] }
+        { "side": "rome", "points": [{ "x": -330, "y": -200 }, { "x": -290, "y": -390 }] },
+        { "side": "rome", "points": [{ "x": 210, "y": -200 }, { "x": 170, "y": -390 }] },
+        { "side": "carthage", "points": [{ "x": -60, "y": -180 }, { "x": -60, "y": -450 }] },
+        { "side": "rome", "points": [{ "x": -1090, "y": 210 }, { "x": -1150, "y": 500 }, { "x": -1180, "y": 780 }] },
+        { "side": "carthage", "points": [{ "x": -1050, "y": 160 }, { "x": -450, "y": 430 }, { "x": 250, "y": 440 }] }
       ]
     },
     {
       "id": "libyans-and-cavalry-close-in",
       "title": { "en": "The trap is sprung", "vi": "Cái bẫy sập xuống" },
       "narration": {
-        "en": "Now the Libyans, armed with Roman gear taken in earlier victories, turn inwards and fall on both flanks of the Roman mass. Behind the Roman army Hasdrubal leads his horsemen across to the far wing; the allied cavalry sees him coming and flees, and he leaves the Numidians to hunt them down. The Romans in the front ranks can no longer advance, and those on the edges turn to face attacks from the sides.",
-        "vi": "Lúc này lính Libya, mang vũ khí La Mã thu được từ các trận thắng trước, quay vào trong và đánh vào cả hai sườn của khối quân La Mã. Phía sau lưng quân La Mã, Hasdrubal dẫn kỵ binh vòng sang cánh bên kia; kỵ binh đồng minh thấy ông kéo đến liền bỏ chạy, và ông để kỵ binh Numidia truy đuổi họ. Các hàng đầu của La Mã không tiến được nữa, còn những người ở rìa phải quay ra chống đỡ từ hai bên."
+        "en": "Now the Libyans, armed with Roman gear taken in earlier victories, turn inwards and fall on both flanks of the Roman mass. The allied cavalry sees Hasdrubal coming and flees; he leaves the Numidians to hunt them down and turns on the rear of the legions. The Romans in the front ranks can no longer advance, those on the edges turn to face attacks from the sides, and the rear ranks turn about to face the horsemen.",
+        "vi": "Lúc này lính Libya, mang vũ khí La Mã thu được từ các trận thắng trước, quay vào trong và đánh vào cả hai sườn của khối quân La Mã. Kỵ binh đồng minh thấy Hasdrubal kéo đến liền bỏ chạy; ông để kỵ binh Numidia truy đuổi họ rồi quay sang đánh vào lưng các quân đoàn. Các hàng đầu của La Mã không tiến được nữa, những người ở rìa phải quay ra chống đỡ từ hai bên, còn các hàng sau cùng quay đầu lại đối mặt với kỵ binh."
       },
       "endHour": 12.5,
       "playSeconds": 25,
@@ -1091,9 +1093,10 @@
         }
       ],
       "arrows": [
-        { "side": "carthage", "points": [{ "x": -820, "y": -300 }, { "x": -700, "y": -310 }, { "x": -560, "y": -310 }] },
-        { "side": "carthage", "points": [{ "x": 700, "y": -300 }, { "x": 620, "y": -310 }, { "x": 480, "y": -310 }] },
-        { "side": "carthage", "points": [{ "x": -600, "y": 560 }, { "x": 200, "y": 620 }, { "x": 1050, "y": 540 }] },
+        { "side": "carthage", "points": [{ "x": -820, "y": -290 }, { "x": -640, "y": -215 }, { "x": -440, "y": -140 }] },
+        { "side": "carthage", "points": [{ "x": 700, "y": -290 }, { "x": 520, "y": -215 }, { "x": 320, "y": -140 }] },
+        { "side": "carthage", "points": [{ "x": 300, "y": 400 }, { "x": 240, "y": 160 }, { "x": 90, "y": 20 }] },
+        { "side": "carthage", "points": [{ "x": -50, "y": 450 }, { "x": -150, "y": 210 }, { "x": -210, "y": 20 }] },
         { "side": "rome", "points": [{ "x": 1150, "y": 360 }, { "x": 1690, "y": 930 }] },
         { "side": "carthage", "points": [{ "x": 1200, "y": 200 }, { "x": 1470, "y": 710 }] }
       ]
@@ -1242,10 +1245,9 @@
         }
       ],
       "arrows": [
-        { "side": "carthage", "points": [{ "x": 1050, "y": 540 }, { "x": 600, "y": 300 }, { "x": 170, "y": -60 }] },
-        { "side": "carthage", "points": [{ "x": 700, "y": 560 }, { "x": 0, "y": 300 }, { "x": -250, "y": -60 }] },
-        { "side": "carthage", "points": [{ "x": -680, "y": -310 }, { "x": -470, "y": -310 }] },
-        { "side": "carthage", "points": [{ "x": 600, "y": -310 }, { "x": 450, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": -420, "y": -210 }, { "x": -320, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": 300, "y": -210 }, { "x": 200, "y": -310 }] },
+        { "side": "carthage", "points": [{ "x": -60, "y": -10 }, { "x": -60, "y": -140 }] },
         { "side": "rome", "points": [{ "x": -3200, "y": -200 }, { "x": -2500, "y": 450 }, { "x": -1750, "y": 1000 }] }
       ]
     }
