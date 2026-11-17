@@ -1,10 +1,12 @@
 """The horse's clips: idle, walk, run and die (and trot, canter as extras).
 
 walk, trot, canter and run (the gallop) are the source's gaits, sampled at
-30 fps (horse_source). The source has no idle and no fall: idle is a
-standing pose with breathing and the source's head shake and tail flicks
-laid in; die is keyframed here. No clip moves the horse along the ground:
-the source's gaits are in place, and die falls where it stands.
+30 fps (horse_source). Since T-030 the run is the source's gallop rebuilt
+with a full stride, and the trot's planted hooves are locked to the ground
+(horse_gallop; horse_build calls it). The source has no idle and no fall:
+idle is a standing pose with breathing and the source's head shake and
+tail flicks laid in; die is keyframed here. No clip moves the horse along
+the ground: the source's gaits are in place, and die falls where it stands.
 
 Cycle distance: while a hoof bears weight it slides back under the horse
 at the speed the horse would travel; that speed times the clip's length is
