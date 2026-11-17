@@ -337,7 +337,7 @@ const SceneView = memo(function SceneView({
       const view = engine.viewSize;
       const namesOn = unitNamesRef.current;
       const chosen = selectedRef.current;
-      const views: readonly UnitView[] = namesOn || chosen ? engine.unitViews() : [];
+      const views: readonly UnitView[] = namesOn || chosen ? engine.unitViews(chosen) : [];
 
       // The card of the selected unit first: the labels keep clear of it.
       let obstacles = overlays;
@@ -396,7 +396,8 @@ const SceneView = memo(function SceneView({
       const unitRequests: LabelRequest[] = units.map(({ v, i }) => {
         const size = sizeOf(unitSizes, unitTextRefs.current[i], i);
         return {
-          anchors: size ? v.anchors.map((a) => (a ? { x: a.x, y: a.y } : null)) : [],
+          // Read during this frame only, as layoutLabels does.
+          anchors: size ? v.anchors : [],
           sides: UNIT_SIDES,
           width: size?.width ?? 0,
           height: size?.height ?? 0,

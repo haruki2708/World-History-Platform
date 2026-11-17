@@ -31,7 +31,7 @@ import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { loadHeights, Terrain } from "./terrain";
 import { BattleClock, formationPoint, UnitTrack } from "./timeline";
-import { Crowd, FIGURE_SCALE, type LodSettings, UnitBlock } from "./units";
+import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
 
 export type Quality = "high" | "low";
 
@@ -58,7 +58,11 @@ export interface UnitView {
   anchors: ({ x: number; y: number } | null)[];
   /** How large the block looks: its size over its distance from the camera. */
   prominence: number;
-  /** Around the block on screen, from the ground to the heads; null when behind the camera. */
+  /**
+   * Around the block on screen, from the ground to the heads: only for the
+   * unit asked for (see unitViews); null for the others, and when behind the
+   * camera.
+   */
   box: ScreenBox | null;
 }
 
@@ -197,6 +201,16 @@ export class BattleEngine {
   private readonly occluderOwners: UnitBlock[] = [];
   /** What unitViews() returns, reused from frame to frame. */
   private readonly views: UnitView[] = [];
+  /** The label anchors of each view, reused from frame to frame. */
+  private readonly anchorPoints: { x: number; y: number }[][] = [];
+  /** Working values of unitViews(). */
+  private readonly viewScratch = {
+    eyeField: { x: 0, y: 0, h: 0 },
+    at: { x: 0, y: 0 },
+    front: { x: 0, y: 0 },
+    back: { x: 0, y: 0 },
+    point: { x: 0, y: 0, h: 0 },
+  };
   /** The opening move of the camera while it lasts (see introFromAbove). */
   private intro: {
     from: Spherical;
@@ -249,6 +263,8 @@ export class BattleEngine {
     }
 
     this.sky = new Sky(this.battle.origin.lat, this.battle.dayOfYear);
+    // The meshes that only cast shadows are drawn in the shadow map alone.
+    this.sky.light.shadow.camera.layers.enable(SHADOW_LAYER);
     this.shared = {
       uTime: { value: 0 },
       uFigScale: { value: FIGURE_SCALE },
@@ -337,78 +353,93 @@ export class BattleEngine {
 
   /**
    * Every unit with figures, as the last frame showed it: for the labels and
-   * the card of a unit. The array and its entries are reused by the next
-   * call; read them before then.
+   * the card of a unit. Only the unit `boxFor` gets its box on screen (the
+   * card is placed beside it); the others have none. The array, its entries
+   * and their anchors are reused by the next call; read them before then.
+   * Runs on every frame while names show, so it allocates nothing.
    */
-  unitViews(): readonly UnitView[] {
+  unitViews(boxFor: string | null = null): readonly UnitView[] {
     const terrain = this.terrain;
     const views = this.views;
     if (!terrain) return views;
     const { heightAt } = terrain;
     const time = this.shownTime;
     const eye = this.camera.position;
-    const eyeField = { x: eye.x, y: -eye.z, h: eye.y };
-    const ownBox = new Map<UnitBlock, Occluder>();
-    this.occluderOwners.forEach((block, i) => ownBox.set(block, this.occluders[i]));
-    const at = { x: 0, y: 0 };
-    const front = { x: 0, y: 0 };
-    const back = { x: 0, y: 0 };
+    const { eyeField, at, front, back, point } = this.viewScratch;
+    eyeField.x = eye.x;
+    eyeField.y = -eye.z;
+    eyeField.h = eye.y;
+    // occluders() lists the standing blocks in order, each with its box.
+    let owner = 0;
 
-    this.crowd.blocks.forEach((block, b) => {
+    const blocks = this.crowd.blocks;
+    for (let b = 0; b < blocks.length; b++) {
+      const block = blocks[b];
       let view = views[b];
       if (!view) {
         view = { id: block.track.unit.id, standing: 0, anchors: UNIT_LABEL_SHARES.map(() => null), prominence: 0, box: null };
         views[b] = view;
+        this.anchorPoints[b] = UNIT_LABEL_SHARES.map(() => ({ x: 0, y: 0 }));
       }
+      const own = this.occluderOwners[owner] === block ? this.occluders[owner++] : undefined;
       view.standing = block.standing;
       const f = block.track.formationAt(time);
       const lift = block.model.height * FIGURE_SCALE * LABEL_LIFT;
       const centerGround = heightAt(f.center.x, f.center.y);
-      view.prominence =
-        block.standing > 0
-          ? Math.sqrt(f.frontage * f.depth) /
-            Math.max(Math.hypot(f.center.x - eyeField.x, f.center.y - eyeField.y, centerGround - eyeField.h), 1)
-          : 0;
+      if (block.standing > 0) {
+        const dx = f.center.x - eyeField.x;
+        const dy = f.center.y - eyeField.y;
+        const dh = centerGround - eyeField.h;
+        view.prominence = Math.sqrt(f.frontage * f.depth) / Math.max(Math.sqrt(dx * dx + dy * dy + dh * dh), 1);
+      } else {
+        view.prominence = 0;
+      }
 
       // The box on screen: the ends and the middle of the front and the rear,
       // on the ground and at the heads.
-      let left = Infinity;
-      let top = Infinity;
-      let right = -Infinity;
-      let bottom = -Infinity;
-      for (const u of [-0.5, 0, 0.5]) {
-        for (const v of [0, 1]) {
-          formationPoint(f, u, v, at);
+      view.box = null;
+      if (view.id === boxFor) {
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+        for (let i = 0; i < 6; i++) {
+          formationPoint(f, (i % 3) / 2 - 0.5, i < 3 ? 0 : 1, at);
           const ground = heightAt(at.x, at.y);
-          for (const h of [ground, ground + lift]) {
-            if (!this.toScreen(at.x, at.y, h, front)) continue;
+          for (let lifted = 0; lifted < 2; lifted++) {
+            if (!this.toScreen(at.x, at.y, ground + lifted * lift, front)) continue;
             left = Math.min(left, front.x);
             right = Math.max(right, front.x);
             top = Math.min(top, front.y);
             bottom = Math.max(bottom, front.y);
           }
         }
+        if (left <= right) view.box = { left, top, right, bottom };
       }
-      view.box = left <= right ? { left, top, right, bottom } : null;
 
       // Label anchors: above the heads, over the front or the rear, whichever
       // shows higher on screen, so the label stands clear of the whole block.
-      const own = ownBox.get(block);
-      UNIT_LABEL_SHARES.forEach((u, k) => {
+      const anchors = this.anchorPoints[b];
+      for (let k = 0; k < UNIT_LABEL_SHARES.length; k++) {
         view.anchors[k] = null;
-        if (block.standing === 0) return;
+        if (block.standing === 0) continue;
+        const u = UNIT_LABEL_SHARES[k];
         formationPoint(f, u, 0, at);
         const frontSeen = this.toScreen(at.x, at.y, heightAt(at.x, at.y) + lift, front);
         formationPoint(f, u, 1, at);
         const backSeen = this.toScreen(at.x, at.y, heightAt(at.x, at.y) + lift, back);
-        if (!frontSeen || !backSeen) return;
+        if (!frontSeen || !backSeen) continue;
         formationPoint(f, u, 0.5, at);
-        const point = { x: at.x, y: at.y, h: heightAt(at.x, at.y) + lift };
-        if (hidden(eyeField, point, heightAt, this.occluders, own)) return;
-        view.anchors[k] = { x: (front.x + back.x) / 2, y: Math.min(front.y, back.y) };
-      });
-    });
-    views.length = this.crowd.blocks.length;
+        point.x = at.x;
+        point.y = at.y;
+        point.h = heightAt(at.x, at.y) + lift;
+        if (hidden(eyeField, point, heightAt, this.occluders, own)) continue;
+        anchors[k].x = (front.x + back.x) / 2;
+        anchors[k].y = Math.min(front.y, back.y);
+        view.anchors[k] = anchors[k];
+      }
+    }
+    views.length = blocks.length;
     return views;
   }
 
