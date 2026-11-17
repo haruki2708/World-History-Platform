@@ -225,6 +225,30 @@ class Pack:
                         local[i][slot] = a + (b - a) * w
         return self._world([tuple(trs) for trs in local])
 
+    def blend(self, a, b, weight):
+        """World matrices of a blend of two clip frames, a = (clip, frame)
+        and b likewise: each bone's local transform goes from a's (0) to
+        b's (1) by weight(bone name), or by `weight` if it is a number."""
+        sampled = []
+        for name, frame in (a, b):
+            clip = self.clip(name)
+            sampled.append(self._local(clip, min(max(frame / FPS, 0.0), clip.duration)))
+        local = []
+        for i, (ta, tb) in enumerate(zip(*sampled)):
+            w = weight(self.bone_names[i]) if callable(weight) else weight
+            trs = []
+            for slot in range(3):
+                x, y = ta[slot], tb[slot]
+                if slot == 1:
+                    if np.dot(x, y) < 0.0:
+                        y = -y
+                    v = x + (y - x) * w
+                    trs.append(v / np.linalg.norm(v))
+                else:
+                    trs.append(x + (y - x) * w)
+            local.append(tuple(trs))
+        return self._world(local)
+
     def head(self, matrices, name):
         return matrices[self.index[name]][:3, 3]
 

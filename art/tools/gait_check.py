@@ -1,4 +1,4 @@
-"""Strides and foot slip of the walk and run clips of a unit model (.glb),
+"""Strides and foot slip of the walk, jog and run clips of a unit model (.glb),
 measured the way the 3D scene measures them (plantedStride in
 src/components/battle/engine/figures/model.ts).
 
@@ -28,7 +28,7 @@ SOLE_HEIGHT = 0.03
 SOLE_SAMPLES = 240
 GROUND_REACH = 0.02
 FPS = 30
-GAITS = ("walk", "run")
+GAITS = ("walk", "jog", "run")        # those the file has (jog: since T-022)
 
 _COMPONENTS = {5126: np.float32, 5125: np.uint32, 5123: np.uint16, 5121: np.uint8}
 _WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
@@ -156,7 +156,8 @@ def measure(track, left):
 def report(path, rows=False):
     model = Model(path)
     out = {}
-    for clip in GAITS:
+    names = {a["name"] for a in model.g.doc["animations"]}
+    for clip in [c for c in GAITS if c in names]:
         track = model.track(clip)
         speed, stride, slip = measure(track, model.left)
         out[clip] = (speed, stride, slip)
@@ -175,8 +176,9 @@ def plot(new, old, path, title):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), dpi=110)
-    for ax, clip in zip(axes, GAITS):
+    clips = [c for c in GAITS if c in new and c in old]
+    fig, axes = plt.subplots(1, len(clips), figsize=(6 * len(clips), 4.2), dpi=110)
+    for ax, clip in zip(np.atleast_1d(axes), clips):
         for data, style, label in ((old, "--", "before"), (new, "-", "after")):
             slip = data[clip][2]
             frames = np.arange(len(slip))
@@ -201,7 +203,7 @@ def main():
     parser.add_argument("--rows", action="store_true", help="slip of each foot in every frame")
     parser.add_argument("--before", help="an older file of the same model, to compare with")
     parser.add_argument("--plot", help="write a chart of the slip (with --before: both files)")
-    parser.add_argument("--title", default="Walk and run: slip of the planted foot")
+    parser.add_argument("--title", default="Gaits: slip of the planted foot")
     args = parser.parse_args()
     new = report(args.glb, args.rows)
     old = None

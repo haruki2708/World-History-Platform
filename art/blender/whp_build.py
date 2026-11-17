@@ -8,7 +8,7 @@ runs here, in stages:
     kit      build the kit: helmet, shield, armour, weapons...      unit.build_kit()
     rig      fit the body to the shared rig, transfer skin weights  unit.fit(), RIGID, SHARED, SMOOTHING,
                                                                      unit.rig_extras()
-    anim     the five clips from the animation library             unit.KIT (whp_clips)
+    anim     the six clips from the animation library              unit.KIT (whp_clips)
     lod      LOD0..2, the atlas, the bakes, the one material        unit.PARTS, unit.LOD2 (whp_unit_lod)
     export   write the .glb, check it, list it in index.json
 
@@ -34,6 +34,9 @@ be re-run alone (--from). A unit module provides:
     GROUND_CHECKS       optional: poses checked against the ground after the
                         export, if not whp_export.GROUND_CHECKS (a spear
                         held upright stands higher than a man)
+
+A cavalry model (T-022) also has HORSE, RIDER and BONES (whp_cavalry): its
+stages anim and lod are whp_cavalry's.
 """
 
 import argparse
@@ -57,7 +60,7 @@ from whp_render import render_views
 
 STAGES = ("source", "kit", "rig", "anim", "lod", "export")
 LODS = ("LOD0", "LOD1", "LOD2")
-CLIPS = ("idle", "walk", "run", "attack", "die")
+CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 BONES = 67
 INDEX = os.path.join(MODELS_DIR, "index.json")
@@ -162,6 +165,9 @@ def weapon_axis(coords, hand):
 
 
 def stage_anim(unit):
+    if hasattr(unit, "HORSE"):              # a cavalry model: rider and horse (whp_cavalry)
+        import whp_cavalry
+        return whp_cavalry.stage_anim(unit)
     scene = bpy.context.scene
     scene.render.fps = whp_anim.FPS
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
@@ -177,6 +183,9 @@ def stage_anim(unit):
 
 
 def stage_lod(unit):
+    if hasattr(unit, "HORSE"):
+        import whp_cavalry
+        return whp_cavalry.stage_lod(unit, LIMITS)
     whp_unit_lod.build(unit, LIMITS)
 
 
@@ -207,8 +216,9 @@ def check_model(model):
     path = glb_path(model)
     if not os.path.isfile(path):
         return [f"{path} does not exist"]
-    problems = whp_export.check_glb(path, LODS, LIMITS, CLIPS, bone_count=BONES)
-    ground = getattr(load_unit(model), "GROUND_CHECKS", whp_export.GROUND_CHECKS)
+    unit = load_unit(model)
+    problems = whp_export.check_glb(path, LODS, LIMITS, CLIPS, bone_count=getattr(unit, "BONES", BONES))
+    ground = getattr(unit, "GROUND_CHECKS", whp_export.GROUND_CHECKS)
     problems += whp_export.reimport(path, LODS, ground)
     with open(INDEX, encoding="utf-8") as f:
         if model not in json.load(f).get("models", []):

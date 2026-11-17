@@ -128,6 +128,10 @@ class Retargeter:
         # the next pose, or None: whp_clips moves a planted foot with it so
         # that it keeps pace with the ground (Builder.lock_feet).
         self.ankle_shift = None
+        # A shift (x, y, z) for the hips in the next pose, or None: the jog
+        # (whp_clips) takes some of the bounce out of its hips this way;
+        # the legs' IK then bends the knees a little more or less.
+        self.hips_shift = None
         # Forearm axes at rest, for the twist bones.
         self.forearm = {s: (t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) /
                         np.linalg.norm(t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) for s in ("l", "r")}
@@ -162,6 +166,8 @@ class Retargeter:
         up = self.upright(source)
         lift = self.lift * up + self.lying_lift * (1.0 - up)
         hips = self.pelvis_t + k * (pelvis_s - self.pelvis_s) + np.array((0.0, 0.0, lift))
+        if self.hips_shift is not None:
+            hips = hips + self.hips_shift
         p.place("pelvis", Vector(hips))
         for name in TRUNK:
             p.set_rotation(name, Matrix(self.rotation(name, source).tolist()))

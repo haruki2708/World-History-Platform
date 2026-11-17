@@ -36,7 +36,20 @@ def _strip_actions_to_nla(armature, clips):
         track.mute = True
 
 
+def drop_other_actions(clips):
+    """The exporter's ACTIONS mode writes every action in the file that fits
+    the armature, not only the clips on its NLA tracks (the horse's file
+    has trot and canter as well): remove the others from the file."""
+    for action in sorted(bpy.data.actions, key=lambda a: a.name):
+        if action.name not in clips:
+            log(f"action {action.name} is not one of the clips: removed before the export")
+            bpy.data.actions.remove(action)
+
+
 def export_glb(path, armature, meshes, clips, jpeg_quality=88):
+    """Write the armature, the meshes and the clips (and no other action:
+    any other is removed from the file first) to a .glb."""
+    drop_other_actions(clips)
     _strip_actions_to_nla(armature, clips)
     for pb in armature.pose.bones:
         pb.location = (0, 0, 0)

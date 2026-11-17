@@ -4,6 +4,8 @@
         --python art/blender/render_review.py -- --model MODEL [--only NAME ...]
     blender ... --python art/blender/render_review.py -- --attack-styles [--model MODEL]
     blender ... --python art/blender/render_review.py -- --model MODEL --before OLD.glb         --compare {fists,skirt,pila,spear} --out NN-NAME.jpg
+    blender ... --python art/blender/render_review.py -- --lineup [--cavalry]
+    blender ... --python art/blender/render_review.py -- --model MODEL --jog NN-NAME.jpg
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -13,6 +15,12 @@ source model in the "compare" image.
 --attack-styles renders the attacks of the animation library that the
 model does not carry (whp_clips.ATTACKS) on its build file
 (art/build/<model>/4-anim.blend), into art/renders/animation-library/.
+
+Cavalry models (a unit module with HORSE) get the same images laid out for
+a horse: the figures further apart, the clips seen from the side.
+
+--jog renders the run and the jog of a foot model one above the other (what
+the scene played at a steady pace before the jog clip, and what it plays now).
 
 --before renders the same views (COMPARE) of an older file of the model
 (e.g. taken out of git with `git show REV:public/battles/models/X.glb`)
@@ -235,11 +243,16 @@ def pad(lo, hi, amount):
 # through shoot(scene, what) -> NN-<what>.jpg; SHOTS says how many.
 # --------------------------------------------------------------------------
 
+def cavalry(unit):
+    return hasattr(unit, "HORSE")
+
+
 def views(template, unit, shoot):
     """Front, left side (shield side) and back, standing (idle, frame 0)."""
     figures = []
+    spots = (-2.5, 0.0, 2.3) if cavalry(unit) else (-1.4, 0.0, 1.4)
     for i, turn in enumerate((0.0, -90.0, 180.0)):
-        f = place(template, (1.4 * (i - 1), 0.0, 0.0), turn)
+        f = place(template, (spots[i], 0.0, 0.0), turn)
         play(f, "idle", 0)
         figures.append(f)
     scene = stage(1800, 1200)
@@ -290,8 +303,9 @@ def formation(template, unit, shoot):
 
 def lods(template, unit, shoot):
     figures = []
+    gap = 2.1 if cavalry(unit) else 1.45
     for i, name in enumerate(LODS):
-        f = place(template, (1.45 * (i - 1), 0.0, 0.0), 0.0, lod=name)
+        f = place(template, (gap * (i - 1), 0.0, 0.0), 0.0, lod=name)
         play(f, "idle", 0)
         figures.append(f)
     scene = stage(1800, 1100)
@@ -314,9 +328,29 @@ def strike_frame(template, clip="attack"):
     return frame
 
 
-def clip_frames(template):
+# The clips the review shows, in order. The foot models' images were made
+# before the jog (T-022); their review leaves it out so that the numbering
+# of their images stays as it was (render_review --jog shows it).
+FOOT_CLIPS = ("idle", "walk", "run", "attack", "die")
+CAVALRY_CLIPS = ("idle", "walk", "jog", "run", "attack", "die")
+
+
+def review_clips(unit):
+    return CAVALRY_CLIPS if cavalry(unit) else FOOT_CLIPS
+
+
+def clip_frames(template, unit=None):
     """Three telling frames of each clip."""
     strike = strike_frame(template)
+    if unit is not None and cavalry(unit):
+        return {
+            "idle": (0, 50, 100),
+            "walk": (0, 12, 25),
+            "jog": (0, 6, 12),
+            "run": (0, 3, 6),
+            "attack": (0, max(strike // 2, 1), strike),
+            "die": (0, 24, clip_length("die")),
+        }
     return {
         "idle": (0, 25, 50),
         "walk": (0, 10, 20),
@@ -327,16 +361,20 @@ def clip_frames(template):
 
 
 def animations(template, unit, shoot):
-    frames = clip_frames(template)
-    for clip in whp_build.CLIPS:
+    frames = clip_frames(template, unit)
+    for clip in review_clips(unit):
         figures = []
         for i, frame in enumerate(frames[clip]):
-            f = place(template, (1.7 * (i - 1), 0.0, 0.0))
+            if cavalry(unit):           # a row along the horses' length, seen from their right
+                f = place(template, (0.0, 3.2 * (i - 1), 0.0))
+            else:
+                f = place(template, (1.7 * (i - 1), 0.0, 0.0))
             play(f, clip, frame)
             figures.append(f)
         scene = stage(1800, 1000)
         lo, hi = bounds_of(figures)
-        aim_camera(scene, *pad(lo, hi, 0.04), Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.03, elevation=6)
+        direction = Vector((-1.0, -0.22, 0.0)) if cavalry(unit) else Vector((-0.62, -1.0, 0.0))
+        aim_camera(scene, *pad(lo, hi, 0.04), direction, ortho=True, margin=1.03, elevation=6)
         shoot(scene, f"anim-{clip}")
         clear_figures([template.armature, *template.meshes.values()])
 
@@ -418,6 +456,8 @@ def closeups(template, unit, shoot):
 
 def beside(template, unit, shoot):
     """This model next to another one (unit.BESIDE), front and side."""
+    if cavalry(unit):
+        return beside_horse(template, unit, shoot)
     other = import_model(whp_build.glb_path(unit.BESIDE))
     figures = []
     for i, (model, turn) in enumerate(((other, 0.0), (template, 0.0), (other, -90.0), (template, -90.0))):
@@ -428,6 +468,24 @@ def beside(template, unit, shoot):
     lo, hi = bounds_of(figures)
     aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.03)
     shoot(scene, f"beside-{unit.BESIDE}")
+
+
+def beside_horse(template, unit, shoot):
+    """A horseman beside a foot soldier (unit.BESIDE): seen from the front,
+    the man at the horse's right shoulder; seen from the horse's right
+    side, the man ahead of its head."""
+    other = import_model(whp_build.glb_path(unit.BESIDE))
+    scene = stage(1000, 1200)
+    panels = []
+    for direction, spot in (("front", (-1.25, -0.4, 0.0)), ("right", (0.0, -2.2, 0.0))):
+        figures = [place(other, spot, 0.0), place(template)]
+        for f in figures:
+            play(f, "idle", 0)
+        lo, hi = bounds_of(figures)
+        aim_camera(scene, *pad(lo, hi, 0.05), direction, ortho=True, margin=1.03)
+        panels.append(render_panel(scene))
+        clear_figures([other.armature, *other.meshes.values(), template.armature, *template.meshes.values()])
+    shoot.panels(scene, [panels], f"beside-{unit.BESIDE}")
 
 
 IMAGES = {
@@ -445,7 +503,9 @@ IMAGES = {
 }
 
 
-SHOTS = {"head": 2, "animations": len(whp_build.CLIPS)}       # files per image; 1 if not listed
+def shots(unit, name):
+    """How many files an image writes."""
+    return {"head": 2, "animations": len(review_clips(unit))}.get(name, 1)
 
 
 class Shooter:
@@ -474,7 +534,7 @@ def render_model(model, only=None):
     shoot = Shooter(os.path.join(RENDER_DIR, model))
     for name in unit.REVIEW:
         if only is not None and name not in only:
-            shoot.number += SHOTS.get(name, 1)
+            shoot.number += shots(unit, name)
             continue
         reset_scene()
         template = import_model(whp_build.glb_path(model))
@@ -490,21 +550,51 @@ LINEUP = ["roman-velites", "roman-hastatus", "roman-legionary", "roman-triarii",
           "libyan-infantry", "iberian-infantry", "gallic-infantry", "balearic-slinger"]
 
 
-def lineup():
+CAVALRY_LINEUP = ["roman-cavalry", "iberian-gallic-cavalry", "numidian-cavalry"]
+
+
+def lineup(horse=False):
     """The infantry models side by side, front view, standing (idle, frame 0):
-    art/renders/infantry-lineup.jpg."""
+    art/renders/infantry-lineup.jpg. With `horse`, the cavalry models seen
+    from their right side: art/renders/cavalry-lineup.jpg."""
     reset_scene()
     figures = []
-    for i, model in enumerate(LINEUP):
+    models = CAVALRY_LINEUP if horse else LINEUP
+    for i, model in enumerate(models):
         template = import_model(whp_build.glb_path(model))
-        f = place(template, (1.15 * i, 0.0, 0.0), 0.0)
+        spot = (0.0, 2.9 * i, 0.0) if horse else (1.15 * i, 0.0, 0.0)
+        f = place(template, spot, 0.0)
         play(f, "idle", 0)
         figures.append(f)
-    scene = stage(2600, 900)
+    scene = stage(2600, 1000 if horse else 900)
     lo, hi = bounds_of(figures)
-    aim_camera(scene, *pad(lo, hi, 0.04), "front", ortho=True, margin=1.03)
-    render_jpeg(scene, os.path.join(RENDER_DIR, "infantry-lineup.jpg"), quality=85)
-    log("lineup:", ", ".join(LINEUP))
+    aim_camera(scene, *pad(lo, hi, 0.04), "right" if horse else "front", ortho=True, margin=1.03)
+    render_jpeg(scene, os.path.join(RENDER_DIR, "cavalry-lineup.jpg" if horse else "infantry-lineup.jpg"), quality=85)
+    log("lineup:", ", ".join(models))
+
+
+def jog_image(model, out):
+    """A foot model's run (top row) and jog (bottom row) over one loop,
+    seen from its right: before the jog clip the scene played the run,
+    slowed down, for a steady pace."""
+    reset_scene()
+    template = import_model(whp_build.glb_path(model))
+    scene = stage(380, 620, samples=32)
+    rows = []
+    for clip in ("run", "jog"):
+        end = clip_length(clip)
+        row = []
+        for k in range(6):
+            f = place(template)
+            play(f, clip, int(round(k * end / 6)))
+            scene.frame_set(FRAME)
+            aim_camera(scene, Vector((-0.6, -0.95, -0.02)), Vector((0.6, 0.95, 2.3)), "right", ortho=True, margin=1.0)
+            row.append(render_panel(scene))
+            clear_figures([template.armature, *template.meshes.values()])
+        rows.append(row)
+    path = os.path.join(RENDER_DIR, model, out)
+    save_panels(scene, rows, path)
+    log("run and jog:", path)
 
 
 # --------------------------------------------------------------------------
@@ -646,6 +736,8 @@ def main():
     parser.add_argument("--only", nargs="*", choices=sorted(IMAGES), default=None)
     parser.add_argument("--attack-styles", action="store_true")
     parser.add_argument("--lineup", action="store_true", help="the infantry models in a row")
+    parser.add_argument("--cavalry", action="store_true", help="with --lineup: the cavalry models")
+    parser.add_argument("--jog", metavar="NN-NAME.jpg", help="a foot model's run and jog, into art/renders/<model>/")
     parser.add_argument("--before", help="an older .glb of the model, to compare with (see --compare)")
     parser.add_argument("--compare", choices=sorted(COMPARE), help="what to show before and after")
     parser.add_argument("--out", help="file name of the comparison in art/renders/<model>/")
@@ -653,7 +745,9 @@ def main():
     if args.before:
         before_after(args.model, args.before, args.compare, args.out)
     elif args.lineup:
-        lineup()
+        lineup(args.cavalry)
+    elif args.jog:
+        jog_image(args.model, args.jog)
     elif args.attack_styles:
         attack_styles(args.model)
     else:

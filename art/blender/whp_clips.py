@@ -2,10 +2,11 @@
 
     idle    Idle_Loop (UAL 1)        standing, breathing; loops
     walk    Walk_Loop (UAL 1)        walking on the spot; loops
-    run     Jog_Fwd_Loop (UAL 1)     jogging on the spot; loops
+    run     Jog_Fwd_Loop (UAL 1)     running fast on the spot (5.8 m/s); loops
     die     Death01 (UAL 1)          falls on his back and lies still; the
                                      last frame is the one the scene holds
     attack  one of ATTACKS, chosen per model (the clip is always "attack")
+    jog     Walk_Loop + Jog_Fwd_Loop a steady run of about 3 m/s (JOG); loops
 
 The whole body comes from the library clip (whp_retarget), then the arms
 are adjusted for what the man holds (`Kit`):
@@ -22,7 +23,7 @@ are adjusted for what the man holds (`Kit`):
 No clip has root motion: the hips stay over the origin. Every clip is keyed
 on every frame at 30 fps.
 
-Walk and run are played on the spot, and the scene moves the figure at the
+Walk, jog and run are played on the spot, and the scene moves the figure at the
 speed their planted feet slide back (it measures that speed on the clips
 themselves). The library's walk slides where the foot rolls: the toes push
 off sliding forwards. `Builder.lock_feet` takes that out: it shifts the
@@ -49,7 +50,41 @@ BASE = {
     "run": ("ual1", "Jog_Fwd_Loop"),
     "die": ("ual1", "Death01"),
 }
-LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True}
+LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True, "jog": True}
+
+# jog: a steady run of about 3 m/s, for a body of men keeping its order. The
+# library has a walk (1 m/s) and a fast run (5.8 m/s: long bounds, each foot
+# down for 29% of a step), nothing between. The jog blends the two phase by
+# phase, both lined up on the landing of the left foot. The run is retimed
+# within each step first, so that a foot stays down for `contact` of the
+# step (a jogger's, 0.6 to 0.75) and its flight is short; then `share` of the
+# run, per group of bones, is laid over the walk. `bounce` keeps that much
+# of the hips' rise and fall (the run's is 25 cm); the legs' IK makes up the
+# rest. The feet are then locked as in walk and run (Builder.lock_feet).
+JOG = dict(
+    frames=22,                          # one loop, two steps: 0.733 s, 164 steps a minute
+    walk=("Walk_Loop", 0.0),            # clip, frame the left heel lands
+    run=("Jog_Fwd_Loop", 1.0, 4.0),     # clip, frame the left foot lands, frames it stays down
+    contact=0.65,
+    share=dict(legs=0.65, trunk=0.45, arms=0.5),
+    bounce=0.6,
+)
+JOG_LEGS = ("root", "pelvis", "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r")
+JOG_TRUNK = ("spine_01", "spine_02", "spine_03", "neck_01", "Head")
+
+
+def retime(u, contact, down, step):
+    """Frames into a step of the run for a share `u` of a step of the jog:
+    the first `contact` of the jog's step covers the run's `down` frames on
+    the ground, the rest its flight (`step` frames in all); a monotone cubic
+    through those points, its slope the same on both sides of each."""
+    k1, k2 = down / contact, (step - down) / (1.0 - contact)
+    m = 2.0 * k1 * k2 / (k1 + k2)
+    x0, x1, y0, y1 = (0.0, contact, 0.0, down) if u < contact else (contact, 1.0, down, step)
+    h = x1 - x0
+    t = (u - x0) / h
+    return ((2 * t ** 3 - 3 * t ** 2 + 1) * y0 + (t ** 3 - 2 * t ** 2 + t) * h * m
+            + (-2 * t ** 3 + 3 * t ** 2) * y1 + (t ** 3 - t ** 2) * h * m)
 
 
 class Kit:
@@ -302,7 +337,7 @@ def slerp_direction(a, b, t):
 # Feet on the ground
 # --------------------------------------------------------------------------
 
-GAITS = ("walk", "run")
+GAITS = ("walk", "run", "jog")
 SOLE_HEIGHT = 0.03          # sole vertices: this close to the lowest point of the feet at rest
 GROUND_REACH = 0.02         # a sole this close to the lowest point of a clip is on the ground
 LOCK_PASSES = 3             # rounds of correction (the legs' IK is not quite linear)
@@ -530,6 +565,33 @@ class Builder:
         largest = max(float(np.hypot(*shift[side])) for shift in shifts for side in shift)
         return shifts, speed, (before, worst_slip(slips, speed), largest)
 
+    def dress(self, frame, frames, carry, weapon=None):
+        """What the arms hold, on top of a retargeted pose: the shield as
+        `carry` says (a SHIELD_CARRY key or a function of the frame), the
+        weapon carried (or `weapon` called), the sling hanging."""
+        if self.kit.shield:
+            self.arms.shield(carry(frame, frames) if callable(carry) else SHIELD_CARRY[carry])
+        if weapon is not None:
+            weapon(frame, frames)
+        else:
+            self.arms.hold(self.kit.carry)
+        if self.sling is not None:
+            self.sling.hang(self.p.turned("spine_03") @ Vector((0.0, -1.0, 0.0)))
+
+    def gait(self, name, rt, frames, pose_at):
+        """Key a gait clip with its planted feet locked (lock_feet)."""
+        shifts, speed, self.slips[name] = self.lock_feet(rt, frames, pose_at)
+        self.strides[name] = speed * frames
+
+        def locked(frame):
+            rt.ankle_shift = shifts[frame]
+            try:
+                pose_at(frame)
+            finally:
+                rt.ankle_shift = None
+
+        return self.clip(name, frames, locked, loop=LOOPS[name])
+
     def base(self, name, carry, weapon=None, fix=None):
         pack, source = BASE[name]
         rt = self.retarget(pack)
@@ -540,28 +602,52 @@ class Builder:
             rt.pose(sample)
             if fix is not None:
                 fix(1.0 - rt.upright(sample))
-            if self.kit.shield:
-                self.arms.shield(carry(frame, clip.frames) if callable(carry) else SHIELD_CARRY[carry])
-            if weapon is not None:
-                weapon(frame, clip.frames)
-            else:
-                self.arms.hold(self.kit.carry)
-            if self.sling is not None:
-                self.sling.hang(self.p.turned("spine_03") @ Vector((0.0, -1.0, 0.0)))
+            self.dress(frame, clip.frames, carry, weapon)
 
         if name not in GAITS:
             return self.clip(name, clip.frames, pose_at, loop=LOOPS[name])
-        shifts, speed, self.slips[name] = self.lock_feet(rt, clip.frames, pose_at)
-        self.strides[name] = speed * clip.frames
+        return self.gait(name, rt, clip.frames, pose_at)
 
-        def locked(frame):
-            rt.ankle_shift = shifts[frame]
+    def jog_sample(self, rt, frame, spec=JOG):
+        """The library pose for a frame of the jog (see JOG)."""
+        pk = rt.pack
+        frames = spec["frames"]
+        walk_name, walk_start = spec["walk"]
+        run_name, run_start, down = spec["run"]
+        walk, run = pk.clip(walk_name), pk.clip(run_name)
+        phase = (frame % frames) / frames
+        step, u = divmod(phase * 2.0, 1.0)
+        half = run.frames / 2.0
+        at_walk = (walk_start + phase * walk.frames) % walk.frames
+        at_run = (run_start + step * half + retime(u, spec["contact"], down, half)) % run.frames
+        share = spec["share"]
+
+        def weight(bone):
+            if bone in JOG_LEGS:
+                return share["legs"]
+            return share["trunk"] if bone in JOG_TRUNK else share["arms"]
+
+        return pk.blend((walk_name, at_walk), (run_name, at_run), weight)
+
+    def jog(self, carry="march", spec=JOG):
+        """The jog (JOG): walk and run blended, the feet locked."""
+        rt = self.retarget("ual1")
+        frames = spec["frames"]
+        samples = [self.jog_sample(rt, f, spec) for f in range(frames)]
+        heights = np.array([rt.pack.head(s, "pelvis")[2] for s in samples])
+        mean = heights.mean()
+
+        def pose_at(frame):
+            sample = samples[frame % frames]
+            drop = (1.0 - spec["bounce"]) * rt.scale * (heights[frame % frames] - mean)
+            rt.hips_shift = np.array((0.0, 0.0, -drop))
             try:
-                pose_at(frame)
+                rt.pose(sample)
             finally:
-                rt.ankle_shift = None
+                rt.hips_shift = None
+            self.dress(frame, frames, carry)
 
-        return self.clip(name, clip.frames, locked, loop=LOOPS[name])
+        return self.gait("jog", rt, frames, pose_at)
 
     def die(self):
         """Death01, then lifted so that nothing of the final pose is under
@@ -628,6 +714,7 @@ class Builder:
             self.base("run", "run"),
             self.die(),
             ATTACKS[self.kit.attack](self),
+            self.jog(),             # last: the clips before it come out as they did without it
         ]
         self.armature.animation_data.action = None
         return actions

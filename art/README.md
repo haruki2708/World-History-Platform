@@ -6,7 +6,7 @@ Thư mục này chứa script Blender dựng mô hình lính, ảnh render để
 art/
   blender/      script Python chạy bằng Blender không giao diện
   tools/        script Python chạy ngoài Blender (numpy): gait_check.py đo sải
-                chân và độ trượt chân của walk/run trên file .glb như cảnh đo
+                chân và độ trượt chân của walk/jog/run trên file .glb như cảnh đo
   renders/      ảnh render để người dùng duyệt, mỗi mô hình một thư mục;
                 infantry-lineup.jpg: tám mô hình bộ binh đứng thành hàng
   build/        file trung gian (.blend, ảnh bake, ảnh xem thử); không đưa vào git
@@ -25,6 +25,14 @@ Mô hình đã có (bộ binh trận Cannae):
 | `iberian-infantry` | bộ binh Iberia, lính giáo nhẹ: áo lanh trắng viền tía, khiên dài | lính La Mã |
 | `balearic-slinger` | lính ném đá Baleares: ba dây ném đá | lính La Mã |
 | `gallic-infantry` | bộ binh Gaul: cởi trần, quần sọc, kiếm dài, khiên dài | Celt |
+
+Kỵ binh (T-022): người cưỡi và ngựa trong cùng một file (mục "Kỵ binh" ở cuối).
+
+| Mô hình | Lính | Người cưỡi | Ngựa |
+|---|---|---|---|
+| `roman-cavalry` | kỵ binh La Mã và đồng minh: giáp lưới, khiên tròn ở cẳng tay, giáo | lính La Mã | vải lót yên đỏ, dây cương |
+| `iberian-gallic-cavalry` | kỵ binh Iberia và Gaul: áo lanh trắng viền tía, mũ gân, khiên bầu dục nhỏ, giáo | lính La Mã | vải lót yên xanh đen, dây cương |
+| `numidian-cavalry` | kỵ binh Numidia: áo len mộc không thắt lưng, khiên da tròn nhỏ, lao | lính La Mã | nhỏ hơn (0,95), không yên cương, dây quàng cổ |
 
 ## Cần có
 
@@ -55,7 +63,7 @@ $blender = "D:\Tools\Blender\5.2.2\blender.exe"
 # Dựng một mô hình từ file gốc: xuất public/battles/models/<id>.glb, thêm vào index.json, kiểm tra (khoảng 2–2,5 phút)
 & $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model roman-hastatus
 
-# Dựng mọi mô hình
+# Dựng mọi mô hình (kỵ binh cần dựng ngựa trước: mục "Kỵ binh")
 & $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model all
 
 # Chạy lại từ một giai đoạn (dùng file .blend của giai đoạn trước trong art/build/<id>/)
@@ -104,7 +112,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `source` | Tạo cảnh trống | `build_source()`: nhập mô hình nền, bỏ phần không hợp thời kỳ |
 | `kit` | | `build_kit()`: dựng trang bị, mỗi món thêm một bản ít tam giác (`.low`) cho LOD |
 | `rig` | Nhập khung xương Celt; đưa thân về tư thế chữ A và tỉ lệ của khung; chuyển trọng số theo điểm gần nhất, làm mượt; đưa về dạng chuẩn | `fit()`, `RIGID`, `SHARED`, `SMOOTHING`, `MERGE_FINGERS`, `rig_extras()` |
-| `anim` | Năm clip từ thư viện hoạt hình (`whp_clips.py`) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
+| `anim` | Sáu clip từ thư viện hoạt hình (`whp_clips.py`) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
 | `lod` | Phần ít tam giác, atlas, bake, một vật liệu, LOD0..2 (`whp_unit_lod.py`) | `PARTS` (các phần và ngân sách tam giác), `LOD2` |
 | `export` | Xuất `.glb`, thêm id vào `public/battles/models/index.json`, kiểm tra | `GROUND_CHECKS` nếu khác mặc định (giáo dựng đứng cao hơn người) |
 
@@ -133,7 +141,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 
 - **Tay cầm khiên.** Tay trái được giải lại bằng IK để khiên giữ một chỗ và một góc định sẵn trước ngực (`SHIELD_CARRY`: đứng, hành quân, chạy, thủ thế, đẩy khiên, ngã, ngồi bệt). Khung tham chiếu theo ngực một phần (`follow`), nên khiên nhún theo người mà không quay ngang khi thân xoay.
 - **Vũ khí.** Khi không đánh, cổ tay phải xoay cho lưỡi kiếm chĩa ra trước và xuống (`WEAPON_CARRY`). Khi đánh, tay phải đi theo một đường IK định sẵn, nhịp lấy theo độ duỗi tay của clip nguồn, và vũ khí được ngắm theo hướng đâm.
-- **Khoá chân trụ** (T-024, `Builder.lock_feet`). Clip `walk` của thư viện tự nó đã trượt chân lúc bàn chân lăn: lúc mũi chân đẩy rời đất, mũi chân trượt ra trước (tới 80% tốc độ mặt đất trong vài khung). Với `walk` và `run`, script dựng clip ba lượt nữa. Mỗi lượt, với từng bàn chân đang chạm đất, dời mắt cá theo chiều ngang để đỉnh thấp nhất của đế lùi đúng tốc độ mặt đất từ khung này sang khung sau. Độ dời được canh giữa trong mỗi lần chạm đất, rồi trả về dần trong lúc chân ở trên không. Mắt cá dời tối đa 2,1 cm (`walk`) và 0,8 cm (`run`). Độ trượt lớn nhất của chân trụ trên LOD0 của file `.glb`: `walk` từ 81% xuống 3–6%, `run` từ 6% xuống 1%. Log của giai đoạn `anim` ghi các số này cho từng mô hình.
+- **Khoá chân trụ** (T-024, `Builder.lock_feet`). Clip `walk` của thư viện tự nó đã trượt chân lúc bàn chân lăn: lúc mũi chân đẩy rời đất, mũi chân trượt ra trước (tới 80% tốc độ mặt đất trong vài khung). Với `walk`, `jog` và `run`, script dựng clip ba lượt nữa. Mỗi lượt, với từng bàn chân đang chạm đất, dời mắt cá theo chiều ngang để đỉnh thấp nhất của đế lùi đúng tốc độ mặt đất từ khung này sang khung sau. Độ dời được canh giữa trong mỗi lần chạm đất, rồi trả về dần trong lúc chân ở trên không. Mắt cá dời tối đa 2,1 cm (`walk`, `jog`) và 0,8 cm (`run`). Độ trượt lớn nhất của chân trụ trên LOD0 của file `.glb`: `walk` từ 81% xuống 2–3%, `jog` từ 25% xuống 0%, `run` từ 6% xuống 1–2%. Log của giai đoạn `anim` ghi các số này cho từng mô hình.
 - **`die`.** Người mặc giáp nằm cao hơn hình nộm của thư viện: sau khi dựng, script đo điểm thấp nhất của mọi lưới ở khung cuối và nâng hông lên cho vừa chạm đất (lính La Mã: 8,2 cm). Khi đã nằm, đầu cúi vừa đủ để ngù lông mũ nằm dọc mặt đất thay vì cắm xuống. Khiên nằm trên người.
 
 **Clip** (giống nhau cho mọi mô hình; số đo của hai mô hình La Mã):
@@ -143,6 +151,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `idle` | `Idle_Loop` (UAL 1) | 2,5 s (75 khung) | Đứng thở, khiên chếch bên trái, kiếm chĩa xuống. Lặp. |
 | `walk` | `Walk_Loop` (UAL 1) | 1,333 s (40 khung) | Đi tại chỗ. **Một vòng = 1,30 m**, tức 0,975 m/s. Lặp. |
 | `run` | `Jog_Fwd_Loop` (UAL 1) | 0,933 s (28 khung) | Chạy tại chỗ, khiên cao hơn. **Một vòng = 5,45 m**, tức 5,84 m/s: chạy rất nhanh, gần chạy nước rút (xem dưới). Lặp. |
+| `jog` | `Walk_Loop` và `Jog_Fwd_Loop` (UAL 1) trộn theo pha | 0,733 s (22 khung) | Chạy đều, giữ đội hình: khiên và vũ khí giữ như khi đi. **Một vòng = 2,07–2,10 m**, tức 2,8–2,9 m/s. Lặp. Cách dựng: xem dưới. |
 | `attack` | tuỳ mô hình, xem dưới | | Lặp. |
 | `die` | `Death01` (UAL 1) | 2,4 s (72 khung) | Ngã ngửa, nằm yên từ khoảng khung 50. **Không lặp**: cảnh giữ khung cuối. |
 
@@ -155,6 +164,17 @@ Số cũ (1,00 m và 1,99 m, từ T-019 tới T-021) sai: script cộng quãng l
 Muốn đi nhanh hơn thì cảnh tăng tốc độ phát clip theo tỉ lệ: tốc độ phát = tốc độ di chuyển / (quãng đường một vòng / độ dài clip).
 
 **`run` là chạy nhanh từ clip nguồn, không phải do đổi đích.** Bản có chuyển động gốc của thư viện (`UAL1_Standard_RM.glb`) đi 5,00 m trong một vòng `Jog_Fwd_Loop` (5,36 m/s); bản tại chỗ mà ta dùng cho chân trụ lùi 5,9 m/s. Đổi đích giữ nguyên tỉ lệ (chân của khung xương dài bằng 0,998 lần chân hình nộm). Clip có nhịp 129 bước/phút, mỗi bước 2,7 m, mỗi bàn chân chỉ chạm đất 4–5 trên 28 khung (khoảng 16% vòng): dáng của chạy nước rút. Thư viện không có clip chạy chậm nào khác. Đề xuất cách xử lý ghi ở mục "Kết quả" của T-024.
+
+**`jog`** (T-022, `whp_clips.JOG`, `Builder.jog`). Thư viện chỉ có đi (1 m/s) và chạy nhanh (5,8 m/s), không có gì ở giữa. Clip `jog` trộn hai clip đó theo pha:
+
+- Hai clip được canh cho chân trái chạm đất cùng lúc (`Walk_Loop` khung 0, `Jog_Fwd_Loop` khung 1).
+- Trộn thẳng thì thời gian chạm đất do clip chạy quyết định: mỗi bàn chân chỉ chạm đất 29% một bước, còn lại là bay, nên vẫn ra dáng chạy nước rút. Vì vậy clip chạy được kéo giãn thời gian trong từng bước trước khi trộn: 4 khung chạm đất của nó chiếm 65% bước của `jog` (`contact`), pha bay bị nén lại; đường cong thời gian là một đường bậc ba đơn điệu, không gãy.
+- Rồi lấy một phần của clip chạy đặt lên clip đi, theo nhóm xương (`share`): chân và hông 65%, thân 45%, tay 50%.
+- Hông của clip chạy nhún 25 cm mỗi bước; `jog` giữ 60% (`bounce`), IK của chân bù phần còn lại.
+- Một vòng 22 khung (0,733 s, 164 bước mỗi phút). Khiên giữ thế `march` như khi đi, vũ khí giữ như khi đi.
+- Cuối cùng khoá chân trụ như `walk`, `run`.
+
+Số đo trên LOD0 của file `.glb` (`gait_check.py`): 2,07–2,10 m mỗi vòng, 2,82–2,86 m/s, chân trụ trượt dưới 1%. Năm clip cũ không đổi (dữ liệu hoạt hình giống hệt từng byte); `jog` được dựng sau cùng. Mỗi file nặng thêm khoảng 48 KB.
 
 **Các kiểu tấn công** (`whp_clips.ATTACKS`; tên clip trong file `.glb` luôn là `attack`):
 
@@ -197,7 +217,7 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
   - một khung xương 67 xương;
   - ba lưới `LOD0`, `LOD1`, `LOD2` trong giới hạn tam giác;
   - một vật liệu; ảnh màu tối đa 2048, ảnh pháp tuyến và ảnh độ nhám/kim loại tối đa 1024;
-  - năm clip `idle`, `walk`, `run`, `attack`, `die`;
+  - sáu clip `idle`, `walk`, `run`, `attack`, `die`, `jog`;
   - đứng trên y = 0, ngón chân hướng +Z, đầu hướng +Y;
   - dung lượng tối đa 4 MB; có tên trong `index.json`.
 
@@ -229,12 +249,13 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 | `whp_anim.py` | `Poser`: dựng tư thế theo trục của người lính (xoay, ngắm, đặt hướng xương, IK hai đoạn) và ghi keyframe. |
 | `whp_ual.py` | Đọc file `.glb` của thư viện hoạt hình bằng numpy, lấy mẫu clip. |
 | `whp_retarget.py` | Đổi đích tư thế từ thư viện sang khung xương chung. |
-| `whp_clips.py` | Năm clip chuẩn, tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử. |
+| `whp_clips.py` | Sáu clip chuẩn, tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử. |
 | `whp_lod.py` | Phần ít tam giác, atlas UV, bake, xử lý ảnh, vật liệu cuối. |
 | `whp_unit_lod.py` | Giai đoạn `lod` chung: các phần, bake, ghép ảnh, LOD0..2. |
 | `whp_proxy.py` | Hình người đơn giản theo khung xương cho LOD2. |
 | `whp_export.py` | Xuất glTF và kiểm tra file `.glb` theo hợp đồng. |
-| `unit_<id>.py` | Phần riêng của từng mô hình (tám file). |
+| `unit_<id>.py` | Phần riêng của từng mô hình (mười một file: tám bộ binh, ba kỵ binh). |
+| `whp_cavalry.py` | Kỵ binh: ghép ngựa vào file, nối hai khung xương, tư thế và các clip của người cưỡi, giai đoạn `lod` chung cho người và ngựa. |
 | `roman_kit.py` | Phần chung của các mô hình dựng trên lính La Mã: chuẩn bị thân (kiếm trong tay, trong bao hay bỏ), mũ, khiên, vật liệu, luật gắn xương, dữ liệu cho clip. |
 | `roman_weapons.py` | Giáo *hasta*, lao nhẹ, lao Iberia; cất kiếm vào bao. |
 | `roman_parma.py` | Khiên tròn của velites. |
@@ -464,7 +485,7 @@ Ngựa Numidia (thân và dây quàng cổ) có 3 036, 651 và 111 tam giác. C�
 
 **Không có `attack`.** T-022 dựng `attack` của kỵ binh bằng clip đánh của người, cộng `idle` (hoặc `walk`) của ngựa lặp lại.
 
-**Clip thêm:** bộ xuất của lane 1 (`whp_export`, chế độ ACTIONS) xuất mọi action trong file, kể cả `trot` và `canter`. Bản xuất thử có 6 action. T-022 xoá hai action này nếu không dùng.
+**Clip thêm:** `trot` và `canter` nằm trong `horse.blend`. Từ T-022, `whp_export.export_glb` xoá các action không có trong danh sách clip trước khi xuất, nên bản xuất thử chỉ có 4 action; kỵ binh dùng `trot` làm `jog`.
 
 ### Ảnh duyệt: `art/renders/horse/`
 
@@ -490,3 +511,148 @@ Render từ `horse.blend` (lưới game, vật liệu đã bake), không phải 
 | `horse_clips.py` | `idle`, `die`, lấy dáng đi, đo một vòng. |
 | `horse_lod.py` | LOD0..2 theo nhóm, atlas, bake (dùng `whp_lod`, `whp_unit_lod`, `whp_proxy`), hình thay thế cho LOD2. |
 | `horse_render.py` | Ảnh duyệt. |
+
+## Kỵ binh (T-022)
+
+Ba mô hình, mỗi mô hình là một người cưỡi trên một con ngựa, trong cùng một file `.glb`: `roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`. Người cưỡi dựng như lính bộ binh (giai đoạn `source`, `kit`, `rig` trong `unit_<id>.py`); ngựa là con ngựa của lane 2 (mục "Ngựa" ở trên). Phần ghép và các clip nằm ở `whp_cavalry.py`.
+
+### Cách dựng
+
+Dựng ngựa trước (một lần, khoảng 2–3 phút), rồi dựng từng mô hình kỵ binh (khoảng 4–5 phút mỗi mô hình) hoặc tất cả:
+
+```powershell
+& $blender --background --factory-startup --disable-autoexec --python art/blender/horse_build.py
+& $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model roman-cavalry
+& $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model all
+```
+
+Thiếu `art/build/horse/horse.blend` thì giai đoạn `anim` dừng và báo phải chạy `horse_build.py`.
+
+Một unit module kỵ binh có thêm (ngoài những gì của lính bộ binh):
+- `HORSE` (`whp_cavalry.Horse`): yên cương nào, cỡ ngựa, màu vải lót yên;
+- `RIDER` (`whp_cavalry.Rider`): kiểu tấn công, có cầm cương không, khiên ở đâu, cách mang vũ khí;
+- `KIT`: dùng để dựng cú ngã của người, như lính bộ binh;
+- `BONES` (107), `GROUND_CHECKS`, `SEAT_MESHES` (lưới người chạm lưng ngựa);
+- với khiên đeo cẳng tay: `SHIELD_MESH`, `SHIELD_HANG`.
+
+Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cavalry`.
+
+### Giai đoạn `anim`: ghép người và ngựa
+
+1. **Cú ngã của người** được dựng trước, khi người còn đứng một mình trên mặt đất: `die` của lính bộ binh (`whp_clips.Builder.die` với `KIT`), giữ lại dưới dạng ma trận xương từng khung.
+2. **Ghép ngựa vào file** (`mount`):
+   - nạp từ `horse.blend` khung xương `horse-rig`, các lưới chi tiết (thân, bờm, đuôi và yên cương của loại kỵ binh này) và năm clip `idle`, `walk`, `trot`, `run`, `die`; đọc các clip thành ma trận xương rồi xoá action;
+   - ngựa Numidia: thu khung xương và lưới còn 0,95 lần (vị trí trong clip cũng nhân 0,95);
+   - **nhấc tư thế gốc của người** lên lưng ngựa: xương và lưới dịch lên (0,58 m; Numidia 0,49 m) và lùi về chỗ ngồi. Ở tư thế gốc, người đứng chữ A trên lưng ngựa (chân xuyên qua thân ngựa). Nhờ vậy:
+     - khung bao của LOD0 ở tư thế gốc cao gần bằng người cưỡi thật (cảnh lấy chiều cao mô hình từ khung bao này);
+     - đỉnh thấp nhất ở tư thế gốc chỉ còn là móng ngựa (cảnh lấy các đỉnh này làm "đế chân" để đo sải);
+   - nối hai khung xương thành một (67 + 40 = **107 xương**, đối tượng tên `root` như lính bộ binh), rồi đặt `horse_saddle` làm cha của ba xương gốc của người: `pelvis`, `ik_foot_root`, `ik_hand_root`.
+3. **Mọi clip được key trên cả 107 xương**, từng khung (`RiderPoser`): xương ngựa lấy từ clip của ngựa; người được dựng trong khung của xương yên lúc nghỉ, rồi cả người đi theo xương yên.
+
+### Tư thế ngồi
+
+- **Hông:** chậu hông ngả ra sau 8° (ngồi trên xương ngồi), thân dựng thẳng lại. Độ cao đo từ chính lưới: các đỉnh của lưới chân (`SEAT_MESHES`) gần đường giữa, trên chỗ ngồi, đặt cao hơn điểm ngồi của lane 2 (mặt vải lót yên) 4 mm. Ngựa Numidia không có vải lót nên điểm ngồi thấp hơn 1,4 cm.
+- **Chân:** IK hai đoạn theo hướng đùi và cẳng chân cố định trong khung yên (`Rider.thigh`, `Rider.calf`):
+  - đùi chĩa ra trước, xuống và ra ngoài, ôm thân ngựa (thân rộng 0,27 m mỗi bên ở độ cao 1,04–1,09 m);
+  - cẳng chân buông gần thẳng đứng;
+  - mũi chân chúc xuống 30°, xoè 14°;
+  - không có bàn đạp (chưa có vào năm 216 TCN).
+
+  Log ghi bao nhiêu đỉnh của chân lọt vào trong thân ngựa ở `idle` khung 0: 12 trên 6 722 đỉnh, sâu nhất 1 mm.
+- **Áo:** vạt sau của áo và giáp lưới thõng xuống lọt vào lưng ngựa, khuất trong thân ngựa; nhìn ngoài như áo phủ lên lưng ngựa.
+- **Thân theo nhịp ngựa** (`LEAN`):
+  - mỗi clip một độ ngả ra trước: `walk` 2°, `jog` 4°, `run` 13°;
+  - thân lấy lại một phần độ xoay của xương yên để giữ gần thẳng đứng: `walk` 50%, `jog` 70%, `run` 60%;
+  - thân gập thêm theo độ lên xuống của yên, trễ một khung. Ngồi nước kiệu, không nhổm (chưa có bàn đạp);
+  - đầu ngẩng lại một phần để mắt nhìn ngang.
+- **Tay trái cầm cương** (La Mã, Iberia/Gaul): mỗi khung, nắm tay trái được giải IK tới giữa hai đầu dây cương của lane 2. Đầu dây đi theo cổ ngựa, nên dây cương luôn nằm trong nắm tay.
+- **Tay phải mang vũ khí:**
+  - giáo dựng chếch ra trước khi đứng, đi, chạy chậm (`SPEAR_UP`);
+  - giáo chĩa ra trước khi phi (`SPEAR_FORWARD`);
+  - lao của người Numidia chĩa lên (`JAVELIN_UP`).
+- **Khiên:**
+  - đeo ở cẳng tay trái (La Mã, Iberia/Gaul, vì tay trái cầm cương): khiên dựng ở giai đoạn `kit` như khiên bộ binh trong nắm tay trái, rồi gắn vào xương `ik_hand_l` (`whp_clips.SPARE_BONE`, như hai cây *pilum* của hastatus). Mọi clip đặt xương này theo cẳng tay trái: tâm khiên ở 35% cẳng tay tính từ khuỷu, cách ra ngoài 17 cm, mặt khiên quay ra ngoài và hơi ra trước (`SHIELD_HANG`);
+  - trong tay trái (Numidia): tay trái giải IK như lính bộ binh cầm khiên, khiên ở trước hông trái (`RIDE_SHIELD`).
+
+### Clip
+
+| Clip | Ngựa | Người | Độ dài |
+|---|---|---|---|
+| `idle` | `idle` của ngựa | ngồi, thở, quay đầu nhìn sang trái rồi trở lại | 4,967 s (149 khung) |
+| `walk` | `walk` | ngồi, đung đưa theo ngựa | 1,667 s (50 khung) |
+| `jog` | `trot` (nước kiệu) | ngồi nước kiệu, thân đỡ nhịp | 0,833 s (25 khung) |
+| `run` | `run` (phi) | ngả ra trước, giáo chĩa ra trước | 0,400 s (12 khung) |
+| `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, hoặc phóng lao | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
+| `die` | `die` của ngựa | ngã theo ngựa, rồi văng khỏi lưng, nằm yên | 1,967 s (59 khung), không lặp |
+
+- **Đâm giáo** (La Mã, Iberia/Gaul):
+  - giáo giơ trên vai phải, chĩa ra trước và xuống; kéo về sau, đâm tới qua bên phải đầu ngựa, giữ một nhịp, rồi về;
+  - thân xoay theo (vai phải lùi 18° rồi tiến 16°) và ngả tới 10° lúc đâm;
+  - đường tay tự dựng bằng IK theo các khung khoá (`THRUST`), không dùng clip của thư viện.
+- **Phóng lao** (Numidia): lao kéo về sau qua vai phải, phóng ra trước và lên, tay vung theo, rồi về tư thế mang lao (`THROW`). Thân xoay 24° ra sau rồi 16° ra trước.
+- **Ngã:**
+  - ngựa khuỵu gối rồi lăn sang sườn phải (−X);
+  - từ khung 12 tới khung 40, người được trộn dần từ tư thế ngồi trên yên sang cú ngã ngửa `Death01` của thư viện (từng xương: góc quay theo xương cha; xương gốc theo vị trí trong không gian);
+  - cú ngã ấy đặt trên mặt đất phía ngựa lăn sang, mặt hướng về ngựa: người văng qua lưng ngựa và ngã ngửa ra xa nó. Chỗ nằm tính từ khung cuối: phía người gần ngựa cách thân ngựa 6 cm;
+  - từ khung 46 người nằm yên;
+  - khiên đeo cẳng tay đi theo tay rồi nằm phẳng xuống đất cạnh tay trái; giáo nằm ngang.
+- Mọi clip đều không có chuyển động gốc.
+
+**Sải bước đo như cảnh** (`gait_check.py` trên LOD0 của file `.glb`; "đế chân" là móng ngựa):
+
+| Clip | Một vòng | Tốc độ ở cỡ thật | Trượt lớn nhất của móng trụ trong một khung |
+|---|---|---|---|
+| `walk` | 1,08 m / 1,667 s | 0,65 m/s | 101% |
+| `jog` | 1,82 m / 0,833 s | 2,19 m/s | 88% |
+| `run` | 1,09 m / 0,400 s | 2,73 m/s | 269% |
+
+Đây là dáng đi của file gốc (lane 2 lấy mẫu lại); độ trượt có sẵn trong file gốc, ở vài khung lúc móng chạm và rời đất. Ngựa Numidia nhỏ hơn nên sải ngắn hơn 5%.
+
+**Sải phi chưa dài hơn.** Task đề nghị cho `run` sải 4–6 m mỗi vòng nếu không tốn nhiều công.
+- Clip phi của file gốc có móng chạm đất trong 8 trên 12 khung và lùi chậm khi chạm đất.
+- Kéo giãn thời gian (nén pha chạm đất, giãn pha bay) chỉ lợi được khoảng 1,3 lần, mà mỗi móng chỉ còn chạm đất 1–2 khung, cảnh khó đo.
+- Muốn sải dài thật phải dựng lại chuyển động chân lúc chạm đất (IK cho chân ngựa nhiều đoạn), hoặc lấy clip phi khác.
+
+Chưa làm; đề xuất ở mục "Kết quả" của T-022.
+
+### Giai đoạn `lod`
+
+- Các phần của người (`PARTS`, như lính bộ binh nhưng ít tam giác hơn) và các phần của ngựa (`horse_lod.low_parts`, chỉ với yên cương của loại kỵ binh đó) xếp chung **một atlas** 2048, bake một lượt từ các lưới chi tiết của cả hai (`whp_unit_lod.bake_atlas`).
+- Mật độ điểm ảnh của ngựa bằng 0,62 lần của người (`Horse.uv`): lông ngựa gần như một màu, người cần điểm ảnh hơn.
+- **AO** bake riêng cho người và cho ngựa (ở tư thế gốc, người đứng xuyên qua lưng ngựa).
+- Lưới chi tiết của ngựa bake ở tư thế nghỉ, tắt armature (như lane 2).
+- **Ngân sách:** ngựa đủ yên cương chiếm 3 344 tam giác ở LOD0 (thân 2 738, bờm, đuôi, vải lót yên, dây cương), ngựa Numidia 3 036; người lấy phần còn lại (3 873–4 248). Số tam giác của từng mô hình ở mục "Kết quả" của T-022.
+- **LOD2 của người** là hình đơn giản theo khung xương như lính bộ binh, nhưng không có bàn tay, bàn chân và váy (`LOD2["feet"] = False`, `"skirt": None`): 150 tam giác; thêm khiên và giáo hay lao.
+
+### Kích thước
+
+- Yên cao 1,35 m (Numidia 1,27 m); ngựa Numidia cao 1,33 m tới vai.
+- Mũi giáo dựng chếch lên tới **3,04 m** (La Mã) và 2,95 m (Iberia/Gaul) khi đứng yên; đỉnh ngù mũ La Mã khoảng 2,55 m. Cao hơn trần 2,25 m (và 2,44 m của triarii) trong hợp đồng. Cảnh lấy chiều cao từ khung bao ở tư thế gốc, ở đây khoảng 2,67 m.
+
+### Ghi chú cho cảnh 3D (lane 3, phiên chính)
+
+- Xương `ik_hand_l` mang khiên của kỵ binh La Mã và Iberia/Gaul, có vị trí và góc quay trong mọi clip. Cảnh đã nướng mọi xương nên hiện đúng.
+- Ở tư thế gốc người đứng chữ A trên lưng ngựa; cảnh luôn phát ít nhất `idle`.
+- `jog` (nước kiệu, 2,19 m/s) và `run` (phi, 2,73 m/s) của ngựa gần nhau về tốc độ tự nhiên; xem đề xuất ở "Kết quả" của T-022.
+
+### Thay đổi ở các file ngựa (lane 2) cho T-022
+
+Chỉ `horse_lod.py`; kết quả của con ngựa không đổi:
+- `low_parts(keys=TACK, uv=1.0)`: chọn yên cương và mật độ điểm ảnh;
+- `Spec` (trước là `_Spec`), `specs(parts, sources)`, `Unskinned` (tắt armature khi bake), `levels(parts, rest, color_image)` (các mức LOD theo nhóm);
+- `bake` dùng `whp_unit_lod.bake_atlas`; `build` dùng `whp_unit_lod.finish_lod` (trước là `_finish_lod`; tên cũ vẫn giữ).
+
+### Ảnh duyệt
+
+`art/renders/<model>/` cho ba mô hình, render từ file `.glb`:
+
+| Ảnh | Nội dung |
+|---|---|
+| `01-front-side-back.jpg` | Trước, nghiêng (bên trái, bên khiên), sau; đứng (`idle` khung 0). |
+| `02-three-quarter.jpg` | Nhìn chéch. |
+| `03-lods.jpg` | LOD0, LOD1, LOD2. |
+| `04-anim-idle.jpg` … `09-anim-die.jpg` | Ba khung mỗi clip (`idle`, `walk`, `jog`, `run`, `attack`, `die`), nhìn từ bên phải ngựa. |
+| `10-beside-roman-legionary.jpg` | Cạnh `roman-legionary`: nhìn trước, rồi nhìn nghiêng (người đứng trước đầu ngựa). |
+
+- `art/renders/cavalry-lineup.jpg`: ba mô hình kỵ binh nhìn nghiêng (bên phải).
+- `art/renders/roman-legionary/17-jog-before-after.jpg`: hàng trên là `run` (trước T-022, cảnh phát clip này chậm lại khi khối quân đi vừa phải), hàng dưới là `jog`; sáu khung mỗi clip.

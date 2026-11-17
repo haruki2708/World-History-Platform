@@ -82,7 +82,10 @@ def _objects(names):
     return [bpy.data.objects[n] for n in names]
 
 
-def build_low_parts(specs):
+def build_low_parts(specs, ground=0.0):
+    """The low copy of each Part, its hidden faces removed, its UVs
+    projected, decimated to its LOD0 budget. `ground`: height of the soles
+    at rest (a rider's rest pose stands above the horse's ground)."""
     parts = []
     for part in specs:
         low = lod.low_copy(_objects(part.low), part.name)
@@ -91,7 +94,7 @@ def build_low_parts(specs):
             log(f"{part.name}: removed {gone} hidden faces")
         if part.sole:
             moved = lod.wrap_over(low, _objects(part.sole), reach=0.03,
-                                  where=lambda co, no: co.z < 0.05 and no.z < -0.5)
+                                  where=lambda co, no: co.z < ground + 0.05 and no.z < -0.5)
             log(f"{part.name}: {moved} vertices brought down to the soles")
         lod.triangulate(low)
         weight = part.uv if callable(part.uv) else (lambda slot, w=part.uv: w)
@@ -131,15 +134,18 @@ def bake_selected_to_active(scene, specs, parts, kind, image, material):
         log(f"baked {kind:6s} {part.name}")
 
 
-def bake_ao(scene, specs, parts, image, material):
+def bake_ao(scene, specs, parts, image, material, sets=None):
     """AO of the low parts among themselves: body and kit together, the
-    shield and the sword each on their own."""
+    shield and the sword each on their own. `sets`: lists of part names
+    that never occlude each other (a rider and his horse stand apart at
+    rest); each set is baked on its own. Default: one set."""
     lod.set_target(material, image)
     scene.cycles.samples = SAMPLES["AO"]
     scene.world.light_settings.distance = AO_DISTANCE
-    groups = [[low for part, low in zip(specs, parts) if not part.ao_alone]]
+    sets = sets or [[part.name for part in specs]]
+    groups = [[low for part, low in zip(specs, parts) if not part.ao_alone and part.name in names] for names in sets]
     groups += [[low] for part, low in zip(specs, parts) if part.ao_alone]
-    for group in groups:
+    for group in [g for g in groups if g]:
         changed = _hide_others(group)
         select_only(group)
         # AO is baked at half the atlas size: a one-texel margin stays clear of the next island.
@@ -210,9 +216,12 @@ def compose_textures(model, color_raw, normal_raw, ao_raw):
     return color_image, normal_image
 
 
-def build_lod2_proxy(parts, armature, color_image, spec):
+def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0):
     """The segmented stand-in for LOD2 (whp_proxy), sized from the LOD0
-    parts and coloured from their atlas. Each shape follows one bone."""
+    parts and coloured from their atlas. Each shape follows one bone.
+    `ground`: height of the soles at rest. spec["feet"] False leaves out
+    the hands and feet (a rider's stand-in, under a tighter budget)."""
+    feet = spec.get("feet", True)
     by_name = {p.name: p for p in parts}
     body = whp_proxy.Samples([by_name[n] for n in spec["body"]])
     skirt = whp_proxy.Samples([by_name[spec["skirt"]]]) if spec.get("skirt") else None
@@ -234,8 +243,9 @@ def build_lod2_proxy(parts, armature, color_image, spec):
                 4, lower, extend=(0.02, 0.0), phase=square)
         knuckles = joint(f"middle_01_{s}")
         fist_end = knuckles + (knuckles - joint(hand)) * 0.5
-        pb.tube(joint(hand), fist_end, body.radii_along(joint(hand), fist_end, [hand], percentile=75),
-                4, hand, extend=(0.01, 0.0), caps=(False, True), cap_length=0.5, phase=square)
+        if feet:
+            pb.tube(joint(hand), fist_end, body.radii_along(joint(hand), fist_end, [hand], percentile=75),
+                    4, hand, extend=(0.01, 0.0), caps=(False, True), cap_length=0.5, phase=square)
 
         thigh, calf, foot = f"thigh_{s}", f"calf_{s}", f"foot_{s}"
         pb.tube(joint(thigh), joint(calf),
@@ -244,12 +254,14 @@ def build_lod2_proxy(parts, armature, color_image, spec):
         pb.tube(joint(calf), joint(foot),
                 body.radii_along(joint(calf), joint(foot), [calf, f"calf_twist_01_{s}"]),
                 4, calf, extend=(0.02, 0.03), phase=square)
+        if not feet:
+            continue
         # Foot: a flat-bottomed box from the heel to the toes, on the ground.
         ankle, ball = joint(foot), joint(f"ball_{s}")
-        heel = Vector((ankle.x, ankle.y + 0.045, 0.04))
-        toe = Vector((ball.x, ball.y - 0.07, 0.03))
+        heel = Vector((ankle.x, ankle.y + 0.045, ground + 0.04))
+        toe = Vector((ball.x, ball.y - 0.07, ground + 0.03))
         r = body.radii_along(heel, toe, [foot, f"ball_{s}"], percentile=70)
-        heel.z, toe.z = r[0] * 0.72, r[1] * 0.72
+        heel.z, toe.z = ground + r[0] * 0.72, ground + r[1] * 0.72
         pb.tube(heel, toe, r, 4, foot, caps=(False, True), cap_length=0.4, phase=square)
 
     # Trunk, from the lower edge of the trunk part up to the shoulders.
@@ -292,7 +304,10 @@ def build_lod2_proxy(parts, armature, color_image, spec):
     return proxy
 
 
-def _finish_lod(objs, name, limit, armature, material):
+def finish_lod(objs, name, limit, armature, material):
+    """Join the pieces of one level into the mesh `name`: at most `limit`
+    triangles, at most four bones a vertex, the one material, no colour or
+    whp_* attributes; skinned to `armature`."""
     mesh_obj = join_objects(objs, name)
     # Decimation can leave a few duplicate faces; drop them here rather than
     # let the glTF exporter do it (and warn) on its own.
@@ -317,6 +332,68 @@ def _finish_lod(objs, name, limit, armature, material):
     return mesh_obj
 
 
+_finish_lod = finish_lod            # the old name (horse_lod used it)
+
+
+def bake_atlas(model, specs, parts, detailed, ao_sets=None):
+    """Pack the low parts into one atlas and bake it from the detailed
+    objects: normals, colour, the metallicRoughness map, ambient occlusion
+    (in `ao_sets`, see bake_ao). Each spec needs `name`, `bake` (names of
+    the detailed objects it bakes from), `extrusion`, `ray` and `ao_alone`.
+    Returns the parts (unwrapped), the final material, its colour image
+    and a function that removes the raw images and the bake material."""
+    scene = bpy.context.scene
+    parts = lod.unwrap_atlas(parts, pixels=ATLAS_MARGIN, size=COLOR_SIZE)
+    material = lod.bake_material()
+    for low in parts:
+        lod.single_material(low, material)
+
+    lod.setup_cycles(scene, 4)
+    normal_raw = lod.new_target(f"{model}-normal-raw", NORMAL_BAKE_SIZE, non_color=True)
+    color_raw = lod.new_target(f"{model}-color-raw", COLOR_SIZE)
+    ao_raw = lod.new_target(f"{model}-ao-raw", AO_SIZE, non_color=True)
+    surface_raw = lod.new_target(f"{model}-surface-raw", COLOR_SIZE, non_color=True)
+    bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
+    with lod.EmissionSwap(detailed):
+        bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
+    with lod.SurfaceSwap(detailed):
+        bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
+    bake_ao(scene, specs, parts, ao_raw, material, ao_sets)
+
+    color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw)
+    surface_image = compose_surface(model, surface_raw)
+    final = lod.final_material(model, color_image, normal_image, surface_image=surface_image)
+
+    def clean_up():
+        """Remove the raw bake images and the bake material (call once the
+        levels are built)."""
+        for image in (normal_raw, color_raw, ao_raw, surface_raw):
+            bpy.data.images.remove(image)
+        bpy.data.materials.remove(material)
+
+    return parts, final, color_image, clean_up
+
+
+def figure_levels(specs, parts, armature, color_image, spec, ground=0.0):
+    """The pieces of LOD0, LOD1 and LOD2 of a figure from its baked LOD0
+    parts: LOD1 decimated from them, LOD2 the stand-in (build_lod2_proxy)
+    with the parts in spec["own"]. Returns three lists of objects."""
+    levels = [[], [], []]
+    levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground))
+    for part, low in zip(specs, parts):
+        for level in (1, 2):
+            budget = part.budget[level]
+            if level == 2 and part.name not in spec["own"]:
+                continue
+            if budget:
+                copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
+                lod.decimate(copy, budget)
+                levels[level].append(copy)
+                log(f"LOD{level} {part.name}: {triangle_count(copy)} triangles")
+        levels[0].append(low)
+    return levels
+
+
 def build(unit, limits):
     model = unit.MODEL
     specs = unit.PARTS
@@ -334,42 +411,11 @@ def build(unit, limits):
     log(f"LOD0 total: {sum(triangle_count(p) for p in parts)} triangles")
     delete_objects(generated_low)
 
-    parts = lod.unwrap_atlas(parts, pixels=ATLAS_MARGIN, size=COLOR_SIZE)
-    material = lod.bake_material()
-    for low in parts:
-        lod.single_material(low, material)
-
-    lod.setup_cycles(scene, 4)
-    normal_raw = lod.new_target(f"{model}-normal-raw", NORMAL_BAKE_SIZE, non_color=True)
-    color_raw = lod.new_target(f"{model}-color-raw", COLOR_SIZE)
-    ao_raw = lod.new_target(f"{model}-ao-raw", AO_SIZE, non_color=True)
-    surface_raw = lod.new_target(f"{model}-surface-raw", COLOR_SIZE, non_color=True)
-    bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
-    with lod.EmissionSwap(detailed):
-        bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
-    with lod.SurfaceSwap(detailed):
-        bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
-    bake_ao(scene, specs, parts, ao_raw, material)
-
-    color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw)
-    surface_image = compose_surface(model, surface_raw)
-    final = lod.final_material(model, color_image, normal_image, surface_image=surface_image)
+    parts, final, color_image, clean_up = bake_atlas(model, specs, parts, detailed)
 
     # LOD1 from the baked LOD0 parts; LOD2 from a segmented stand-in.
-    levels = [[], [], []]
-    levels[2].append(build_lod2_proxy(parts, armature, color_image, unit.LOD2))
-    for part, low in zip(specs, parts):
-        for level in (1, 2):
-            budget = part.budget[level]
-            if level == 2 and part.name not in unit.LOD2["own"]:
-                continue
-            if budget:
-                copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
-                lod.decimate(copy, budget)
-                levels[level].append(copy)
-                log(f"LOD{level} {part.name}: {triangle_count(copy)} triangles")
-        levels[0].append(low)
-    lods = [_finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
+    levels = figure_levels(specs, parts, armature, color_image, unit.LOD2)
+    lods = [finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.
     for obj in detailed:
@@ -377,9 +423,7 @@ def build(unit, limits):
         obj.hide_set(True)
     for obj in lods[1:]:
         obj.hide_render = True
-    for image in (normal_raw, color_raw, ao_raw, surface_raw):
-        bpy.data.images.remove(image)
-    bpy.data.materials.remove(material)
+    clean_up()
     scene.render.engine = "BLENDER_EEVEE"
     deselect_all()
     return lods
