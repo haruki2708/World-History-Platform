@@ -532,6 +532,31 @@ const SceneView = memo(function SceneView({
 
   // A click (not a drag) on the scene picks the unit under it, or closes the card.
   const press = useRef<{ x: number; y: number } | null>(null);
+  /** The unit under the point of scene coordinates (x, y): a name shown there first, then a block. */
+  const unitAt = (engine: BattleEngine, x: number, y: number): string | null => {
+    const onName = shownUnitBoxes.current.find(
+      ({ box }) => x >= box.left && x <= box.right && y >= box.top && y <= box.bottom,
+    );
+    return onName ? onName.id : engine.pickUnit(x, y);
+  };
+  // The mouse over a unit shows a hand: units can be clicked. Checked once a frame at most.
+  const [overUnit, setOverUnit] = useState(false);
+  const hover = useRef({ frame: 0, x: 0, y: 0 });
+  useEffect(() => () => cancelAnimationFrame(hover.current.frame), []);
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse" || event.buttons !== 0) return;
+    hover.current.x = event.clientX;
+    hover.current.y = event.clientY;
+    if (hover.current.frame) return;
+    hover.current.frame = requestAnimationFrame(() => {
+      hover.current.frame = 0;
+      const host = hostRef.current;
+      const engine = engineRef.current;
+      if (!host || !engine) return;
+      const frame = host.getBoundingClientRect();
+      setOverUnit(unitAt(engine, hover.current.x - frame.left, hover.current.y - frame.top) !== null);
+    });
+  };
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     setHintSeen(true);
     press.current = event.isPrimary && event.button === 0 ? { x: event.clientX, y: event.clientY } : null;
@@ -545,12 +570,7 @@ const SceneView = memo(function SceneView({
     if (!(event.target instanceof Node) || !host.contains(event.target)) return;
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_SLOP) return;
     const frame = host.getBoundingClientRect();
-    const x = event.clientX - frame.left;
-    const y = event.clientY - frame.top;
-    const onName = shownUnitBoxes.current.find(
-      ({ box }) => x >= box.left && x <= box.right && y >= box.top && y <= box.bottom,
-    );
-    select.current(onName ? onName.id : engine.pickUnit(x, y));
+    select.current(unitAt(engine, event.clientX - frame.left, event.clientY - frame.top));
   };
 
   const toggleQuality = () => {
@@ -573,9 +593,11 @@ const SceneView = memo(function SceneView({
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden bg-surface"
+      className={`relative h-full w-full overflow-hidden bg-surface ${overUnit ? "cursor-pointer" : ""}`}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      onPointerMove={onPointerMove}
+      onPointerLeave={() => setOverUnit(false)}
       onPointerCancel={() => {
         press.current = null;
       }}
