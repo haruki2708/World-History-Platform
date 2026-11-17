@@ -251,6 +251,9 @@ interface FightPhase {
    * end of the phase moves it from where the queue of its file leaves it.
    */
   drift: Float32Array;
+  /** Where the front rank stands, in v, at the start of the phase and at its end. */
+  frontFrom: number;
+  frontTo: number;
 }
 
 export class UnitTrack {
@@ -284,6 +287,13 @@ export class UnitTrack {
   readonly turningAbout: Uint8Array;
   /** 1 for a figure at the head of its file in a hand-to-hand fight (ALIVE only). */
   readonly head: Uint8Array;
+  /**
+   * For the head of a file: the place it holds in the front rank, field
+   * metres east and north. A man who has just become the head is still
+   * stepping up to it.
+   */
+  readonly frontX: Float32Array;
+  readonly frontY: Float32Array;
   /** The unit is in a hand-to-hand fight at the time of the latest sample. */
   fighting = false;
   /** A fixed random number in [0, 1) per figure. */
@@ -336,6 +346,8 @@ export class UnitTrack {
     this.rank = new Float32Array(n);
     this.turningAbout = new Uint8Array(n);
     this.head = new Uint8Array(n);
+    this.frontX = new Float32Array(n);
+    this.frontY = new Float32Array(n);
     this.seed = new Float32Array(n);
     this.beat = new Float32Array(n);
     this.deathTime = new Float32Array(n).fill(Infinity);
@@ -547,7 +559,16 @@ export class UnitTrack {
       if (fighting) {
         const drift = new Float32Array(n);
         for (const i of standing) drift[i] = ends[i * 2 + 1] - endV[i];
-        this.fights.push({ order, fileEnd, step, toFront, drift });
+        const nextMargin = grid(standing.length, to).margin;
+        this.fights.push({
+          order,
+          fileEnd,
+          step,
+          toFront,
+          drift,
+          frontFrom: about ? 1 - margin : margin,
+          frontTo: about ? 1 - nextMargin : nextMargin,
+        });
       } else {
         this.fights.push(null);
       }
@@ -717,6 +738,7 @@ export class UnitTrack {
     const sin = Math.sin(f.facing);
     const cos = Math.cos(f.facing);
     const curve = (8 * f.bulge) / f.frontage;
+    const frontV = fight ? lerp(fight.frontFrom, fight.frontTo, s) : 0;
     let standing = 0;
 
     for (let i = 0; i < this.count; i++) {
@@ -766,7 +788,13 @@ export class UnitTrack {
       this.rank[i] = turned > 0.5 ? 1 - v : v;
       this.turningAbout[i] = turned > 0 && turned < 1 ? 1 : 0;
       // A man fights once he has turned to face the enemy.
-      this.head[i] = fight && before[i] === 0 && (!turning || turned >= 1) ? 1 : 0;
+      const head = fight !== null && before[i] === 0 && (!turning || turned >= 1);
+      this.head[i] = head ? 1 : 0;
+      if (head) {
+        const ahead = f.depth * (0.5 - frontV) + f.bulge * (1 - 4 * u * u);
+        this.frontX[i] = f.center.x + cos * across + sin * ahead;
+        this.frontY[i] = f.center.y - sin * across + cos * ahead;
+      }
       standing++;
     }
     return standing;

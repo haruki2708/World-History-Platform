@@ -8,14 +8,21 @@
  * other; a man whose enemy is busy with somebody else joins in from the
  * side. A man with no enemy in reach does not strike.
  *
+ * Who is nearest is measured between the places the heads of the files hold
+ * in the front rank (`UnitTrack.frontX`), not between the men as they stand:
+ * a man still stepping up into the place of the one who fell is already the
+ * enemy of the man that one fought, so pairs change when files drift past
+ * each other, not every time a man falls.
+ *
  * The result is a function of the battle time alone, so a seek gives the same
  * pairs as playing up to that moment; the scene (units.ts) eases the figures
  * towards it.
  *
- * Blows are timed by the man who takes them (`UnitTrack.beat`): a man is
- * struck at his beat and every STRIKE_PERIOD before and after, and the beat
- * of a man who falls is the moment he falls. So the last blow of his enemy
- * lands as he goes down.
+ * Blows are timed by the man who takes them: a man is struck at his beat and
+ * every STRIKE_PERIOD before and after. The beat of a man about to fall is
+ * the moment he falls (`UnitTrack.beat`), so the last blow of his enemy
+ * lands as he goes down. Two men who fight each other take turns: the beat
+ * of one is half a period after the beat of the other.
  */
 
 import { STRIKE_PERIOD, type UnitTrack } from "./timeline";
@@ -54,15 +61,19 @@ export interface MeleeFigures {
   /** The way to its enemy, radians clockwise from north (figures with an enemy only). */
   bearing: Float32Array;
   /**
-   * When its blows land: the beat of its enemy, seconds of playback
-   * (`UnitTrack.beat`). -1 for a figure with no enemy in reach.
+   * When its blows land: the beat of its enemy, seconds of playback. -1 for
+   * a figure with no enemy in reach.
    */
   beat: Float32Array;
   /** 1 when that enemy falls before another blow could land: the blow that fells him must not be missed. */
   kill: Uint8Array;
+  /** When the blows on the figure itself land: its own beat, seconds of playback (heads of files only). */
+  own: Float32Array;
+  /** How many enemies in reach strike at the figure. */
+  struck: Uint8Array;
   /** Its enemy, a number that differs for every figure on the field, or -1. */
   opponent: Int32Array;
-  /** Some figure of the unit had an enemy at the last update. */
+  /** The unit had men at the head of a file at the last update: the arrays above hold their fight. */
   engaged: boolean;
 }
 
@@ -101,7 +112,7 @@ export function swingBeat(
   return beat;
 }
 
-/** How far into the attack clip, seconds, a blow timed to `beat` is at `clock`. */
+/** How far into a clip, seconds, a figure is at `clock` when the clip's moment `impact` falls on `beat`. */
 export function swingInto(beat: number, clock: number, impact: number): number {
   return (((clock - beat + impact) % STRIKE_PERIOD) + STRIKE_PERIOD) % STRIKE_PERIOD;
 }
@@ -114,8 +125,12 @@ export class Melee {
   private capacity = 0;
   private unitOf = new Int16Array(0);
   private indexOf = new Int32Array(0);
+  /** Where each stands in his formation. */
   private px = new Float32Array(0);
   private py = new Float32Array(0);
+  /** The place of each in the front rank (see the note on top). */
+  private nx = new Float32Array(0);
+  private ny = new Float32Array(0);
   private sin = new Float32Array(0);
   private cos = new Float32Array(0);
   private target = new Int32Array(0);
@@ -123,6 +138,8 @@ export class Melee {
   /** Where each stands once closed up. */
   private ex = new Float32Array(0);
   private ey = new Float32Array(0);
+  /** The beat of the blows on each. */
+  private own = new Float32Array(0);
   /** Next entry in the same cell of the grid, or -1. */
   private next = new Int32Array(0);
   /** The man who joins in against each from his left and from his right, or -1. */
@@ -140,6 +157,8 @@ export class Melee {
       bearing: new Float32Array(track.count),
       beat: new Float32Array(track.count).fill(-1),
       kill: new Uint8Array(track.count),
+      own: new Float32Array(track.count).fill(-1),
+      struck: new Uint8Array(track.count),
       opponent: new Int32Array(track.count).fill(-1),
       engaged: false,
     }));
@@ -157,12 +176,15 @@ export class Melee {
     this.indexOf = new Int32Array(this.capacity);
     this.px = new Float32Array(this.capacity);
     this.py = new Float32Array(this.capacity);
+    this.nx = new Float32Array(this.capacity);
+    this.ny = new Float32Array(this.capacity);
     this.sin = new Float32Array(this.capacity);
     this.cos = new Float32Array(this.capacity);
     this.target = new Int32Array(this.capacity);
     this.distance = new Float32Array(this.capacity);
     this.ex = new Float32Array(this.capacity);
     this.ey = new Float32Array(this.capacity);
+    this.own = new Float32Array(this.capacity);
     this.next = new Int32Array(this.capacity);
     this.left = new Int32Array(this.capacity);
     this.right = new Int32Array(this.capacity);
@@ -186,6 +208,8 @@ export class Melee {
         out.offsetY.fill(0);
         out.beat.fill(-1);
         out.kill.fill(0);
+        out.own.fill(-1);
+        out.struck.fill(0);
         out.opponent.fill(-1);
         out.engaged = false;
       }
@@ -196,7 +220,7 @@ export class Melee {
     }
     if (heads === 0) return;
     this.reserve(heads);
-    const { unitOf, indexOf, px, py, sin, cos, target, distance, ex, ey, next, left, right, picked } = this;
+    const { unitOf, indexOf, px, py, nx, ny, sin, cos, target, distance, ex, ey, own, next, left, right, picked } = this;
 
     let n = 0;
     let minX = Infinity;
@@ -212,12 +236,15 @@ export class Melee {
         indexOf[n] = i;
         px[n] = track.x[i];
         py[n] = track.y[i];
+        nx[n] = track.frontX[i];
+        ny[n] = track.frontY[i];
         sin[n] = Math.sin(track.heading[i]);
         cos[n] = Math.cos(track.heading[i]);
-        if (px[n] < minX) minX = px[n];
-        if (px[n] > maxX) maxX = px[n];
-        if (py[n] < minY) minY = py[n];
-        if (py[n] > maxY) maxY = py[n];
+        own[n] = track.beat[i];
+        if (nx[n] < minX) minX = nx[n];
+        if (nx[n] > maxX) maxX = nx[n];
+        if (ny[n] < minY) minY = ny[n];
+        if (ny[n] > maxY) maxY = ny[n];
         n++;
       }
     }
@@ -236,7 +263,7 @@ export class Melee {
     const cells = this.cells;
     cells.fill(-1, 0, columns * rows);
     for (let a = 0; a < n; a++) {
-      const c = Math.floor((py[a] - minY) / cell) * columns + Math.floor((px[a] - minX) / cell);
+      const c = Math.floor((ny[a] - minY) / cell) * columns + Math.floor((nx[a] - minX) / cell);
       next[a] = cells[c];
       cells[c] = a;
     }
@@ -244,8 +271,8 @@ export class Melee {
     // Each man picks the nearest enemy in front of him who also has him in front.
     for (let a = 0; a < n; a++) {
       const unit = units[unitOf[a]];
-      const column = Math.floor((px[a] - minX) / cell);
-      const row = Math.floor((py[a] - minY) / cell);
+      const column = Math.floor((nx[a] - minX) / cell);
+      const row = Math.floor((ny[a] - minY) / cell);
       let best = -1;
       let bestSquared = Infinity;
       for (let r = Math.max(row - 1, 0); r <= Math.min(row + 1, rows - 1); r++) {
@@ -253,8 +280,8 @@ export class Melee {
           for (let b = cells[r * columns + c]; b !== -1; b = next[b]) {
             const other = units[unitOf[b]];
             if (other.side === unit.side) continue;
-            const dx = px[b] - px[a];
-            const dy = py[b] - py[a];
+            const dx = nx[b] - nx[a];
+            const dy = ny[b] - ny[a];
             const squared = dx * dx + dy * dy;
             if (squared >= bestSquared) continue;
             const reach = this.strikingDistance(unit, other) + 2 * MAX_STEP;
@@ -298,19 +325,26 @@ export class Melee {
       picked[a]++;
     }
 
-    // Two men who picked each other meet halfway, at striking distance.
+    // Two men who picked each other meet halfway from where they stand, at
+    // striking distance (a man still stepping up is met further out), and
+    // take turns: the blows on one land half a period after the blows on
+    // the other. A man about to fall keeps his beat, the moment he falls.
     for (let a = 0; a < n; a++) {
       const b = target[a];
       if (b === -1 || b < a || target[b] !== a) continue;
-      const d = Math.max(distance[a], 0.001);
+      const d = Math.max(Math.hypot(px[b] - px[a], py[b] - py[a]), 0.001);
       const apart = this.strikingDistance(units[unitOf[a]], units[unitOf[b]]);
       const step = Math.min(Math.max((d - apart) / 2, -MAX_STEP), MAX_STEP);
-      const nx = (px[b] - px[a]) / d;
-      const ny = (py[b] - py[a]) / d;
-      ex[a] = px[a] + nx * step;
-      ey[a] = py[a] + ny * step;
-      ex[b] = px[b] - nx * step;
-      ey[b] = py[b] - ny * step;
+      const ux = (px[b] - px[a]) / d;
+      const uy = (py[b] - py[a]) / d;
+      ex[a] = px[a] + ux * step;
+      ey[a] = py[a] + uy * step;
+      ex[b] = px[b] - ux * step;
+      ey[b] = py[b] - uy * step;
+      const soonA = fallsSoon(a);
+      const soonB = fallsSoon(b);
+      if (soonB && !soonA) own[a] = (own[b] + STRIKE_PERIOD / 2) % STRIKE_PERIOD;
+      else if (!soonB) own[b] = (own[a] + STRIKE_PERIOD / 2) % STRIKE_PERIOD;
     }
     // A man whose enemy is busy with another joins in from the side: one
     // man on either side of the enemy at most, the nearest. The others stand.
@@ -322,9 +356,9 @@ export class Melee {
       // Which side of the way the enemy fights (or faces) this man comes from.
       const partner = target[b];
       const mutual = partner !== -1 && target[partner] === b;
-      const rx = mutual ? ex[partner] - ex[b] : sin[b];
-      const ry = mutual ? ey[partner] - ey[b] : cos[b];
-      const onLeft = rx * (py[a] - ey[b]) - ry * (px[a] - ex[b]) > 0;
+      const rx = mutual ? nx[partner] - nx[b] : sin[b];
+      const ry = mutual ? ny[partner] - ny[b] : cos[b];
+      const onLeft = rx * (ny[a] - ny[b]) - ry * (nx[a] - nx[b]) > 0;
       const taken = onLeft ? left : right;
       if (taken[b] === -1 || distance[a] < distance[taken[b]]) taken[b] = a;
     }
@@ -357,22 +391,30 @@ export class Melee {
     }
 
     for (let a = 0; a < n; a++) {
-      const b = target[a];
-      if (b === -1) continue;
       const u = unitOf[a];
       const i = indexOf[a];
       const out = figures[u];
+      out.own[i] = own[a];
+      out.engaged = true;
+      const b = target[a];
+      if (b === -1) continue;
       const other = units[unitOf[b]];
       const dx = ex[b] - ex[a];
       const dy = ey[b] - ey[a];
       const apart = this.strikingDistance(units[u], other);
+      const reaches = dx * dx + dy * dy <= apart * apart * REACH_SLACK * REACH_SLACK;
       out.engaged = true;
       out.offsetX[i] = ex[a] - px[a];
       out.offsetY[i] = ey[a] - py[a];
       out.bearing[i] = Math.atan2(dx, dy);
       out.opponent[i] = (unitOf[b] << 16) | indexOf[b];
-      out.beat[i] = dx * dx + dy * dy <= apart * apart * REACH_SLACK * REACH_SLACK ? other.track.beat[indexOf[b]] : -1;
+      out.beat[i] = reaches ? own[b] : -1;
       out.kill[i] = fallsSoon(b) ? 1 : 0;
+      if (reaches) {
+        const struck = figures[unitOf[b]].struck;
+        if (struck[indexOf[b]] < 255) struck[indexOf[b]]++;
+        figures[unitOf[b]].engaged = true;
+      }
     }
   }
 }
