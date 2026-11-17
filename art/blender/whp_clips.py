@@ -22,6 +22,15 @@ are adjusted for what the man holds (`Kit`):
 No clip has root motion: the hips stay over the origin. Every clip is keyed
 on every frame at 30 fps.
 
+Walk and run are played on the spot, and the scene moves the figure at the
+speed their planted feet slide back (it measures that speed on the clips
+themselves). The library's walk slides where the foot rolls: the toes push
+off sliding forwards. `Builder.lock_feet` takes that out: it shifts the
+ankle of a planted foot, frame by frame, so that its lowest sole moves back
+at one steady speed, and lets the shift go again while the foot is in the
+air. `Builder.strides` is the ground one loop covers, measured as the scene
+does (median speed of the soles on the ground, times the loop's length).
+
 Axes (rest/armature space): X to the figure's left, -Y forwards, Z up.
 """
 
@@ -61,9 +70,14 @@ class Kit:
     sling:   name of the mesh of a sling in the right fist whose pouch
              follows the bone SLING_BONE (balearic_kit): every clip then
              places that bone where the stone is.
+    spare:   True if what the left fist holds besides the shield (the
+             hastatus's pila) is skinned to SPARE_BONE: it follows the left
+             hand, except in the clips in SPARE_GONE, where it shrinks to
+             nothing inside the fist (the pila were thrown before the sword
+             fight).
     """
 
-    def __init__(self, shield=True, attack="sword-thrust", carry=None, lie_flat=False, sling=None):
+    def __init__(self, shield=True, attack="sword-thrust", carry=None, lie_flat=False, sling=None, spare=False):
         if attack not in ATTACKS:
             raise ValueError(f"unknown attack {attack!r}; choose one of {', '.join(ATTACKS)}")
         self.shield = shield
@@ -71,6 +85,7 @@ class Kit:
         self.carry = carry or WEAPON_CARRY
         self.lie_flat = lie_flat
         self.sling = sling
+        self.spare = spare
 
 
 def _vec(v):
@@ -115,15 +130,25 @@ SHIELD_CARRY = {
 WEAPON_CARRY = dict(aim=(0.0, -0.8, -0.6), up=(-1.0, 0.0, 0.3), follow=0.6)
 # A long spear stands upright, its butt just off the ground: the forearm
 # comes forwards (IK to `wrist`, the elbow towards `elbow`) and the fist
-# holds the shaft upright beside the thigh.
+# holds the shaft upright beside the thigh. The chest leans forwards by
+# about 9 degrees standing and walking, so in its frame the shaft leans back
+# by as much: upright to within 3 degrees when he stands or walks, some 18
+# degrees forwards when he runs (T-024; it was 14, 15 and 30).
 SPEAR_CARRY = dict(wrist=(-0.24, -0.17, -0.43), elbow=(-0.6, 0.8, -0.2),
-                   aim=(0.0, -0.08, 1.0), up=(-1.0, 0.1, 0.0), follow=0.6)
+                   aim=(0.0, 0.15, 1.0), up=(-1.0, 0.1, 0.0), follow=0.6)
 
 
 # A sling hangs from the fist, the cords straight down.
 SLING_CARRY = dict(aim=(0.0, -0.15, -1.0), up=(-1.0, 0.0, 0.0), follow=0.6)
 SLING_BONE = "ik_hand_gun"          # a bone no mesh uses otherwise
 SLING_T = "whp_sling_t"             # point attribute: 0 at the fist, 1 at the pouch
+
+# What the left fist holds besides the shield (Kit.spare) hangs from another
+# bone no mesh uses, so that a clip can take it away: in SPARE_GONE it is
+# scaled down to SPARE_SCALE about the wrist, inside the hand.
+SPARE_BONE = "ik_hand_l"
+SPARE_GONE = ("attack", "die")
+SPARE_SCALE = 0.01
 
 
 def blend_carry(a, b, t):
@@ -274,6 +299,149 @@ def slerp_direction(a, b, t):
 
 
 # --------------------------------------------------------------------------
+# Feet on the ground
+# --------------------------------------------------------------------------
+
+GAITS = ("walk", "run")
+SOLE_HEIGHT = 0.03          # sole vertices: this close to the lowest point of the feet at rest
+GROUND_REACH = 0.02         # a sole this close to the lowest point of a clip is on the ground
+LOCK_PASSES = 3             # rounds of correction (the legs' IK is not quite linear)
+
+
+class Soles:
+    """The soles of the feet: vertices of the meshes skinned to the rig,
+    mostly weighted to a foot, within SOLE_HEIGHT of the lowest of them at
+    rest. `at` skins them with the poser's current pose, as the scene does
+    (src/components/battle/engine/figures/model.ts, plantedStride)."""
+
+    FOOT = {"l": ("foot_l", "ball_l"), "r": ("foot_r", "ball_r")}
+
+    def __init__(self, armature):
+        import bpy
+
+        names = [b.name for b in armature.data.bones]
+        to_rig = armature.matrix_world.inverted()
+        found = []                                  # (point, [(bone, weight)], side)
+        for obj in bpy.data.objects:
+            if obj.type != "MESH" or obj.parent is not armature or obj.hide_render or not obj.vertex_groups:
+                continue
+            mesh = obj.data
+            co = np.empty(len(mesh.vertices) * 3)
+            mesh.vertices.foreach_get("co", co)
+            m = np.array(to_rig @ obj.matrix_world)
+            co = co.reshape(-1, 3) @ m[:3, :3].T + m[:3, 3]
+            group = {g.index: g.name for g in obj.vertex_groups}
+            for i in np.flatnonzero(co[:, 2] < co[:, 2].min() + 0.15):
+                weights = [(group[g.group], g.weight) for g in mesh.vertices[i].groups
+                           if g.weight > 0.0 and group.get(g.group) in names]
+                total = sum(w for _b, w in weights)
+                if total <= 0.0:
+                    continue
+                foot = {side: sum(w for b, w in weights if b in bones) / total for side, bones in self.FOOT.items()}
+                side = max(foot, key=foot.get)
+                if foot[side] >= 0.5:
+                    weights.sort(key=lambda bw: -bw[1])
+                    found.append((co[i], [(b, w / total) for b, w in weights[:4]], side))
+        if not found:
+            raise RuntimeError("no sole vertices found: are the meshes skinned to the feet?")
+        lowest = min(p[2] for p, _w, _s in found)
+        found = [f for f in found if f[0][2] < lowest + SOLE_HEIGHT]
+        self.rest = np.array([p for p, _w, _s in found])
+        self.left = np.array([s == "l" for _p, _w, s in found])
+        self.bones = sorted({b for _p, w, _s in found for b, _ in w})
+        column = {b: i for i, b in enumerate(self.bones)}
+        self.weights = np.zeros((len(found), len(self.bones)))
+        for k, (_p, w, _s) in enumerate(found):
+            for b, x in w:
+                self.weights[k, column[b]] = x
+
+    def at(self, poser):
+        """Where the sole vertices are in the poser's current pose (n, 3)."""
+        p = np.c_[self.rest, np.ones(len(self.rest))]
+        out = np.zeros((len(self.rest), 3))
+        for k, bone in enumerate(self.bones):
+            skin = np.array(poser.matrix[bone] @ poser.rest[bone].inverted())
+            out += self.weights[:, k:k + 1] * (p @ skin[:3, :].T)
+        return out
+
+
+def planted(track, left):
+    """What the scene reads off a gait clip played on the spot. `track`
+    holds the sole vertices in every frame of a loop (frames, n, 3), `left`
+    which of them are on the left foot. A sole on the ground (within
+    GROUND_REACH of the lowest point of the clip) in two frames running
+    slides back under the figure at the speed the figure travels.
+
+    Returns that speed (the median, metres per frame) and, per side and
+    frame, the slip of that foot's lowest sole into the next frame: its
+    horizontal step less the ground's (x, y; backwards is +Y), or None
+    while that foot is off the ground."""
+    frames = len(track)
+    ground = track[:, :, 2].min()
+    on = track[:, :, 2] <= ground + GROUND_REACH
+    both = on & np.roll(on, -1, axis=0)
+    step = (np.roll(track, -1, axis=0) - track)[:, :, :2]
+    lengths = np.hypot(step[..., 0], step[..., 1])
+    speed = float(np.median(lengths[both])) if both.sum() >= 3 else 0.0
+    ground_step = np.array((0.0, speed))
+    slips = {}
+    for side, mask in (("l", left), ("r", ~left)):
+        index = np.flatnonzero(mask)
+        rows = []
+        for f in range(frames):
+            k = index[np.argmin(track[f, index, 2])]
+            rows.append(step[f, k] - ground_step if both[f, k] else None)
+        slips[side] = rows
+    return speed, slips
+
+
+def worst_slip(slips, speed):
+    """The largest slip of a planted foot over one frame, as a share of the
+    ground's step."""
+    found = [np.hypot(*s) for rows in slips.values() for s in rows if s is not None]
+    return max(found) / speed if found and speed > 0 else 0.0
+
+
+def lock_shifts(slips):
+    """Ankle shifts (x, y), one per frame, that take a foot's slips out:
+    while the foot is down, each frame's slip is taken off the next frame's
+    shift, so its lowest sole moves back exactly with the ground; the shifts
+    of a stance are centred on zero, and in the air the foot goes smoothly
+    from the shift it lifted off with to the one it lands with."""
+    frames = len(slips)
+    slips = list(slips)
+    down = [s is not None for s in slips]
+    for f in range(frames):                     # a one-frame gap does not end a stance
+        if not down[f] and down[f - 1] and down[(f + 1) % frames]:
+            down[f], slips[f] = True, np.zeros(2)
+    if all(down) or not any(down):
+        return [np.zeros(2) for _ in range(frames)]
+    shift = [None] * frames
+    f = next(f for f in range(frames) if down[f] and not down[f - 1])
+    for _ in range(frames):
+        if down[f] and not down[f - 1]:         # a stance starts at frame f
+            run = [np.zeros(2)]
+            g = f
+            while down[g]:
+                run.append(run[-1] - slips[g])
+                g = (g + 1) % frames
+            run = np.array(run)
+            run -= (run.max(axis=0) + run.min(axis=0)) / 2
+            for k, value in enumerate(run):
+                shift[(f + k) % frames] = value
+        f = (f + 1) % frames
+    known = [f for f in range(frames) if shift[f] is not None]
+    for f in range(frames):
+        if shift[f] is None:
+            before = max((k for k in known if k < f), default=known[-1])
+            after = min((k for k in known if k > f), default=known[0])
+            span = (after - before) % frames
+            t = smooth(((f - before) % frames) / span)
+            shift[f] = shift[before] + (shift[after] - shift[before]) * t
+    return shift
+
+
+# --------------------------------------------------------------------------
 # Building clips
 # --------------------------------------------------------------------------
 
@@ -284,15 +452,22 @@ class Builder:
         self.poser = Poser(armature)
         self.arms = Arms(self.poser)
         self.targets = {}
-        self.strides = {}           # clip -> metres covered in one loop
+        self.strides = {}           # clip -> metres covered in one loop, as the scene measures it
+        self.slips = {}             # clip -> worst slip of a planted foot (share of the ground's step) before
+                                    # and after the lock, and the largest ankle shift it took (metres)
         self.lying_lift = 0.0       # how much "die" was lifted at the end
+        self._soles = None
         self.sling = None
-        self.keyed, self.located = list(KEYED), ("pelvis",)
+        self.keyed, self.located, self.scaled = list(KEYED), ("pelvis",), ()
         if kit.sling:
             import bpy
             self.sling = SlingCord(self.poser, bpy.data.objects[kit.sling])
             self.keyed.append(SLING_BONE)
             self.located = ("pelvis", SLING_BONE)
+        if kit.spare:
+            self.keyed.append(SPARE_BONE)
+            self.located += (SPARE_BONE,)
+            self.scaled = (SPARE_BONE,)
 
     def retarget(self, pack):
         if pack not in self.targets:
@@ -303,15 +478,57 @@ class Builder:
         """Key `frames` + 1 frames; pose_at(frame) builds each pose. A loop
         keys its last frame as a copy of the first."""
         action = new_action(self.armature, name)
-        feet = []
         for frame in range(frames + 1):
             pose_at(frame % frames if loop else frame)
-            feet.append([self.poser.head(f"foot_{side}").copy() for side in ("l", "r")])
-            self.poser.key(frame, self.keyed, located=self.located)
+            if self.kit.spare:
+                self.spare(name in SPARE_GONE)
+            self.poser.key(frame, self.keyed, located=self.located, scaled=self.scaled)
         finish_action(self.armature, action, frames, loop=loop)
-        if name in ("walk", "run"):
-            self.strides[name] = _stride(feet)
         return action
+
+    def spare(self, gone=False):
+        """SPARE_BONE follows the left hand; `gone`, it is shrunk inside it."""
+        p = self.poser
+        m = p.matrix["hand_l"] @ p.rest["hand_l"].inverted() @ p.rest[SPARE_BONE]
+        if gone:
+            wrist = p.head("hand_l")
+            m = Matrix.Translation(wrist) @ Matrix.Scale(SPARE_SCALE, 4) @ Matrix.Translation(-wrist) @ m
+        p.matrix[SPARE_BONE] = m
+
+    @property
+    def soles(self):
+        if self._soles is None:
+            self._soles = Soles(self.armature)
+        return self._soles
+
+    def lock_feet(self, rt, frames, pose_at):
+        """Ankle shifts per frame and side (rt.ankle_shift) that keep every
+        planted foot of a gait clip moving back at one steady speed, the
+        speed the scene reads off the clip. The library's own clips slide
+        a little where the foot rolls: the walk's toes push off sliding
+        forwards (up to 80% of the ground's speed for a few frames).
+        Returns the shifts and the speed (metres per frame)."""
+        shifts = [{"l": np.zeros(2), "r": np.zeros(2)} for _ in range(frames)]
+        before = None
+        for round_ in range(LOCK_PASSES + 1):
+            track = []
+            for frame in range(frames):
+                rt.ankle_shift = shifts[frame]
+                try:
+                    pose_at(frame)
+                finally:
+                    rt.ankle_shift = None
+                track.append(self.soles.at(self.poser))
+            speed, slips = planted(np.array(track), self.soles.left)
+            if before is None:
+                before = worst_slip(slips, speed)
+            if round_ == LOCK_PASSES:
+                break
+            for side in ("l", "r"):
+                for shift, fix in zip(shifts, lock_shifts(slips[side])):
+                    shift[side] = shift[side] + fix
+        largest = max(float(np.hypot(*shift[side])) for shift in shifts for side in shift)
+        return shifts, speed, (before, worst_slip(slips, speed), largest)
 
     def base(self, name, carry, weapon=None, fix=None):
         pack, source = BASE[name]
@@ -332,7 +549,19 @@ class Builder:
             if self.sling is not None:
                 self.sling.hang(self.p.turned("spine_03") @ Vector((0.0, -1.0, 0.0)))
 
-        return self.clip(name, clip.frames, pose_at, loop=LOOPS[name])
+        if name not in GAITS:
+            return self.clip(name, clip.frames, pose_at, loop=LOOPS[name])
+        shifts, speed, self.slips[name] = self.lock_feet(rt, clip.frames, pose_at)
+        self.strides[name] = speed * clip.frames
+
+        def locked(frame):
+            rt.ankle_shift = shifts[frame]
+            try:
+                pose_at(frame)
+            finally:
+                rt.ankle_shift = None
+
+        return self.clip(name, clip.frames, locked, loop=LOOPS[name])
 
     def die(self):
         """Death01, then lifted so that nothing of the final pose is under
@@ -434,18 +663,6 @@ def lowest_point(armature, action, frame=None):
     return lowest
 
 
-def _stride(feet):
-    """Distance the figure covers in one loop of a gait clip played on the
-    spot: the planted foot (the lower ankle) slides backwards at walking
-    speed; sum its travel over the loop."""
-    travelled = 0.0
-    for (l0, r0), (l1, r1) in zip(feet, feet[1:]):
-        planted = 0 if l0.z + l1.z < r0.z + r1.z else 1
-        a, b = (l0, l1) if planted == 0 else (r0, r1)
-        travelled += b.y - a.y              # backwards is +Y
-    return travelled
-
-
 def _extension(rt, source, frames, side="r"):
     """How far the source's hand is from its shoulder at each frame, 0 at
     the nearest and 1 at the furthest: the timing of a punch or a throw."""
@@ -513,8 +730,12 @@ def sword_slash(b):
 
 # The library's throw is a big lunge; a man in a line throws with less of
 # his body. Trunk and legs keep this much of its motion.
-CALM_THROW = {bone: 0.5 for bone in ("pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "Head",
-                                     "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r")}
+TRUNK_BONES = ("pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "Head")
+LEG_BONES = ("thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r")
+CALM_THROW = {bone: 0.5 for bone in TRUNK_BONES + LEG_BONES}
+# Throwing in a tunic: the legs keep less still, or the forward thigh goes
+# through the front of the skirt (javelin-throw, sling).
+CALM_THROW_SKIRT = dict(CALM_THROW, **{bone: 0.25 for bone in LEG_BONES})
 
 
 def javelin_throw(b):
@@ -528,7 +749,7 @@ def javelin_throw(b):
     release = int(np.argmax(reach))
 
     def pose_at(frame):
-        rt.pose(rt.sample(source, frame, CALM_THROW))
+        rt.pose(rt.sample(source, frame, CALM_THROW_SKIRT))
         if b.kit.shield:
             b.arms.shield(SHIELD_CARRY["guard"])
         after = smooth((frame - release) / 6.0) if frame > release else 0.0
@@ -564,7 +785,7 @@ def sling(b):
         return turn @ Vector((-math.cos(angle), -math.sin(angle), 0.0))
 
     def pose_at(frame):
-        rt.pose(rt.sample(source, frame, CALM_THROW))
+        rt.pose(rt.sample(source, frame, CALM_THROW_SKIRT))
         if b.kit.shield:
             b.arms.shield(SHIELD_CARRY["guard"])
         turn, _origin = b.arms.chest(0.3)

@@ -11,7 +11,8 @@ changes:
     colours, ochre and madder brown (Diodorus 5.30: dyed, many-coloured
     clothes and breeches);
   - his round shield and short sword are replaced (celt_kit) and only
-    used to find where his fists hold them.
+    used to find where his fists hold them;
+  - with fists=True his open hands are closed into fists (celt_hands).
 
 Space: the Celt's own, unscaled (metres, Z up, facing -Y, 2.09 m tall);
 the rig stage scales everything by RIG_SCALE.
@@ -23,6 +24,7 @@ import bpy
 import numpy as np
 from mathutils import Matrix
 
+import celt_hands
 from whp_common import SOURCES_DIR, delete_objects, find_texture, import_fbx, log, triangle_count
 from whp_skeleton import CELT_FBX
 
@@ -194,10 +196,16 @@ def _material(mat, stem, roughness):
         tree.links.new(tex.outputs["Color"], bsdf.inputs["Metallic"])
 
 
-def import_celt():
+def import_celt(fists=False):
     """Import the Celt: his body meshes in his own space, renamed; his shield
-    and sword as references (REFERENCE); the armature removed."""
+    and sword as references (REFERENCE); the armature removed. With `fists`
+    his hands are closed first (celt_hands), and the hollow of each fist is
+    kept on Celt_arms (celt_hands.GRIP_POINT, GRIP_AXIS)."""
     objs = import_fbx(CELT_FBX)
+    grips = {}
+    if fists:
+        armature = next(o for o in objs if o.type == "ARMATURE")
+        grips = celt_hands.close(armature, [o for o in objs if o.type == "MESH" and o.name in MESHES])
     keep = []
     for obj in objs:
         if obj.type != "MESH" or obj.name not in MESHES and obj.name not in REFERENCE:
@@ -223,6 +231,10 @@ def import_celt():
             log(f"imported {obj.name}: {triangle_count(obj)} triangles")
         keep.append(obj)
     delete_objects([o for o in objs if o not in keep])
+    arms = bpy.data.objects["Celt_arms"]
+    for side, (point, axis) in grips.items():
+        arms[celt_hands.GRIP_POINT.format(side)] = [float(x) for x in point]
+        arms[celt_hands.GRIP_AXIS.format(side)] = [float(x) for x in axis]
     for image in list(bpy.data.images):
         if image.users == 0:
             bpy.data.images.remove(image)

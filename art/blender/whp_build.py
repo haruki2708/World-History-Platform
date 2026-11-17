@@ -20,7 +20,9 @@ be re-run alone (--from). A unit module provides:
     build_kit()         stage kit
     fit(names, joints, report) -> (bones, 4, 4) matrices taking the source
                         body into the rig's rest pose (whp_skin.blend)
-    RIGID               {object: bone}: parts that follow one bone
+    RIGID               {object: bone}: parts that follow one bone; or
+                        {object: (bone, other)}: fitted to the rig with the
+                        first bone, then skinned to the other (whp_clips.Kit.spare)
     SHARED              {object: (bone, bone)}: parts that follow two bones half and half
     SMOOTHING           {object: rounds of weight smoothing}; DEFAULT_SMOOTHING
     MERGE_FINGERS       True if the fists are closed in the mesh (fingers follow the hand)
@@ -121,8 +123,12 @@ def stage_rig(unit):
     for obj in meshes:
         coords = get_coords(obj)
         name = base_name(obj)
+        skin_to = None
         if name in unit.RIGID:
-            weights = whp_skin.rigid(len(coords), len(names), index[unit.RIGID[name]])
+            bone = unit.RIGID[name]
+            if isinstance(bone, tuple):
+                bone, skin_to = bone
+            weights = whp_skin.rigid(len(coords), len(names), index[bone])
         elif name in shared:
             bones = shared[name]
             weights = sum(whp_skin.rigid(len(coords), len(names), index[b]) for b in bones) / len(bones)
@@ -133,6 +139,8 @@ def stage_rig(unit):
             weights = whp_skin.smooth(weights, whp_skin.mesh_edges(obj.data), smoothing.get(name, default_smoothing))
             weights = whp_skin.prune(weights)
         set_coords(obj, whp_skin.blend(coords, weights, matrices))
+        if skin_to is not None:
+            weights = whp_skin.rigid(len(coords), len(names), index[skin_to])
         whp_skin.write_groups(obj, weights, names)
         log(f"skinned {obj.name}: {len(coords)} vertices, {int((weights.max(axis=0) > 0).sum())} bones")
 
@@ -161,7 +169,9 @@ def stage_anim(unit):
     for action in builder.build():
         log(f"clip {action.name}: {int(action.frame_end)} frames at {whp_anim.FPS} fps")
     for clip, metres in builder.strides.items():
-        log(f"{clip}: {metres:.3f} m per loop")
+        before, after, shift = builder.slips[clip]
+        log(f"{clip}: {metres:.3f} m per loop; planted feet slip at most {before * 100:.0f}% of the "
+            f"ground's step before the lock, {after * 100:.0f}% after (ankles moved up to {shift * 100:.1f} cm)")
     log(f"die: lifted {builder.lying_lift * 100:.1f} cm when lying")
     scene.frame_set(0)
 

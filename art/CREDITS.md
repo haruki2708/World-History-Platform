@@ -8,7 +8,7 @@ Các mô hình trong `public/battles/models/` được dựng bằng script tron
 - Link: https://quaternius.com/packs/universalanimationlibrary.html, https://quaternius.com/packs/universalanimationlibrary2.html (tải từ https://quaternius.itch.io/universal-animation-library và https://quaternius.itch.io/universal-animation-library-2, ngày 2026-11-16).
 - Giấy phép: [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (đọc trên hai trang và trong `License.txt` của mỗi file zip). CC0 không bắt ghi công; ghi ở đây cho minh bạch.
 - Phần dùng: chuyển động của các clip `Idle_Loop`, `Walk_Loop`, `Jog_Fwd_Loop`, `Death01`, `Punch_Cross` (bản 1) và `OverhandThrow` (bản 2: phóng lao của velites, ném đá của lính Baleares, chém kiếm của người Gaul). Hình nộm và khung xương của thư viện không có trong file xuất.
-- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân; túi đá của dây ném đi theo một xương riêng. Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
+- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK, chân trụ của `walk` và `run` được khoá theo mặt đất; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân (chân của phóng lao và ném đá còn một phần tư); túi đá của dây ném đi theo một xương riêng. Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
 
 ## `roman-legionary.glb`: lính bộ binh La Mã thời Cộng hoà
 
@@ -73,7 +73,7 @@ Như `roman-legionary`: **"Roman Soldier - T pose - free download"** và khung x
    - hai tấm che ống chân bằng đồng, ôm cẳng chân, hở phía sau;
    - hai cây *pilum* dài khoảng 2 m (một cây to: cán gỗ có khối vuông ở đầu, thân sắt chuôi dẹt; một cây mảnh: mũi sắt có ống tra cán), cầm dựng đứng trong tay trái sau khiên.
 3. **Sửa** các phần giữ lại, **đổi tư thế và tỉ lệ**, **gắn khung xương**, **giảm chi tiết**, **ảnh vật liệu**: như `roman-legionary` (mục 3–7); áo tunic lộ hoàn toàn nên giữ nhiều tam giác hơn.
-4. **Hoạt hình:** năm clip như `roman-legionary`.
+4. **Hoạt hình:** năm clip như `roman-legionary`. Trong `attack` và `die` không còn hai cây *pilum* (đã phóng trước khi đánh kiếm; T-024).
 
 ### Dòng ghi công gợi ý
 
@@ -131,8 +131,9 @@ Năm mô hình đầu dựng trên cùng mô hình nền và khung xương như 
    - xoá hình vẽ màu xanh trên ngực, lưng, tay và mặt: lấp bằng màu da lành xung quanh, làm phẳng ảnh pháp tuyến ở đó;
    - nhuộm lại quần sọc xanh lá và tím thành sọc vàng đất và nâu đỏ.
 3. **Thêm**, tự dựng: kiếm dài chém, đầu tròn không mũi (lưỡi 0,78 m); khiên bầu dục dài kiểu La Tène như của người Iberia, mặt sơn xanh chàm.
-4. **Thu nhỏ** còn 0,8 lần (cao 1,67 m), giữ nguyên tư thế (mô hình nền đã đứng đúng tư thế của khung xương).
-5. **Giảm chi tiết**, **bake ảnh vật liệu** và **hoạt hình** như các mô hình khác; `attack` là chém bổ từ trên vai xuống.
+4. **Khép hai bàn tay** (T-024): xương ngón tay của chính mô hình được bẻ thành nắm tay, lưới lấy hình đó làm tư thế gốc. Chuôi kiếm và tay cầm khiên đặt vào lòng nắm tay.
+5. **Thu nhỏ** còn 0,8 lần (cao 1,67 m), giữ nguyên tư thế (mô hình nền đã đứng đúng tư thế của khung xương).
+6. **Giảm chi tiết**, **bake ảnh vật liệu** và **hoạt hình** như các mô hình khác; `attack` là chém bổ từ trên vai xuống.
 
 ## Ngựa (`art/build/horse/horse.blend`, cho kỵ binh ở T-022)
 

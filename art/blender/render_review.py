@@ -3,6 +3,7 @@
     blender --background --factory-startup --disable-autoexec \
         --python art/blender/render_review.py -- --model MODEL [--only NAME ...]
     blender ... --python art/blender/render_review.py -- --attack-styles [--model MODEL]
+    blender ... --python art/blender/render_review.py -- --model MODEL --before OLD.glb         --compare {fists,skirt,pila,spear} --out NN-NAME.jpg
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -12,6 +13,11 @@ source model in the "compare" image.
 --attack-styles renders the attacks of the animation library that the
 model does not carry (whp_clips.ATTACKS) on its build file
 (art/build/<model>/4-anim.blend), into art/renders/animation-library/.
+
+--before renders the same views (COMPARE) of an older file of the model
+(e.g. taken out of git with `git show REV:public/battles/models/X.glb`)
+and of the current one: the older on the top row, the current below, into
+art/renders/<model>/<--out>.
 """
 
 import argparse
@@ -537,14 +543,116 @@ def attack_styles(model):
     save_panels(scene, rows, os.path.join(RENDER_DIR, "animation-library", "attack-styles.jpg"))
 
 
+# --------------------------------------------------------------------------
+# Before and after a change
+# --------------------------------------------------------------------------
+
+def _fist_box(f, side):
+    """Centre of a fist: halfway from the wrist to the knuckles."""
+    return (bone_head(f, f"hand_{side}") + bone_head(f, f"middle_01_{side}")) / 2
+
+
+def compare_fists(template):
+    """Both fists standing (idle 0), then the sword hand raised in the
+    attack: close-ups."""
+    scene = stage(700, 700, samples=64)
+    panels = []
+    # The left fist is behind the shield: seen from behind.
+    shots = [("idle", 0, "l", Vector((0.35, 1.0, 0.15))), ("idle", 0, "l", Vector((-0.25, 1.0, -0.3))),
+             ("idle", 0, "r", Vector((-1.0, -0.6, 0.15))), ("idle", 0, "r", Vector((0.2, -1.0, -0.35))),
+             ("attack", None, "r", Vector((-0.8, -1.0, 0.1)))]
+    strike = strike_frame(template)
+    for clip, frame, side, direction in shots:
+        f = place(template)
+        play(f, clip, frame if frame is not None else max(strike // 2, 1))
+        scene.frame_set(FRAME)
+        centre = _fist_box(f, side)
+        aim_camera(scene, centre - Vector((0.1, 0.1, 0.1)), centre + Vector((0.1, 0.1, 0.1)), direction,
+                   ortho=False, lens=70, margin=1.0)
+        panels.append(render_panel(scene))
+        clear_figures([template.armature, *template.meshes.values()])
+    return panels
+
+
+SKIRT_FRAMES = {"attack": (0.40, 0.50, 0.60, 0.70), "run": (0.25, 0.75)}
+
+
+def compare_skirt(template):
+    """The hips and thighs in the attack (around the lunge) and in the
+    run, from the front on the weapon side (the shield hides the other)."""
+    scene = stage(560, 640, samples=48)
+    panels = []
+    for clip, shares in SKIRT_FRAMES.items():
+        for share in shares:
+            f = place(template)
+            play(f, clip, int(round(share * clip_length(clip))))
+            scene.frame_set(FRAME)
+            centre = bone_head(f, "pelvis") + Vector((0.0, 0.0, -0.18))
+            aim_camera(scene, centre - Vector((0.32, 0.32, 0.36)), centre + Vector((0.32, 0.32, 0.30)),
+                       Vector((-0.62, -1.0, 0.0)), ortho=True, margin=1.0, elevation=8)
+            panels.append(render_panel(scene))
+            clear_figures([template.armature, *template.meshes.values()])
+    return panels
+
+
+def compare_pila(template):
+    """Standing, the attack (start and strike) and lying dead: whole figure."""
+    scene = stage(620, 900, samples=48)
+    panels = []
+    strike = strike_frame(template)
+    for clip, frame in (("idle", 0), ("attack", 0), ("attack", strike), ("die", clip_length("die"))):
+        f = place(template)
+        play(f, clip, frame)
+        scene.frame_set(FRAME)
+        lo = Vector((-0.9, -1.3, -0.02))
+        hi = Vector((0.9, 1.0, 2.5))
+        aim_camera(scene, lo, hi, Vector((-0.75, -1.0, 0.0)), ortho=True, margin=1.0, elevation=6)
+        panels.append(render_panel(scene))
+        clear_figures([template.armature, *template.meshes.values()])
+    return panels
+
+
+def compare_spear(template):
+    """Seen from the side (his right): standing, walking, running."""
+    scene = stage(620, 900, samples=48)
+    panels = []
+    for clip, frame in (("idle", 0), ("idle", 40), ("walk", 0), ("walk", 20), ("run", 7)):
+        f = place(template)
+        play(f, clip, frame)
+        scene.frame_set(FRAME)
+        aim_camera(scene, Vector((-0.6, -1.0, -0.02)), Vector((0.6, 1.0, 2.55)), "right", ortho=True, margin=1.0)
+        panels.append(render_panel(scene))
+        clear_figures([template.armature, *template.meshes.values()])
+    return panels
+
+
+COMPARE = {"fists": compare_fists, "skirt": compare_skirt, "pila": compare_pila, "spear": compare_spear}
+
+
+def before_after(model, before, what, out):
+    rows = []
+    for path in (before, whp_build.glb_path(model)):
+        reset_scene()
+        template = import_model(path)
+        rows.append(COMPARE[what](template))
+    path = os.path.join(RENDER_DIR, model, out)
+    save_panels(bpy.context.scene, rows, path)
+    log("before and after:", path)
+
+
 def main():
     parser = argparse.ArgumentParser(prog="render_review.py")
     parser.add_argument("--model", default="roman-legionary", choices=whp_build.unit_ids())
     parser.add_argument("--only", nargs="*", choices=sorted(IMAGES), default=None)
     parser.add_argument("--attack-styles", action="store_true")
     parser.add_argument("--lineup", action="store_true", help="the infantry models in a row")
+    parser.add_argument("--before", help="an older .glb of the model, to compare with (see --compare)")
+    parser.add_argument("--compare", choices=sorted(COMPARE), help="what to show before and after")
+    parser.add_argument("--out", help="file name of the comparison in art/renders/<model>/")
     args = parser.parse_args(script_args())
-    if args.lineup:
+    if args.before:
+        before_after(args.model, args.before, args.compare, args.out)
+    elif args.lineup:
         lineup()
     elif args.attack_styles:
         attack_styles(args.model)

@@ -19,7 +19,9 @@ How a pose is carried over:
   - The legs are solved by two-bone IK: each ankle goes where the source's
     ankle is, measured from the hip and scaled, and its height above the
     ground is the source's, scaled. The knee bends the way the source's
-    does. So a planted foot stays planted, whatever the rest stances.
+    does. So a planted foot stays planted, whatever the rest stances
+    (as far as it does in the source: whp_clips takes out the slip the
+    library's walk has where the foot rolls, through `ankle_shift`).
   - Half of the hand's roll about the forearm goes to the forearm's twist
     bone, as the rig expects. Fingers keep their rest pose (the fists of
     the unit models are closed in the mesh).
@@ -122,6 +124,10 @@ class Retargeter:
         # Extra height for the hips when the source lies on the ground (a
         # man in armour lies higher than the bare mannequin); set per clip.
         self.lying_lift = 0.0
+        # Per side ("l", "r"), a horizontal (x, y) offset for the ankle in
+        # the next pose, or None: whp_clips moves a planted foot with it so
+        # that it keeps pace with the ground (Builder.lock_feet).
+        self.ankle_shift = None
         # Forearm axes at rest, for the twist bones.
         self.forearm = {s: (t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) /
                         np.linalg.norm(t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) for s in ("l", "r")}
@@ -178,6 +184,8 @@ class Retargeter:
         hip_t = np.array(p.head(f"thigh_{side}"))
         ankle = hip_t + k * (ankle_s - hip_s)
         ankle[2] = self.ankle_t + k * (ankle_s[2] - self.ankle_s) + lift
+        if self.ankle_shift is not None:
+            ankle[:2] += self.ankle_shift[side]
         line = ankle_s - hip_s
         line /= np.linalg.norm(line)
         pole = (knee_s - hip_s) - np.dot(knee_s - hip_s, line) * line

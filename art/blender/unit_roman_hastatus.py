@@ -8,6 +8,12 @@ the shield: the right hand keeps the sword, so the clips (attack: sword
 thrust behind the shield) are the legionary's, and the pila, standing a
 head above the shield, tell the hastati from the principes at a distance.
 
+Legionaries threw their pila, then drew their swords and charged (Caesar,
+Gallic War 1.25, the clearest account): the pila hang from a bone of their
+own (whp_clips.SPARE_BONE), which follows the left fist, and in the attack
+and the fall they are gone (shrunk to nothing inside the fist). The scene
+has one attack clip per model, so it cannot show the throw itself.
+
 The build itself is whp_build; this module holds what is particular to
 this model.
 """
@@ -56,7 +62,8 @@ def build_kit():
 # -- stage "rig" -----------------------------------------------------------
 
 fit = roman_fit.build
-RIGID = dict(roman_kit.RIGID, Greave_l="calf_l", Greave_r="calf_r", Pila="hand_l")
+# The pila are fitted with the left hand, then hang from the spare bone.
+RIGID = dict(roman_kit.RIGID, Greave_l="calf_l", Greave_r="calf_r", Pila=("hand_l", whp_clips.SPARE_BONE))
 SHARED = roman_kit.SHARED
 # Rounds of weight smoothing; cloth and leather get more than skin. The chest
 # plate takes its weights from the body like the tunic under it (heavily
@@ -70,7 +77,7 @@ rig_extras = roman_kit.rig_extras
 
 # -- stage "anim" ----------------------------------------------------------
 
-KIT = whp_clips.Kit(shield=True, attack="sword-thrust")
+KIT = whp_clips.Kit(shield=True, attack="sword-thrust", spare=True)
 
 
 # -- stage "lod" -----------------------------------------------------------
