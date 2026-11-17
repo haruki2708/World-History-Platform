@@ -50,4 +50,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-029](T-029-about-battle-credits.md) | 1 | Trận đánh 3D trong hộp thoại Giới thiệu: cách dùng, độ chính xác, ghi công | Xong, đã gộp 2026-11-17 |
 | [T-030](T-030-horse-gallop.md) | 2 | Trận đánh 3D: clip phi nước đại mới cho ngựa (sải 4,5–6 m), xuất lại ba mô hình kỵ binh | Xong, đã gộp 2026-11-17 |
 | [T-031](T-031-scene-performance.md) | 3 | Trận đánh 3D: lấy lại hiệu năng của cảnh sau đợt E (nhãn khối quân, mức chi tiết của kỵ binh); việc dở của T-028 | Xong, đã gộp 2026-11-17 |
-| [T-032](T-032-melee-stage1.md) | Phiên chính | Trận đánh 3D, đợt G chặng 1: giáp lá cà (hàng đầu áp sát, đấu từng cặp, người ngã là người vừa bị đánh), dùng clip sẵn có | Xong 2026-11-18 trên nhánh `batch-g/stage1-melee`; chờ lane 3 đọc lại và người dùng duyệt gộp |
+| [T-032](T-032-melee-stage1.md) | Phiên chính | Trận đánh 3D, đợt G chặng 1: giáp lá cà (hàng đầu áp sát, đấu từng cặp, người ngã là người vừa bị đánh), dùng clip sẵn có | Xong, đã gộp 2026-11-18 (lane 3 đọc lại: [T-032 review](T-032-review.md)) |

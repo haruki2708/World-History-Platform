@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18, không giao lane).
 - **Model:** Fable 5.2, effort `xhigh`.
 - **Nhánh:** `batch-g/stage1-melee` (tạo từ `main`). Không commit thẳng vào `main`; commit sau mỗi phần lớn.
-- **Trạng thái:** xong 2026-11-18, chờ lane 3 đọc lại nhánh và người dùng duyệt gộp.
+- **Trạng thái:** xong, lane 3 đã đọc lại (`T-032-review.md`), đã gộp vào `main` 2026-11-18.
 - **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/data/battles/`, `scripts/battles/`, `docs/data/battles/`, `src/app/battle-lab/`, `src/lib/i18n/messages.ts`, `src/components/shell/AboutDialog.tsx`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G".
 
