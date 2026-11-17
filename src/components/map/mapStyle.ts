@@ -49,6 +49,17 @@ export const EMPTY_COLLECTION: GeoJSON.FeatureCollection = {
 };
 
 /**
+ * The ground of a 3D battle, outlined while the map flies there before the
+ * battle opens (battleFlight.ts). Empty and hidden the rest of the time.
+ */
+export const BATTLE_FRAME_SOURCE = "battle-frame";
+export const BATTLE_FRAME_FILL = "battle-frame-fill";
+export const BATTLE_FRAME_LINE = "battle-frame-line";
+
+/** Opacity of the battlefield outline when fully shown. */
+export const BATTLE_FRAME_OPACITY = { fill: 0.12, line: 1 } as const;
+
+/**
  * No tiles, glyphs or sprites: everything is drawn from two GeoJSON sources.
  *
  * Layer order matters. Land is the background; territories sit on it; open
@@ -101,6 +112,7 @@ export function buildMapStyle(theme: MapTheme): StyleSpecification {
         maxzoom: MAX_ZOOM,
       },
       ...territorySources,
+      [BATTLE_FRAME_SOURCE]: { type: "geojson", data: EMPTY_COLLECTION },
     },
     layers: [
       {
@@ -151,6 +163,30 @@ export function buildMapStyle(theme: MapTheme): StyleSpecification {
           "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 8, 1.25],
         },
       },
+      // On top of everything, water included: a battlefield can reach the sea.
+      {
+        id: BATTLE_FRAME_FILL,
+        type: "fill",
+        source: BATTLE_FRAME_SOURCE,
+        paint: {
+          "fill-color": theme.accent,
+          "fill-opacity": 0,
+          "fill-opacity-transition": { duration: 0, delay: 0 },
+        },
+      },
+      {
+        id: BATTLE_FRAME_LINE,
+        type: "line",
+        source: BATTLE_FRAME_SOURCE,
+        layout: { "line-join": "miter" },
+        paint: {
+          "line-color": theme.accent,
+          "line-width": 2,
+          "line-dasharray": [3, 2],
+          "line-opacity": 0,
+          "line-opacity-transition": { duration: 0, delay: 0 },
+        },
+      },
     ],
   };
 }
@@ -161,4 +197,6 @@ export function applyMapTheme(map: MapLibreMap, theme: MapTheme): void {
   map.setPaintProperty("rivers", "line-color", theme.water);
   map.setPaintProperty("water", "fill-color", theme.water);
   map.setPaintProperty("coast", "line-color", theme.coast);
+  map.setPaintProperty(BATTLE_FRAME_FILL, "fill-color", theme.accent);
+  map.setPaintProperty(BATTLE_FRAME_LINE, "line-color", theme.accent);
 }

@@ -8,6 +8,7 @@ import {
   territorySource,
   type TerritorySlot,
 } from "./mapStyle";
+import { prefersReducedMotion } from "./motion";
 
 /** Length of the cross-fade between two border snapshots. */
 export const FADE_MS = 400;
@@ -19,10 +20,6 @@ const DATA_TIMEOUT_MS = 1500;
 export interface FadeTarget {
   key: string;
   territories: Territories | null;
-}
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function wait(ms: number): Promise<void> {

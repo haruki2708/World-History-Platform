@@ -7,12 +7,15 @@ export interface MapTheme {
   land: string;
   water: string;
   coast: string;
+  /** Outline of the battlefield the map flies to before a battle opens. */
+  accent: string;
 }
 
 const TOKENS: Record<keyof MapTheme, string> = {
   land: "--map-land",
   water: "--map-water",
   coast: "--map-coast",
+  accent: "--accent",
 };
 
 export function readMapTheme(): MapTheme {
@@ -24,6 +27,7 @@ export function readMapTheme(): MapTheme {
     land: read(TOKENS.land),
     water: read(TOKENS.water),
     coast: read(TOKENS.coast),
+    accent: read(TOKENS.accent),
   };
 }
 
