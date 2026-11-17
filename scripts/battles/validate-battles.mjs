@@ -241,6 +241,8 @@ for (const file of battleFiles) {
   // turns about in the phase fights with what was its rear rank.
   const CONTACT = 8;
   const MIN_CONTACT = 0.15;
+  /** Below this share the data passes, with a warning: much of the front has nobody to fight. */
+  const WARN_CONTACT = 0.5;
   const FRONT_SAMPLES = 21;
   const ABOUT_FACE = 135;
   const turnsAbout = (from, to) => {
@@ -287,6 +289,12 @@ for (const file of battleFiles) {
           for (let k = 0; k < FRONT_SAMPLES; k++) {
             const point = edgePoint(own, (k + 0.5) / FRONT_SAMPLES - 0.5);
             if (enemies.some((enemy) => distanceToEdge(enemy, point) <= CONTACT)) touching++;
+          }
+          if (touching >= MIN_CONTACT * FRONT_SAMPLES && touching < WARN_CONTACT * FRONT_SAMPLES) {
+            warn(
+              `${where}.phases[${i}]`,
+              `${state.unit} fights hand to hand, but at the ${moment} of the phase only ${touching} of ${FRONT_SAMPLES} points of its front are on the front of an enemy unit that fights; the rest of its men have nobody to fight.`,
+            );
           }
           if (touching < MIN_CONTACT * FRONT_SAMPLES) {
             fail(

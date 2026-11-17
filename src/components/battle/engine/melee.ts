@@ -18,7 +18,7 @@
  * lands as he goes down.
  */
 
-import type { UnitTrack } from "./timeline";
+import { STRIKE_PERIOD, type UnitTrack } from "./timeline";
 
 /** How far a man leaves his place in the formation to close with an enemy, metres. */
 const MAX_STEP = 5;
@@ -31,6 +31,8 @@ const REACH_SLACK = 1.3;
  * a share of what the shorter weapon reaches: on his shield.
  */
 const GUARD = 0.3;
+/** A blow begins only this early in its clip, seconds; later the figure waits for the next. */
+const STRIKE_START = 0.3;
 /** A man who joins in against an enemy stands at least this far round him from the man he fights. */
 const SIDE_ANGLE = (55 * Math.PI) / 180;
 
@@ -56,10 +58,52 @@ export interface MeleeFigures {
    * (`UnitTrack.beat`). -1 for a figure with no enemy in reach.
    */
   beat: Float32Array;
+  /** 1 when that enemy falls before another blow could land: the blow that fells him must not be missed. */
+  kill: Uint8Array;
   /** Its enemy, a number that differs for every figure on the field, or -1. */
   opponent: Int32Array;
   /** Some figure of the unit had an enemy at the last update. */
   engaged: boolean;
+}
+
+/**
+ * The blow a figure strikes, as the beat it is timed to (-1 between blows):
+ * `current` is the blow under way, `wanted` the beat of its enemy (-1
+ * without an enemy in reach), `clock` the battle time in seconds of
+ * playback. The attack clip is `seconds` long and its blow lands `impact`
+ * seconds in, on the beat.
+ *
+ * A blow under way is played to its end, and a new one begins only at the
+ * start of the clip, so nothing pops. The blow that fells the enemy (`kill`)
+ * is the exception: it may begin any time before it lands, and it cuts short
+ * the blow under way. After a jump (`snap`) the figure is at once in
+ * whatever blow the clock has it in.
+ */
+export function swingBeat(
+  current: number,
+  wanted: number,
+  kill: boolean,
+  snap: boolean,
+  clock: number,
+  seconds: number,
+  impact: number,
+): number {
+  let beat = snap ? -1 : current;
+  if (beat >= 0 && swingInto(beat, clock, impact) >= seconds) beat = -1;
+  if (wanted >= 0 && wanted !== beat) {
+    const begun = swingInto(wanted, clock, impact);
+    if (beat < 0) {
+      if (begun < (snap ? seconds : kill ? impact : STRIKE_START)) beat = wanted;
+    } else if (kill && begun <= impact) {
+      beat = wanted;
+    }
+  }
+  return beat;
+}
+
+/** How far into the attack clip, seconds, a blow timed to `beat` is at `clock`. */
+export function swingInto(beat: number, clock: number, impact: number): number {
+  return (((clock - beat + impact) % STRIKE_PERIOD) + STRIKE_PERIOD) % STRIKE_PERIOD;
 }
 
 export class Melee {
@@ -84,6 +128,8 @@ export class Melee {
   /** The man who joins in against each from his left and from his right, or -1. */
   private left = new Int32Array(0);
   private right = new Int32Array(0);
+  /** How many men picked each as their enemy. */
+  private picked = new Int32Array(0);
   private cells = new Int32Array(0);
 
   constructor(units: MeleeUnit[]) {
@@ -93,6 +139,7 @@ export class Melee {
       offsetY: new Float32Array(track.count),
       bearing: new Float32Array(track.count),
       beat: new Float32Array(track.count).fill(-1),
+      kill: new Uint8Array(track.count),
       opponent: new Int32Array(track.count).fill(-1),
       engaged: false,
     }));
@@ -119,10 +166,14 @@ export class Melee {
     this.next = new Int32Array(this.capacity);
     this.left = new Int32Array(this.capacity);
     this.right = new Int32Array(this.capacity);
+    this.picked = new Int32Array(this.capacity);
   }
 
-  /** Pairs the figures off as the tracks stand: call after every track was sampled at the same time. */
-  update(): void {
+  /**
+   * Pairs the figures off as the tracks stand: call after every track was
+   * sampled at the same battle time, `now` in seconds of playback.
+   */
+  update(now: number): void {
     const { units, figures } = this;
 
     // Forget the pairs of the last update.
@@ -134,6 +185,7 @@ export class Melee {
         out.offsetX.fill(0);
         out.offsetY.fill(0);
         out.beat.fill(-1);
+        out.kill.fill(0);
         out.opponent.fill(-1);
         out.engaged = false;
       }
@@ -144,7 +196,7 @@ export class Melee {
     }
     if (heads === 0) return;
     this.reserve(heads);
-    const { unitOf, indexOf, px, py, sin, cos, target, distance, ex, ey, next, left, right } = this;
+    const { unitOf, indexOf, px, py, sin, cos, target, distance, ex, ey, next, left, right, picked } = this;
 
     let n = 0;
     let minX = Infinity;
@@ -224,6 +276,28 @@ export class Melee {
       ey[a] = py[a];
     }
 
+    // A man about to fall whom nobody picked: the enemy he picked turns on
+    // him (unless that enemy is busy with another man about to fall), so
+    // somebody strikes the blow that fells him.
+    const fallsSoon = (a: number) => {
+      const left = units[unitOf[a]].track.deathSeconds[indexOf[a]] - now;
+      return left > 0 && left <= STRIKE_PERIOD;
+    };
+    picked.fill(0, 0, n);
+    for (let a = 0; a < n; a++) if (target[a] !== -1) picked[target[a]]++;
+    for (let a = 0; a < n; a++) {
+      const b = target[a];
+      if (b === -1 || picked[a] > 0 || !fallsSoon(a)) continue;
+      const busy = target[b];
+      if (busy !== -1) {
+        if (fallsSoon(busy) && picked[busy] === 1) continue;
+        picked[busy]--;
+      }
+      target[b] = a;
+      distance[b] = distance[a];
+      picked[a]++;
+    }
+
     // Two men who picked each other meet halfway, at striking distance.
     for (let a = 0; a < n; a++) {
       const b = target[a];
@@ -298,6 +372,7 @@ export class Melee {
       out.bearing[i] = Math.atan2(dx, dy);
       out.opponent[i] = (unitOf[b] << 16) | indexOf[b];
       out.beat[i] = dx * dx + dy * dy <= apart * apart * REACH_SLACK * REACH_SLACK ? other.track.beat[indexOf[b]] : -1;
+      out.kill[i] = fallsSoon(b) ? 1 : 0;
     }
   }
 }

@@ -52,11 +52,6 @@ const STEP_UP_DELAY = 0.4;
 /** ...then takes this long to step up into his place. */
 const STEP_UP_SECONDS = 1.5;
 /**
- * A man with fewer than this many men standing in front of him leads his
- * file: the man behind the head takes over as soon as he starts to step up.
- */
-const HEAD_DEPTH = 0.999;
-/**
  * The front rank stands this far behind the front edge of the formation,
  * metres, and the rear rank as far inside the rear edge, or half a rank
  * where the ranks are closer than that. So the front rank of a thin block
@@ -160,14 +155,18 @@ export function unitKeys(battle: Battle, unit: BattleUnit): UnitKey[] {
 }
 
 /**
- * Whether an enemy unit that fights hand to hand in phase `phase` (0 for
- * the first) has its front within reach of the point (x, y), `s` of the way
- * through the phase.
+ * Whether a man who stands at (x, y) and faces `heading` (radians clockwise
+ * from north), `s` of the way through phase `phase` (0 for the first), has
+ * before him the front of an enemy unit that fights hand to hand.
  */
-export type Opposed = (phase: number, s: number, x: number, y: number) => boolean;
+export type Opposed = (phase: number, s: number, x: number, y: number, heading: number) => boolean;
 
-/** A front this close to a man, metres, is an enemy he can come to blows with (as melee.ts pairs them). */
-const OPPOSED_RANGE = 14;
+/** A front this far before a man, metres, is an enemy he can come to blows with (as melee.ts pairs them). */
+const OPPOSED_RANGE = 12;
+/** ...or this far behind him, where two units press into each other, and this far past the end of the front. */
+const OPPOSED_SLACK = 3;
+/** He and the enemy front must face each other within 70°, as in melee.ts: the cosine. */
+const OPPOSED_COS = Math.cos((70 * Math.PI) / 180);
 
 /**
  * Where the enemies of `unit` stand ready to fight it hand to hand, from the
@@ -176,7 +175,7 @@ const OPPOSED_RANGE = 14;
  */
 export function opposition(battle: Battle, unit: BattleUnit): Opposed {
   const enemies = battle.units.filter((other) => other.side !== unit.side).map((other) => unitKeys(battle, other));
-  return (phase, s, x, y) => {
+  return (phase, s, x, y, heading) => {
     for (const keys of enemies) {
       const a = keys[phase];
       const end = keys[phase + 1];
@@ -191,16 +190,19 @@ export function opposition(battle: Battle, unit: BattleUnit): Opposed {
       const dy = y - lerp(a.center.y, b.center.y, s);
       const reach = frontage / 2 + depth + Math.abs(bulge) + OPPOSED_RANGE;
       if (dx * dx + dy * dy > reach * reach) continue;
-      // The point in the frame of the formation, and the front edge beside it.
+      // The way the enemy fights: the way it faces, or the other way once it has turned about.
       const facing = lerpAngle(a.facing, b.facing, s);
+      const way = about ? -1 : 1;
+      if (way * Math.cos(heading - facing) > -OPPOSED_COS) continue;
+      // The point in the frame of the formation: across its front, and how far before its fighting edge.
       const sin = Math.sin(facing);
       const cos = Math.cos(facing);
       const across = dx * cos - dy * sin;
-      const forward = dx * sin + dy * cos;
+      if (Math.abs(across) > frontage / 2 + OPPOSED_SLACK) continue;
       const u = Math.min(Math.max(across / frontage, -0.5), 0.5);
-      const edge = (about ? -0.5 : 0.5) * depth + bulge * (1 - 4 * u * u);
-      const beside = Math.max(Math.abs(across) - frontage / 2, 0);
-      if ((forward - edge) * (forward - edge) + beside * beside < OPPOSED_RANGE * OPPOSED_RANGE) return true;
+      const edge = way * 0.5 * depth + bulge * (1 - 4 * u * u);
+      const before = way * (dx * sin + dy * cos - edge);
+      if (before >= -OPPOSED_SLACK && before <= OPPOSED_RANGE) return true;
     }
     return false;
   };
@@ -299,7 +301,8 @@ export class UnitTrack {
   private readonly fights: (FightPhase | null)[];
   /** The phase in which each figure falls, or -1. */
   private readonly deathPhase: Int16Array;
-  private readonly deathSeconds: Float32Array;
+  /** When each figure falls, seconds of playback; Infinity if it never does. */
+  readonly deathSeconds: Float32Array;
   private readonly deathX: Float32Array;
   private readonly deathY: Float32Array;
   private readonly deathHeading: Float32Array;
@@ -411,7 +414,7 @@ export class UnitTrack {
       // behind must have stepped up by the keyframe, where the files regroup.
       const seconds = clock.seconds(k + 1) - clock.seconds(k);
       const span = fighting
-        ? 1 - Math.min((STEP_UP_DELAY + STEP_UP_SECONDS) / Math.max(seconds, 0.001), 0.25)
+        ? 1 - Math.min((STEP_UP_DELAY + STEP_UP_SECONDS) / Math.max(seconds, 0.001), 1)
         : 1;
       /** When in the phase (0 to 1) the j-th man to fall does: men are lost evenly. */
       const fallAt = (j: number): number => {
@@ -429,6 +432,7 @@ export class UnitTrack {
         const next = new Int32Array(files);
         const lastFall = new Int32Array(files).fill(-1);
         const weight = new Float32Array(files);
+        const unopposed = new Uint8Array(files);
         const headU = new Float32Array(files);
         for (let f = 0; f < files; f++) {
           next[f] = f === 0 ? 0 : fileEnd[f - 1];
@@ -450,20 +454,29 @@ export class UnitTrack {
         for (let j = 0; j < falls; j++) {
           const s = fallAt(j);
           const formation = this.interpolate(k, s, turned);
+          // The heads of the files face the enemy: the way of the formation, or the other way after an about-face.
+          const heading = formation.facing + (about ? Math.PI : 0);
           total = 0;
           for (let f = 0; f < files; f++) {
             const size = fileEnd[f] - next[f];
             weight[f] = size;
+            unopposed[f] = 0;
             if (size > 0 && opposed) {
               formationPoint(formation, headU[f], headV, head);
-              if (!opposed(k, s, head.x, head.y)) weight[f] = size * UNOPPOSED;
+              if (!opposed(k, s, head.x, head.y, heading)) {
+                weight[f] = size * UNOPPOSED;
+                unopposed[f] = 1;
+              }
             }
             total += weight[f];
           }
           let file = draw();
           for (let again = 0; again < 2; again++) {
             const other = draw();
-            if (lastFall[other] < lastFall[file]) file = other;
+            // A file with an enemy before it first; then the one that lost a man longest ago.
+            if (unopposed[other] < unopposed[file] || (unopposed[other] === unopposed[file] && lastFall[other] < lastFall[file])) {
+              file = other;
+            }
           }
           fallen.push(order[next[file]++]);
           lastFall[file] = j;
@@ -653,7 +666,8 @@ export class UnitTrack {
    * The queues of a hand-to-hand fight at battle time t (`now` seconds of
    * playback): how far each standing figure has stepped up behind the men of
    * its file who fell (`shift`, in v) and how many men still stand before it
-   * (`before`).
+   * (`before`): none before the head of the file, who leads it from the
+   * moment the man before him falls.
    */
   private queue(fight: FightPhase, t: number, now: number): void {
     const { order, fileEnd, step, toFront } = fight;
@@ -662,16 +676,16 @@ export class UnitTrack {
     for (let f = 0; f < fileEnd.length; f++) {
       const end = fileEnd[f];
       let gone = 0;
-      let ahead = 0;
+      let standing = 0;
       for (; p < end; p++) {
         const i = order[p];
         if (deathTime[i] <= t) {
           gone += steppedUp(now - deathSeconds[i]);
         } else {
           shift[i] = toFront * gone * step;
-          before[i] = ahead - gone;
+          before[i] = standing;
+          standing++;
         }
-        ahead++;
       }
     }
   }
@@ -752,7 +766,7 @@ export class UnitTrack {
       this.rank[i] = turned > 0.5 ? 1 - v : v;
       this.turningAbout[i] = turned > 0 && turned < 1 ? 1 : 0;
       // A man fights once he has turned to face the enemy.
-      this.head[i] = fight && before[i] < HEAD_DEPTH && (!turning || turned >= 1) ? 1 : 0;
+      this.head[i] = fight && before[i] === 0 && (!turning || turned >= 1) ? 1 : 0;
       standing++;
     }
     return standing;

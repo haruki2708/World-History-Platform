@@ -25,7 +25,7 @@ import {
 } from "three";
 import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
-import { Melee, type MeleeFigures } from "./melee";
+import { Melee, type MeleeFigures, swingBeat, swingInto } from "./melee";
 import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
 import { DYING, GONE, STRIKE_PERIOD, type UnitTrack } from "./timeline";
@@ -164,9 +164,14 @@ const VELOCITY_SMOOTHING = 0.25;
  *   that the blow lands on the beat of the enemy (the moment he falls, if he
  *   does), and the figure stands on guard in between. A blow that has begun
  *   is played to its end even if the enemy has fallen meanwhile; a new one
- *   begins only at the start of the clip, so nothing pops.
+ *   begins only at the start of the clip, so nothing pops. Only the blow
+ *   that fells the enemy may begin late and cut another short (swingBeat in
+ *   melee.ts).
  * - The blow fades in over STRIKE_IN and out over STRIKE_OUT seconds on top
  *   of what the legs do.
+ * - A figure that falls lies where it fought: it keeps the place it had left
+ *   its file for. (After a jump the fallen lie in their files, a few metres
+ *   off: where a man stood to fight is not known without playing up to it.)
  * - In a block that stands still, a figure that moves (to close with an
  *   enemy, to step up behind a man who fell) walks: between STEP_FROM and
  *   STEP_FULL times the walking speed its legs go from idle to the walk.
@@ -175,8 +180,6 @@ const CLOSE_SPEED = 6;
 const FIGHT_TURN = (80 * Math.PI) / 180;
 const STRIKE_IN = 0.15;
 const STRIKE_OUT = 0.25;
-/** A blow begins only this early in its clip, seconds; later the figure waits for the next. */
-const STRIKE_START = 0.3;
 const STEP_FROM = 0.12;
 const STEP_FULL = 0.45;
 
@@ -455,6 +458,8 @@ export class UnitBlock {
   private readonly offY: Float32Array;
   /** The beat of the blow each figure is striking, or -1 between blows. */
   private readonly swing: Float32Array;
+  /** When that blow began, seconds of playback: it fades in from there. */
+  private readonly swingFrom: Float32Array;
 
   constructor(
     readonly track: UnitTrack,
@@ -468,6 +473,7 @@ export class UnitBlock {
     this.offX = new Float32Array(track.count);
     this.offY = new Float32Array(track.count);
     this.swing = new Float32Array(track.count).fill(-1);
+    this.swingFrom = new Float32Array(track.count).fill(-Infinity);
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
@@ -608,7 +614,7 @@ export class UnitBlock {
     let moved = 0;
     let movers = 0;
     // Hand to hand (see CLOSE_SPEED).
-    const { offX, offY, swing } = this;
+    const { offX, offY, swing, swingFrom } = this;
     const figures = track.fighting ? this.fight : null;
     // After a jump, and when first placed, the figures stand where the fight has them.
     const snap = march.jumped || !this.placed;
@@ -649,7 +655,8 @@ export class UnitBlock {
         }
         let ox = offX[i];
         let oy = offY[i];
-        if (ox !== wantX || oy !== wantY) {
+        // The fallen lie where they fought; after a jump, in their files.
+        if ((ox !== wantX || oy !== wantY) && (status !== DYING || snap)) {
           const dx = wantX - ox;
           const dy = wantY - oy;
           const d = Math.sqrt(dx * dx + dy * dy);
@@ -783,29 +790,29 @@ export class UnitBlock {
           }
           // The blow on top: the one under way, or one that begins now.
           let into = -1;
-          if (!throwing) {
-            let beat = snap ? -1 : swing[i];
-            if (beat >= 0) {
-              into = (((clock - beat + strikeImpact) % STRIKE_PERIOD) + STRIKE_PERIOD) % STRIKE_PERIOD;
-              if (into >= strikeSeconds) {
-                beat = -1;
-                into = -1;
-              }
+          if (throwing) {
+            swing[i] = -1;
+          } else {
+            const engaged = figures !== null && opponent !== -1;
+            const beat = swingBeat(
+              swing[i],
+              engaged ? figures.beat[i] : -1,
+              engaged && figures.kill[i] === 1,
+              snap,
+              clock,
+              strikeSeconds,
+              strikeImpact,
+            );
+            if (beat !== swing[i]) {
+              swing[i] = beat;
+              swingFrom[i] = snap ? -Infinity : clock;
             }
-            if (beat < 0 && figures !== null && opponent !== -1 && figures.beat[i] >= 0) {
-              const begun =
-                (((clock - figures.beat[i] + strikeImpact) % STRIKE_PERIOD) + STRIKE_PERIOD) % STRIKE_PERIOD;
-              if (begun < (snap ? strikeSeconds : STRIKE_START)) {
-                beat = figures.beat[i];
-                into = begun;
-              }
-            }
-            swing[i] = beat;
+            if (beat >= 0) into = swingInto(beat, clock, strikeImpact);
           }
           if (into >= 0) {
             anim[o] = mix > 0.5 ? to : from;
             anim[o + 1] = ATTACK;
-            anim[o + 2] = Math.min(into / STRIKE_IN, (strikeSeconds - into) / STRIKE_OUT, 1);
+            anim[o + 2] = Math.min((clock - swingFrom[i]) / STRIKE_IN, (strikeSeconds - into) / STRIKE_OUT, 1);
           } else {
             anim[o] = from;
             anim[o + 1] = to;
@@ -1033,7 +1040,7 @@ export class Crowd {
     // Where everybody stands, then who fights whom, then the figures.
     if (advance !== 0) {
       for (const block of this.blocks) block.sample(time);
-      this.melee?.update();
+      this.melee?.update(clock);
     }
     for (const block of this.blocks) block.update(time, clock, now, march, heightAt);
   }

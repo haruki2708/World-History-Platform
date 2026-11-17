@@ -91,6 +91,34 @@ Làm 2026-11-18. Thiết kế đầy đủ ở `docs/ARCHITECTURE.md`, mục "Gi
 - Khối đi xiên nhiều hơn trước: `check-facing.mjs --min 0.25` in 53 dòng (46 sau T-027), phần lớn ở giai đoạn 5–6, lúc quân La Mã dồn thành hộp. Lính Libya ở giai đoạn 6 vừa đánh vừa dịch 158 m lệch 55° so với hướng mặt.
 - Câu lời dẫn giai đoạn 2–5 đã đổi: người dùng nên đọc lại.
 
+### Sau review của lane 3 (2026-11-18)
+
+Lane 3 đọc lại nhánh ở `09b42e0`: `docs/tasks/T-032-review.md`. Không có lỗi làm hỏng cảnh. Đã sửa trên nhánh này:
+
+| Mục của review | Đã sửa thế nào |
+|---|---|
+| 1. Xác trượt về chỗ cũ (trung vị 2 m) | Hình `DYING` giữ nguyên độ dời. Theo dõi 2 454 người ngã khi phát giai đoạn 6 trong trình duyệt: không ai dịch chuyển sau khi ngã |
+| 2. 30% người ngã không có đòn chạm | Bốn chỗ: người sắp ngã mà chưa ai chọn thì được giao cho đối thủ anh ta đã chọn (`melee.ts`); nhát hạ gục được bắt đầu muộn và cắt ngang nhát đang dở (`swingBeat`); `opposition` dùng cùng tầm và góc với lúc ghép cặp, bỏ phần 14 m ngoài sườn; khi rút hàng dọc, hàng có địch trước mặt luôn được ưu tiên hơn hàng không có |
+| Người ngã trong 0,4 giây chờ không phải người đầu hàng | Người đứng sau thành người đầu hàng ngay khi người trước ngã |
+| 4. Giai đoạn `fight` ngắn thì người nhảy chỗ | Bỏ trần 0,25 của `span` |
+| 5. Nhịp cũ còn lại sau `skirmish` | Đặt lại `swing` khi khối đang ném |
+| 6. Quy tắc kiểm tra còn lỏng | `validate` in cảnh báo khi dưới một nửa mặt trận chạm địch. Dữ liệu Cannae hiện không có cảnh báo nào |
+
+Đo lại bằng `main-tools/melee/falls.mjs` (chạy `timeline.ts`, `melee.ts` và `swingBeat` của nhánh, 60 khung/giây cả trận). Số "trước" là của lane 3, đo bằng công cụ của lane 3:
+
+| | Trước | Sau |
+|---|---|---|
+| Cannae, người ngã có đòn chạm đúng lúc | 1 972 trên 2 834 (70%) | 2 535 trên 2 834 (89%) |
+| Giai đoạn 3 / 4 / 5 / 6 | 90% / 75% / 57% / 70% | 99% / 99% / 96% / 87% |
+| Trận thử `duel` | 483 trên 624 (77%) | 610 trên 624 (98%) |
+
+Ở giai đoạn 6 còn 191 người ngã mà chưa ai chọn và 88 người mà nhát đánh không kịp, hầu hết ở hai sườn, nơi mỗi hàng dọc mất một người sau khoảng 2 giây.
+
+Chưa sửa, để chặng 2:
+
+- **Mục 3, cặp đấu đổi liên tục.** Đo lại: ở Cannae một người đổi đối thủ trung bình 3,3 giây một lần khi cả hai còn đứng (trận thử: 11,6 giây). Sẽ làm cùng việc cho hai người trong một cặp đánh luân phiên.
+- **Tốc độ khung hình giai đoạn 6 thấp hơn `main` khoảng 5%** (lane 3 đo bốn vòng: thấp hơn ở 14 trên 16 cặp cửa sổ; ghép cặp chỉ chiếm khoảng 0,5 khung/giây, phần còn lại nằm ở phần vẽ theo bố cục mới và thuộc tính `iStrike`, chưa tách được). Tiêu chí "không thấp hơn `main`" vì vậy chưa đạt; mức chênh nhỏ, vẫn trên mục tiêu 50 khung/giây.
+
 ### Đề nghị cho chặng 2
 
 - Hợp đồng: thêm `block`, `hit` vào cuối `UNIT_CLIPS`; quy ước thời điểm đòn chạm trong hai clip này.
