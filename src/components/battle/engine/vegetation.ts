@@ -37,8 +37,12 @@ import { occupancy } from "./structures";
 type HeightAt = (x: number, y: number) => number;
 type Rng = () => number;
 
-/** Plants are grouped by squares of this side, metres: a square out of view is not drawn. */
-const CHUNK = 700;
+/**
+ * Plants are grouped by squares of this side, metres: a square out of view is
+ * not drawn. Large squares, because every square is a draw call (two for the
+ * trees, which also cast shadows), and those cost more than the triangles do.
+ */
+const CHUNK = 2600;
 /** Ground at or below this height is sea (terrain.ts). */
 const SEA_LEVEL = 0.05;
 
@@ -69,7 +73,7 @@ const KINDS = {
     centre: 7.2,
     wide: 5.6,
     tall: 3.6,
-    cards: 22,
+    cards: 15,
     picture: FINE,
     leaf: new Color("#93a078"),
     leafDark: new Color("#66744f"),
@@ -81,7 +85,7 @@ const KINDS = {
     centre: 13,
     wide: 8.5,
     tall: 6.5,
-    cards: 30,
+    cards: 19,
     picture: BROAD,
     leaf: new Color("#5f7440"),
     leafDark: new Color("#3d4d2b"),
@@ -93,7 +97,7 @@ const KINDS = {
     centre: 21,
     wide: 4.6,
     tall: 12,
-    cards: 30,
+    cards: 19,
     picture: BROAD,
     leaf: new Color("#86a058"),
     leafDark: new Color("#5d7740"),
@@ -105,7 +109,7 @@ const KINDS = {
     centre: 9.5,
     wide: 7.5,
     tall: 5.5,
-    cards: 26,
+    cards: 17,
     picture: FINE,
     leaf: new Color("#98aa62"),
     leafDark: new Color("#6c7f45"),
@@ -117,7 +121,7 @@ const KINDS = {
     centre: 1.9,
     wide: 2.8,
     tall: 1.9,
-    cards: 7,
+    cards: 5,
     picture: FINE,
     leaf: new Color("#7d8a56"),
     leafDark: new Color("#566238"),
@@ -258,7 +262,7 @@ function plant(out: Leaves, kind: Kind, x: number, ground: number, z: number, sc
     // Lit as a rounded body: the normal points outwards and a little up.
     const nl = Math.hypot(dx, up * 0.9 + 0.35, dz) || 1;
     const normal: [number, number, number] = [dx / nl, (up * 0.9 + 0.35) / nl, dz / nl];
-    const size = Math.min(kind.wide, kind.tall * 1.3) * scale * (0.95 + rng() * 0.5);
+    const size = Math.min(kind.wide, kind.tall * 1.3) * scale * (1.1 + rng() * 0.5);
     // Darker inside and below, lighter outside and on top.
     const shade = (0.72 + 0.28 * depth) * (0.86 + 0.2 * (up * 0.5 + 0.5)) * (0.92 + rng() * 0.16);
     const color = rng() < 0.35 ? kind.leafDark : kind.leaf;
@@ -410,9 +414,10 @@ export class Vegetation {
     const treeOk = (x: number, y: number) => dry(x, y) && !troopsWide(x, y) && !built(x, y, 12) && !inBed(x, y, 6);
     const lowOk = (x: number, y: number) => dry(x, y) && !troops(x, y) && !built(x, y, 4);
 
+    // Trees apart from the low growth: only the trees cast shadows.
     const chunks = new Map<string, Leaves>();
-    const leavesAt = (x: number, y: number): Leaves => {
-      const key = `${Math.floor(x / CHUNK)},${Math.floor(y / CHUNK)}`;
+    const chunkAt = (x: number, y: number, tall: boolean): Leaves => {
+      const key = `${tall ? "t" : "l"}${Math.floor(x / CHUNK)},${Math.floor(y / CHUNK)}`;
       let leaves = chunks.get(key);
       if (!leaves) {
         leaves = new Leaves();
@@ -420,7 +425,9 @@ export class Vegetation {
       }
       return leaves;
     };
-    const grow = (kind: Kind, x: number, y: number, scale: number) => plant(leavesAt(x, y), kind, x, heightAt(x, y), -y, scale, rng);
+    const leavesAt = (x: number, y: number): Leaves => chunkAt(x, y, false);
+    const grow = (kind: Kind, x: number, y: number, scale: number) =>
+      plant(chunkAt(x, y, kind.trunk > 0), kind, x, heightAt(x, y), -y, scale, rng);
 
     // Along the rivers.
     for (const { river, half } of beds) {
@@ -524,11 +531,11 @@ export class Vegetation {
       }
     }
 
-    for (const leaves of chunks.values()) {
+    for (const [key, leaves] of chunks) {
       if (leaves.positions.length === 0) continue;
       const mesh = new Mesh(leaves.geometry(), this.material);
       mesh.customDepthMaterial = this.depthMaterial;
-      mesh.castShadow = true;
+      mesh.castShadow = key.startsWith("t");
       mesh.receiveShadow = true;
       this.group.add(mesh);
     }
