@@ -63,7 +63,8 @@ Làm 2026-11-18.
 - `npm run lint`, `npx tsc --noEmit`, `npm run validate`: qua.
 - Cố ý làm sai dữ liệu phong cảnh theo 16 kiểu (thiếu nguồn, mức lạ, trại nằm trên sông, công trình chồng nhau, ra ngoài lưới, số ngoài khoảng...): cả 16 đều bị bắt; file được trả lại nguyên vẹn sau khi thử.
 - Đo từng công trình trên lưới độ cao: khoảng cách tới sông, độ cao mặt đất bên dưới, khối quân nào đứng bên trong ở mỗi mốc (bảng ở `cannae.md`, mục 12).
-- `npm run build`: xem dòng cuối mục này.
+- `npm run build` (worktree tạm, commit `d461fe4`, cài thư viện riêng bằng `npm ci` vì Turbopack không đi theo liên kết `node_modules` ra ngoài thư mục gốc): qua. Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản production đó: 17/17, console sạch, trận Cannae mở được.
+- Chưa xem bằng mắt vị trí mới của nhãn "Trại của Hannibal" trong cảnh.
 
 ### Khác với đề xuất đã trình
 
