@@ -29,6 +29,7 @@ import { Melee, type MeleeFigures, swingBeat, swingInto } from "./melee";
 import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
 import { DYING, GONE, STRIKE_PERIOD, type UnitTrack } from "./timeline";
+import { REACTION_IMPACT } from "@/lib/battle";
 
 /**
  * Figures are drawn larger than life: one figure stands for twenty men, and
@@ -169,6 +170,18 @@ const VELOCITY_SMOOTHING = 0.25;
  *   melee.ts).
  * - The blow fades in over STRIKE_IN and out over STRIKE_OUT seconds on top
  *   of what the legs do.
+ * - A figure struck by an enemy in reach takes the blow: the clip block or
+ *   hit plays once, started REACTION_IMPACT before the blow lands (on the
+ *   figure's own beat). One blow in HIT_SHARE gets through (hit), and so
+ *   does the blow that fells him; the others he takes on the shield (block).
+ *   Which, is fixed per figure and blow. A model without the clips takes
+ *   blows without moving.
+ * - One clip at a time, and none cut short: a figure in a blow of its own
+ *   takes none, nor does one whose next blow would begin before the clip
+ *   ends; and a blow of its own waits until the blow it takes has played out
+ *   but for REACT_TAIL seconds. Two men who fight each other take turns
+ *   (melee.ts), so this matters when enemies or beats change. Only the blow
+ *   that fells the enemy does not wait.
  * - A figure that falls lies where it fought: it keeps the place it had left
  *   its file for. (After a jump the fallen lie in their files, a few metres
  *   off: where a man stood to fight is not known without playing up to it.)
@@ -182,6 +195,12 @@ const STRIKE_IN = 0.15;
 const STRIKE_OUT = 0.25;
 const STEP_FROM = 0.12;
 const STEP_FULL = 0.45;
+const HIT_SHARE = 0.3;
+const REACT_TAIL = 0.1;
+/** A blow he takes may end this long after his own next blow begins, seconds: both fade. */
+const REACT_OVERLAP = 0.05;
+const BLOCK = CLIP_INDEX.block;
+const HIT = CLIP_INDEX.hit;
 
 /** One gait of a model: its clip and its natural ground speed (m/s, as drawn). */
 interface Gait {
@@ -460,6 +479,9 @@ export class UnitBlock {
   private readonly swing: Float32Array;
   /** When that blow began, seconds of playback: it fades in from there. */
   private readonly swingFrom: Float32Array;
+  /** The same for the blow each figure is taking (block, hit). */
+  private readonly react: Float32Array;
+  private readonly reactFrom: Float32Array;
 
   constructor(
     readonly track: UnitTrack,
@@ -474,6 +496,8 @@ export class UnitBlock {
     this.offY = new Float32Array(track.count);
     this.swing = new Float32Array(track.count).fill(-1);
     this.swingFrom = new Float32Array(track.count).fill(-Infinity);
+    this.react = new Float32Array(track.count).fill(-1);
+    this.reactFrom = new Float32Array(track.count).fill(-Infinity);
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
@@ -614,7 +638,8 @@ export class UnitBlock {
     let moved = 0;
     let movers = 0;
     // Hand to hand (see CLOSE_SPEED).
-    const { offX, offY, swing, swingFrom } = this;
+    const { offX, offY, swing, swingFrom, react, reactFrom } = this;
+    const reactSeconds = Math.max(model.reaction.block, model.reaction.hit);
     const figures = track.fighting ? this.fight : null;
     // After a jump, and when first placed, the figures stand where the fight has them.
     const snap = march.jumped || !this.placed;
@@ -689,6 +714,7 @@ export class UnitBlock {
           anim[o + 3] = since;
           strike[n] = -1;
           swing[i] = -1;
+          react[i] = -1;
         } else {
           const heading = track.heading[i];
           // In a fight at a distance only the front ranks throw; the rest wait their turn.
@@ -790,14 +816,23 @@ export class UnitBlock {
           }
           // The blow on top: the one under way, or one that begins now.
           let into = -1;
+          let overlay = ATTACK;
+          // Seconds since the clip on top began, and until it ends: it fades in and out.
+          let since = 0;
+          let left = 0;
           if (throwing) {
             swing[i] = -1;
+            react[i] = -1;
           } else {
             const engaged = figures !== null && opponent !== -1;
+            const kill = engaged && figures.kill[i] === 1;
+            // A blow of his own waits until the blow he takes has played out.
+            const taking =
+              !snap && !kill && react[i] >= 0 && reactSeconds - swingInto(react[i], clock, REACTION_IMPACT) > REACT_TAIL;
             const beat = swingBeat(
               swing[i],
-              engaged ? figures.beat[i] : -1,
-              engaged && figures.kill[i] === 1,
+              engaged && !taking ? figures.beat[i] : -1,
+              kill,
               snap,
               clock,
               strikeSeconds,
@@ -807,12 +842,43 @@ export class UnitBlock {
               swing[i] = beat;
               swingFrom[i] = snap ? -Infinity : clock;
             }
-            if (beat >= 0) into = swingInto(beat, clock, strikeImpact);
+            if (beat >= 0) {
+              into = swingInto(beat, clock, strikeImpact);
+              since = clock - swingFrom[i];
+              left = strikeSeconds - into;
+            }
+            // The blow he takes, when he is not in one of his own.
+            if (beat >= 0) {
+              react[i] = -1;
+            } else if (reactSeconds > 0) {
+              let incoming = figures !== null && figures.struck[i] > 0 ? figures.own[i] : -1;
+              if (incoming >= 0 && engaged && figures.beat[i] >= 0) {
+                // Not one that his own next blow would cut short.
+                const next = (STRIKE_PERIOD - swingInto(figures.beat[i], clock, strikeImpact)) % STRIKE_PERIOD;
+                if (next < reactSeconds - swingInto(incoming, clock, REACTION_IMPACT) - REACT_OVERLAP) incoming = -1;
+              }
+              const taken = swingBeat(react[i], incoming, false, snap, clock, reactSeconds, REACTION_IMPACT);
+              if (taken !== react[i]) {
+                react[i] = taken;
+                reactFrom[i] = snap ? -Infinity : clock;
+              }
+              if (taken >= 0) {
+                into = swingInto(taken, clock, REACTION_IMPACT);
+                since = clock - reactFrom[i];
+                left = reactSeconds - into;
+                // The blow that fells him gets through; of the others, one in HIT_SHARE.
+                const fatal = track.deathSeconds[i] - clock <= REACTION_IMPACT + 0.05;
+                const blow = Math.floor((clock - taken + REACTION_IMPACT) / STRIKE_PERIOD);
+                const chance = (track.seed[i] * 97.3 + blow * 0.618034) % 1;
+                const through = fatal || chance < HIT_SHARE;
+                overlay = model.reaction.hit > 0 && (through || model.reaction.block === 0) ? HIT : BLOCK;
+              }
+            }
           }
           if (into >= 0) {
             anim[o] = mix > 0.5 ? to : from;
-            anim[o + 1] = ATTACK;
-            anim[o + 2] = Math.min((clock - swingFrom[i]) / STRIKE_IN, (strikeSeconds - into) / STRIKE_OUT, 1);
+            anim[o + 1] = overlay;
+            anim[o + 2] = Math.min(since / STRIKE_IN, left / STRIKE_OUT, 1);
           } else {
             anim[o] = from;
             anim[o + 1] = to;

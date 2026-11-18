@@ -6,6 +6,7 @@
     blender ... --python art/blender/render_review.py -- --model MODEL --before OLD.glb         --compare {fists,skirt,pila,spear} --out NN-NAME.jpg
     blender ... --python art/blender/render_review.py -- --lineup [--cavalry]
     blender ... --python art/blender/render_review.py -- --model MODEL --jog NN-NAME.jpg
+    blender ... --python art/blender/render_review.py -- --model MODEL --duel OTHER
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -21,6 +22,11 @@ a horse: the figures further apart, the clips seen from the side.
 
 --jog renders the run and the jog of a foot model one above the other (what
 the scene played at a steady pace before the jog clip, and what it plays now).
+
+--duel renders two foot models face to face, as far apart as the scene
+stands them when they fight hand to hand, around the moment a blow lands:
+MODEL strikes and OTHER takes it on the shield (block), then is struck
+(hit), then the other way round. Into art/renders/duel-<MODEL>-<OTHER>.jpg.
 
 --before renders the same views (COMPARE) of an older file of the model
 (e.g. taken out of git with `git show REV:public/battles/models/X.glb`)
@@ -598,6 +604,61 @@ def jog_image(model, out):
 
 
 # --------------------------------------------------------------------------
+# Two models face to face: a blow struck and taken
+# --------------------------------------------------------------------------
+
+def forward_reach(template, clip, frame):
+    """How far in front of where it stands a model reaches at a frame of a
+    clip, metres (the scene measures the same on the baked clips:
+    measureStrike in src/components/battle/engine/figures/model.ts)."""
+    f = place(template)
+    play(f, clip, frame)
+    bpy.context.scene.frame_set(FRAME)
+    lo, _hi = bounds_of([f])
+    clear_figures([template.armature, *template.meshes.values()])
+    return -lo.y
+
+
+def duel_image(model, other):
+    """Rows: MODEL strikes and OTHER blocks; MODEL strikes and OTHER is hit;
+    then OTHER strikes. Columns: 0.2 s before the blow lands, as it lands,
+    0.17 s after. The two stand as far apart as the scene stands them:
+    1.3 times the reach of the shorter weapon, or shield against shield."""
+    reset_scene()
+    a = import_model(whp_build.glb_path(model))
+    b = import_model(whp_build.glb_path(other))
+    scene = stage(560, 620, samples=32)
+    strike = {id(a): strike_frame(a), id(b): strike_frame(b)}
+    reach = {id(t): forward_reach(t, "attack", strike[id(t)]) for t in (a, b)}
+    front = {id(t): forward_reach(t, "idle", 0) for t in (a, b)}
+    apart = max(min(reach.values()) * 1.3, sum(front.values()))
+    log(f"{model}: blow lands at frame {strike[id(a)]}, reach {reach[id(a)]:.2f} m, front {front[id(a)]:.2f} m")
+    log(f"{other}: blow lands at frame {strike[id(b)]}, reach {reach[id(b)]:.2f} m, front {front[id(b)]:.2f} m")
+    log(f"they stand {apart:.2f} m apart")
+    taken = whp_clips.REACT["impact"]
+    rows = []
+    for striker, clip in ((a, "block"), (a, "hit"), (b, "block"), (b, "hit")):
+        row = []
+        for offset in (-6, 0, 5):
+            # MODEL stands at the back (+Y) and faces the camera's left; OTHER faces it.
+            figures = [place(a, (0.0, apart / 2, 0.0), 0.0), place(b, (0.0, -apart / 2, 0.0), 180.0)]
+            for template, f in zip((a, b), figures):
+                if template is striker:
+                    play(f, "attack", max(strike[id(striker)] + offset, 0))
+                else:
+                    play(f, clip, taken + offset)
+            scene.frame_set(FRAME)
+            aim_camera(scene, Vector((-0.9, -apart / 2 - 1.15, -0.02)), Vector((0.9, apart / 2 + 1.15, 2.35)), "right",
+                       ortho=True, margin=1.0)
+            row.append(render_panel(scene))
+            clear_figures([a.armature, *a.meshes.values(), b.armature, *b.meshes.values()])
+        rows.append(row)
+    path = os.path.join(RENDER_DIR, f"duel-{model}-{other}.jpg")
+    save_panels(scene, rows, path)
+    log("duel:", path)
+
+
+# --------------------------------------------------------------------------
 # The library's other attacks, on a model's build file
 # --------------------------------------------------------------------------
 
@@ -738,6 +799,8 @@ def main():
     parser.add_argument("--lineup", action="store_true", help="the infantry models in a row")
     parser.add_argument("--cavalry", action="store_true", help="with --lineup: the cavalry models")
     parser.add_argument("--jog", metavar="NN-NAME.jpg", help="a foot model's run and jog, into art/renders/<model>/")
+    parser.add_argument("--duel", metavar="OTHER", choices=whp_build.unit_ids(),
+                        help="the model and another one face to face around a blow, into art/renders/")
     parser.add_argument("--before", help="an older .glb of the model, to compare with (see --compare)")
     parser.add_argument("--compare", choices=sorted(COMPARE), help="what to show before and after")
     parser.add_argument("--out", help="file name of the comparison in art/renders/<model>/")
@@ -748,6 +811,8 @@ def main():
         lineup(args.cavalry)
     elif args.jog:
         jog_image(args.model, args.jog)
+    elif args.duel:
+        duel_image(args.model, args.duel)
     elif args.attack_styles:
         attack_styles(args.model)
     else:

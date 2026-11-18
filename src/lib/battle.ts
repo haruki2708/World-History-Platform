@@ -21,9 +21,22 @@ export const MEN_PER_FIGURE = 20;
  * jog (added after the others, so their indices stay as they were) is a
  * steady run between walk and the fast run: the legs of a block moving at a
  * middle speed. See docs/ARCHITECTURE.md, "Mô hình lính".
+ *
+ * block and hit (added last, for the same reason) are what a man does when
+ * an enemy's blow lands on him hand to hand: he takes it on his shield, or
+ * it gets through and he flinches. Both start and end standing as in idle,
+ * do not loop, and have the blow land REACTION_IMPACT seconds in. A model
+ * without them takes blows without moving. See "Giáp lá cà".
  */
-export const UNIT_CLIPS = ["idle", "walk", "run", "attack", "die", "jog"] as const;
+export const UNIT_CLIPS = ["idle", "walk", "run", "attack", "die", "jog", "block", "hit"] as const;
 export type UnitClip = (typeof UNIT_CLIPS)[number];
+
+/**
+ * In the clips block and hit, the enemy's blow lands this many seconds into
+ * the clip: the scene starts them that long before the blow. The model
+ * scripts build the clips to it (REACT in art/blender/whp_clips.py).
+ */
+export const REACTION_IMPACT = 0.3;
 
 /** Mesh names inside a unit model, from most to least detailed. */
 export const UNIT_LODS = ["LOD0", "LOD1", "LOD2"] as const;

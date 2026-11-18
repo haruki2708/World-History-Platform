@@ -154,6 +154,10 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `jog` | `Walk_Loop` và `Jog_Fwd_Loop` (UAL 1) trộn theo pha | 0,733 s (22 khung) | Chạy đều, giữ đội hình: khiên và vũ khí giữ như khi đi. **Một vòng = 2,07–2,10 m**, tức 2,8–2,9 m/s. Lặp. Cách dựng: xem dưới. |
 | `attack` | tuỳ mô hình, xem dưới | | Lặp. |
 | `die` | `Death01` (UAL 1) | 2,4 s (72 khung) | Ngã ngửa, nằm yên từ khoảng khung 50. **Không lặp**: cảnh giữ khung cuối. |
+| `block` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Đỡ đòn bằng khiên: nâng khiên và đẩy ra trước, khiên bị dội về ngực lúc đòn chạm (khung 9), rồi hồi lại. Thân nhận 35% cú giật của `Hit_Chest`. **Không lặp.** |
+| `hit` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Trúng đòn: đứng như `idle` tới khung 9, rồi cả cú giật `Hit_Chest`, tay khiên bị bật ra; hồi lại. **Không lặp.** |
+
+**`block` và `hit`** (đợt G, `whp_clips.REACT`, `Builder.block`, `Builder.hit`): cảnh phát hai clip này đè lên `idle` khi đòn của địch chạm vào hình lính. Đòn chạm ở khung 9 (0,3 s), trùng với `REACTION_IMPACT` trong `src/lib/battle.ts`; đổi số này là đổi hợp đồng. Hai clip dựng sau `jog`, nên sáu clip trước giống hệt từng byte. Có ở sáu mô hình bộ binh đánh gần; hai mô hình đánh từ xa (kiểu tấn công trong `whp_clips.THROWN`: `roman-velites`, `balearic-slinger`) giữ sáu clip, file không đổi; kỵ binh chưa có (`whp_build.clips_of`). Ảnh hai mô hình đối mặt quanh lúc đòn chạm: `render_review.py -- --model A --duel B`, ra `art/renders/duel-A-B.jpg`.
 
 **Quãng đường một vòng** đo như cảnh đo (`plantedStride` trong `src/components/battle/engine/figures/model.ts`): đỉnh đế bàn chân nào nằm trong 2 cm trên điểm thấp nhất của clip ở hai khung liền nhau thì đang chạm đất, và lùi về sau đúng bằng tốc độ hình lính đi. Lấy trung vị các tốc độ đó, nhân với độ dài clip. Log của giai đoạn `anim` đo trên lưới chi tiết; `art/tools/gait_check.py` đo trên LOD0 của file `.glb` (hai số chênh nhau dưới 0,01 m). Số ở bảng là của mô hình La Mã; các mô hình khác chênh dưới 0,02 m.
 
