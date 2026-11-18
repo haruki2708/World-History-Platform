@@ -72,9 +72,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng cho bắt đầu chặng 1 ngay.
 - **2026-11-18:** Phiên chính xong chặng 1 của đợt H (T-038) trên nhánh `batch-h/stage1-ground-river`. Mặt đất: đồng bằng là các thửa ruộng (đã gặt, bỏ hoá, mới cày) xen đồng cỏ, nhìn gần thấy hàng rạ và luống cày bắt nắng. Sông: lòng sỏi, dòng nước cạn uốn trong lòng, trải rộng ở chỗ lội, dải lau sậy hai bờ, nước phản chiếu trời. Chân trời: lưới độ cao thưa 54 km mỗi phía (thêm ba ô Copernicus), thấy núi và biển Adriatic.
   - **Phát hiện:** 14% lưới địa hình chính (góc đông bắc) là biển trong dữ liệu ngày nay, trước giờ cảnh vẽ thành đất; hai khối kỵ binh kết thúc trận ở đúng chỗ đó. Giờ cảnh vẽ biển, hai khối dời vào bờ, và `npm run validate` không cho khối quân nào đứng trên biển. Bờ biển là bờ ngày nay, như dòng sông; `docs/data/battles/cannae.md`, mục 13.
-  - Hộp thoại Giới thiệu thêm một câu về cảnh vật (câu chữ chờ người dùng duyệt).
+  - Hộp thoại Giới thiệu thêm một câu về cảnh vật (người dùng đã duyệt câu chữ).
   - Hiệu năng (đo xen kẽ ba vòng, hai bản production, RTX 3050, không có Blender chạy): lúc phát giai đoạn 3 trung bình 58,4 khung hình/giây so với 62,4 của `main`; giai đoạn 4: 58,9 so với 61,4; đứng yên lúc mở: 95 so với 99. Chậm hơn khoảng 4–6%, nhỏ hơn dao động giữa các lượt đo (một lượt của nhánh xuống 50,5). Vẫn trên mục tiêu 50.
-  - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17. Chờ người dùng xem trong cảnh thật và duyệt gộp.
+  - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17.
+  - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng chọn chặng tiếp theo là **công trình (chặng 2), phiên chính làm tiếp**.
 
 ## Việc để giai đoạn 5
 
@@ -134,13 +135,13 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
   - Hộp thoại Giới thiệu phải nói rõ: cảnh Cannae có cây và nhà mà nguồn cổ không nhắc, và đồng bằng thật theo Polybius là đất trống.
   - Những thứ có tư liệu (thành, làng, ba trại, sông, gió, bụi) vẫn dựng theo tư liệu.
   - Cây và nhà không đặt vào chỗ hai đạo quân dàn trận và giao chiến, để không che trận đánh.
-- **Phiên chính làm chặng 0 và 1.** Ai làm chặng 2–4 thì quyết sau khi xem chặng 1.
+- **Phiên chính làm chặng 0 và 1.** Sau chặng 1, người dùng chọn: làm chặng 2 (công trình) tiếp theo, **phiên chính làm tiếp**. Ai làm chặng 3 và 4 thì chưa chọn.
 - Chia năm chặng, duyệt và gộp riêng từng chặng. Trong lúc làm, các lane không nhận việc trong vùng trận đánh (như đợt G).
 
 | Chặng | Nội dung | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong, đã gộp 2026-11-18 |
-| 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong trên nhánh `batch-h/stage1-ground-river`, chờ người dùng xem và duyệt gộp |
+| 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong, đã gộp 2026-11-18 |
 | 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
 | 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
 | 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Chưa bắt đầu |

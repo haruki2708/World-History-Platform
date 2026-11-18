@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18: phiên chính làm chặng 0 và 1 của đợt H; chặng 1 bắt đầu ngay sau khi gộp chặng 0).
 - **Model:** Fable 5.2.
 - **Nhánh:** `batch-h/stage1-ground-river` (tạo từ `main` ở `c3474ab`). Không commit thẳng vào `main`.
-- **Trạng thái:** xong, chờ người dùng xem trong cảnh thật và duyệt gộp. Chưa có lane đọc lại.
+- **Trạng thái:** xong, đã gộp vào `main` 2026-11-18 (người dùng chọn gộp và đẩy luôn, không qua lane đọc lại).
 - **Phạm vi file:** `src/components/battle/engine/`, `src/lib/battle.ts`, `src/data/battles/`, `public/data/terrain/`, `scripts/battles/`, `src/components/map/battlePrefetch.ts`, `src/lib/i18n/messages.ts`, `src/components/shell/AboutDialog.tsx`, `README.md`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt H".
 
