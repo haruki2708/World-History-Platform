@@ -113,6 +113,14 @@ export interface UnitModel {
   strike: Strike;
   /** Length of the clips block and hit, seconds; 0 for a clip the model does not have. */
   reaction: { block: number; hit: number };
+  /**
+   * What the figure carries besides its weapon and its shield and puts away
+   * to fight hand to hand (the spare javelins of a hastatus), or null: the
+   * bone that carries it, and the point it shrinks to, in model space. The
+   * clips of the fight scale that bone away; the scene keeps it away between
+   * them (STOW_SECONDS in units.ts).
+   */
+  stow: { bone: number; pivot: [number, number, number] } | null;
   /** Height of the figure in its bind pose, metres. */
   height: number;
   /** Base colour texture, if the model has one. */
@@ -362,6 +370,9 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     fps,
   );
   const geometries = new Set(lods.map((lod) => lod.geometry));
+  const stow = chosen.hit
+    ? findStowed(data, width, bones.length, firstRow.get(chosen.idle ?? rest) ?? 0, firstRow.get(chosen.hit) ?? 0, inverses)
+    : null;
 
   return {
     name: source.name,
@@ -376,6 +387,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
     strike,
     reaction: { block: chosen.block?.duration ?? 0, hit: chosen.hit?.duration ?? 0 },
+    stow,
     height,
     map: source.map,
     surface: surface && {
@@ -468,6 +480,38 @@ function plantedStride(
 
 /** How many of the vertices that move most in the attack clip stand for the weapon. */
 const WEAPON_SHARE = 0.04;
+/** A bone this many times smaller in the first frame of hit than in the first frame of idle is put away to fight. */
+const STOWED_SCALE = 0.2;
+
+/**
+ * The bone a model scales away in the clips of the fight, read off the baked
+ * frames: the one bone that is far smaller in the first frame of hit (rows of
+ * the bone texture, see buildUnitModel) than in the first frame of idle. It
+ * shrinks about its own head, which is where the scene shrinks it to as well.
+ */
+function findStowed(
+  data: Float32Array,
+  width: number,
+  boneCount: number,
+  idleRow: number,
+  hitRow: number,
+  inverses: Matrix4[],
+): UnitModel["stow"] {
+  // Length of the first column of the 3×4 matrix of bone b in a row.
+  const scale = (row: number, b: number): number => {
+    const o = (row * width + b * 3) * 4;
+    return Math.hypot(data[o], data[o + 4], data[o + 8]);
+  };
+  let found = -1;
+  for (let b = 0; b < boneCount; b++) {
+    if (scale(hitRow, b) >= scale(idleRow, b) * STOWED_SCALE) continue;
+    if (found !== -1) return null;
+    found = b;
+  }
+  if (found === -1) return null;
+  const head = new Vector3().setFromMatrixPosition(new Matrix4().copy(inverses[found]).invert());
+  return { bone: found, pivot: [head.x, head.y, head.z] };
+}
 
 /**
  * Reads the blow off the baked attack clip. The vertices that travel

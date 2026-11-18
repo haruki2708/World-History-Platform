@@ -180,6 +180,12 @@ const VELOCITY_SMOOTHING = 0.25;
  * - In a block that stands still, a figure that moves (to close with an
  *   enemy, to step up behind a man who fell) walks: between STEP_FROM and
  *   STEP_FULL times the walking speed its legs go from idle to the walk.
+ * - The men at the head of the files put away what their model stows to
+ *   fight (UnitModel.stow: the spare javelins of a hastatus), over
+ *   STOW_SECONDS of real time, and take it up again when the unit stops
+ *   fighting or they are no longer at the head of a file. The clips of the
+ *   fight scale it away themselves; without this it would come and go with
+ *   every blow.
  */
 const CLOSE_SPEED = 6;
 const FIGHT_TURN = (80 * Math.PI) / 180;
@@ -187,6 +193,7 @@ const STRIKE_IN = 0.15;
 const STRIKE_OUT = 0.25;
 const STEP_FROM = 0.12;
 const STEP_FULL = 0.45;
+const STOW_SECONDS = 0.3;
 const BLOCK = CLIP_INDEX.block;
 const HIT = CLIP_INDEX.hit;
 
@@ -301,7 +308,10 @@ class Chunk {
     this.posYaw = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.anim = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.seed = new InstancedBufferAttribute(new Float32Array(count), 1);
-    this.strike = new InstancedBufferAttribute(new Float32Array(count).fill(-1), 1);
+    // Per figure: seconds into its blow (-1: none), and how far it has put away what it stows to fight.
+    const strike = new Float32Array(count * 2);
+    for (let k = 0; k < count; k++) strike[k * 2] = -1;
+    this.strike = new InstancedBufferAttribute(strike, 2);
     for (const attribute of [this.posYaw, this.anim, this.seed, this.strike]) {
       attribute.setUsage(DynamicDrawUsage);
     }
@@ -465,6 +475,8 @@ export class UnitBlock {
   /** How far each figure stands from its place in the formation, field metres east and north. */
   private readonly offX: Float32Array;
   private readonly offY: Float32Array;
+  /** How far each figure has put away what its model stows to fight, 0..1 (see STOW_SECONDS). */
+  private readonly stowed: Float32Array;
 
   constructor(
     readonly track: UnitTrack,
@@ -477,6 +489,7 @@ export class UnitBlock {
   ) {
     this.offX = new Float32Array(track.count);
     this.offY = new Float32Array(track.count);
+    this.stowed = new Float32Array(track.count);
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
@@ -617,8 +630,10 @@ export class UnitBlock {
     let moved = 0;
     let movers = 0;
     // Hand to hand (see CLOSE_SPEED).
-    const { offX, offY, blows } = this;
+    const { offX, offY, blows, stowed } = this;
     const figures = track.fighting ? this.fight : null;
+    const stows = model.stow !== null && track.fighting;
+    const stowStep = march.step / STOW_SECONDS;
     // After a jump, and when first placed, the figures stand where the fight has them.
     const snap = march.jumped || !this.placed;
     const closeStep = CLOSE_SPEED * march.step;
@@ -682,13 +697,26 @@ export class UnitBlock {
           groundH[i] = y;
         }
         const o = n * 4;
+        if (model.stow !== null) {
+          // At the head of a file in a fight hand to hand: put away. The fallen keep what they had.
+          let away = stowed[i];
+          if (status !== DYING) {
+            const want = stows && track.head[i] === 1 ? 1 : 0;
+            if (away !== want) {
+              if (snap) away = want;
+              else away = want > away ? Math.min(away + stowStep, want) : Math.max(away - stowStep, want);
+              stowed[i] = away;
+            }
+          }
+          strike[n * 2 + 1] = away;
+        }
         if (status === DYING) {
           const since = track.since[i];
           anim[o] = DIE;
           anim[o + 1] = DIE;
           anim[o + 2] = 0;
           anim[o + 3] = since;
-          strike[n] = -1;
+          strike[n * 2] = -1;
         } else {
           const heading = track.heading[i];
           // In a fight at a distance only the front ranks throw; the rest wait their turn.
@@ -818,7 +846,7 @@ export class UnitBlock {
             anim[o + 2] = mix;
           }
           anim[o + 3] = walked[i];
-          strike[n] = into;
+          strike[n * 2] = into;
         }
         posYaw[o] = x;
         posYaw[o + 1] = y;
