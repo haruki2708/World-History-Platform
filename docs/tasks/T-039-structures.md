@@ -57,7 +57,7 @@ Cái giá: hình dáng đơn giản hơn mô hình Blender (lều là khối có
 - `SceneryStructure.kind` thêm `farm`; `validate-battles.mjs` nhận loại này.
 - Cannae thêm 12 nhà nông (`farm-1` tới `farm-12`, mỗi cái 70 × 50 m), mức `illustrative`. Vị trí chọn bằng script: đất khô và bằng, cách sông trên 200 m, cách mọi đường đi của các khối quân trên 250 m, cách công trình khác trên 200 m. Bảng ở `docs/data/battles/cannae.md`, mục 14.
 
-**Hộp thoại Giới thiệu.** Dòng `about.accuracy.battle.scenery` viết lại, thêm: ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; ruộng và nhà nông không phải ghi chép về ruộng hay nhà có thật. **Câu chữ mới chưa được người dùng duyệt.**
+**Hộp thoại Giới thiệu.** Dòng `about.accuracy.battle.scenery` viết lại, thêm: ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; ruộng và nhà nông không phải ghi chép về ruộng hay nhà có thật. Người dùng đã duyệt câu chữ mới (2026-11-18).
 
 **Tài liệu.** `docs/ARCHITECTURE.md` (mục "Phong cảnh"), `docs/data/battles/cannae.md` (mục 14), `docs/PLAN.md`.
 
