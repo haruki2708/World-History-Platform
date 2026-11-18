@@ -1165,7 +1165,11 @@ export class UnitBlock {
 
   /**
    * Fades the ground patch in as the figures shrink to dots, and dims it
-   * with the daylight (it is a flat colour that takes no light).
+   * with the daylight (it is a flat colour that takes no light). Once the
+   * figures are large enough to read on their own the patch is gone: close
+   * up, a tint under their feet only looks like bare earth (T-046).
+   * Runs after `update` in a frame, so hiding the patch here holds for the
+   * frame drawn next.
    */
   setFootprintLook(cameraPosition: Vector3, pixelsPerMetreAtOne: number, daylight: number): void {
     this.footprintMaterial.color.copy(this.color).multiplyScalar(daylight);
@@ -1176,7 +1180,8 @@ export class UnitBlock {
     if (!Number.isFinite(distance)) distance = Math.max(cameraPosition.distanceTo(this.center), 1);
     const pixels = (this.model.height * FIGURE_SCALE * pixelsPerMetreAtOne) / distance;
     const far = 1 - Math.min(Math.max((pixels - 5) / 13, 0), 1);
-    this.footprintMaterial.opacity = 0.1 + 0.42 * far;
+    this.footprintMaterial.opacity = 0.52 * far;
+    if (far === 0) this.footprint.visible = false;
   }
 
   dispose(): void {

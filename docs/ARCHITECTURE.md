@@ -241,6 +241,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - quay tối đa 3 rad/s theo thời gian thật; quay lại hướng khối khi khối dừng, khi đang quay đầu, hay sau khi tua;
   - trong khối đang đánh, các hàng đang đánh giữ hướng khối; các hàng đang chờ lượt quay tối đa 45° (`WAITING_TURN`).
 - **Vẽ trên mặt đất:** vùng màu dưới mỗi khối và mũi tên di chuyển được vẽ sau mặt đất và trước lính, nên lính luôn đứng lên trên.
+  - Vùng màu chỉ để đọc đội hình từ xa (`setFootprintLook` trong `units.ts`): đục nhất (0,52) khi hình lính gần nhất của khối cao dưới 5 điểm ảnh, mờ dần, rồi ẩn hẳn khi hình đó cao từ 18 điểm ảnh. Nhìn gần, một lớp màu dưới chân lính chỉ trông như đất trống (T-046, người dùng chọn).
 - **Nhãn địa danh:** ẩn khi điểm của nhãn bị đồi hay khối quân che (`engine/occlusion.ts`); quân đứng ngay tại địa danh thì không che tên của nó.
 - **Nhãn khối quân** (T-028): mỗi khối còn người đứng có nhãn tên kèm chấm màu phe, trên đầu khối, ở giữa mặt trận (hay 30% về hai đầu nếu chỗ giữa bị che). Nhãn khối quân và nhãn địa danh dùng chung `labelLayout`, không đè nhau, không đè lớp phủ.
   - Thứ tự giành chỗ: thị trấn và sông, rồi tên khối quân, rồi trại, đồi, chỗ vượt sông. Giữa các khối: khối trông lớn nhất trên màn hình trước (căn bậc hai của bề ngang × chiều sâu, chia cho khoảng cách tới camera).
