@@ -25,7 +25,7 @@ File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp th�
 - Chân trời có đồi núi và biển thật thay cho nền phẳng.
 - Cảnh đọc `terrain.scenery` (lớp phủ mặt đất) và `level`, `banks` của sông. Trận không có `scenery` vẫn vẽ được.
 - Tốc độ khung hình vẫn trên mục tiêu 50 khi phát 1× (đo xen kẽ với `main`).
-- Hộp thoại Giới thiệu có câu về phong cảnh (câu chữ do người dùng duyệt).
+- Hộp thoại Giới thiệu có câu về phong cảnh (câu chữ do người dùng duyệt: đã duyệt 2026-11-18).
 - `npm run lint`, `npm run validate`, `npm run build` qua; hồi quy lõi qua.
 
 ## Kết quả
@@ -68,7 +68,7 @@ Làm 2026-11-18. Ba commit trên nhánh: mặt đất và sông; vùng xa và bi
 
 **Kiểm tra dữ liệu (`validate-battles.mjs`).** `terrain.far` (kích thước, file, vượt ra ngoài lưới chính ít nhất hai ô); không khối quân nào có quá 10% diện tích nằm trên biển ở bất kỳ mốc nào; không địa danh hay công trình nào nằm trên biển.
 
-**Hộp thoại Giới thiệu.** Thêm dòng `about.accuracy.battle.scenery` (hai ngôn ngữ) sau dòng về đánh theo từng đợt: cảnh vật có phần theo tư liệu, có phần minh hoạ; đồi núi, sông, bờ biển theo dữ liệu độ cao ngày nay; các thửa ruộng không phải ghi chép về ruộng thật. **Câu chữ chưa được người dùng duyệt.** Khi chặng 2 và 3 thêm cây và nhà minh hoạ, câu này phải nói thêm chúng trái với lời Polybius.
+**Hộp thoại Giới thiệu.** Thêm dòng `about.accuracy.battle.scenery` (hai ngôn ngữ) sau dòng về đánh theo từng đợt: cảnh vật có phần theo tư liệu, có phần minh hoạ; đồi núi, sông, bờ biển theo dữ liệu độ cao ngày nay; các thửa ruộng không phải ghi chép về ruộng thật. Người dùng đã duyệt câu chữ (2026-11-18). Khi chặng 2 và 3 thêm cây và nhà minh hoạ, câu này phải nói thêm chúng trái với lời Polybius.
 
 **Tài liệu.** `docs/ARCHITECTURE.md` (mục "Phong cảnh": vùng xa, biển, mặt đất và sông trong cảnh), `docs/data/battles/cannae.md` (mục 13, sửa mục 7), `docs/PLAN.md`, `README.md` (dòng ghi công địa hình).
 
