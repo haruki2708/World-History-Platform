@@ -50,7 +50,7 @@ Cái giá: hình dáng đơn giản hơn mô hình Blender (lều là khối có
 - **Nhà nông (`farm`, loại mới):** một nhà chính mái ngói, một hoặc hai chuồng trại mái rạ, sân có tường thấp, lối vào ở mặt trước.
 - Mọi thứ đứng trên mặt đất vẽ to gấp 3 như hình lính (lều cao 4,4 m, nhà cao 6–8 m tới mái hiên); phần đất của công trình giữ kích thước thật.
 - Một vật liệu chung, mỗi bề mặt có vân riêng làm trong shader: đất, gỗ, da và vải (đường may), đá (hàng đá so le), tường trát, ngói, rạ. Công trình đổ bóng và nhận bóng.
-- Lều được gom thành cụm 14 × 14 ô để trình duyệt chỉ vẽ cụm nằm trong khung nhìn.
+- Số lượt vẽ: một lưới cho mọi nhà (thành, làng, nhà nông), mỗi trại một lưới cho hào luỹ và bốn lưới cho lều (mỗi góc phần tư một lưới). Tổng cộng 16 lưới. Bản đầu chia lều thành cụm nhỏ, hơn 100 lưới, và đo thấy chậm (xem dưới).
 
 **Hợp đồng và dữ liệu.**
 
@@ -65,7 +65,24 @@ Cái giá: hình dáng đơn giản hơn mô hình Blender (lều là khối có
 
 - `npm run lint`, `npx tsc --noEmit`, `npm run validate`: qua.
 - Xem bằng ảnh chụp trên `next dev` (cổng 3105), RTX 3050, lúc 5:30 và 9:45: trại lớn (toàn cảnh, sát lều, cổng nam), trại nhỏ, trại của Hannibal (toàn cảnh và lúc đạo quân La Mã đánh trại), thành, làng, một nhà nông, toàn cảnh chiến trường. Ảnh ở `E:\World_History_Platform_assets\main-tools\shots\h2-a-*`, `h2-b-*`.
-- Hiệu năng, build và hồi quy lõi: ghi ở cuối mục này.
+- Hiệu năng: đo xen kẽ giữa hai bản production (`main` ở `5b2b28b`, đã có chặng 1, và nhánh), `main-tools/drive/s-perf3.mjs`, không có Blender chạy. Số là khung hình mỗi giây.
+
+  Bản đầu của nhánh (`02b1553`, hơn 100 lưới), ba vòng:
+
+  | | Đứng yên lúc mở | Phát giai đoạn 3 | Phát giai đoạn 4 |
+  |---|---|---|---|
+  | `main` | 87,3 / 85,6 / 81,1 | 51,5 / 57,0 / 57,9 | 50,4 / 56,2 / 57,5 |
+  | nhánh | 86,9 / 91,0 / 95,2 | 55,4 / 65,4 / 46,2 | 47,8 / 52,9 / 35,4 |
+
+  Nhánh thấp hơn ở giai đoạn 4 trong cả ba vòng, hai lần dưới mục tiêu 50. Sau khi gom còn 16 lưới (`04b23ac`), bốn vòng:
+
+  | | Đứng yên lúc mở | Phát giai đoạn 3 | Phát giai đoạn 4 |
+  |---|---|---|---|
+  | `main` | 89,5 / 96,9 / 90,5 / 91,6 | 55,9 / 64,6 / 63,0 / 50,3 | 58,3 / 61,2 / 48,1 / 48,9 |
+  | nhánh | 93,4 / 89,8 / 82,0 / 98,2 | 54,1 / 59,3 / 48,8 / 66,8 | 50,0 / 54,0 / 49,6 / 64,5 |
+
+  Trung bình: giai đoạn 3 là 58,5 (`main`) và 57,3 (nhánh); giai đoạn 4 là 54,1 và 54,5. Không còn khác biệt đo được. **Nhưng cả hai bản đều có lượt xuống 48–50**, tức sát hoặc dưới mục tiêu: hôm nay máy đo cho số thấp hơn buổi sáng khoảng 10% (sáng: `main` trước chặng 1 đạt 62 ở giai đoạn 3), và phần chậm đó có từ chặng 1 hoặc do máy, không phải do công trình. Chưa tách được hai nguyên nhân này.
+- `npm run build` (worktree tạm): qua ở `02b1553` và `04b23ac`. Hồi quy lõi (`main-tools/reg-core.js`) trên bản production `04b23ac`: 17/17, console sạch.
 
 ### Chưa làm, hoặc chưa ưng
 
