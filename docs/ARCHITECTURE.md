@@ -202,7 +202,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - **`block`, `hit`** (thêm 2026-11-18, đợt G): phản ứng của người bị đánh trong giáp lá cà. `block`: đưa khiên ra đỡ, khiên bị dội lại. `hit`: đòn lọt qua, người giật lại.
     - Cả hai bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài 1,0 giây. Đòn của địch chạm ở giây thứ `REACTION_IMPACT` (0,3) của clip; cảnh canh giờ theo số này, nên đổi nó là đổi hợp đồng.
     - Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi. Mô hình chưa có hai clip này thì nhận đòn mà không phản ứng.
-    - Có ở sáu mô hình bộ binh đánh gần: `roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`. Hai mô hình đánh từ xa (`roman-velites`, `balearic-slinger`) không có. Kỵ binh: chặng 3.
+    - Có ở chín mô hình: sáu mô hình bộ binh đánh gần (`roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`) và ba mô hình kỵ binh. Hai mô hình bộ binh đánh từ xa (`roman-velites`, `balearic-slinger`) không có.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
@@ -281,9 +281,13 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Kết quả chỉ phụ thuộc thời gian trong trận.
 - **Nhịp đánh:** mỗi hình lính có một nhịp bị đánh (`UnitTrack.beat`), chu kỳ `STRIKE_PERIOD` (2,4 giây phát). Nhịp của người sẽ ngã chính là lúc người đó ngã. Người đánh phát clip `attack` một lần mỗi chu kỳ, đặt sao cho lúc đòn chạm trùng nhịp của đối thủ, nên nhát cuối rơi đúng lúc đối thủ ngã. Giữa hai nhát, hình lính đứng thủ (`idle`).
   - **Luân phiên:** hai người chọn nhau thì nhịp bị đánh lệch nhau nửa chu kỳ, tức người này đánh xong 1,2 giây thì người kia đánh. Người sắp ngã giữ nhịp riêng (lúc ngã), người kia theo đó.
-- **Nhận đòn** (`engine/units.ts`): hình lính bị địch trong tầm đánh thì phát `block` hoặc `hit` một lần, bắt đầu `REACTION_IMPACT` trước khi đòn chạm. Ba trên mười đòn lọt qua (`hit`); đòn hạ gục luôn lọt qua. Chọn clip nào là cố định theo từng hình và từng đòn.
+- **Nhận đòn** (`engine/blows.ts`, thuần dữ liệu như `melee.ts`; `Crowd.update` gọi sau khi ghép cặp): mỗi khung hình chạy hai lượt trên mọi hình lính.
+  - Lượt một, đòn đánh ra: hình lính đang dở một nhát thì báo cho người mà nhát đó nhắm tới (đối thủ lúc nhát bắt đầu), cho tới lúc đòn chạm.
+  - Lượt hai, đòn nhận vào: hình lính được báo có đòn tới thì phát `block` hoặc `hit` một lần, bắt đầu `REACTION_IMPACT` trước khi đòn chạm. Nó phản ứng với nhát đánh thật của địch, nên không giơ khiên đỡ một đòn không tới.
+  - Ba trên mười đòn lọt qua (`hit`); đòn hạ gục luôn lọt qua. Chọn clip nào là cố định theo từng hình và từng đòn.
   - **Mỗi lúc một clip, không clip nào bị cắt ngang:** hình lính đang dở nhát đánh của mình thì không phản ứng; nhát đánh kế tiếp của nó sẽ bắt đầu trước khi phản ứng phát xong thì cũng không phản ứng; đang phản ứng thì nhát đánh của nó chờ phản ứng phát xong (còn dưới 0,1 giây). Hai người trong một cặp vốn đánh luân phiên, nên các quy tắc này chỉ có tác dụng lúc đổi đối thủ hay đổi nhịp. Ngoại lệ duy nhất: nhát hạ gục đối thủ không chờ.
-  - Phản ứng đi theo nhịp bị đánh của hình lính, không theo nhát đánh thật của địch. Khi địch còn dở một nhát canh theo nhịp khác, hình lính đỡ một đòn không tới (khoảng một trên mười lần ở Cannae). Sửa ở chặng 3.
+  - Clip đánh dài và lấy đà lâu thì không đủ chỗ cho cả hai trong một chu kỳ: kỵ binh Numidia đánh gần (phóng lao, đòn chạm ở giây 0,73) hầu như không đỡ đòn.
+  - Sau khi tua, hình lính vào ngay nhát đánh mà đồng hồ trận cho nó; người bị đánh chỉ phản ứng với nhát còn kịp bắt đầu clip.
 - **Vẽ** (`engine/units.ts`):
   - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối.
   - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).
@@ -291,7 +295,7 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Người ngã nằm lại ở chỗ đang đấu, không bị kéo về chỗ trong đội hình. Sau khi tua, người đã ngã nằm ở chỗ trong đội hình, lệch vài mét so với lúc phát liên tục.
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
-- **Chưa có:** `block` và `hit` cho kỵ binh (chặng 3). Kỵ binh đấu từng cặp như bộ binh, nhưng nhận đòn mà không phản ứng.
+- **Kỵ binh** đấu từng cặp và nhận đòn như bộ binh (chặng 3). Khoảng cách đấu của họ tính theo thân ngựa, nên hai con ngựa đứng chạm mũi nhau và mũi giáo chỉ tới đầu ngựa của địch.
 
 ### Khung xem trận (đợt C)
 
