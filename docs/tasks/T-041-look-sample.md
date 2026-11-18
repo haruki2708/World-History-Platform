@@ -53,6 +53,6 @@ Bản cắt đầu tiên, 2026-11-18.
 - Mảng màu đỏ nâu dưới chân các khối quân (màu phe vẽ trên đất) trông như đất trống; chưa quyết giữ hay bỏ.
 - Xa ngoài vòng bụi cỏ, mặt đất là màu phẳng; chỗ chuyển tiếp còn thấy được.
 - Chưa có đá, vách đá có vân, thú vật.
-- **Chưa đo hiệu năng một cách đầy đủ**; chặng 3 (cây) trước đó đã làm cảnh chậm dưới mục tiêu và lần đo lại sau khi tối ưu bị ngắt. Bụi cỏ và lính chi tiết hơn sẽ tốn thêm.
+- **Hiệu năng sát hoặc dưới mục tiêu.** Đo ba lượt trên bản production của nhánh (commit da78f73, s-perf3.mjs, RTX 3050, không có Blender chạy): đứng yên lúc mở 72,5 / 74,3 / 72,5 khung hình mỗi giây; phát giai đoạn 3: 54,5 / 51,8 / 46,4; phát giai đoạn 4: 50,6 / 44,6 / 53,0. Trung bình khoảng 51 và 49, mục tiêu là 50; main cùng ngày đạt khoảng 59 và 55, lúc mở 94. Không đo xen kẽ với main lần này, và chưa tách phần của cây, của bụi cỏ và của lính chi tiết hơn. Phải lấy lại hiệu năng trước khi áp dụng ra cả trận.
 - Chưa xem ban đêm, hoàng hôn, mức chất lượng thấp.
 - Dữ liệu Cannae: ghi chú căn cứ của `ground` vẫn là câu về ruộng đã gặt; phải viết lại cho lớp phủ `grass` (trái mùa, theo lựa chọn của người dùng) trước khi gộp. Hộp thoại Giới thiệu cũng chưa nói điều này.
