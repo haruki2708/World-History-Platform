@@ -318,9 +318,28 @@ export interface BattleScenery {
 }
 
 /**
+ * The country around the battlefield as a coarse elevation grid, in the
+ * format of BattleTerrain.file: the hills and the sea on the horizon. It must
+ * reach beyond the ground of the battle on every side by two of its own cells
+ * or more. Values at or below 0 are sea. The scene lowers it with distance as
+ * the curve of the earth does.
+ */
+export interface BattleFarTerrain {
+  file: string;
+  width: number;
+  height: number;
+  /** Ground the grid covers, metres from Battle.origin. */
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+/**
  * Ground elevation as a grid in public/data/terrain/<file>: Int16 values,
  * little-endian, in decimetres above sea level; rows run north to south,
- * columns west to east; the first value is the north-west corner.
+ * columns west to east; the first value is the north-west corner. Ground at
+ * or below 0 is drawn as sea, and no unit may stand on it.
  */
 export interface BattleTerrain {
   file: string;
@@ -332,6 +351,8 @@ export interface BattleTerrain {
   maxX: number;
   minY: number;
   maxY: number;
+  /** Without it the ground runs level from the edges of the grid to the horizon. */
+  far?: BattleFarTerrain;
   rivers: BattleRiver[];
   landmarks: BattleLandmark[];
   scenery?: BattleScenery;

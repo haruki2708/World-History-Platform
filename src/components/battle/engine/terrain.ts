@@ -27,8 +27,13 @@ import { River, type RiverLight } from "./river";
 
 export type HeightAt = (x: number, y: number) => number;
 
-/** How far the flat apron around the grid reaches, metres. */
+/** How far the flat apron around the grid reaches, metres, when the battle has no far ground. */
 const APRON = 40000;
+/** Ground at or below this height, metres above sea level, is sea. */
+export const SEA_LEVEL = 0.05;
+/** The far ground sinks with distance as the curve of the earth makes it: d² / 2R. */
+const EARTH_DIAMETER = 2 * 6371000;
+const drop = (x: number, y: number): number => (x * x + y * y) / EARTH_DIAMETER;
 
 const PALETTE = {
   stubble: new Color("#b9a66a"),
@@ -38,6 +43,9 @@ const PALETTE = {
   rock: new Color("#958b7b"),
   cliff: new Color("#86837d"),
   bank: new Color("#6d8546"),
+  forest: new Color("#566643"),
+  sea: new Color("#2c566e"),
+  strand: new Color("#d3c59c"),
 };
 
 /**
@@ -56,28 +64,48 @@ const COVERS: Record<GroundCover, { main: Color; other: Color; bare: Color; fiel
 /** A battle without scenery: the ground as it was drawn before there was any. */
 const PLAIN_COVER = { main: PALETTE.stubble, other: PALETTE.grass, bare: PALETTE.earth, fields: false };
 
-/** Reads the grid: Int16 little-endian decimetres, rows north to south. */
+/** Reads a grid: Int16 little-endian decimetres, rows north to south. */
+async function readGrid(grid: { file: string; width: number; height: number }, signal: AbortSignal): Promise<Float32Array> {
+  const cells = grid.width * grid.height;
+  const heights = new Float32Array(cells);
+  const response = await fetch(terrainUrl(grid.file), { signal });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const buffer = await response.arrayBuffer();
+  if (buffer.byteLength < cells * 2) {
+    throw new Error(`expected ${cells * 2} bytes, got ${buffer.byteLength}`);
+  }
+  const view = new DataView(buffer);
+  for (let i = 0; i < cells; i++) heights[i] = view.getInt16(i * 2, true) / 10;
+  return heights;
+}
+
+/** The ground of the battle. If the file cannot be read: flat ground. */
 export async function loadHeights(
   terrain: BattleTerrain,
   signal: AbortSignal,
 ): Promise<Float32Array> {
-  const cells = terrain.width * terrain.height;
-  const heights = new Float32Array(cells);
   try {
-    const response = await fetch(terrainUrl(terrain.file), { signal });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const buffer = await response.arrayBuffer();
-    if (buffer.byteLength < cells * 2) {
-      throw new Error(`expected ${cells * 2} bytes, got ${buffer.byteLength}`);
-    }
-    const view = new DataView(buffer);
-    for (let i = 0; i < cells; i++) heights[i] = view.getInt16(i * 2, true) / 10;
+    return await readGrid(terrain, signal);
   } catch (error) {
     if (signal.aborted) throw error;
     console.warn(`Battle terrain ${terrain.file} could not be read; using flat ground.`, error);
-    heights.fill(0);
+    return new Float32Array(terrain.width * terrain.height);
   }
-  return heights;
+}
+
+/** The country around (BattleTerrain.far), or null: the scene then does without it. */
+export async function loadFarHeights(
+  terrain: BattleTerrain,
+  signal: AbortSignal,
+): Promise<Float32Array | null> {
+  if (!terrain.far) return null;
+  try {
+    return await readGrid(terrain.far, signal);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    console.warn(`Far terrain ${terrain.far.file} could not be read; the horizon stays flat.`, error);
+    return null;
+  }
 }
 
 function distanceToSegment(px: number, py: number, a: FieldPoint, b: FieldPoint): number {
@@ -94,13 +122,17 @@ export class Terrain {
   readonly maxHeight: number;
   readonly data: BattleTerrain;
   private readonly heights: Float32Array;
+  private readonly far: Float32Array | null;
+  /** What the sea gives back of the sky; set every frame. */
+  private readonly seaGlow = { value: new Color() };
   private readonly rivers: River[] = [];
   private readonly cellX: number;
   private readonly cellY: number;
 
-  constructor(data: BattleTerrain, heights: Float32Array) {
+  constructor(data: BattleTerrain, heights: Float32Array, far: Float32Array | null = null) {
     this.data = data;
     this.heights = heights;
+    this.far = data.far ? far : null;
     this.cellX = (data.maxX - data.minX) / Math.max(data.width - 1, 1);
     this.cellY = (data.maxY - data.minY) / Math.max(data.height - 1, 1);
     let min = Infinity;
@@ -124,6 +156,51 @@ export class Terrain {
   /** Call every frame: moving water, and the sky it reflects. */
   update(seconds: number, sky: RiverLight): void {
     for (const river of this.rivers) river.update(seconds, sky);
+    // The sea is always seen at a low angle: it mirrors the sky near the horizon.
+    this.seaGlow.value.copy(sky.envHorizon).multiplyScalar(0.42);
+  }
+
+  /** Height of the far ground at a field point, metres above sea level (the sea is 0). */
+  private farHeightAt(x: number, y: number): number {
+    const far = this.data.far;
+    const heights = this.far;
+    if (!far || !heights) return 0;
+    const gx = Math.min(Math.max(((x - far.minX) / (far.maxX - far.minX)) * (far.width - 1), 0), far.width - 1);
+    const gy = Math.min(Math.max(((far.maxY - y) / (far.maxY - far.minY)) * (far.height - 1), 0), far.height - 1);
+    const col = Math.min(Math.floor(gx), far.width - 2);
+    const row = Math.min(Math.floor(gy), far.height - 2);
+    const fx = gx - col;
+    const fy = gy - row;
+    const at = (c: number, r: number) => Math.max(heights[r * far.width + c], 0);
+    return (
+      (at(col, row) * (1 - fx) + at(col + 1, row) * fx) * (1 - fy) +
+      (at(col, row + 1) * (1 - fx) + at(col + 1, row + 1) * fx) * fy
+    );
+  }
+
+  /**
+   * The hole the far ground leaves for the ground of the battle: whole cells
+   * of the far grid, at least half a cell beyond the near grid on every side.
+   */
+  private farHole(): { colMin: number; colMax: number; rowMin: number; rowMax: number; minX: number; maxX: number; minY: number; maxY: number } | null {
+    const far = this.data.far;
+    if (!far || !this.far) return null;
+    const cellX = (far.maxX - far.minX) / (far.width - 1);
+    const cellY = (far.maxY - far.minY) / (far.height - 1);
+    const colMin = Math.max(Math.floor((this.data.minX - far.minX) / cellX - 0.5), 0);
+    const colMax = Math.min(Math.ceil((this.data.maxX - far.minX) / cellX + 0.5), far.width - 1);
+    const rowMin = Math.max(Math.floor((far.maxY - this.data.maxY) / cellY - 0.5), 0);
+    const rowMax = Math.min(Math.ceil((far.maxY - this.data.minY) / cellY + 0.5), far.height - 1);
+    return {
+      colMin,
+      colMax,
+      rowMin,
+      rowMax,
+      minX: far.minX + colMin * cellX,
+      maxX: far.minX + colMax * cellX,
+      maxY: far.maxY - rowMin * cellY,
+      minY: far.maxY - rowMax * cellY,
+    };
   }
 
   /**
@@ -151,8 +228,11 @@ export class Terrain {
 
   private buildGround(): Mesh {
     const { width, height, minX, maxX, minY, maxY, rivers } = this.data;
-    // One extra ring of vertices carries the edge heights far out, so the
-    // ground reaches the horizon instead of ending in a cliff.
+    // One extra ring of vertices carries the ground beyond the grid: onto
+    // the edge of the far ground when there is one, and otherwise level and
+    // far out, so that the ground reaches the horizon instead of ending in
+    // a cliff.
+    const hole = this.farHole();
     const cols = width + 2;
     const rows = height + 2;
     const positions = new Float32Array(cols * rows * 3);
@@ -162,6 +242,7 @@ export class Terrain {
     const colors = new Float32Array(cols * rows * 3);
     const overlay = new Float32Array(cols * rows);
     const lie = new Float32Array(cols * rows * 2);
+    const sea = new Float32Array(cols * rows);
     const cover = this.data.scenery ? COVERS[this.data.scenery.ground.cover] : PLAIN_COVER;
     const relief = Math.max(this.maxHeight - this.minHeight, 1);
     const hasRelief = this.maxHeight - this.minHeight > 20;
@@ -173,11 +254,22 @@ export class Terrain {
         const gr = Math.min(Math.max(r - 1, 0), height - 1);
         let x = minX + gc * this.cellX;
         let y = maxY - gr * this.cellY;
-        if (c === 0) x = minX - APRON;
-        if (c === cols - 1) x = maxX + APRON;
-        if (r === 0) y = maxY + APRON;
-        if (r === rows - 1) y = minY - APRON;
-        const h = this.heights[gr * width + gc];
+        let h = this.heights[gr * width + gc];
+        const onRing = c === 0 || c === cols - 1 || r === 0 || r === rows - 1;
+        if (onRing && hole) {
+          // Spread evenly along the edge of the hole, at the height of the far ground there.
+          x = c === 0 ? hole.minX : c === cols - 1 ? hole.maxX : hole.minX + ((hole.maxX - hole.minX) * (c - 1)) / (width - 1);
+          y = r === 0 ? hole.maxY : r === rows - 1 ? hole.minY : hole.maxY - ((hole.maxY - hole.minY) * (r - 1)) / (height - 1);
+          const level = this.farHeightAt(x, y);
+          h = level - drop(x, y);
+          sea[r * cols + c] = level <= SEA_LEVEL ? 1 : 0;
+        } else if (onRing) {
+          if (c === 0) x = minX - APRON;
+          if (c === cols - 1) x = maxX + APRON;
+          if (r === 0) y = maxY + APRON;
+          if (r === rows - 1) y = minY - APRON;
+        }
+        if (!onRing && h <= SEA_LEVEL) sea[r * cols + c] = 1;
         const i = (r * cols + c) * 3;
         positions[i] = x;
         positions[i + 1] = h;
@@ -219,6 +311,21 @@ export class Terrain {
       }
     }
 
+    // The elevation data steps from land to sea cell by cell; blurring the
+    // mask rounds the shore that the shader draws where it crosses one half.
+    for (let pass = 0; pass < 2; pass++) {
+      const before = sea.slice();
+      for (let r = 1; r < rows - 1; r++) {
+        for (let c = 1; c < cols - 1; c++) {
+          let sum = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) sum += before[(r + dr) * cols + c + dc];
+          }
+          sea[r * cols + c] = sum / 9;
+        }
+      }
+    }
+
     const quads = (cols - 1) * (rows - 1);
     const index = new Uint32Array(quads * 6);
     let k = 0;
@@ -242,6 +349,7 @@ export class Terrain {
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
     geometry.setAttribute("aOverlay", new BufferAttribute(overlay, 1));
     geometry.setAttribute("aLie", new BufferAttribute(lie, 2));
+    geometry.setAttribute("aSea", new BufferAttribute(sea, 1));
     geometry.setIndex(new BufferAttribute(index, 1));
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
@@ -255,22 +363,28 @@ export class Terrain {
       shader.uniforms.uEarth = { value: cover.bare };
       shader.uniforms.uBank = { value: PALETTE.bank };
       shader.uniforms.uFields = { value: cover.fields ? 1 : 0 };
+      shader.uniforms.uSea = { value: PALETTE.sea };
+      shader.uniforms.uStrand = { value: PALETTE.strand };
+      shader.uniforms.uSeaGlow = this.seaGlow;
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
           /* glsl */ `#include <common>
           attribute float aOverlay;
           attribute vec2 aLie;
+          attribute float aSea;
           varying vec3 vGroundPos;
           varying float vOverlay;
-          varying vec2 vLie;`,
+          varying vec2 vLie;
+          varying float vSea;`,
         )
         .replace(
           "#include <begin_vertex>",
           /* glsl */ `#include <begin_vertex>
           vGroundPos = position;
           vOverlay = aOverlay;
-          vLie = aLie;`,
+          vLie = aLie;
+          vSea = aSea;`,
         );
       shader.fragmentShader = shader.fragmentShader
         .replace(
@@ -281,9 +395,14 @@ export class Terrain {
           uniform vec3 uEarth;
           uniform vec3 uBank;
           uniform float uFields;
+          uniform vec3 uSea;
+          uniform vec3 uSeaGlow;
+          uniform vec3 uStrand;
           varying vec3 vGroundPos;
           varying float vOverlay;
           varying vec2 vLie;
+          varying float vSea;
+          vec3 groundGlow = vec3(0.0);
           // The small relief of the ground (rows, clods, tufts), 0 to 1, and
           // how much of it shows at this distance: set with the colour, used
           // to bend the normal.
@@ -404,6 +523,13 @@ export class Terrain {
             ground *= 1.0 + (0.16 * (tuft - 0.5) + 0.1 * (speck - 0.5)) * (1.0 - smoothstep(25.0, 160.0, distance));
             ground *= 0.9 + 0.2 * (mottle - 0.5) * mid + 0.22 * (grain - 0.5) * near + 0.16 * (regions - 0.5);
             groundReliefShown = 1.0 - smoothstep(30.0, 190.0, distance);
+            // The shore: a strand of sand, then shallows, then the sea.
+            float shore = vSea + (mottle - 0.5) * 0.12;
+            float seaShare = smoothstep(0.42, 0.6, shore);
+            ground = mix(ground, uStrand * (0.92 + 0.16 * grain), smoothstep(0.05, 0.3, shore));
+            ground = mix(ground, mix(uStrand, uSea, 0.55 + 0.45 * smoothstep(0.6, 0.95, shore)), seaShare);
+            groundGlow = uSeaGlow * seaShare;
+            groundReliefShown *= 1.0 - smoothstep(0.05, 0.3, shore);
             diffuseColor.rgb *= ground;
           }`,
         )
@@ -421,6 +547,11 @@ export class Terrain {
             vec3 gradient = sign(det) * (dFdx(bump) * r1 + dFdy(bump) * r2);
             normal = normalize(abs(det) * normal - gradient);
           }`,
+        )
+        .replace(
+          "#include <emissivemap_fragment>",
+          /* glsl */ `#include <emissivemap_fragment>
+          totalEmissiveRadiance += groundGlow;`,
         );
     };
     material.customProgramCacheKey = () => "battle-ground";
@@ -428,7 +559,85 @@ export class Terrain {
     const mesh = new Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
+    if (hole) this.group.add(this.buildFar(material, hole));
     return mesh;
+  }
+
+  /**
+   * The country around, from the far grid, with a hole where the ground of
+   * the battle lies. It shares the material of that ground, so the two meet
+   * without a seam in colour.
+   */
+  private buildFar(material: MeshLambertMaterial, hole: { colMin: number; colMax: number; rowMin: number; rowMax: number }): Mesh {
+    const far = this.data.far!;
+    const heights = this.far!;
+    const { width, height } = far;
+    const cellX = (far.maxX - far.minX) / (width - 1);
+    const cellY = (far.maxY - far.minY) / (height - 1);
+    const positions = new Float32Array(width * height * 3);
+    const colors = new Float32Array(width * height * 3);
+    const overlay = new Float32Array(width * height);
+    const lie = new Float32Array(width * height * 2);
+    const sea = new Float32Array(width * height);
+    const color = new Color();
+    const at = (c: number, r: number) =>
+      Math.max(heights[Math.min(Math.max(r, 0), height - 1) * width + Math.min(Math.max(c, 0), width - 1)], 0);
+
+    for (let r = 0; r < height; r++) {
+      for (let c = 0; c < width; c++) {
+        const x = far.minX + c * cellX;
+        const y = far.maxY - r * cellY;
+        const h = at(c, r);
+        const k = r * width + c;
+        positions[k * 3] = x;
+        positions[k * 3 + 1] = h - drop(x, y);
+        positions[k * 3 + 2] = -y;
+        sea[k] = heights[k] <= SEA_LEVEL ? 1 : 0;
+        const slope = Math.hypot((at(c + 1, r) - at(c - 1, r)) / (2 * cellX), (at(c, r - 1) - at(c, r + 1)) / (2 * cellY));
+        // Hills are wooded, and their steep sides bare; the coarse grid makes
+        // every slope gentler than it is, so the thresholds are low.
+        let weight = 0;
+        const mix = (target: Color, amount: number) => {
+          if (amount <= 0) return;
+          const total = weight + amount * (1 - weight);
+          color.lerp(target, amount / total);
+          weight = total;
+        };
+        color.copy(PALETTE.forest);
+        mix(PALETTE.scrub, smooth(60, 160, h) * 0.6);
+        mix(PALETTE.forest, smooth(170, 480, h) * 0.8);
+        mix(PALETTE.rock, smooth(0.16, 0.34, slope) * 0.7);
+        overlay[k] = weight;
+        colors[k * 3] = color.r;
+        colors[k * 3 + 1] = color.g;
+        colors[k * 3 + 2] = color.b;
+        lie[k * 2] = slope;
+        lie[k * 2 + 1] = 2000;
+      }
+    }
+
+    const cells: number[] = [];
+    for (let r = 0; r < height - 1; r++) {
+      for (let c = 0; c < width - 1; c++) {
+        if (c >= hole.colMin && c < hole.colMax && r >= hole.rowMin && r < hole.rowMax) continue;
+        const nw = r * width + c;
+        const ne = nw + 1;
+        const sw = nw + width;
+        const se = sw + 1;
+        cells.push(nw, se, ne, nw, sw, se);
+      }
+    }
+
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new BufferAttribute(colors, 3));
+    geometry.setAttribute("aOverlay", new BufferAttribute(overlay, 1));
+    geometry.setAttribute("aLie", new BufferAttribute(lie, 2));
+    geometry.setAttribute("aSea", new BufferAttribute(sea, 1));
+    geometry.setIndex(new BufferAttribute(new Uint32Array(cells), 1));
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return new Mesh(geometry, material);
   }
 
   dispose(): void {

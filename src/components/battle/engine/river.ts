@@ -25,6 +25,9 @@ import type { BattleLandmark, BattleRiver } from "@/lib/battle";
 
 type HeightAt = (x: number, y: number) => number;
 
+/** Ground at or below this height, metres above sea level, is sea (terrain.ts has the same). */
+const SEA_LEVEL = 0.05;
+
 /** What the water reflects; the engine's Sky has all of it. */
 export interface RiverLight {
   readonly envZenith: Color;
@@ -75,8 +78,10 @@ export class River {
     const segments = Math.min(Math.max(Math.ceil(length / STEP), 4), 4000);
     const vertices = (segments + 1) * (ACROSS + 1);
     const positions = new Float32Array(vertices * 3);
-    // Per vertex: metres along the course, metres left of its centre line.
+    // Per vertex: metres along the course, metres left of its centre line;
+    // then 1 on land and 0 in the sea, where the river ends.
     const coords = new Float32Array(vertices * 2);
+    const land = new Float32Array(vertices);
     const point = new Vector3();
     const tangent = new Vector3();
     const centres: Vector3[] = [];
@@ -95,7 +100,9 @@ export class River {
         const z = point.z + (nz / norm) * offset;
         const k = i * (ACROSS + 1) + j;
         positions[k * 3] = x;
-        positions[k * 3 + 1] = heightAt(x, -z) + LIFT;
+        const ground = heightAt(x, -z);
+        positions[k * 3 + 1] = ground + LIFT;
+        land[k] = ground > SEA_LEVEL ? 1 : 0;
         positions[k * 3 + 2] = z;
         coords[k * 2] = u * length;
         coords[k * 2 + 1] = offset;
@@ -122,6 +129,7 @@ export class River {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(positions, 3));
     geometry.setAttribute("aCourse", new BufferAttribute(coords, 2));
+    geometry.setAttribute("aLand", new BufferAttribute(land, 1));
     geometry.setIndex(new BufferAttribute(index, 1));
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
@@ -177,13 +185,16 @@ export class River {
           "#include <common>",
           /* glsl */ `#include <common>
           attribute vec2 aCourse;
+          attribute float aLand;
           varying vec2 vCourse;
+          varying float vLand;
           varying vec3 vRiverWorld;`,
         )
         .replace(
           "#include <begin_vertex>",
           /* glsl */ `#include <begin_vertex>
           vCourse = aCourse;
+          vLand = aLand;
           vRiverWorld = (modelMatrix * vec4(position, 1.0)).xyz;`,
         );
       shader.fragmentShader = shader.fragmentShader
@@ -207,6 +218,7 @@ export class River {
           uniform vec3 uSunDir;
           uniform vec3 uGlint;
           varying vec2 vCourse;
+          varying float vLand;
           varying vec3 vRiverWorld;
           vec3 riverGlow = vec3(0.0);
           float riverHash(vec2 p) {
@@ -300,8 +312,11 @@ export class River {
             riverGlow = (sky * fresnel * 0.7 + uGlint * sun) * shine;
             color *= 1.0 - fresnel * 0.7 * shine;
 
+            // The river ends where the ground does: the sea takes over.
+            float ashore = smoothstep(0.3, 0.7, vLand);
+            riverGlow *= ashore;
             diffuseColor.rgb = color;
-            diffuseColor.a = alpha;
+            diffuseColor.a = alpha * ashore;
           }`,
         )
         .replace(

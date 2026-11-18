@@ -2,6 +2,7 @@
 // from GeoTIFF elevation tiles kept outside the repo. No npm dependencies.
 //
 //   node scripts/battles/build-terrain.mjs                       # writes public/data/terrain/battle-of-cannae.bin
+//                                                                # and battle-of-cannae-far.bin (the country around)
 //   node scripts/battles/build-terrain.mjs --preview out.png     # also writes a shaded relief image
 //   node scripts/battles/build-terrain.mjs --trace "x,y;x,y;..." # prints the river channel through the points
 //   node scripts/battles/build-terrain.mjs --source srtm         # build from the fallback source
@@ -36,6 +37,12 @@
 //
 // <assets> is E:\World_History_Platform_assets\terrain, or TERRAIN_SOURCE_DIR.
 //
+// The far grid (BattleTerrain.far: the hills and the sea on the horizon) of
+// Cannae reaches 54 km each way and needs three more Copernicus tiles, from
+// the same bucket and under the same licence: N41E015, N40E015, N40E016.
+// Each of its values is the mean of the ground around the grid point, so that
+// a coarse grid does not pick out single peaks and pits.
+//
 // Output: Int16 little-endian, decimetres above sea level, rows north to south,
 // columns west to east, first value at (minX, maxY). Grid points lie on the
 // edges of the covered ground: column i is at x = minX + i * spacing.
@@ -69,6 +76,9 @@ const BATTLES = {
     maxY: 3300,
     spacing: 30,
     source: "copernicus",
+    // Must equal Battle.terrain.far in the battle file. The edges of the near
+    // grid need not fall on its lines.
+    far: { minX: -54000, maxX: 54000, minY: -54000, maxY: 54000, spacing: 400 },
   },
 };
 
@@ -228,6 +238,31 @@ function buildGrid(config) {
   for (let r = 0; r < height; r++) {
     const y = maxY - r * spacing;
     for (let c = 0; c < width; c++) metres[r * width + c] = sample(minX + c * spacing, y);
+  }
+  return { width, height, metres };
+}
+
+/** The far grid: every value is the mean over the cell around the grid point. */
+function buildFarGrid(config) {
+  const { minX, maxX, minY, maxY, spacing } = config.far;
+  const width = Math.round((maxX - minX) / spacing) + 1;
+  const height = Math.round((maxY - minY) / spacing) + 1;
+  if (minX + (width - 1) * spacing !== maxX || minY + (height - 1) * spacing !== maxY) {
+    throw new Error("the far extent must be a whole number of grid cells");
+  }
+  const sample = sampler(config.origin, config.source);
+  const SUB = 5;
+  const metres = new Float64Array(width * height);
+  for (let r = 0; r < height; r++) {
+    for (let c = 0; c < width; c++) {
+      let sum = 0;
+      for (let i = 0; i < SUB; i++) {
+        for (let j = 0; j < SUB; j++) {
+          sum += sample(minX + (c + (i + 0.5) / SUB - 0.5) * spacing, maxY - (r + (j + 0.5) / SUB - 0.5) * spacing);
+        }
+      }
+      metres[r * width + c] = sum / (SUB * SUB);
+    }
   }
   return { width, height, metres };
 }
@@ -507,6 +542,22 @@ for (const m of grid.metres) {
 }
 console.log(`${id}: ${grid.width} × ${grid.height} cells, ${config.spacing} m, elevation ${lo.toFixed(1)}–${hi.toFixed(1)} m`);
 if (!exploring) console.log(`wrote ${out}`);
+
+if (!exploring && config.far) {
+  const far = buildFarGrid(config);
+  const farOut = join(root, "public", "data", "terrain", `${id}-far.bin`);
+  writeFileSync(farOut, encode(far));
+  let farHi = -Infinity;
+  let sea = 0;
+  for (const m of far.metres) {
+    farHi = Math.max(farHi, m);
+    if (m <= 0.05) sea++;
+  }
+  console.log(
+    `${id}-far: ${far.width} × ${far.height} cells, ${config.far.spacing} m, up to ${farHi.toFixed(0)} m, ${((sea / far.metres.length) * 100).toFixed(1)}% at sea level`,
+  );
+  console.log(`wrote ${farOut}`);
+}
 
 const traced = option("--trace") ? trace(grid, config, parsePoints(option("--trace"))) : null;
 if (traced) console.log(JSON.stringify(traced.map((p) => ({ x: p.x, y: p.y }))));
