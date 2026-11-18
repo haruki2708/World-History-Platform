@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (đợt G, người dùng chọn 2026-11-18).
 - **Model:** Fable 5.2, effort `xhigh` (người dùng đặt).
 - **Nhánh:** `batch-g/stage2-clips` (tạo từ `main` sau khi gộp chặng 1).
-- **Trạng thái:** xong 2026-11-18 (2a rồi 2b); lane 3 đã đọc lại (`T-033-review.md`), đã sửa theo review (mục "Sau review của lane 3"); chờ người dùng duyệt gộp.
+- **Trạng thái:** xong, **đã gộp vào `main` 2026-11-18** (người dùng duyệt). Lane 3 đọc lại: `T-033-review.md`; phần sửa theo review ở mục "Sau review của lane 3".
 - **Phạm vi file:** `src/lib/battle.ts`, `src/components/battle/`, `src/app/battle-lab/`, `art/`, `public/battles/models/`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G". Chặng 1: `T-032-melee-stage1.md`, review của lane 3: `T-032-review.md`.
 
