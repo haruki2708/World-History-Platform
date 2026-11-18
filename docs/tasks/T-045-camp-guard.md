@@ -98,4 +98,99 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-(Lane 2 điền khi xong.)
+Lane 2, 2026-11-19. Chi tiết ở `docs/data/battles/cannae.md`, mục 17 (mới); mục 1, 5, 6, 11, 12, 14 sửa cho khớp.
+
+### 1. Khối quân giữ trại của Hannibal
+
+**Nguồn.**
+
+- **Polybius 3.117** là nguồn duy nhất kể cuộc đánh trại:
+  - Hannibal có để lại một toán đủ sức giữ trại, nhưng không nói bao nhiêu người hay là quân gì.
+  - Toán này trụ được một lúc rồi núng thế.
+  - Hannibal thắng xong thì kéo về giải vây, dồn quân La Mã vào trại của họ, giết 2 000 người, sau đó bắt hết số còn lại.
+- **Không nhắc cuộc đánh trại:** Livy 22.41–52, Appian (*Hannibalica* 17–28), Plutarch (*Fabius* 16.8), Dio/Zonaras. Livy, Appian và Plutarch chỉ kể số người chạy vào hai trại La Mã sau trận và chuyện hai trại đầu hàng.
+- **Ước lượng hiện đại:** bài Wikipedia, dẫn Daly (2002, tr. 94), ghi 16 000 lính Gaul kèm chú thích "8 000 người ở lại trại hôm giao chiến". Câu này không rõ 8 000 nằm trong hay ngoài 16 000. Tôi chưa đọc được sách của Daly.
+
+**Quyết định.**
+
+- **Khối mới:** `camp-guard`, tên "Quân giữ trại của Hannibal" / "Guard of Hannibal's camp".
+- **Loại lính:** `gallic-infantry`, loại có sẵn, không thêm loại mới. Ước lượng duy nhất tìm được nói đó là lính Gaul.
+- **Quân số:** 8 000 người, giả định theo Daly.
+- **Ngoài tổng 50 000:** Polybius 3.114 và Livy 22.46 đưa con số này trong đoạn tả thế trận, và các đơn vị ra trận trong file đã cộng đúng 50 000.
+  - `strength` của Carthage đổi thành 50 000–58 000.
+  - `note` của `strength` và `uncertainty` của trận nói rõ phần nào là giả định.
+  - Mục 5 của `cannae.md` có thêm dòng cho toán giữ trại. Tổng ghi 58 000: 50 000 ra trận, 8 000 giữ trại.
+
+**Cuộc đánh ở cổng trại.**
+
+- **Chỗ gặp:** cổng chính ở giữa mặt đông của trại Hannibal (−3475, −500). Bề ngang 200 m, toán giữ trại đứng trong cổng, quân La Mã đứng ngoài.
+- **Giai đoạn 2:** quân La Mã tới cổng ở cuối giai đoạn.
+- **Giai đoạn 3–5:** cả hai khối ghi `fight`.
+  - Đường giáp chiến đứng ở cổng ở mốc 3; lùi vào trong trại 10 m ở mốc 4 và 40 m ở mốc 5.
+  - Quân số (giả định), quân La Mã: 10 000 → 9 800 → 9 600 → 9 400. Toán giữ trại: 8 000 → 7 700 → 7 300 → 6 700.
+- **Giai đoạn 6:** quân La Mã quay đầu, rút về trại lớn qua cổng và còn 7 400 người (mất 2 000 như Polybius kể). Toán giữ trại đuổi theo 450 m.
+  - Hannibal về giải vây chỉ có trong lời dẫn, vì mọi khối của ông đang vây quân La Mã suốt giai đoạn này.
+  - Chi tiết đuổi theo là suy ra, nguồn không nói.
+- **Dựng bằng `scripts/battles/cannae-lines.mjs`:** mốc 2–6 của hai khối, thêm một phần "The fight at the gate of Hannibal's camp".
+- **Lời dẫn:** sửa các giai đoạn 1, 2, 3, 5, 6, cả `en` lẫn `vi`.
+- **Câu ở mục 11 về đánh từ xa:** đã sửa.
+
+### 2. Ra và về trại qua cổng
+
+- **`camp-force`:**
+  - lúc đầu trận đứng ngay sau cổng nam của trại lớn (−1600, 975);
+  - cuối giai đoạn 1 đứng ngay ngoài cổng (−1600, 680);
+  - giai đoạn 6 về qua cổng, dừng ngay sau cổng (−1542, 815).
+- **`roman-cavalry`:**
+  - lúc đầu trận đứng ngay sau cổng, quay sẵn 20° về hướng đi để `check-facing.mjs` không báo đi xiên;
+  - lúc tháo chạy (giai đoạn 4–5) chạy lên phía bắc giữa trại lớn và sông, không chạy qua trại nữa.
+- **Ba khối đồng minh** (không bắt buộc, nguồn không cấm) đứng thành cột sau cổng trại nhỏ.
+- **Phần đất không được dựng lều**, đo bằng `camp-occupancy.mjs`:
+
+| Trại | Trước | Sau |
+|---|---|---|
+| `roman-large-camp` | 34,6% | 6,1% |
+| `roman-small-camp` | 29,8% | 14,4% |
+| `hannibal-camp` | 0,0% | 3,7% (chỗ toán giữ trại đứng) |
+
+Trại nhỏ còn 14,4% vì ba khối vừa đi vừa giãn từ 220 m lên 750 m nên vệt đi loe ra. Muốn hẹp hơn thì cần thêm một mốc giữa giai đoạn 1.
+
+### 3. Kiểm tra
+
+- **`npm run validate`:** qua, không còn cảnh báo. Kiểm tra `fight` qua cho cả hai khối ở giai đoạn 3, 4, 5.
+- **`npm run lint`, `npm run build`:** qua.
+- **`check-overlap.mjs --min 0.04`:** in đúng như trước.
+- **Chạy thêm với bước 0,02 giai đoạn:**
+  - `camp-force`, `camp-guard` và `roman-cavalry` không chồng lên khối nào suốt trận.
+  - Ba khối đồng minh không chồng nhau lúc ra cổng.
+- **`check-facing.mjs`:** thêm hai dòng, `camp-guard` đi lùi khi bị đẩy vào trại ở giai đoạn 4–5. Đây là có chủ ý, như lưỡi liềm.
+- **Xem trong `/battle-lab` (cả `?lang=vi`):**
+  - console không có lỗi;
+  - 56–73 khung hình/giây;
+  - hàng đầu hai bên ở cổng trại Hannibal đấu từng cặp, có người ngã.
+
+### 4. Ảnh duyệt
+
+Ảnh ở `E:\World_History_Platform_assets\duyet\T-045\`, 9 cặp, mỗi cặp gồm `…-A-truoc.png` và `…-B-sau.png`:
+
+| Ảnh | Nội dung |
+|---|---|
+| 01–02 | Trại lớn và trại nhỏ nhìn từ trên cao lúc đầu trận |
+| 03 | Cổng trại lớn lúc đầu trận |
+| 04 | Các khối ra cổng trại lớn, giữa giai đoạn 1 |
+| 05–06 | Cửa trại Hannibal giữa giai đoạn 4: cận cảnh và tầm trung |
+| 07 | Trại Hannibal nhìn từ trên cao, giữa giai đoạn 4 |
+| 08 | Giữa giai đoạn 6: quân La Mã rút về, toán giữ trại đuổi theo |
+| 09 | Cuối giai đoạn 6: quân La Mã vào lại cổng trại lớn |
+
+### 5. Đề nghị
+
+1. **Hộp thoại Giới thiệu:** thêm một dòng nói toán giữ trại là phỏng dựng. Ví dụ đặt sau `about.accuracy.battle.positions`, khoá `about.accuracy.battle.campGuard`:
+   - en: "Polybius says that Hannibal left a guard in his camp, which the Romans left in their large camp attacked during the battle, but he gives no number: the guard's size (8,000) and make-up (Gauls) follow a modern estimate, and the fight at the camp gate is reconstructed;"
+   - vi: "Polybius kể Hannibal để lại một toán quân giữ trại và toán quân La Mã ở lại trại lớn đã đánh vào trại trong lúc diễn ra trận, nhưng không cho quân số: quân số (8.000) và thành phần (lính Gaul) của toán này theo một ước lượng hiện đại, còn cuộc đánh ở cổng trại là phỏng dựng;"
+2. **Không bắt buộc, cho `structures.ts`:** cảnh không vẽ luỹ và cổng, nên cổng trại chỉ đọc ra được nhờ khoảng trống trong lều. Trại Carthage xếp lều lỏng, không có đường vào. Nếu muốn cổng rõ hơn, trại này có thể chừa một lối thẳng từ cổng chính vào giữa trại, như đường giữa của trại La Mã.
+3. **Không cần đổi kiểu dữ liệu** hay file ngoài vùng của lane 2.
+
+### Commit
+
+`ca576f3` (dữ liệu và script), `7f17e9c` (bỏ một mũi tên đè lên kỵ binh), `83da90b` (`cannae.md`), và commit điền mục này.
