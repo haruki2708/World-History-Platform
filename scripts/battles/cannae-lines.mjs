@@ -215,6 +215,48 @@ set(3, "hasdrubal-cavalry-rear", { formation: fromFront(-1100, 40, 350, 60, 0), 
 set(4, "hasdrubal-cavalry-front", { formation: formation(300, 420, 350, 60, 95), action: "advance", men: 2920 });
 set(4, "hasdrubal-cavalry-rear", { formation: formation(-50, 470, 350, 60, 95), action: "advance", men: 3000 });
 
+// --- The fight at the gate of Hannibal's camp (Polybius 3.117) -----------------
+//
+// The camp faces east (terrain.scenery, "hannibal-camp"), so its front, with
+// the main gate in the middle, is the line x = -3475 and the gate is at
+// y = -500. The guard holds the gate from inside; the force from the large
+// Roman camp, which reaches it at the end of phase 2, attacks from outside.
+// Both fronts lie on one north-south line: it stays at the gate while the
+// guard holds out (phases 3, 4), then the Romans push it into the camp
+// (phase 5). In phase 6 Hannibal comes to the camp's relief: the Romans turn
+// about and fall back into the large camp through its main gate, in the
+// middle of its south side (that camp faces south), and the guard follows
+// them a short way.
+
+const HANNIBAL_GATE = { x: -3475, y: -500 };
+const LARGE_CAMP_GATE = { x: -1600, y: 775 };
+const GATE_FRONTAGE = 200;
+/** Metres the line of the fight lies inside Hannibal's gate, at each phase end. */
+const GATE_LINE = { 2: 0, 3: 0, 4: 10, 5: 40 };
+for (const [key, inside] of Object.entries(GATE_LINE)) {
+  const x = HANNIBAL_GATE.x - inside;
+  set(Number(key), "camp-force", { formation: fromFront(x + GAP / 2, HANNIBAL_GATE.y, GATE_FRONTAGE, 110, 270) });
+  set(Number(key), "camp-guard", { formation: fromFront(x - GAP / 2, HANNIBAL_GATE.y, GATE_FRONTAGE, 80, 90) });
+}
+{
+  const from = out[5]["camp-force"].formation.center;
+  const dx = LARGE_CAMP_GATE.x - from.x;
+  const dy = LARGE_CAMP_GATE.y - from.y;
+  const length = Math.hypot(dx, dy);
+  const way = (Math.atan2(dx, dy) * 180) / Math.PI;
+  // A column through the gate, its rear rank 10 m inside.
+  const depth = 120;
+  const along = depth / 2 + 10;
+  set(6, "camp-force", {
+    formation: formation(LARGE_CAMP_GATE.x + (dx / length) * along, LARGE_CAMP_GATE.y + (dy / length) * along, 120, depth, way),
+  });
+  const guard = out[5]["camp-guard"].formation.center;
+  const chase = 450;
+  set(6, "camp-guard", {
+    formation: formation(guard.x + (dx / length) * chase, guard.y + (dy / length) * chase, GATE_FRONTAGE, 80, way),
+  });
+}
+
 // Actions and men that go with the formations above.
 const STATES = {
   2: {
@@ -222,6 +264,8 @@ const STATES = {
     "allied-light-infantry": ["skirmish"],
     "balearic-slingers": ["skirmish"],
     "light-spearmen": ["skirmish"],
+    "camp-force": ["advance", 10000],
+    "camp-guard": ["stand", 8000],
   },
   3: {
     hastati: ["advance", 11400],
@@ -233,7 +277,8 @@ const STATES = {
     "allied-light-infantry": ["retreat", 6650],
     "allied-cavalry": ["stand", 3750],
     numidians: ["skirmish", 3990],
-    "camp-force": ["skirmish"],
+    "camp-force": ["fight", 9800],
+    "camp-guard": ["fight", 7700],
   },
   4: {
     hastati: ["fight", 9800],
@@ -250,7 +295,8 @@ const STATES = {
     "gauls-right": ["fight", 4100],
     "allied-cavalry": ["stand", 3500],
     numidians: ["skirmish", 3980],
-    "camp-force": ["skirmish"],
+    "camp-force": ["fight", 9600],
+    "camp-guard": ["fight", 7300],
   },
   5: {
     hastati: ["fight", 6800],
@@ -269,7 +315,8 @@ const STATES = {
     "libyans-right": ["charge", 4000],
     "hasdrubal-cavalry-front": ["charge", 2920],
     "hasdrubal-cavalry-rear": ["charge", 3000],
-    "camp-force": ["skirmish"],
+    "camp-force": ["fight", 9400],
+    "camp-guard": ["fight", 6700],
   },
   6: {
     hastati: ["fight", 400],
@@ -288,6 +335,9 @@ const STATES = {
     "libyans-right": ["fight", 3750],
     "hasdrubal-cavalry-front": ["fight", 2900],
     "hasdrubal-cavalry-rear": ["fight", 2940],
+    // Polybius 3.117: Hannibal kills two thousand of them.
+    "camp-force": ["retreat", 7400],
+    "camp-guard": ["pursue", 6700],
   },
 };
 for (const [key, units] of Object.entries(STATES)) {
