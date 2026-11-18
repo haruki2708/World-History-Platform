@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính.
 - **Model:** Fable 5.2.
 - **Nhánh:** `batch-i/look-sample`, worktree `E:\World_History_Platform_assets\wt-stage3`, `next dev` cổng 3106.
-- **Trạng thái:** bản cắt đầu tiên xong, chờ người dùng xem.
+- **Trạng thái:** người dùng xem khi phát và duyệt (2026-11-18): "tôi đã xem rồi, ưng ý với tôi đấy". Chưa gộp; còn nợ một câu trong hộp thoại Giới thiệu (xem "Mức căn cứ").
 - **Phạm vi file:** `src/components/battle/engine/` (`units.ts`, `missiles.ts`, `timeline.ts`), `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" trước.
