@@ -193,6 +193,41 @@ export interface BattlePhase {
   arrows?: BattleArrow[];
 }
 
+/**
+ * How far a piece of scenery rests on evidence. The scene draws all three
+ * alike; the difference is told to the user in words (the About dialog, the
+ * notes of the battle).
+ *
+ * - `attested`: an ancient source says it was there. Needs `sources`.
+ * - `inferred`: no source says so, but it follows from what the sources do
+ *   say or from the ground itself (a harvested field in August; a camp sized
+ *   by the men in it).
+ * - `illustrative`: nothing supports it beyond being usual for the region
+ *   and the time. Drawn so that the scene is not bare.
+ */
+export type SceneryBasis = "attested" | "inferred" | "illustrative";
+
+/** Why a piece of scenery is in the scene. */
+export interface SceneryEvidence {
+  basis: SceneryBasis;
+  /** One or two sentences, self-written: what the source says, or why it is assumed. */
+  note: LocalizedText;
+  /** Where to read it. Required for `attested`. */
+  sources?: SourceRef[];
+}
+
+/**
+ * What covers a piece of ground:
+ *
+ * - `stubble`: grain fields after the harvest
+ * - `grass`: pasture and fallow
+ * - `scrub`: low bushes
+ * - `reeds`: reeds, with willows and other low trees, by water
+ * - `woodland`: trees standing close
+ * - `bare`: earth or rock
+ */
+export type GroundCover = "stubble" | "grass" | "scrub" | "reeds" | "woodland" | "bare";
+
 export interface BattleRiver {
   name: LocalizedText;
   /** Centre line, upstream to downstream. */
@@ -201,6 +236,14 @@ export interface BattleRiver {
   width: number;
   /** True when the course in the battle's time is uncertain. */
   approximate?: boolean;
+  /**
+   * How much water it carried on the day. `low`: shoals and bars of gravel
+   * show, and men wade it at the fords (the landmarks of kind `ford`).
+   * Absent: full from bank to bank.
+   */
+  level?: { stage: "low" | "full"; evidence: SceneryEvidence };
+  /** What grows along both banks, in a belt `width` metres deep from the water's edge. */
+  banks?: { cover: GroundCover; width: number; evidence: SceneryEvidence };
 }
 
 export interface BattleLandmark {
@@ -208,6 +251,70 @@ export interface BattleLandmark {
   kind: "camp" | "town" | "hill" | "ford" | "other";
   point: FieldPoint;
   approximate?: boolean;
+}
+
+/** A patch of ground with its own cover, e.g. a wood or the scrub on a hillside. */
+export interface SceneryArea {
+  /** Kebab-case, unique within the battle. */
+  id: string;
+  cover: GroundCover;
+  /** Three or more points; the outline closes from the last back to the first. */
+  outline: FieldPoint[];
+  evidence: SceneryEvidence;
+}
+
+/**
+ * Something built: a camp, a citadel, a village. The ground it covers is a
+ * rectangle given like a Formation, at true size (the scene draws what stands
+ * in it, tents or houses, larger than life and fewer, as it does the men).
+ */
+export interface SceneryStructure {
+  /** Kebab-case, unique within the battle. */
+  id: string;
+  /**
+   * - `camp`: an army's camp: ditch, rampart, palisade, gates, tents
+   * - `citadel`: a small walled stronghold
+   * - `village`: houses without a wall
+   */
+  kind: "camp" | "citadel" | "village";
+  /** BattleSide.id of the army whose camp it is. Required for a camp. */
+  side?: string;
+  center: FieldPoint;
+  /** Across the front, metres. */
+  width: number;
+  /** Front to back, metres. */
+  depth: number;
+  /** Direction the front (the main gate) faces, degrees clockwise from north. */
+  facing: number;
+  /** Walls broken and roofs gone. */
+  ruined?: boolean;
+  evidence: SceneryEvidence;
+}
+
+export interface BattleWind {
+  /** Direction the wind blows FROM, degrees clockwise from north. */
+  from: number;
+  /** Metres per second. */
+  speed: number;
+  evidence: SceneryEvidence;
+}
+
+/**
+ * What stands on the ground and hangs in the air besides the armies. The
+ * scene draws a battle without it as bare ground. Every part says how far it
+ * rests on evidence; see docs/ARCHITECTURE.md, "Phong cảnh".
+ */
+export interface BattleScenery {
+  /** What covers the ground wherever no area says otherwise. */
+  ground: { cover: GroundCover; evidence: SceneryEvidence };
+  areas: SceneryArea[];
+  structures: SceneryStructure[];
+  wind?: BattleWind;
+  /**
+   * Dust thrown up by feet and hooves and carried by the wind. `level` runs
+   * from 0 (damp ground, none) to 1 (parched ground: thick clouds).
+   */
+  dust?: { level: number; evidence: SceneryEvidence };
 }
 
 /**
@@ -227,6 +334,7 @@ export interface BattleTerrain {
   maxY: number;
   rivers: BattleRiver[];
   landmarks: BattleLandmark[];
+  scenery?: BattleScenery;
   /** Where the elevation data comes from, with its licence. */
   sources: SourceRef[];
 }

@@ -16,6 +16,10 @@ const terrainDir = join(root, "public", "data", "terrain");
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "retreat", "rout", "pursue"]);
 const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
+const SCENERY_BASES = new Set(["attested", "inferred", "illustrative"]);
+const GROUND_COVERS = new Set(["stubble", "grass", "scrub", "reeds", "woodland", "bare"]);
+const STRUCTURE_KINDS = new Set(["camp", "citadel", "village"]);
+const RIVER_STAGES = new Set(["low", "full"]);
 
 const errors = [];
 const warnings = [];
@@ -44,6 +48,14 @@ function checkRange(where, range) {
     return fail(where, "needs numbers min <= max, not negative");
   }
   if (range.note !== undefined) checkText(`${where}.note`, range.note);
+}
+
+/** SceneryEvidence: how far a piece of scenery rests on a source. */
+function checkEvidence(where, evidence) {
+  if (!evidence || typeof evidence !== "object") return fail(where, "needs evidence: basis and note");
+  if (!SCENERY_BASES.has(evidence.basis)) fail(where, `basis ${evidence.basis} is not one of ${[...SCENERY_BASES].join(", ")}`);
+  checkText(`${where}.note`, evidence.note);
+  if (evidence.basis === "attested" || evidence.sources !== undefined) checkSources(`${where}.sources`, evidence.sources);
 }
 
 // --- Geometry of a formation ------------------------------------------------
@@ -77,6 +89,149 @@ function shareInside(a, b) {
     }
   }
   return hits / (n * n);
+}
+
+/** True when the point lies in the rectangle, or within `margin` metres of it. */
+function inRectangle(p, r, margin = 0) {
+  const dx = p.x - r.c.x;
+  const dy = p.y - r.c.y;
+  return Math.abs(dx * r.along.x + dy * r.along.y) <= r.hw + margin && Math.abs(dx * r.ahead.x + dy * r.ahead.y) <= r.hd + margin;
+}
+
+/** The four corners of a rectangle from corners(). */
+function cornerPoints(r) {
+  return [
+    [-1, -1],
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+  ].map(([u, v]) => ({
+    x: r.c.x + r.along.x * u * r.hw + r.ahead.x * v * r.hd,
+    y: r.c.y + r.along.y * u * r.hw + r.ahead.y * v * r.hd,
+  }));
+}
+
+/** Points along a line of points, no more than `step` metres apart. */
+function alongLine(points, step) {
+  const out = [];
+  for (let i = 0; i + 1 < points.length; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    const n = Math.max(Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step), 1);
+    for (let k = 0; k < n; k++) out.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
+  }
+  if (points.length > 0) out.push(points[points.length - 1]);
+  return out;
+}
+
+/** Twice the signed area of an outline. */
+function outlineArea2(outline) {
+  let sum = 0;
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i];
+    const b = outline[(i + 1) % outline.length];
+    sum += a.x * b.y - b.x * a.y;
+  }
+  return sum;
+}
+
+/**
+ * BattleTerrain.scenery and the scenery fields of the rivers: what stands on
+ * the ground besides the armies. See docs/ARCHITECTURE.md, "Phong cảnh".
+ */
+function checkScenery(where, t, sides, inside) {
+  for (const [i, river] of (t.rivers ?? []).entries()) {
+    const at = `${where}.rivers[${i}]`;
+    if (river.level !== undefined) {
+      if (!RIVER_STAGES.has(river.level?.stage)) fail(`${at}.level`, `stage must be one of ${[...RIVER_STAGES].join(", ")}`);
+      checkEvidence(`${at}.level.evidence`, river.level?.evidence);
+    }
+    if (river.banks !== undefined) {
+      if (!GROUND_COVERS.has(river.banks?.cover)) fail(`${at}.banks`, `cover must be one of ${[...GROUND_COVERS].join(", ")}`);
+      if (!isNumber(river.banks?.width) || river.banks.width <= 0) fail(`${at}.banks`, "width must be positive");
+      checkEvidence(`${at}.banks.evidence`, river.banks?.evidence);
+    }
+  }
+
+  const scenery = t.scenery;
+  if (scenery === undefined) return;
+  const at = `${where}.scenery`;
+  if (!GROUND_COVERS.has(scenery.ground?.cover)) fail(`${at}.ground`, `cover must be one of ${[...GROUND_COVERS].join(", ")}`);
+  checkEvidence(`${at}.ground.evidence`, scenery.ground?.evidence);
+
+  const ids = new Set();
+  const checkId = (itemAt, id) => {
+    if (typeof id !== "string" || !KEBAB.test(id)) fail(itemAt, "id must be kebab-case");
+    else if (ids.has(id)) fail(itemAt, `id ${id} is used twice in the scenery`);
+    ids.add(id);
+  };
+
+  if (!Array.isArray(scenery.areas)) fail(at, "areas must be a list (it may be empty)");
+  for (const [i, area] of (Array.isArray(scenery.areas) ? scenery.areas : []).entries()) {
+    const areaAt = `${at}.areas[${i}]`;
+    checkId(areaAt, area.id);
+    if (!GROUND_COVERS.has(area.cover)) fail(areaAt, `cover must be one of ${[...GROUND_COVERS].join(", ")}`);
+    if (!Array.isArray(area.outline) || area.outline.length < 3) fail(areaAt, "outline needs at least three points");
+    else if (!area.outline.every(inside)) fail(areaAt, "every point of the outline must lie inside the terrain");
+    else if (Math.abs(outlineArea2(area.outline)) < 2) fail(areaAt, "outline encloses no ground");
+    checkEvidence(`${areaAt}.evidence`, area.evidence);
+  }
+
+  if (!Array.isArray(scenery.structures)) fail(at, "structures must be a list (it may be empty)");
+  const rectangles = [];
+  for (const [i, structure] of (Array.isArray(scenery.structures) ? scenery.structures : []).entries()) {
+    const structureAt = `${at}.structures[${i}]`;
+    checkId(structureAt, structure.id);
+    if (!STRUCTURE_KINDS.has(structure.kind)) fail(structureAt, `kind must be one of ${[...STRUCTURE_KINDS].join(", ")}`);
+    if (structure.kind === "camp" && !sides.has(structure.side)) fail(structureAt, `a camp needs the side it belongs to; ${structure.side} is not a side`);
+    if (structure.side !== undefined && !sides.has(structure.side)) fail(structureAt, `side ${structure.side} is not a side`);
+    if (structure.ruined !== undefined && typeof structure.ruined !== "boolean") fail(structureAt, "ruined must be true or false");
+    checkEvidence(`${structureAt}.evidence`, structure.evidence);
+    const sized =
+      isNumber(structure.width) && structure.width > 0 && isNumber(structure.depth) && structure.depth > 0 && isNumber(structure.facing);
+    if (!sized) fail(structureAt, "needs positive width and depth, and a facing");
+    else if (structure.facing < 0 || structure.facing >= 360) fail(structureAt, "facing must be from 0 up to 360");
+    if (!inside(structure.center)) fail(structureAt, "center must lie inside the terrain");
+    if (!sized || !inside(structure.center)) continue;
+
+    const rectangle = corners({ center: structure.center, frontage: structure.width, depth: structure.depth, facing: structure.facing });
+    if (!cornerPoints(rectangle).every(inside)) fail(structureAt, "reaches beyond the edge of the terrain");
+    // Nothing is built in a river: its water and the belt along its banks stay clear.
+    for (const river of t.rivers ?? []) {
+      if (!Array.isArray(river.points) || !isNumber(river.width)) continue;
+      const margin = river.width / 2 + (isNumber(river.banks?.width) ? river.banks.width : 0);
+      if (alongLine(river.points, 5).some((p) => inRectangle(p, rectangle, margin))) {
+        fail(structureAt, `stands in the river ${river.name?.en} or on its banks (within ${margin} m of the centre line)`);
+      }
+    }
+    for (const other of rectangles) {
+      if (shareInside(rectangle, other.rectangle) > 0 || shareInside(other.rectangle, rectangle) > 0) {
+        fail(structureAt, `overlaps the structure ${other.id}`);
+      }
+    }
+    rectangles.push({ id: structure.id, kind: structure.kind, rectangle });
+  }
+
+  // A named place that the scenery draws carries its label on what is drawn.
+  const drawn = { camp: ["camp"], town: ["citadel", "village"] };
+  for (const [i, mark] of (t.landmarks ?? []).entries()) {
+    const kinds = drawn[mark.kind];
+    if (!kinds || !inside(mark.point) || !rectangles.some((r) => kinds.includes(r.kind))) continue;
+    if (!rectangles.some((r) => kinds.includes(r.kind) && inRectangle(mark.point, r.rectangle))) {
+      warn(`${where}.landmarks[${i}]`, `${mark.name?.en} lies in no ${kinds.join(" or ")} of the scenery`);
+    }
+  }
+
+  if (scenery.wind !== undefined) {
+    const wind = scenery.wind;
+    if (!isNumber(wind?.from) || wind.from < 0 || wind.from >= 360) fail(`${at}.wind`, "from must be from 0 up to 360");
+    if (!isNumber(wind?.speed) || wind.speed < 0 || wind.speed > 40) fail(`${at}.wind`, "speed must be from 0 to 40 metres per second");
+    checkEvidence(`${at}.wind.evidence`, wind?.evidence);
+  }
+  if (scenery.dust !== undefined) {
+    if (!isNumber(scenery.dust?.level) || scenery.dust.level < 0 || scenery.dust.level > 1) fail(`${at}.dust`, "level must be from 0 to 1");
+    checkEvidence(`${at}.dust.evidence`, scenery.dust?.evidence);
+  }
 }
 
 // --- Shared data ------------------------------------------------------------
@@ -174,6 +329,7 @@ for (const file of battleFiles) {
     if (!LANDMARK_KINDS.has(mark.kind)) fail(at, `kind ${mark.kind} is not one of ${[...LANDMARK_KINDS].join(", ")}`);
     if (!inside(mark.point)) fail(at, "point must lie inside the terrain");
   }
+  checkScenery(terrainWhere, t, sides, inside);
 
   // States: the start and the end of every phase list every unit once.
   const lastMen = new Map([...units].map(([id, u]) => [id, u.men]));
