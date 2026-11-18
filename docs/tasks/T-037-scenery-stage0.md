@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18: phiên chính làm chặng 0 và 1 của đợt H).
 - **Model:** Fable 5.2.
 - **Nhánh:** `batch-h/stage0-scenery-data` (tạo từ `main` ở `304206d`). Không commit thẳng vào `main`.
-- **Trạng thái:** xong, chờ người dùng duyệt gộp.
+- **Trạng thái:** xong, đã gộp vào `main` 2026-11-18 (người dùng chọn gộp và đẩy luôn, không qua lane đọc lại).
 - **Phạm vi file:** `src/lib/battle.ts`, `src/data/battles/battle-of-cannae.json`, `scripts/battles/validate-battles.mjs`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt H".
 

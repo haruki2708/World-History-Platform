@@ -66,7 +66,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng chọn làm ngay một việc nhỏ sau đợt G: hastatus không cầm hai cây *pilum* trong lúc giáp lá cà (hiện chúng biến đi rồi hiện lại mỗi lần đánh, đỡ hay trúng đòn). [T-035](tasks/T-035-hastatus-pila.md): xong và đã gộp 2026-11-18, chỉ sửa cảnh (không dựng lại mô hình). Người dùng chọn gộp luôn, không qua bước lane đọc lại; kiểm tra trước khi gộp: lint, validate, build qua, hồi quy lõi 17/17.
 - **2026-11-18:** Người dùng hỏi cảnh giáp lá cà có đúng thực tế không. Phiên chính nêu chỗ khác: cảnh vẽ đánh liên tục, còn trận thật nhiều khả năng đánh theo từng đợt có nghỉ. Người dùng chọn chỉ thêm một dòng vào hộp thoại Giới thiệu, không sửa cảnh: [T-036](tasks/T-036-about-pulses.md), xong và đã gộp 2026-11-18 (người dùng duyệt câu chữ).
 - **2026-11-18:** Người dùng muốn trận đánh 3D trông chân thực hơn: có phong cảnh (mặt đất, sông, nhà cửa, cây cối) thay vì chỉ có các khối quân, và mọi cảnh vật có tư liệu thì dựng thành hình. Phiên chính trình đề xuất **đợt H (phong cảnh)**, năm chặng; người dùng duyệt và cho bắt đầu chặng 0. Xem mục "Đợt H".
-- **2026-11-18:** Phiên chính xong chặng 0 của đợt H (T-037) trên nhánh `batch-h/stage0-scenery-data`: đọc lại Polybius 3.107–117 và Livy 22.40–49 về cảnh vật quanh Cannae; thêm kiểu dữ liệu phong cảnh vào `src/lib/battle.ts` (mỗi thứ mang mức căn cứ `attested`, `inferred` hay `illustrative`); dữ liệu Cannae có mặt đất (ruộng đã gặt, không cây), mực nước và bờ sông, ba trại, thành và làng Cannae, gió Volturnus, bụi; `npm run validate` kiểm tra thêm. Cảnh chưa vẽ gì mới. Chờ người dùng duyệt gộp.
+- **2026-11-18:** Phiên chính xong chặng 0 của đợt H (T-037) trên nhánh `batch-h/stage0-scenery-data`: đọc lại Polybius 3.107–117 và Livy 22.40–49 về cảnh vật quanh Cannae; thêm kiểu dữ liệu phong cảnh vào `src/lib/battle.ts` (mỗi thứ mang mức căn cứ `attested`, `inferred` hay `illustrative`); dữ liệu Cannae có mặt đất (ruộng đã gặt, không cây), mực nước và bờ sông, ba trại, thành và làng Cannae, gió Volturnus, bụi; `npm run validate` kiểm tra thêm. Cảnh chưa vẽ gì mới.
+  - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17.
+  - Phiên chính hỏi lại câu trả lời "vẽ 3d chân thực" của người dùng; người dùng chọn **nhiều cây và nhà hơn**, kể cả ở chỗ tư liệu nói là trống, và hộp thoại Giới thiệu phải nói rõ. Ghi ở mục "Đợt H".
+  - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng cho bắt đầu chặng 1 ngay.
 
 ## Việc để giai đoạn 5
 
@@ -131,7 +134,7 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 
 | Chặng | Nội dung | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|
-| 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong trên nhánh `batch-h/stage0-scenery-data`, chờ duyệt gộp |
+| 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong, đã gộp 2026-11-18 |
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | Chưa viết | Chưa bắt đầu |
 | 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
 | 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
