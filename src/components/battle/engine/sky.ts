@@ -129,6 +129,11 @@ export class Sky {
   private readonly snapped = new Vector3();
   private hour = NaN;
 
+  /** Unit vector towards the light that casts shadows: the sun by day, the moon by night. */
+  get lightDirection(): Vector3 {
+    return this.lightDir;
+  }
+
   /** dayOfYear: Battle.dayOfYear; without it the sun runs as in summer. */
   constructor(latitudeDeg: number, dayOfYear?: number) {
     this.latitude = latitudeDeg * DEG;

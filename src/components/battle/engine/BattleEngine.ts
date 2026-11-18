@@ -797,6 +797,7 @@ export class BattleEngine {
     this.fog.far = distance * 4 + 45000;
 
     this.shared.uTime.value = seconds;
+    terrain.update(seconds, this.sky);
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
     this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(

@@ -1,6 +1,12 @@
 /**
  * The ground: a mesh built from the elevation grid of the battle, coloured by
- * height and slope, with river surfaces laid on top.
+ * height and slope and by what covers it (BattleScenery.ground), with the
+ * rivers laid on top (river.ts).
+ *
+ * Where the ground is harvested fields (`stubble`), the level parts are a
+ * patchwork of fields: stubble, fallow and ploughed, each with its own tone
+ * and its rows, with grassy baulks between. Close to the camera the rows show
+ * one by one and catch the light.
  *
  * World axes: +X east, +Y up, -Z north, so a field point (x, y) sits at
  * world (x, height, -y).
@@ -16,7 +22,8 @@ import {
   MeshLambertMaterial,
   Vector3,
 } from "three";
-import { type BattleTerrain, type FieldPoint, terrainUrl } from "@/lib/battle";
+import { type BattleTerrain, type FieldPoint, type GroundCover, terrainUrl } from "@/lib/battle";
+import { River, type RiverLight } from "./river";
 
 export type HeightAt = (x: number, y: number) => number;
 
@@ -31,8 +38,23 @@ const PALETTE = {
   rock: new Color("#958b7b"),
   cliff: new Color("#86837d"),
   bank: new Color("#6d8546"),
-  water: new Color("#4d7688"),
 };
+
+/**
+ * The three colours the open ground is mixed from, by cover: the main one,
+ * the one of its greener or darker regions, and the bare patches. `fields`
+ * lays the patchwork of fields over level ground.
+ */
+const COVERS: Record<GroundCover, { main: Color; other: Color; bare: Color; fields: boolean }> = {
+  stubble: { main: PALETTE.stubble, other: PALETTE.grass, bare: PALETTE.earth, fields: true },
+  grass: { main: new Color("#a3a162"), other: PALETTE.grass, bare: PALETTE.earth, fields: false },
+  scrub: { main: PALETTE.scrub, other: new Color("#6f7a4a"), bare: PALETTE.earth, fields: false },
+  reeds: { main: new Color("#8a8f52"), other: PALETTE.bank, bare: PALETTE.earth, fields: false },
+  woodland: { main: new Color("#6f7a4a"), other: new Color("#5d6b40"), bare: PALETTE.earth, fields: false },
+  bare: { main: PALETTE.earth, other: new Color("#b09a72"), bare: PALETTE.rock, fields: false },
+};
+/** A battle without scenery: the ground as it was drawn before there was any. */
+const PLAIN_COVER = { main: PALETTE.stubble, other: PALETTE.grass, bare: PALETTE.earth, fields: false };
 
 /** Reads the grid: Int16 little-endian decimetres, rows north to south. */
 export async function loadHeights(
@@ -72,6 +94,7 @@ export class Terrain {
   readonly maxHeight: number;
   readonly data: BattleTerrain;
   private readonly heights: Float32Array;
+  private readonly rivers: River[] = [];
   private readonly cellX: number;
   private readonly cellY: number;
 
@@ -92,22 +115,15 @@ export class Terrain {
     this.group.add(this.buildGround());
     for (const river of data.rivers) {
       if (river.points.length < 2) continue;
-      const water = new Mesh(
-        buildRibbon(river.points, () => river.width / 2, this.heightAt, 0.35, 4),
-        new MeshLambertMaterial({
-          color: PALETTE.water,
-          transparent: true,
-          opacity: 0.88,
-          depthWrite: false,
-          polygonOffset: true,
-          polygonOffsetFactor: -2,
-          polygonOffsetUnits: -4,
-        }),
-      );
-      water.receiveShadow = true;
-      water.renderOrder = 1;
-      this.group.add(water);
+      const drawn = new River(river, data.landmarks, this.heightAt);
+      this.rivers.push(drawn);
+      this.group.add(drawn.mesh);
     }
+  }
+
+  /** Call every frame: moving water, and the sky it reflects. */
+  update(seconds: number, sky: RiverLight): void {
+    for (const river of this.rivers) river.update(seconds, sky);
   }
 
   /**
@@ -141,9 +157,12 @@ export class Terrain {
     const rows = height + 2;
     const positions = new Float32Array(cols * rows * 3);
     // Per vertex: a colour laid over the procedural ground (rock on slopes,
-    // scrub on heights, green by the river) and how strongly.
+    // scrub on heights) and how strongly; then how steep the ground is (rise
+    // over run) and how far the nearest river is, metres from its water.
     const colors = new Float32Array(cols * rows * 3);
     const overlay = new Float32Array(cols * rows);
+    const lie = new Float32Array(cols * rows * 2);
+    const cover = this.data.scenery ? COVERS[this.data.scenery.ground.cover] : PLAIN_COVER;
     const relief = Math.max(this.maxHeight - this.minHeight, 1);
     const hasRelief = this.maxHeight - this.minHeight > 20;
     const color = new Color();
@@ -191,8 +210,9 @@ export class Terrain {
             if (d < nearest) nearest = d;
           }
         }
-        if (nearest < 400) mix(PALETTE.bank, (1 - smooth(20, 400, nearest)) * 0.75);
         overlay[r * cols + c] = weight;
+        lie[(r * cols + c) * 2] = slope;
+        lie[(r * cols + c) * 2 + 1] = Math.min(Math.max(nearest, 0), 2000);
         colors[i] = color.r;
         colors[i + 1] = color.g;
         colors[i + 2] = color.b;
@@ -221,6 +241,7 @@ export class Terrain {
     geometry.setAttribute("position", new BufferAttribute(positions, 3));
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
     geometry.setAttribute("aOverlay", new BufferAttribute(overlay, 1));
+    geometry.setAttribute("aLie", new BufferAttribute(lie, 2));
     geometry.setIndex(new BufferAttribute(index, 1));
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
@@ -229,22 +250,27 @@ export class Terrain {
     // The ground colour is made in the shader from layered noise, so it stays
     // crisp however coarse the elevation grid is.
     material.onBeforeCompile = (shader) => {
-      shader.uniforms.uStubble = { value: PALETTE.stubble };
-      shader.uniforms.uGrass = { value: PALETTE.grass };
-      shader.uniforms.uEarth = { value: PALETTE.earth };
+      shader.uniforms.uStubble = { value: cover.main };
+      shader.uniforms.uGrass = { value: cover.other };
+      shader.uniforms.uEarth = { value: cover.bare };
+      shader.uniforms.uBank = { value: PALETTE.bank };
+      shader.uniforms.uFields = { value: cover.fields ? 1 : 0 };
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
           /* glsl */ `#include <common>
           attribute float aOverlay;
+          attribute vec2 aLie;
           varying vec3 vGroundPos;
-          varying float vOverlay;`,
+          varying float vOverlay;
+          varying vec2 vLie;`,
         )
         .replace(
           "#include <begin_vertex>",
           /* glsl */ `#include <begin_vertex>
           vGroundPos = position;
-          vOverlay = aOverlay;`,
+          vOverlay = aOverlay;
+          vLie = aLie;`,
         );
       shader.fragmentShader = shader.fragmentShader
         .replace(
@@ -253,8 +279,16 @@ export class Terrain {
           uniform vec3 uStubble;
           uniform vec3 uGrass;
           uniform vec3 uEarth;
+          uniform vec3 uBank;
+          uniform float uFields;
           varying vec3 vGroundPos;
           varying float vOverlay;
+          varying vec2 vLie;
+          // The small relief of the ground (rows, clods, tufts), 0 to 1, and
+          // how much of it shows at this distance: set with the colour, used
+          // to bend the normal.
+          float groundRelief = 0.0;
+          float groundReliefShown = 0.0;
           float groundHash(vec2 p) {
             vec3 q = fract(vec3(p.xyx) * 0.1031);
             q += dot(q, q.yzx + 33.33);
@@ -292,12 +326,100 @@ export class Terrain {
             float mottle = groundFbm(g * 0.045 + 7.0);
             vec3 ground = mix(uStubble, uGrass, smoothstep(0.42, 0.62, regions * 0.65 + patches * 0.35));
             ground = mix(ground, uEarth, smoothstep(0.55, 0.78, patches * 0.6 + mottle * 0.4) * 0.55);
-            ground = mix(ground, vColor.rgb, vOverlay);
             float near = 1.0 - smoothstep(40.0, 420.0, distance);
             float mid = 1.0 - smoothstep(300.0, 2600.0, distance);
             float grain = groundNoise(g * 1.3) * 0.6 + groundNoise(g * 0.31) * 0.4;
+            float tuft = groundNoise(g * 2.7 + 5.0);
+            groundRelief = tuft * 0.5 + grain * 0.3;
+
+            // Fields on level ground away from the river: long plots laid
+            // like bricks, their edges bent a little so that no line is ruled.
+            // Not all of it is tilled: stretches of open pasture lie between.
+            float tilled = smoothstep(0.4, 0.5, groundFbm(g * 0.0008 + 91.0));
+            float fieldShare = uFields * tilled * (1.0 - smoothstep(0.05, 0.12, vLie.x)) * smoothstep(45.0, 130.0, vLie.y);
+            {
+              vec2 plot = vec2(280.0, 140.0);
+              vec2 fp = mat2(0.951, 0.309, -0.309, 0.951) * g;
+              fp += (vec2(groundNoise(g * 0.0035 + 3.1), groundNoise(g * 0.0035 + 17.7)) - 0.5) * 170.0;
+              fp += (vec2(groundNoise(g * 0.019 + 8.3), groundNoise(g * 0.019 + 27.1)) - 0.5) * 22.0;
+              vec2 fc = fp / plot;
+              fc.x += 0.5 * mod(floor(fc.y), 2.0);
+              vec2 cell = floor(fc);
+              vec2 inCell = fract(fc);
+              // Half of the plots are split in two along their length.
+              float split = step(0.5, groundHash(cell + 7.7));
+              float part = floor(inCell.x * 2.0) * split;
+              cell += vec2(part * 0.37, part * 0.11);
+              inCell.x = mix(inCell.x, fract(inCell.x * 2.0), split);
+              plot.x *= mix(1.0, 0.5, split);
+              float kind = groundHash(cell * 1.7 + 9.1);
+              float tone = groundHash(cell + 0.37);
+              float turned = step(0.5, groundHash(cell * 0.61 + 4.2));
+              vec2 toEdge = min(inCell, 1.0 - inCell) * plot;
+              // The baulk between plots: 2.5 m of grass. Far off it is thinner
+              // than a pixel, so it is drawn a pixel wide and that much fainter.
+              float toBaulk = min(toEdge.x, toEdge.y);
+              float baulkWidth = max(2.5, fwidth(toBaulk) * 1.5);
+              float baulk = (1.0 - smoothstep(baulkWidth * 0.5, baulkWidth, toBaulk)) * (2.5 / baulkWidth);
+
+              // Rows: the drill lines of the stubble, the furrows of the plough.
+              float spacing = kind > 0.9 ? 1.9 : 1.15;
+              float rowCoord = mix(fp.y, fp.x, turned) / spacing + (groundNoise(g * 0.09) - 0.5) * 0.7;
+              float rowShown = 1.0 - smoothstep(0.18, 0.5, fwidth(rowCoord));
+              float ridge = 1.0 - abs(fract(rowCoord) - 0.5) * 2.0;
+
+              vec3 straw = uStubble * (0.93 + 0.16 * tone);
+              vec3 soil = uEarth * (0.86 + 0.12 * tone);
+              vec3 field;
+              float relief;
+              if (kind < 0.66) {
+                // Stubble: pale rows of cut stalks over straw and soil.
+                float stalk = smoothstep(0.35, 0.8, ridge) * (0.45 + 0.55 * tuft);
+                vec3 between = mix(straw * 0.86, soil, 0.25);
+                field = mix(between, straw * 1.12, mix(0.31, stalk, rowShown));
+                relief = stalk * 0.7 + tuft * 0.2;
+              } else if (kind < 0.9) {
+                // Fallow: dry grass in clumps, no rows.
+                float clump = smoothstep(0.4, 0.75, groundNoise(g * 0.8 + 11.0));
+                vec3 fallow = mix(uGrass, uStubble, 0.45) * (0.9 + 0.15 * tone);
+                field = mix(fallow, fallow * 0.8, clump * near);
+                relief = clump * 0.6 + tuft * 0.3;
+              } else {
+                // Ploughed: dark furrows and lighter crests.
+                float crest = smoothstep(0.2, 0.8, ridge);
+                float clod = groundNoise(g * 1.9 + 23.0);
+                field = mix(soil * 0.95, mix(soil * 0.82, soil * 1.08, crest) * (0.9 + 0.2 * clod), rowShown);
+                relief = crest * 0.55 + clod * 0.45;
+              }
+              field = mix(field, mix(uGrass, uEarth, 0.35) * 0.9, baulk * 0.75);
+              ground = mix(ground, field, fieldShare);
+              groundRelief = mix(groundRelief, relief, fieldShare * rowShown);
+            }
+
+            ground = mix(ground, vColor.rgb, vOverlay);
+            // Greener where the river keeps the ground moist.
+            ground = mix(ground, uBank, (1.0 - smoothstep(10.0, 150.0, vLie.y)) * 0.32);
+            // Close up, the cover breaks into tufts and bare spots.
+            float speck = groundNoise(g * 6.3 + 2.0);
+            ground *= 1.0 + (0.16 * (tuft - 0.5) + 0.1 * (speck - 0.5)) * (1.0 - smoothstep(25.0, 160.0, distance));
             ground *= 0.9 + 0.2 * (mottle - 0.5) * mid + 0.22 * (grain - 0.5) * near + 0.16 * (regions - 0.5);
+            groundReliefShown = 1.0 - smoothstep(30.0, 190.0, distance);
             diffuseColor.rgb *= ground;
+          }`,
+        )
+        .replace(
+          "#include <normal_fragment_maps>",
+          /* glsl */ `#include <normal_fragment_maps>
+          if (groundReliefShown > 0.0) {
+            // The relief as a bump: its slope across the screen bends the normal.
+            float bump = groundRelief * groundReliefShown * 0.22;
+            vec3 across = dFdx(-vViewPosition);
+            vec3 down = dFdy(-vViewPosition);
+            vec3 r1 = cross(down, normal);
+            vec3 r2 = cross(normal, across);
+            float det = dot(across, r1);
+            vec3 gradient = sign(det) * (dFdx(bump) * r1 + dFdy(bump) * r2);
+            normal = normalize(abs(det) * normal - gradient);
           }`,
         );
     };
