@@ -90,3 +90,9 @@ Lane 3 hết hạn mức, nên người dùng giao lane 1 đọc lại thay (Opu
 Sau khi sửa, mọi số của `blows-check.mjs` khi phát liên tục giống hệt trước (Cannae và trận thử), và các biến thể biên của lane 1 không còn người ném nào mang clip phản ứng.
 
 Để nguyên theo review: kỵ binh Numidia đánh gần không đỡ đòn (lane 1 tính ra hai khoảng độ lệch nhịp không giao nhau; đã ghi vào `ARCHITECTURE.md`).
+
+### Kiểm tra sau khi sửa (commit `9252fc1`)
+
+- `npm run lint`, `npm run validate`, `npx tsc --noEmit`: qua. `npm run build` (worktree tạm): qua.
+- Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản production đó: 17/17, console sạch.
+- Trong trình duyệt (dev, Cannae, đang dừng, tua tới tám thời điểm ở giai đoạn 3–6, `main-tools/drive/s-seekcount.mjs`): ngay sau khi tua có 874 hình phát `attack`, 434 `block`, 236 `hit`, tức 0,77 hình đỡ hay trúng đòn trên mỗi hình đánh. Lane 1 đo trước khi sửa: 0,25 (và 0,56 sau khi phát tiếp 3 giây).
