@@ -337,6 +337,18 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
 - **Kiểm tra** (`checkScenery` trong `scripts/battles/validate-battles.mjs`): mức căn cứ, ghi chú và nguồn; công trình nằm trọn trong vùng địa hình, không chồng nhau, không lấn vào sông và dải bờ; các số nằm trong khoảng cho phép.
 - **Căn cứ của Cannae:** `docs/data/battles/cannae.md`, mục 12.
 
+### Đồ hoạ theo ảnh mẫu (đợt I)
+
+Người dùng gửi năm ảnh mẫu và muốn cảnh trông như vậy. Cách làm chốt sau nhiều lần thử: **đo ảnh mẫu và ảnh chụp cảnh bằng cùng một thước rồi sửa cho khớp số**, không chỉnh bằng mắt (T-044). Thước đo nằm ngoài repo, ở `main-tools/look/` (`measure.py`, `check.sh`).
+
+- **Màu** (`engine/grade.ts`): cảnh dùng đường cong màu riêng (`CustomToneMapping`), sau đó giữ 96% màu và nâng màu đen một chút. Hai số này lấy từ phép đo: ảnh mẫu có độ đậm của vùng xanh lá 0,50–0,66 và vùng bóng vẫn nhìn được vào.
+- **Ánh sáng bù cho hình lính** (`Sky.fill` trong `sky.ts`, `figFill` trong `figures/material.ts`): riêng hình lính nhận thêm ánh sáng trời, ánh sáng đất hắt lên, một đèn phụ từ phía đối diện mặt trời và một phần nắng không bị bóng che. Thiếu nó, mặt khuất nắng của người và ngựa là một khối sẫm phẳng.
+- **Mặt nước** (`engine/water.ts`): GLSL dùng chung cho sông (`river.ts`) và biển (shader mặt đất). Sóng là tổng chín con sóng; con nào ngắn hơn khoảng hai điểm ảnh thì bỏ và tính thành độ nhám, nên nắng lấp lánh ở gần và thành vệt rộng ở xa.
+- **Chất liệu ảnh chụp** (`public/battles/textures/`, nguồn ambientCG, CC0, ghi ở `art/CREDITS.md`): cỏ, sỏi và cát cho mặt đất; `foliage.webp` (lá và vỏ cây, dựng bằng `scripts/battles/build-foliage.py`) cho cây và lau sậy; `cloth.jpg`, `masonry.jpg`, `planks.jpg` (ảnh xám, dựng bằng `scripts/battles/build-materials.py`) cho lều, tường và gỗ. Ảnh chỉ cho vân; màu vẫn do cảnh đặt.
+- **Bụi cỏ** (`engine/grass.ts`): 42 000 bụi quanh camera trong 145 m, sẫm hơn mặt đất; ngoài tầm đó shader mặt đất vẽ một đốm sẫm cho mỗi bụi.
+- **Hỗn chiến và vật bay**: xem mục "Giáp lá cà".
+- Mô hình lính **không đổi**. Thang chi tiết bốn mức `hi` (T-042, cờ `--hi` của script Blender) đã dựng thử nhưng không dùng: người dùng thấy sửa ánh sáng là đủ.
+
 ### Khung xem trận (đợt C)
 
 - **Mở:** sự kiện nào có trận 3D (`hasBattle(id)` trong `src/data/index.ts`) thì panel sự kiện có nút xem trận. Nút gọi `openBattle(id)`; từ T-025 nút gọi `requestBattle(id)` để bản đồ bay tới chiến trường trước (xem mục "Trạng thái chung").
@@ -360,4 +372,5 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
+- **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
 - **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Còn lại: bụi và gió.

@@ -530,3 +530,9 @@ Lều không được dựng ở nơi một khối quân đứng hay đi qua. V�
 Loại cây (ô liu, sồi, dương, liễu) là cây quen thuộc của vùng Địa Trung Hải, chọn theo hiểu biết chung; chưa đối chiếu với nghiên cứu nào về thảm thực vật Apulia thời đó.
 
 Không cây nào đứng ở chỗ quân đứng hay đi qua (cây lùi 55 m so với mọi khối quân ở mọi thời điểm), nên vùng hai đạo quân dàn trận và giao chiến vẫn trống như lời Polybius.
+
+## 16. Mặt đất xanh (T-041, T-044, đợt I)
+
+Ngày 2026-11-18 người dùng chọn vẽ mặt đất **xanh tươi như ảnh mẫu**, dù biết trái mùa. `ground.cover` đổi từ `stubble` sang `grass`, mức căn cứ đổi từ `inferred` sang `illustrative`, và ghi chú nói rõ: theo Polybius (3.110) và Livy (22.43), ngày diễn ra trận đánh nơi đây là ruộng đã gặt và cỏ khô; cảnh vẽ xanh là lựa chọn cho vẻ ngoài. Bảng ở mục 12 ghi lớp phủ cũ. Hộp thoại Giới thiệu nói điều này trong dòng về cảnh vật (`about.accuracy.battle.scenery`).
+
+Phần hỗn chiến ở các hàng sau và lao ném qua đầu hàng trước (T-043) không có trong dữ liệu trận: cảnh tự vẽ, và dòng `about.accuracy.battle.duels` của hộp thoại Giới thiệu nói đó là minh hoạ.

@@ -48,7 +48,7 @@ Bấm **Phát** để thấy chuyển động; ảnh đứng yên chỉ thấy h
 
 ### Mức căn cứ
 
-Phần này vẽ cho giống một trận đánh, **không lấy từ tư liệu**: không nguồn nào tả từng người ở hàng sau làm gì. Riêng việc hàng sau ném lao qua đầu hàng trước trong lúc giáp lá cà là điều các nhà nghiên cứu còn bàn; ở đây áp dụng cho mọi loại bộ binh của cả hai bên, kể cả những loại không rõ có mang lao hay không. **Hộp thoại Giới thiệu chưa nói điều này**; phải thêm một câu (và người dùng duyệt câu chữ) trước khi gộp.
+Phần này vẽ cho giống một trận đánh, **không lấy từ tư liệu**: không nguồn nào tả từng người ở hàng sau làm gì. Riêng việc hàng sau ném lao qua đầu hàng trước trong lúc giáp lá cà là điều các nhà nghiên cứu còn bàn; ở đây áp dụng cho mọi loại bộ binh của cả hai bên, kể cả những loại không rõ có mang lao hay không. Hộp thoại Giới thiệu nói điều này trong dòng `about.accuracy.battle.duels` (viết lại 2026-11-19, chờ người dùng duyệt câu chữ cùng lúc duyệt gộp).
 
 ### Chưa làm, còn thấy được
 

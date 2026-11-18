@@ -1392,10 +1392,10 @@
       "ground": {
         "cover": "grass",
         "evidence": {
-          "basis": "inferred",
+          "basis": "illustrative",
           "note": {
-            "en": "Polybius calls the country round Cannae flat and treeless. Livy says the harvest comes early in Apulia and that the plain was parched. So the open ground is drawn as harvested fields and dry grass; how much of it was under the plough is not known.",
-            "vi": "Polybius tả vùng quanh Cannae bằng phẳng và không có cây. Livy nói mùa gặt ở Apulia đến sớm và đồng bằng khô nẻ. Vì vậy đất trống được vẽ là ruộng đã gặt và cỏ khô; bao nhiêu phần là ruộng cày thì không rõ."
+            "en": "Polybius calls the country round Cannae flat and treeless, and Livy says the harvest comes early in Apulia and that the plain was parched: on the day of the battle, in high summer, this was stubble and dry grass. The scene draws it green, as in spring. That goes against the season and is a choice made for the look of the scene.",
+            "vi": "Polybius tả vùng quanh Cannae bằng phẳng và không có cây, còn Livy nói mùa gặt ở Apulia đến sớm và đồng bằng khô nẻ: ngày diễn ra trận đánh, giữa mùa hè, nơi đây là ruộng đã gặt và cỏ khô. Cảnh vẽ mặt đất xanh tươi như mùa xuân. Điều đó trái mùa, và là lựa chọn cho vẻ ngoài của cảnh."
           },
           "sources": [
             { "title": "Polybius, Histories 3.110", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
