@@ -370,7 +370,7 @@ Polybius không nhắc tới gió và bụi; chỉ Livy có. Không nguồn nào
 |---|---|---|---|
 | Mặt đất | `ground.cover: stubble` | `inferred` | "Không có cây" là lời Polybius (3.110). Ruộng đã gặt và cỏ khô là suy từ Livy 22.43 (gặt sớm, đồng khô nẻ) và mùa đánh trận (hè). Bao nhiêu phần đồng bằng là ruộng cày thì không rõ |
 | Mực nước sông | `rivers[0].level.stage: low` | `inferred` | Cả hai đạo quân lội qua sông buổi sáng hôm ấy, giữa mùa hè |
-| Hai bờ sông | `rivers[0].banks`: `reeds`, rộng 25 m mỗi bờ | `illustrative` | Không có nguồn. Ngày nay dọc sông Ofanto có lau sậy, liễu, dương. Dải cây giữ mỏng vì lời Polybius |
+| Hai bờ sông | `rivers[0].banks`: `reeds`, rộng 25 m mỗi bờ | `illustrative` | Không có nguồn. Ngày nay dọc sông Ofanto có lau sậy, liễu, dương |
 | Trại lớn của La Mã | `roman-large-camp`, 1050 × 1050 m, tâm −1600, 1300 | `attested` | Có trại, bên bờ sông, có luỹ: Polybius 3.110, Livy 22.44–45. Kích thước, hình vuông và hướng là giả định (xem dưới) |
 | Trại nhỏ của La Mã | `roman-small-camp`, 750 × 750 m, tâm 250, 1200 | `attested` | Polybius 3.110. Kích thước và hướng là giả định |
 | Trại của Hannibal | `hannibal-camp`, 1000 × 1000 m, tâm −3975, −500 | `attested` | Có trại, có hào luỹ, cùng bờ với trại lớn, bị đánh hôm ấy: Polybius 3.111, 3.117. Không rõ trại Carthage bố trí thế nào: kích thước, hình dạng và bên trong là giả định |
@@ -380,6 +380,8 @@ Polybius không nhắc tới gió và bụi; chỉ Livy có. Không nguồn nào
 | Bụi | `dust.level: 0,8` | `attested` | Livy 22.43, 22.46. Bụi dày tới đâu là giả định |
 
 `areas` (các mảng đất có lớp phủ riêng, ví dụ bụi cây trên sườn đồi) còn để trống: sẽ thêm ở chặng thực vật, khi xem được trong cảnh thật.
+
+**Cây và nhà minh hoạ.** Sau chặng 0, người dùng chọn cho cảnh có nhiều cây và nhà hơn, kể cả ở chỗ nguồn nói là trống (`docs/PLAN.md`, mục "Đợt H"). Những thứ đó sẽ thêm ở chặng công trình và chặng thực vật, đều mang mức `illustrative`, và ghi chú của từng thứ phải nói nó trái với Polybius 3.110 ("không có cây"). Bảng trên chỉ gồm những thứ có căn cứ, cộng dải lau sậy ven sông.
 
 Mức `attested` nói rằng **thứ đó có thật** theo nguồn. Kích thước, vị trí chính xác và hình dáng của nó hầu hết vẫn là giả định; ghi chú (`evidence.note`) của từng thứ nói rõ phần nào.
 

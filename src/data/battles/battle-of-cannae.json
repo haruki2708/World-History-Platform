@@ -1355,8 +1355,8 @@
           "evidence": {
             "basis": "illustrative",
             "note": {
-              "en": "No source describes the banks. Reeds, willows and poplars grow along the Ofanto today; the belt is kept thin because Polybius calls the country treeless.",
-              "vi": "Không nguồn nào tả hai bờ sông. Ngày nay dọc sông Ofanto có lau sậy, liễu và dương; dải cây được vẽ mỏng vì Polybius nói vùng này không có cây."
+              "en": "No source describes the banks. Reeds, willows and poplars grow along the Ofanto today.",
+              "vi": "Không nguồn nào tả hai bờ sông. Ngày nay dọc sông Ofanto có lau sậy, liễu và dương."
             }
           }
         }
@@ -1393,8 +1393,8 @@
         "evidence": {
           "basis": "inferred",
           "note": {
-            "en": "Polybius calls the country round Cannae flat and treeless. Livy says the harvest comes early in Apulia and that the plain was parched. So the plain is drawn as harvested fields and dry grass without trees; how much of it was under the plough is not known.",
-            "vi": "Polybius tả vùng quanh Cannae bằng phẳng và không có cây. Livy nói mùa gặt ở Apulia đến sớm và đồng bằng khô nẻ. Vì vậy đồng bằng được vẽ là ruộng đã gặt và cỏ khô, không có cây; bao nhiêu phần là ruộng cày thì không rõ."
+            "en": "Polybius calls the country round Cannae flat and treeless. Livy says the harvest comes early in Apulia and that the plain was parched. So the open ground is drawn as harvested fields and dry grass; how much of it was under the plough is not known.",
+            "vi": "Polybius tả vùng quanh Cannae bằng phẳng và không có cây. Livy nói mùa gặt ở Apulia đến sớm và đồng bằng khô nẻ. Vì vậy đất trống được vẽ là ruộng đã gặt và cỏ khô; bao nhiêu phần là ruộng cày thì không rõ."
           },
           "sources": [
             { "title": "Polybius, Histories 3.110", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },

@@ -69,7 +69,7 @@ Làm 2026-11-18.
 ### Khác với đề xuất đã trình
 
 - Đề xuất nói mỗi thứ có nhãn "có tư liệu" hay "minh hoạ". Dữ liệu dùng **ba** mức, thêm `inferred` ở giữa cho những thứ suy ra được từ nguồn (ruộng đã gặt, nước sông cạn).
-- Người dùng trả lời câu hỏi về thứ không có tư liệu bằng "vẽ 3d chân thực". Phiên chính hiểu là: vẫn vẽ, với hình dáng chân thực. Dữ liệu vẫn đánh dấu các thứ đó là `illustrative` và đồng bằng vẫn không có cây. Người dùng chưa xác nhận riêng cách hiểu này.
+- Người dùng trả lời câu hỏi về thứ không có tư liệu bằng "vẽ 3d chân thực". Phiên chính lúc làm chặng này hiểu là: vẫn vẽ, hình dáng chân thực, đồng bằng vẫn không có cây. **Khi được hỏi lại sau chặng 0, người dùng chọn khác: "Nhiều cây và nhà hơn"**, tức thêm cây, nhà, ruộng cả ở chỗ tư liệu nói là trống, và hộp thoại Giới thiệu phải nói rõ điều đó. Dữ liệu của chặng 0 không phải sửa vì lựa chọn này (nó chỉ ghi những thứ có căn cứ, cộng dải lau sậy ven sông); cây và nhà minh hoạ thêm ở chặng 2 và 3, mức `illustrative`, ghi chú nói rõ trái với Polybius 3.110. Chi tiết ở `docs/PLAN.md`, mục "Đợt H".
 
 ### Còn lại, và đề nghị cho các chặng sau
 

@@ -118,10 +118,14 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 
 **Hiện trạng trước đợt H:** mặt đất tô màu theo độ cao và độ dốc (lưới 30 m); sông là một dải màu phẳng; thành Cannae, ba trại và các chỗ vượt sông chỉ là nhãn tên. Không có cây, bụi cỏ hay công trình.
 
-**Tư liệu nói gì về Cannae** (đọc lại 2026-11-18, chi tiết ở `docs/data/battles/cannae.md`, mục 12): đồng bằng "bằng phẳng và không có cây" (Polybius 3.110); làng Cannae đã bị san phẳng, không có tường, chỉ còn thành chứa lương (Polybius 3.107, Livy 22.49); ba trại có luỹ (Polybius 3.110–111, Livy 22.44–45); gió Volturnus cuốn bụi vào mặt quân La Mã (Livy 22.43, 22.46); sông lội qua được ở nhiều chỗ. Vì vậy cảnh Cannae sẽ ít cây và ít nhà: phần làm cảnh thật hơn chủ yếu là mặt đất, sông, ba trại, thành trên gò và bụi.
+**Tư liệu nói gì về Cannae** (đọc lại 2026-11-18, chi tiết ở `docs/data/battles/cannae.md`, mục 12): đồng bằng "bằng phẳng và không có cây" (Polybius 3.110); làng Cannae đã bị san phẳng, không có tường, chỉ còn thành chứa lương (Polybius 3.107, Livy 22.49); ba trại có luỹ (Polybius 3.110–111, Livy 22.44–45); gió Volturnus cuốn bụi vào mặt quân La Mã (Livy 22.43, 22.46); sông lội qua được ở nhiều chỗ. Nếu chỉ theo tư liệu thì cảnh Cannae ít cây và ít nhà; người dùng đã chọn thêm cây và nhà minh hoạ (xem dưới).
 
 **Người dùng chọn:**
-- Thứ không có tư liệu (cây ven sông, bụi trên sườn đồi, bên trong các trại) vẫn vẽ, với hình dáng chân thực (nguyên văn: "vẽ 3d chân thực"). Phiên chính hiểu thêm, người dùng chưa xác nhận riêng: dữ liệu vẫn đánh dấu các thứ đó là minh hoạ, và đồng bằng vẫn không có cây theo lời Polybius.
+- **Nhiều cây và nhà hơn, kể cả ở chỗ tư liệu nói là trống** (chọn sau chặng 0, khi phiên chính hỏi lại câu trả lời "vẽ 3d chân thực"): ưu tiên cảnh đẹp và sinh động; thêm cây, nhà, ruộng trên đồng bằng dù Polybius 3.110 nói "không có cây". Hệ quả:
+  - Mọi thứ thêm vào theo lựa chọn này mang mức `illustrative`, và ghi chú của nó nói thẳng nó trái với nguồn nào.
+  - Hộp thoại Giới thiệu phải nói rõ: cảnh Cannae có cây và nhà mà nguồn cổ không nhắc, và đồng bằng thật theo Polybius là đất trống.
+  - Những thứ có tư liệu (thành, làng, ba trại, sông, gió, bụi) vẫn dựng theo tư liệu.
+  - Cây và nhà không đặt vào chỗ hai đạo quân dàn trận và giao chiến, để không che trận đánh.
 - **Phiên chính làm chặng 0 và 1.** Ai làm chặng 2–4 thì quyết sau khi xem chặng 1.
 - Chia năm chặng, duyệt và gộp riêng từng chặng. Trong lúc làm, các lane không nhận việc trong vùng trận đánh (như đợt G).
 
@@ -129,8 +133,8 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 |---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong trên nhánh `batch-h/stage0-scenery-data`, chờ duyệt gộp |
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | Chưa viết | Chưa bắt đầu |
-| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
-| 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây thưa ven sông, bụi trên sườn đồi | Bờ sông và sườn đồi không còn trọc | Chưa viết | Chưa bắt đầu |
+| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
+| 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
 | 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Chưa bắt đầu |
 
 Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặng 1.
