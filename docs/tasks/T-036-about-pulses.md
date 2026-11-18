@@ -2,7 +2,7 @@
 
 - **Ai làm:** phiên chính (người dùng chọn 2026-11-18, sau đợt G).
 - **Nhánh:** `t036-about-pulses`.
-- **Trạng thái:** xong 2026-11-18; chờ người dùng duyệt câu chữ và gộp.
+- **Trạng thái:** xong, **đã gộp vào `main` 2026-11-18** (người dùng duyệt câu chữ).
 - **Phạm vi file:** `src/lib/i18n/messages.ts`, `src/components/shell/AboutDialog.tsx`, `docs/`.
 
 ## Vì sao
