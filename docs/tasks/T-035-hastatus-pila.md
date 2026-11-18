@@ -27,6 +27,8 @@ Chỉ `roman-hastatus` có xương như vậy; mười mô hình còn lại ra `
   - `/battle-lab?duel=1`: cảnh nhận `stow` cho `roman-hastatus` (xương số 5, điểm co ở cổ tay trái) và `null` cho mười một khối còn lại. Giữa giai đoạn giáp lá cà, 25 người đầu hàng của hastati đều đã cất (cộng 2–3 người vừa ngã), 139 người đang đứng. Ảnh nhìn dọc hàng đầu: hàng sau còn *pilum* cạnh khiên, người đang đánh thì không.
   - Cannae giai đoạn 4: 95 người đầu hàng của hastati đã cất (521 người đang đứng); giai đoạn 5: 82 (387).
   - Console sạch.
+- `npm run build` (worktree tạm, commit `c49eded`): qua. Hồi quy lõi của app (`main-tools/reg-core.js`) trên bản production đó: 17/17, console sạch (trận Cannae mở được, tức shader mới biên dịch được ở cả ba vật liệu).
+- Chưa đo tốc độ khung hình: phần thêm là một số thực cho mỗi hình lính và một nhánh theo uniform trong shader, mười mô hình không có đồ cất thì bỏ qua.
 
 ## Còn lại
 
