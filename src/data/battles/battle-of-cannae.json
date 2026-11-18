@@ -1334,7 +1334,32 @@
           { "x": -750, "y": 3000 }
         ],
         "width": 30,
-        "approximate": true
+        "approximate": true,
+        "level": {
+          "stage": "low",
+          "evidence": {
+            "basis": "inferred",
+            "note": {
+              "en": "Both armies waded the river on the morning of the battle, Hannibal's at two places, and it was high summer. So the water is drawn low, with shoals of gravel showing.",
+              "vi": "Sáng hôm giao chiến cả hai đạo quân đều lội qua sông, riêng quân Hannibal qua ở hai chỗ, và lúc ấy đang giữa mùa hè. Vì vậy nước sông được vẽ cạn, lộ các bãi sỏi."
+            },
+            "sources": [
+              { "title": "Polybius, Histories 3.113", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+              { "title": "Livy, Ab Urbe Condita 22.45–46 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }
+            ]
+          }
+        },
+        "banks": {
+          "cover": "reeds",
+          "width": 25,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source describes the banks. Reeds, willows and poplars grow along the Ofanto today; the belt is kept thin because Polybius calls the country treeless.",
+              "vi": "Không nguồn nào tả hai bờ sông. Ngày nay dọc sông Ofanto có lau sậy, liễu và dương; dải cây được vẽ mỏng vì Polybius nói vùng này không có cây."
+            }
+          }
+        }
       }
     ],
     "landmarks": [
@@ -1347,7 +1372,7 @@
       { "name": { "en": "Hill of Cannae", "vi": "Đồi Cannae" }, "kind": "hill", "point": { "x": -4650, "y": -4300 }, "approximate": true },
       { "name": { "en": "Large Roman camp", "vi": "Trại lớn của La Mã" }, "kind": "camp", "point": { "x": -1600, "y": 1250 }, "approximate": true },
       { "name": { "en": "Small Roman camp", "vi": "Trại nhỏ của La Mã" }, "kind": "camp", "point": { "x": 250, "y": 1200 }, "approximate": true },
-      { "name": { "en": "Hannibal's camp", "vi": "Trại của Hannibal" }, "kind": "camp", "point": { "x": -3550, "y": -400 }, "approximate": true },
+      { "name": { "en": "Hannibal's camp", "vi": "Trại của Hannibal" }, "kind": "camp", "point": { "x": -3975, "y": -500 }, "approximate": true },
       { "name": { "en": "Roman crossing", "vi": "Chỗ quân La Mã vượt sông" }, "kind": "ford", "point": { "x": -470, "y": 1100 }, "approximate": true },
       {
         "name": { "en": "Hannibal's crossing (north)", "vi": "Chỗ Hannibal vượt sông (phía bắc)" },
@@ -1362,6 +1387,148 @@
         "approximate": true
       }
     ],
+    "scenery": {
+      "ground": {
+        "cover": "stubble",
+        "evidence": {
+          "basis": "inferred",
+          "note": {
+            "en": "Polybius calls the country round Cannae flat and treeless. Livy says the harvest comes early in Apulia and that the plain was parched. So the plain is drawn as harvested fields and dry grass without trees; how much of it was under the plough is not known.",
+            "vi": "Polybius tả vùng quanh Cannae bằng phẳng và không có cây. Livy nói mùa gặt ở Apulia đến sớm và đồng bằng khô nẻ. Vì vậy đồng bằng được vẽ là ruộng đã gặt và cỏ khô, không có cây; bao nhiêu phần là ruộng cày thì không rõ."
+          },
+          "sources": [
+            { "title": "Polybius, Histories 3.110", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+            { "title": "Livy, Ab Urbe Condita 22.43 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }
+          ]
+        }
+      },
+      "areas": [],
+      "structures": [
+        {
+          "id": "roman-large-camp",
+          "kind": "camp",
+          "side": "rome",
+          "center": { "x": -1600, "y": 1300 },
+          "width": 1050,
+          "depth": 1050,
+          "facing": 180,
+          "evidence": {
+            "basis": "attested",
+            "note": {
+              "en": "Polybius: Paullus camped with two thirds of the army on the bank of the Aufidus. Livy: the Romans fortified two camps, with outposts before the rampart. Its size is reckoned from the men in it, at the room a Roman camp of Polybius' day gave each man; its exact place, its shape and the way it faced are not known.",
+              "vi": "Polybius: Paullus đóng trại với hai phần ba quân bên bờ sông Aufidus. Livy: quân La Mã đắp luỹ hai trại, có đội canh trước luỹ. Kích thước tính từ số người đóng trong trại, theo phần đất mà một trại La Mã thời Polybius dành cho mỗi người; vị trí chính xác, hình dạng và hướng của trại thì không rõ."
+            },
+            "sources": [
+              { "title": "Polybius, Histories 3.110", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+              { "title": "Livy, Ab Urbe Condita 22.44–45 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" },
+              {
+                "title": "W. Smith, A Dictionary of Greek and Roman Antiquities (1875), \"Castra\": the camp of Polybius 6.27–32",
+                "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Castra.html"
+              }
+            ]
+          }
+        },
+        {
+          "id": "roman-small-camp",
+          "kind": "camp",
+          "side": "rome",
+          "center": { "x": 250, "y": 1200 },
+          "width": 750,
+          "depth": 750,
+          "facing": 180,
+          "evidence": {
+            "basis": "attested",
+            "note": {
+              "en": "Polybius: Paullus fortified a second position for a third of the army on the far side of the river, east of the ford, about ten stades from his own camp. Its size is reckoned from the men in it, at the room a Roman camp of Polybius' day gave each man; its exact place, its shape and the way it faced are not known.",
+              "vi": "Polybius: Paullus lập một trại thứ hai cho một phần ba quân ở bờ bên kia sông, phía đông chỗ lội qua, cách trại của mình khoảng mười stadion. Kích thước tính từ số người đóng trong trại, theo phần đất mà một trại La Mã thời Polybius dành cho mỗi người; vị trí chính xác, hình dạng và hướng của trại thì không rõ."
+            },
+            "sources": [
+              { "title": "Polybius, Histories 3.110", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+              {
+                "title": "W. Smith, A Dictionary of Greek and Roman Antiquities (1875), \"Castra\": the camp of Polybius 6.27–32",
+                "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Castra.html"
+              }
+            ]
+          }
+        },
+        {
+          "id": "hannibal-camp",
+          "kind": "camp",
+          "side": "carthage",
+          "center": { "x": -3975, "y": -500 },
+          "width": 1000,
+          "depth": 1000,
+          "facing": 90,
+          "evidence": {
+            "basis": "attested",
+            "note": {
+              "en": "Polybius: Hannibal entrenched his camp on the same bank as the larger Roman camp, and on the day the Romans left in that camp attacked it. Nothing is known of how a Carthaginian camp was laid out: it is given the room a Roman camp would give as many men, and its place, shape and inside are assumed.",
+              "vi": "Polybius: Hannibal đào hào đắp luỹ cho trại ở cùng bờ với trại lớn của La Mã, và hôm giao chiến đạo quân La Mã ở lại trại lớn đã đánh vào trại này. Không rõ một trại của Carthage được bố trí thế nào: trại được cho phần đất bằng một trại La Mã chứa chừng ấy người, còn vị trí, hình dạng và bên trong là giả định."
+            },
+            "sources": [{ "title": "Polybius, Histories 3.111, 3.117", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" }]
+          }
+        },
+        {
+          "id": "cannae-citadel",
+          "kind": "citadel",
+          "center": { "x": -4765, "y": -4015 },
+          "width": 100,
+          "depth": 160,
+          "facing": 90,
+          "evidence": {
+            "basis": "attested",
+            "note": {
+              "en": "Polybius: Hannibal seized the citadel of Cannae, where the Romans had stored the grain and supplies of the district. Its size and shape are fitted to the hilltop in the terrain data; what it looked like is not known.",
+              "vi": "Polybius: Hannibal chiếm thành Cannae, nơi quân La Mã trữ lúa và quân nhu của cả vùng. Kích thước và hình dạng được đặt vừa đỉnh gò trong dữ liệu địa hình; thành trông ra sao thì không rõ."
+            },
+            "sources": [{ "title": "Polybius, Histories 3.107", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" }]
+          }
+        },
+        {
+          "id": "cannae-village",
+          "kind": "village",
+          "center": { "x": -4530, "y": -3990 },
+          "width": 160,
+          "depth": 240,
+          "facing": 270,
+          "ruined": true,
+          "evidence": {
+            "basis": "attested",
+            "note": {
+              "en": "Polybius: the town itself had been razed before Hannibal came. Livy calls Cannae a village with no wall, into which some two thousand Romans fled after the battle. It is drawn partly in ruins, on the level ground beside the citadel hill; where it stood is assumed.",
+              "vi": "Polybius: thị trấn đã bị san phẳng trước khi Hannibal tới. Livy gọi Cannae là một ngôi làng không có tường, nơi chừng hai nghìn lính La Mã chạy vào sau trận đánh. Làng được vẽ đổ nát một phần, trên khoảng đất bằng cạnh gò thành; làng nằm ở đâu là giả định."
+            },
+            "sources": [
+              { "title": "Polybius, Histories 3.107", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },
+              { "title": "Livy, Ab Urbe Condita 22.49 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }
+            ]
+          }
+        }
+      ],
+      "wind": {
+        "from": 135,
+        "speed": 8,
+        "evidence": {
+          "basis": "attested",
+          "note": {
+            "en": "Livy: a wind the people of the region call Volturnus rose against the Romans and rolled dust into their faces; Hannibal had camped with his back to it. The Romans faced south, so it is drawn blowing from the south-east. Polybius does not mention it; its exact quarter and its strength are assumed.",
+            "vi": "Livy: một ngọn gió dân vùng ấy gọi là Volturnus nổi lên ngược hướng quân La Mã và cuốn bụi vào mặt họ; Hannibal đã đóng trại quay lưng về phía gió. Quân La Mã quay mặt về nam, nên gió được vẽ thổi từ đông nam. Polybius không nhắc tới gió; hướng chính xác và sức gió là giả định."
+          },
+          "sources": [{ "title": "Livy, Ab Urbe Condita 22.43, 22.46 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }]
+        }
+      },
+      "dust": {
+        "level": 0.8,
+        "evidence": {
+          "basis": "attested",
+          "note": {
+            "en": "Livy: the wind carried clouds of dust over plains parched by drought, and on the day so much of it that the Romans could not see ahead. How thick it was is assumed.",
+            "vi": "Livy: gió cuốn những đám bụi trên đồng bằng khô nẻ vì hạn, và hôm ấy bụi nhiều tới mức quân La Mã không nhìn thấy phía trước. Bụi dày tới đâu là giả định."
+          },
+          "sources": [{ "title": "Livy, Ab Urbe Condita 22.43, 22.46 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }]
+        }
+      }
+    },
     "sources": [
       {
         "title": "Copernicus DEM GLO-30 (tile N41 E016), produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Resampled to 30 m; river course traced from the same data.",

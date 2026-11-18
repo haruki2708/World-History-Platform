@@ -55,7 +55,7 @@ Toàn bộ là vị trí ước lượng (`approximate: true`):
 |---|---|---|
 | Trại lớn của La Mã | −1600, 1250 | Bờ tây; cách trại nhỏ 1,85 km (khoảng 10 stadion, Polybius 3.110) |
 | Trại nhỏ của La Mã | 250, 1200 | Bờ đông, phía đông chỗ quân La Mã lội qua (Polybius 3.110) |
-| Trại của Hannibal | −3550, −400 | Bờ tây, cùng bờ với trại lớn (Polybius 3.111); trên đất hơi cao, cách sông khoảng 900 m |
+| Trại của Hannibal | −3975, −500 | Bờ tây, cùng bờ với trại lớn (Polybius 3.111); trên đất hơi cao (8–10 m). Trước T-037 nhãn đặt ở −3550, −400; dời về tâm trại khi trại có kích thước (mục 12) |
 | Chỗ quân La Mã vượt sông | −470, 1100 | Giữa hai trại La Mã |
 | Hai chỗ Hannibal vượt sông | −1350, −450 và −1900, −740 | Polybius 3.113: vượt ở hai chỗ |
 | Thành và đồi Cannae | −4746, −3998 và −4650, −4300 | Toạ độ sự kiện; đỉnh gò đất ngay phía nam |
@@ -333,3 +333,99 @@ Tổng của mỗi bên ở từng mốc cuối trận không đổi so với tr
 - Người ngã ở hai sườn trong giai đoạn 6 rất dày: mỗi hàng dọc của principes mất một người sau khoảng 2 giây phát.
 - Lính Libya ở giai đoạn 6 vừa đánh vừa dịch 158 m, lệch 55° so với hướng mặt (`check-facing.mjs`): cái hộp của quân La Mã co chủ yếu từ phía bắc, nên sườn dịch dần về nam. `check-facing.mjs --min 0.25` in 53 dòng với dữ liệu mới (46 sau T-027), phần lớn ở giai đoạn 5–6.
 - Lính nhẹ La Mã bên trong hộp vẫn mất người theo cách cũ (ngẫu nhiên, không ai đánh): 185 và 150 hình trong giai đoạn 6.
+
+## 12. Phong cảnh (T-037, đợt H chặng 0)
+
+Từ đợt H, cảnh vẽ cả những thứ nằm trên mặt đất ngoài hai đạo quân. Mục này ghi căn cứ cho từng thứ. Dữ liệu nằm trong `terrain.scenery` và hai trường `level`, `banks` của sông; kiểu dữ liệu ở `src/lib/battle.ts`, giải thích ở `docs/ARCHITECTURE.md`, mục "Phong cảnh".
+
+Mỗi thứ mang một mức căn cứ (`evidence.basis`):
+
+- `attested`: nguồn cổ nói có.
+- `inferred`: nguồn không nói thẳng, nhưng suy ra được từ nguồn hoặc từ địa hình.
+- `illustrative`: không có căn cứ nào ngoài việc hợp với vùng và thời ấy; vẽ để cảnh khỏi trống.
+
+### Nguồn đã đọc lại (2026-11-18)
+
+Polybius 3.107–117 (bản dịch Paton, LacusCurtius) và Livy 22.40–49 (bản Latin, The Latin Library). Các câu dùng được:
+
+| Chỗ | Nội dung |
+|---|---|
+| Polybius 3.107 | Hannibal chiếm **thành** của Cannae, nơi quân La Mã trữ lúa và quân nhu của vùng quanh Canusium. **Thị trấn đã bị san phẳng từ trước.** Thành khống chế cả vùng xung quanh |
+| Polybius 3.110 | Vùng quanh đó **"bằng phẳng và không có cây"** (bản Paton: "flat and treeless"), nên Paullus không muốn đánh ở đây vì địch hơn về kỵ binh. Paullus đóng trại với hai phần ba quân **bên bờ sông Aufidus**; lập trại thứ hai cho một phần ba quân ở bờ bên kia, phía đông chỗ lội qua, cách khoảng 10 stadion |
+| Polybius 3.111 | Hannibal đóng trại, đào hào đắp luỹ, ở cùng bờ với trại lớn của La Mã |
+| Polybius 3.112 | Kỵ binh Numidia chặn những người đi lấy nước của trại nhỏ |
+| Polybius 3.113 | Sáng hôm giao chiến, ngay sau lúc mặt trời mọc, quân La Mã vượt sông; Hannibal vượt sông ở hai chỗ |
+| Polybius 3.117 | Một vạn bộ binh La Mã ở lại trại lớn đã đánh vào trại của Hannibal; Hannibal để quân giữ trại |
+| Livy 22.43 | Hannibal dời quân tới Apulia, nơi **mùa gặt đến sớm hơn** (*maturiora messibus Apuliae loca*). Ông đóng trại gần **làng** (*vicus*) Cannae, quay lưng về phía gió Volturnus, thứ gió **cuốn những đám bụi trên đồng bằng khô nẻ vì hạn** (*campis torridis siccitate nubes pulveris vehit*) |
+| Livy 22.44 | Quân La Mã **đắp luỹ hai trại** (*bina castra communiunt*). Sông Aufidus chảy sát cả hai trại, người đi lấy nước của hai bên ra sông đều phải giao tranh |
+| Livy 22.45 | Có đội canh đứng **trước luỹ** (*pro vallo*) của trại nhỏ |
+| Livy 22.46 | Mặt trời chiếu xiên cả hai bên. **Gió Volturnus nổi lên ngược hướng quân La Mã, cuốn nhiều bụi vào mặt họ, che mất tầm nhìn** |
+| Livy 22.49 | Sau trận, chừng hai nghìn người chạy vào chính làng Cannae và bị vây ngay, vì **làng không có công sự nào che** (*nullo munimento tegente vicum*) |
+
+Polybius không nhắc tới gió và bụi; chỉ Livy có. Không nguồn nào tả hai bờ sông, cây cối, hay bên trong các trại.
+
+### Từng thứ trong dữ liệu
+
+| Thứ | Dữ liệu | Mức | Căn cứ và phần giả định |
+|---|---|---|---|
+| Mặt đất | `ground.cover: stubble` | `inferred` | "Không có cây" là lời Polybius (3.110). Ruộng đã gặt và cỏ khô là suy từ Livy 22.43 (gặt sớm, đồng khô nẻ) và mùa đánh trận (hè). Bao nhiêu phần đồng bằng là ruộng cày thì không rõ |
+| Mực nước sông | `rivers[0].level.stage: low` | `inferred` | Cả hai đạo quân lội qua sông buổi sáng hôm ấy, giữa mùa hè |
+| Hai bờ sông | `rivers[0].banks`: `reeds`, rộng 25 m mỗi bờ | `illustrative` | Không có nguồn. Ngày nay dọc sông Ofanto có lau sậy, liễu, dương. Dải cây giữ mỏng vì lời Polybius |
+| Trại lớn của La Mã | `roman-large-camp`, 1050 × 1050 m, tâm −1600, 1300 | `attested` | Có trại, bên bờ sông, có luỹ: Polybius 3.110, Livy 22.44–45. Kích thước, hình vuông và hướng là giả định (xem dưới) |
+| Trại nhỏ của La Mã | `roman-small-camp`, 750 × 750 m, tâm 250, 1200 | `attested` | Polybius 3.110. Kích thước và hướng là giả định |
+| Trại của Hannibal | `hannibal-camp`, 1000 × 1000 m, tâm −3975, −500 | `attested` | Có trại, có hào luỹ, cùng bờ với trại lớn, bị đánh hôm ấy: Polybius 3.111, 3.117. Không rõ trại Carthage bố trí thế nào: kích thước, hình dạng và bên trong là giả định |
+| Thành Cannae | `cannae-citadel`, 160 m (đông–tây) × 100 m (bắc–nam), tâm −4765, −4015 | `attested` | Polybius 3.107. Kích thước đặt vừa đỉnh gò trong lưới độ cao; hình dáng không rõ |
+| Làng Cannae | `cannae-village`, 240 m (đông–tây) × 160 m (bắc–nam), tâm −4530, −3990, `ruined` | `attested` | Polybius 3.107 (đã bị san phẳng), Livy 22.49 (làng không tường, hai nghìn người chạy vào). Vẽ đổ nát một phần. Vị trí so với thành là giả định |
+| Gió | `wind`: từ 135° (đông nam), 8 m/s | `attested` | Livy 22.43, 22.46. Quân La Mã quay mặt về nam và gió thổi vào mặt họ, nên gió được vẽ từ đông nam. Hướng chính xác và sức gió là giả định |
+| Bụi | `dust.level: 0,8` | `attested` | Livy 22.43, 22.46. Bụi dày tới đâu là giả định |
+
+`areas` (các mảng đất có lớp phủ riêng, ví dụ bụi cây trên sườn đồi) còn để trống: sẽ thêm ở chặng thực vật, khi xem được trong cảnh thật.
+
+Mức `attested` nói rằng **thứ đó có thật** theo nguồn. Kích thước, vị trí chính xác và hình dáng của nó hầu hết vẫn là giả định; ghi chú (`evidence.note`) của từng thứ nói rõ phần nào.
+
+### Kích thước các trại
+
+Không nguồn nào cho kích thước trại ở Cannae. Cách tính:
+
+- Trại của một đạo quân chấp chính (hai quân đoàn và đồng minh: 16 800 bộ binh, 1 800 kỵ binh) theo mô tả của Polybius 6.27–32 là một hình vuông mỗi cạnh 2 017 bộ La Mã, theo cách đọc trong từ điển của W. Smith (mục "Castra", [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Castra.html)). Cũng theo mục đó: khoảng trống giữa luỹ và lều (*intervallum*) rộng 200 bộ, còn kích thước hào và luỹ thì Polybius không cho. Một bộ La Mã khoảng 0,296 m, nên cạnh khoảng 596 m, diện tích khoảng 35,6 ha: chừng 19 m² mỗi người.
+- Trại lớn chứa hai phần ba của 86 200 người (khoảng 57 500): 110 ha, tức hình vuông cạnh khoảng 1 050 m.
+- Trại nhỏ chứa một phần ba (khoảng 28 700): 55 ha, cạnh khoảng 750 m.
+- Trại của Hannibal (50 000 người) được cho cùng mức đất: 96 ha, cạnh khoảng 1 000 m. Đây là chỗ yếu nhất: kỵ binh của Hannibal đông hơn nhiều và cách đóng trại của Carthage không được ai tả.
+
+Các con số làm tròn tới 50 m. Trại vẽ vuông, cạnh theo hướng đông–tây và bắc–nam; hướng cổng chính (`facing`) là giả định.
+
+### Đo trên lưới độ cao
+
+| Công trình | Diện tích | Độ cao mặt đất bên dưới | Cách đường giữa sông |
+|---|---|---|---|
+| Trại lớn của La Mã | 110,3 ha | 0,7–6,3 m | 66 m |
+| Trại nhỏ của La Mã | 56,3 ha | 0,3–3,3 m | 145 m |
+| Trại của Hannibal | 100,0 ha | 8,0–10,4 m | 304 m |
+| Thành Cannae | 1,6 ha | 47,0–60,7 m | 1 381 m |
+| Làng Cannae | 3,8 ha | 45,3–59,5 m | 1 424 m |
+
+- Tâm trại lớn dời 50 m về bắc so với nhãn (−1600, 1250) để luỹ phía nam không lấn vào bờ sông.
+- Trại của Hannibal đặt sao cho luỹ phía đông nằm ngay trước mặt đạo quân La Mã đánh trại (`camp-force`, giai đoạn 3–5): tâm khối này cách luỹ 175–225 m, đầu phía tây của hàng trước cách luỹ khoảng 16 m. Nhãn "Trại của Hannibal" dời theo về tâm trại.
+- Gò thành: đỉnh gò (cao từ 54 m trở lên) trải khoảng 180 m theo hướng đông–tây và 90 m theo hướng bắc–nam, quanh điểm −4770, −4015; sườn tây và bắc dốc xuống đồng bằng ven sông (14–25 m). Lưới Copernicus là mô hình bề mặt, có thể đã tính cả tàn tích hiện nay trên gò.
+
+### Khối quân đứng trong trại
+
+Lúc bắt đầu, vài khối quân còn đứng trong trại của mình: `camp-force` và `roman-cavalry` trong trại lớn; ba khối đồng minh trong trại nhỏ. Cuối trận, `roman-cavalry` (đang tháo chạy) và `camp-force` (rút về) lại ở trong trại lớn. Chặng công trình phải để trống chỗ các khối này đứng và đi qua (không dựng lều ở đó).
+
+### Kiểm tra
+
+`npm run validate` kiểm tra thêm (`checkScenery` trong `validate-battles.mjs`):
+
+- mỗi `evidence` có mức hợp lệ, ghi chú đủ hai ngôn ngữ, và có nguồn nếu là `attested`;
+- công trình nằm trọn trong vùng địa hình, không chồng lên nhau, không lấn vào sông và dải bờ sông;
+- trại phải thuộc một bên (`side`);
+- gió, bụi, mực nước, bề rộng dải bờ nằm trong khoảng cho phép; đường bao của một mảng đất có ít nhất ba điểm và có diện tích;
+- cảnh báo khi nhãn của một trại hay thị trấn nằm ngoài mọi công trình cùng loại.
+
+Đã thử bằng cách cố ý làm sai dữ liệu theo 16 kiểu: cả 16 đều bị bắt.
+
+### Còn lại
+
+- Chưa có khối quân Carthage nào giữ trại của Hannibal, dù Polybius 3.117 nói có: `camp-force` đang đánh vào một trại không người. Đề nghị thêm một khối giữ trại khi làm chặng công trình.
+- Sông vẫn là dòng chảy ngày nay (mục 7); vị trí các trại bám theo dòng đó.
+- Cách xếp lều, đường và cổng trong trại La Mã (Polybius 6.27–32) chưa đọc kỹ; chặng công trình cần đọc trước khi dựng. Kích thước hào và luỹ không có trong Polybius, phải lấy từ nguồn khác hoặc ghi là minh hoạ.

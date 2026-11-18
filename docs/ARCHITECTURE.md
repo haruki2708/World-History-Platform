@@ -176,6 +176,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Địa hình:**
   - Lưới độ cao trong `public/data/terrain/`: số Int16 little-endian, đơn vị decimet, hàng chạy từ bắc xuống nam, cột từ tây sang đông.
   - Sông và địa danh (trại, đồi, thành) đi kèm trong `terrain`.
+  - Phong cảnh (mặt đất, công trình, gió, bụi) nằm trong `terrain.scenery`, từ đợt H; xem mục "Phong cảnh".
   - Số liệu hay vị trí là phỏng dựng hoặc còn tranh cãi thì ghi ở `uncertainty`, `NumberRange.note` hoặc `approximate`.
 - **Nội dung và nguồn:** tiêu đề và lời dẫn song ngữ, tự viết. Mỗi trận có nguồn. Dữ liệu độ cao có nguồn và giấy phép.
 - **Kiểm tra:** `npm run validate` chạy thêm `scripts/battles/validate-battles.mjs`.
@@ -300,6 +301,26 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
 - **Kỵ binh** đấu từng cặp và nhận đòn như bộ binh (chặng 3). Khoảng cách đấu của họ tính theo thân ngựa, nên hai con ngựa đứng chạm mũi nhau và mũi giáo chỉ tới đầu ngựa của địch.
 
+### Phong cảnh (đợt H)
+
+Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) mới thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra; **cảnh chưa đọc các trường này**. Các chặng sau vẽ dần.
+
+- **Nguyên tắc:** vẽ cho giống thật, nhưng mỗi thứ phải nói rõ nó dựa vào đâu. Mọi phần của phong cảnh mang một `evidence` (kiểu `SceneryEvidence`):
+  - `basis`: `attested` (nguồn cổ nói có; bắt buộc kèm `sources`), `inferred` (suy từ nguồn hoặc từ địa hình), hoặc `illustrative` (không có căn cứ, chỉ hợp với vùng và thời ấy).
+  - `note`: một hai câu song ngữ, tự viết, nói nguồn viết gì và phần nào là giả định.
+  - Cảnh vẽ ba mức như nhau. Khác biệt được nói bằng chữ (hộp thoại Giới thiệu, thông tin trận), không bằng hình.
+  - `attested` chỉ nói thứ đó có thật. Kích thước và vị trí chính xác thường vẫn là giả định, và ghi chú phải nói vậy.
+- **Mặt đất** (`scenery.ground`, `scenery.areas`): `ground.cover` là lớp phủ ở mọi chỗ không có mảng riêng. `areas` là các mảng có lớp phủ khác, cho bằng đường bao (`outline`, ít nhất ba điểm). Lớp phủ (`GroundCover`): `stubble` (ruộng đã gặt), `grass`, `scrub` (bụi thấp), `reeds` (lau sậy và cây thấp ven nước), `woodland`, `bare`.
+- **Sông** (thêm vào `BattleRiver`): `level.stage` là `low` (nước cạn, lộ bãi sỏi, lội qua được ở các địa danh loại `ford`) hoặc `full`; `banks` là lớp phủ dọc hai bờ, trong một dải rộng `width` mét tính từ mép nước.
+- **Công trình** (`scenery.structures`, kiểu `SceneryStructure`): `camp` (trại quân: hào, luỹ, cọc rào, cổng, lều; bắt buộc có `side`), `citadel` (thành nhỏ có tường), `village` (nhà không có tường bao). Phần đất của công trình là một hình chữ nhật cho giống `Formation`: `center`, `width` (bề ngang mặt trước), `depth`, `facing` (hướng mặt trước, tức cổng chính). `ruined` là đổ nát.
+  - Phần đất tính theo **kích thước thật**. Những thứ đứng trong đó (lều, nhà) cảnh vẽ to hơn thật và ít hơn thật, như cách vẽ lính (`FIGURE_SCALE`, một hình bằng 20 người).
+  - Nhãn tên vẫn thuộc về `landmarks`. Nhãn của một trại hay thị trấn nên nằm trong công trình tương ứng; `npm run validate` cảnh báo nếu không.
+  - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh phải để trống chỗ đó.
+- **Gió** (`scenery.wind`): `from` là hướng gió thổi **tới từ đâu**, độ theo chiều kim đồng hồ từ hướng bắc; `speed` tính bằng mét mỗi giây. **Bụi** (`scenery.dust`): `level` từ 0 (đất ẩm, không bụi) tới 1 (đất khô nẻ, bụi dày).
+- **Trận không có `scenery`** vẫn hợp lệ: cảnh vẽ đất trống như trước đợt H.
+- **Kiểm tra** (`checkScenery` trong `scripts/battles/validate-battles.mjs`): mức căn cứ, ghi chú và nguồn; công trình nằm trọn trong vùng địa hình, không chồng nhau, không lấn vào sông và dải bờ; các số nằm trong khoảng cho phép.
+- **Căn cứ của Cannae:** `docs/data/battles/cannae.md`, mục 12.
+
 ### Khung xem trận (đợt C)
 
 - **Mở:** sự kiện nào có trận 3D (`hasBattle(id)` trong `src/data/index.ts`) thì panel sự kiện có nút xem trận. Nút gọi `openBattle(id)`; từ T-025 nút gọi `requestBattle(id)` để bản đồ bay tới chiến trường trước (xem mục "Trạng thái chung").
@@ -322,3 +343,5 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt A:** mô hình lính La Mã (T-014), cảnh 3D (T-015), dữ liệu trận Cannae và địa hình (T-016).
 - **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
+- **Đợt G:** giáp lá cà (T-032, T-033, T-034).
+- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae; các chặng sau vẽ mặt đất và sông, công trình, thực vật, bụi.
