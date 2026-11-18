@@ -30,6 +30,7 @@ import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { installGrade } from "./grade";
+import { Dust } from "./dust";
 import { Grass } from "./grass";
 import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
@@ -197,6 +198,7 @@ export class BattleEngine {
   private structures: Structures | null = null;
   private vegetation: Vegetation | null = null;
   private grass: Grass | null = null;
+  private dust: Dust | null = null;
   private clock: BattleClock | null = null;
 
   private quality: Quality;
@@ -572,6 +574,7 @@ export class BattleEngine {
     this.structures?.dispose();
     this.vegetation?.dispose();
     this.grass?.dispose();
+    this.dust?.dispose();
     this.terrain?.dispose();
     this.sky.dispose();
     this.scene.clear();
@@ -681,6 +684,17 @@ export class BattleEngine {
 
     this.grass = new Grass(terrain.grassGround(), battle.terrain.scenery?.wind?.from);
     this.scene.add(this.grass.mesh);
+
+    this.dust = new Dust(
+      battle,
+      this.crowd.blocks.map((block) => ({
+        track: block.track,
+        mounted: typeById.get(block.track.unit.type)?.mounted ?? false,
+      })),
+      clock,
+      terrain.heightAt,
+    );
+    this.scene.add(this.dust.mesh);
 
     this.frameView();
     const view = this.options.startView;
@@ -880,6 +894,12 @@ export class BattleEngine {
       this.sky.daylight,
     );
     this.arrows?.update(time, seconds, this.sky.daylight);
+    if (this.dust) {
+      // Dust is a luxury: the low quality goes without it.
+      const shown = this.quality === "high" && this.dust.active;
+      this.dust.mesh.visible = shown;
+      if (shown) this.dust.update(this.clock?.seconds(time) ?? 0, this.camera.position, this.sky);
+    }
 
     this.renderer.render(this.scene, this.camera);
     this.options.onFrame?.();
