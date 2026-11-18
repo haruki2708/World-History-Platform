@@ -99,4 +99,27 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-(Lane 1 điền khi xong.)
+**Trạng thái: làm dở** (hết lượt dùng giữa chừng, 2026-11-19). Ba commit: `2328712` (LOD), `651a178` (nhát chém Gaul), `aa79a32` (vạt áo, tóc). Số liệu thô, kịch bản, ảnh: `E:\World_History_Platform_assets\T-047\`.
+
+### Đã xong
+
+- **Môi trường:** dựng lại ngựa và 11 mô hình bằng script cũ ra đúng từng byte như `main`.
+- **1. LOD ít đường nối** (`whp_far.py`, `whp_palette.py`; cách làm ở `art/README.md`, mục "Giai đoạn `lod`"). Số đỉnh trên số vị trí (`glbverts.mjs`, khớp `s-lod2.mjs` trong trang):
+  - LOD2: trước 3,1–3,6 lần, sau 1,19–1,47 lần (ví dụ legionary 775 → 344 đỉnh);
+  - LOD1: trước 2,3–3,4 lần, sau 1,54–1,76 lần; `gallic-infantry` 3,42 → 2,15 (lưới Celt khép kín, vùng nhỏ).
+  - GPU vẽ một khung (`s-gputime.mjs`, bản production, không Blender, xen kẽ trước/sau, RTX 3050, 1280×800, khoảng 3–4 GB RAM trống, dev server của phiên khác vẫn chạy): góc nhìn mở 6,73–6,77 → 5,47–5,48 ms (−19%, 8 lượt); giai đoạn 4: 6,91–6,93 → 5,55–5,56 ms (−20%).
+  - Cảnh đo `UnitModel.strike` trên LOD2: không đổi ở 10 mô hình (chỉ Gaul đổi, xem 3). Chiều cao `balearic-slinger` 1,648 → 1,657 m (tóc).
+  - Clip: `glbdiff.mjs`, mọi clip của 11 mô hình giống hệt `main`, trừ `attack` của `gallic-infantry`.
+  - `--hi`: đường dựng không đổi (không có vùng LOD1 riêng hay bảng màu); chưa chạy thử lại.
+- **2. Kỵ binh:** vạt áo kéo sát đùi, vạt sau theo hông (`whp_cavalry.drape_skirts`); tóc Numidia và Baleares xoăn, dày, mờ (`roman_faces.build_hair`, `whp_materials.hair`).
+- **3. Nhát chém Gaul:** lúc vươn xa nhất lưỡi kiếm nằm ngang ở 1,27–1,42 m (mép trên khiên La Mã 1,38 m, 1,58 m khi giơ đỡ). Cảnh đo: lúc đòn chạm 0,500 → 0,467 s, tầm 0,976 → 1,536 m. Vì tầm lấy theo người tầm ngắn hơn, cặp Gaul–legionary đứng xa hơn khoảng 10% (1,27 → 1,40 m cỡ mô hình).
+- `npm run lint`, `npm run validate`, `next build`: qua.
+
+### Còn lại
+
+- **Ý 9 (người Gaul trong `iberian-gallic-cavalry`):** đã soạn phương án (quần sọc như bộ binh Gaul, vòng cổ torc; `patch/gaul.py`, `patch/apply_gaul.py` trong thư mục số liệu), chưa dựng, chưa render. Theo đề bài phải cho người dùng xem ảnh render trước khi xuất. Đề nghị thêm: tách thành hai loại lính (Iberia / Gaul, cho hai khối của Hasdrubal) là cách đúng hơn, việc dữ liệu của lane 2.
+- Dựng lại từ đầu lần hai để xác nhận ra đúng từng byte (chưa chạy với code đã commit).
+- Ảnh duyệt trong repo của `balearic-slinger`, `numidian-cavalry`, `roman-cavalry`, `iberian-gallic-cavalry` chưa render lại (trừ ảnh trước-nghiêng-sau của Iberia/Gaul).
+- Ảnh duyệt cho người dùng ở `duyet\T-047\`: mới có các ảnh "A-truoc"; chưa chụp "B-sau" (kịch bản `drive/s-t047.mjs`, `drive/s-slash.mjs` sẵn).
+- Mép vạt trước của người cưỡi còn vài mảng xám nhỏ (mặt trong của vải) trong ảnh render; chưa xem trong cảnh.
+
