@@ -97,6 +97,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-19:** Người dùng chọn **làm nốt trận Cannae, giao cho các lane** (mục "Đợt J"). Giao T-045 cho lane 2 (quân giữ trại của Hannibal; đi ra, về trại lớn qua cổng). Người dùng chọn thêm: mảng màu phe mờ đi khi nhìn gần; việc này nhỏ nên phiên chính làm (T-046). Bụi và gió, LOD nhẹ hơn và sửa kỵ binh, hình nhà và làng, đám đông dày hơn, biển lúc bình minh, móng ngựa khi đi bước: đã nêu, người dùng chưa chọn.
 - **2026-11-19:** Phiên chính xong [T-046](tasks/T-046-footprint-fade.md): mảng màu phe dưới chân khối quân ẩn hẳn khi hình lính gần nhất của khối cao từ 18 điểm ảnh, nhìn xa đục như trước. Kiểm tra: lint, validate, build qua; hồi quy lõi 17/17 trên bản production của nhánh. Người dùng xem ảnh trước/sau và cho gộp, đẩy luôn (không qua lane đọc lại).
 - **2026-11-19:** Người dùng hỏi lane 1 và lane 3 có đang nghỉ không, rồi giao thêm: T-047 cho lane 1 (LOD ít đường nối UV, sửa kỵ binh, nhát chém Gaul), T-048 cho lane 3 (bụi và gió, chặng 4 của đợt H). Ba lane chạy song song.
+- **2026-11-19:** Người dùng chuyển T-048 (bụi và gió) cho phiên chính; lane 3 để dành cho việc khác.
 
 ## Việc để giai đoạn 5
 
@@ -165,7 +166,7 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong, đã gộp 2026-11-18 |
 | 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng. Dựng bằng code trong cảnh, không dùng Blender như đã trình (lý do ở T-039) | Bay tới trại thấy luỹ, cổng, lều | [T-039](tasks/T-039-structures.md) | Xong, đã gộp 2026-11-19. Trại không có hào, luỹ, cọc rào (người dùng: "doanh trại không cần xây tường") |
 | 3 | Thực vật: lau sậy, bụi và cây ven sông, bụi trên sườn dốc; thêm cây lẻ (ô liu, sồi) và ba khu rừng nhỏ minh hoạ trên đồng, cây quanh nhà nông và làng | Bờ sông, sườn đồi và đồng bằng không còn trọc | [T-040](tasks/T-040-vegetation.md) | Xong, đã gộp 2026-11-19; lá và vỏ cây ảnh thật thêm ở T-044 |
-| 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | [T-048](tasks/T-048-dust-wind.md) | Giao lane 3 ở đợt J, 2026-11-19 |
+| 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | [T-048](tasks/T-048-dust-wind.md) | Đợt J, phiên chính làm (2026-11-19) |
 
 Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặng 1.
 
@@ -213,9 +214,9 @@ Ngày 2026-11-19, sau khi gộp đợt I, người dùng chọn làm nốt các 
 | Quân giữ trại, đường ra trại | Thêm khối Carthage giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó thay vì đánh từ xa vào trại không người; `camp-force` và `roman-cavalry` ra (và về) trại lớn qua cổng để trại không trống một mảng lều (hiện 34,6% diện tích trại lớn không được dựng lều) | Lane 2 | [T-045](tasks/T-045-camp-guard.md) | Đã giao 2026-11-19 |
 | Mảng màu phe khi nhìn gần | Giữ mảng màu dưới chân khối quân khi nhìn xa, mờ hẳn khi nhìn gần (hiện còn độ đục 0,1, trông như đất trống dưới chân lính) | Phiên chính | [T-046](tasks/T-046-footprint-fade.md) | Xong, đã gộp 2026-11-19 (người dùng duyệt ảnh trước/sau) |
 | LOD nhẹ hơn, sửa kỵ binh | Xuất lại LOD1, LOD2 của 11 mô hình với ít đường nối UV (lane 3 đo ở T-031: GPU vẽ một khung ở góc nhìn mở 7,4 → 4,6 ms nếu gộp được đỉnh); vạt áo người cưỡi, tóc người Numidia, người Gaul trong kỵ binh Iberia/Gaul; nhát chém của lính Gaul chạm mép khiên sớm 2–3 khung | Lane 1 | [T-047](tasks/T-047-lod-cavalry.md) | Đã giao 2026-11-19 |
-| Bụi và gió | Chặng 4 của đợt H: bụi theo khối quân đi nhanh và kỵ binh phi, trôi theo gió Volturnus (Livy 22.43, 22.46); tắt ở mức chất lượng thấp; giữ từ 50 khung hình/giây | Lane 3 | [T-048](tasks/T-048-dust-wind.md) | Đã giao 2026-11-19 |
+| Bụi và gió | Chặng 4 của đợt H: bụi theo khối quân đi nhanh và kỵ binh phi, trôi theo gió Volturnus (Livy 22.43, 22.46); tắt ở mức chất lượng thấp; giữ từ 50 khung hình/giây | Phiên chính (người dùng chuyển từ lane 3) | [T-048](tasks/T-048-dust-wind.md) | Đang làm |
 
-Ba lane không đụng file của nhau: lane 1 trong `art/` và `public/battles/models/`, lane 2 trong dữ liệu trận, lane 3 trong `src/components/battle/`. Lane 1 chạy Blender nhiều, nên mọi số đo hiệu năng của đợt này phải ghi điều kiện máy và đo xen kẽ với `main`.
+Không ai đụng file của người khác: lane 1 trong `art/` và `public/battles/models/`, lane 2 trong dữ liệu trận, phiên chính trong `src/components/battle/`. Lane 1 chạy Blender nhiều, nên mọi số đo hiệu năng của đợt này phải ghi điều kiện máy và đo xen kẽ với `main`.
 
 **Đã nêu, người dùng chưa chọn:** hình nhà và làng; đám đông dày hơn ở chỗ giáp mặt; biển lúc bình minh; móng ngựa trượt khi đi bước (phải xuất lại ba mô hình kỵ binh, nên làm sau T-047).
 

@@ -1,29 +1,29 @@
 # T-048: Bụi và gió (đợt H, chặng 4)
 
-- **Lane:** 3
-- **Model đề xuất:** Fable 5.2, effort `high`.
-- **Nhánh:** `lane3/T-048-dust-wind` (phiên chính đã tạo sẵn từ `main`, trong worktree của bạn)
+- **Ai làm:** phiên chính. Task viết cho lane 3; người dùng chuyển cho phiên chính (2026-11-19) vì lane 3 để dành cho việc khác. Nhánh `lane3/T-048-dust-wind` trong worktree của lane 3 không dùng.
+- **Nhánh:** `batch-j/dust-wind` (tạo từ `main`, worktree riêng)
 - **Phạm vi file:**
   - `src/components/battle/`;
-  - khoá `battle.*` trong `src/lib/i18n/messages.ts`, cả `en` lẫn `vi`, nếu cần chuỗi mới.
+  - khoá `battle.*` trong `src/lib/i18n/messages.ts`, cả `en` lẫn `vi`, nếu cần chuỗi mới;
+  - lúc gộp: hộp thoại Giới thiệu, `docs/ARCHITECTURE.md` (người dùng duyệt câu chữ).
 
 ## Bối cảnh
 
-Từ T-031 (đợt F) bạn chỉ đọc lại T-032 và T-033. Trong thời gian đó phiên chính làm bốn đợt trong cảnh:
+Từ T-031 (đợt F), các thay đổi trong cảnh:
 
 - **Đợt G, giáp lá cà (T-032 → T-036):** `melee.ts`, `blows.ts`. Hàng đầu đấu từng cặp, có clip đỡ đòn và trúng đòn.
 - **Đợt H, phong cảnh (T-037 → T-040):** dữ liệu `terrain.scenery`. Mặt đất và sông (`terrain.ts`, `river.ts`), vùng xa và biển, công trình (`structures.ts`), cây (`vegetation.ts`, đã nghiêng và đung đưa theo `scenery.wind`).
 - **Đợt I, đồ hoạ theo ảnh mẫu (T-041 → T-044):** đường cong màu (`grade.ts`), ánh sáng bù cho hình lính (`Sky.fill`), mặt nước (`water.ts`), 42 000 bụi cỏ quanh camera (`grass.ts`, cũng nhận hướng gió), hỗn chiến và vật bay (`missiles.ts`), chất liệu ảnh chụp.
 - **T-046 (đợt J):** mảng màu phe dưới chân khối quân ẩn khi nhìn gần (`setFootprintLook` trong `units.ts`).
 
-Chặng 4 của đợt H (bụi và gió) bị hoãn khi người dùng chuyển sang đợt I. Giờ người dùng giao cho bạn.
+Chặng 4 của đợt H (bụi và gió) bị hoãn khi người dùng chuyển sang đợt I, rồi được giao ở đợt J.
 
 **Tư liệu và dữ liệu** (`docs/data/battles/cannae.md`, mục 12):
 - Livy 22.43 và 22.46: gió Volturnus cuốn bụi trên đồng khô vì hạn vào mặt quân La Mã, tới mức họ không thấy phía trước; Hannibal đóng trại quay lưng về phía gió. Polybius không nhắc tới.
 - Dữ liệu Cannae: `scenery.dust.level` 0,8 (mức `attested`; bụi dày tới đâu là giả định). `scenery.wind`: thổi **từ** 135° (đông nam), 8 m/s. Quân La Mã quay mặt về nam, nên bụi bay vào mặt họ.
 - Mặt đất trong cảnh màu xanh: người dùng chọn, mức `illustrative`, trái mùa của trận. Bụi vẫn vẽ theo dữ liệu.
 
-Trong lúc bạn làm, hai lane khác chạy song song, không ai đụng `src/components/battle/`:
+Trong lúc làm, hai lane khác chạy song song, không ai đụng `src/components/battle/`:
 - lane 1 làm T-047, xuất lại 11 mô hình (LOD ít đường nối UV, sửa kỵ binh) và **chạy Blender nhiều**;
 - lane 2 làm T-045, sửa dữ liệu Cannae: thêm khối giữ trại Hannibal, đổi đường ra khỏi trại lớn.
 
@@ -98,4 +98,4 @@ Cây và bụi cỏ đã nghiêng theo hướng gió. Nếu rẻ thì thêm cơn
 
 ## Kết quả
 
-(Lane 3 điền khi xong.)
+(Phiên chính điền khi xong.)
