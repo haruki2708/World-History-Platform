@@ -22,6 +22,10 @@
  *     maps of the model, for close figures at high quality. There is no
  *     environment map: reflections come from a sky gradient in the shader,
  *     fed from the sky lights, so bronze and iron read as metal.
+ *
+ * Both take the fill light of the sky (Sky.fill) on top of the lights of the
+ * scene: without it the side of a figure turned from the sun is one flat
+ * dark colour.
  */
 
 import {
@@ -48,6 +52,13 @@ export interface FigureShared {
   uEnvZenith: IUniform<Color>;
   uEnvHorizon: IUniform<Color>;
   uEnvGround: IUniform<Color>;
+  /** Sky.fill: light for the figures alone, and the two directions it comes from (world). */
+  uFillSky: IUniform<Color>;
+  uFillBounce: IUniform<Color>;
+  uFillKick: IUniform<Color>;
+  uFillSun: IUniform<Color>;
+  uFillKickDir: IUniform<Vector3>;
+  uFillSunDir: IUniform<Vector3>;
 }
 
 export interface FigureMaterials {
@@ -179,6 +190,29 @@ vec3 figSkyRadiance(vec3 viewDir, vec3 normal, float roughness) {
 }
 `;
 
+/**
+ * The fill light of the figures, as irradiance on a surface with the given
+ * normal (view space): more sky from above, the ground's bounce from below,
+ * a soft light from the side away from the sun, and a share of the sun that
+ * no shadow takes away.
+ */
+const FILL_PARS = /* glsl */ `
+uniform vec3 uFillSky;
+uniform vec3 uFillBounce;
+uniform vec3 uFillKick;
+uniform vec3 uFillSun;
+uniform vec3 uFillKickDir;
+uniform vec3 uFillSunDir;
+vec3 figFill(vec3 viewNormal) {
+  vec3 n = transformDirectionByInverseViewMatrix(viewNormal, viewMatrix);
+  float up = 0.5 + 0.5 * n.y;
+  vec3 light = uFillSky * up + uFillBounce * (1.0 - up);
+  light += uFillKick * clamp((dot(n, uFillKickDir) + 0.35) / 1.35, 0.0, 1.0);
+  light += uFillSun * clamp(dot(n, uFillSunDir), 0.0, 1.0);
+  return light;
+}
+`;
+
 /** The vertex changes common to both looks. */
 function figureVertex(vertexShader: string): string {
   return vertexShader
@@ -220,12 +254,28 @@ export function createFigureMaterials(
     shader.uniforms.uTime = shared.uTime;
     shader.uniforms.uFigScale = shared.uFigScale;
   };
+  const bindFill = (shader: { uniforms: Record<string, IUniform> }) => {
+    shader.uniforms.uFillSky = shared.uFillSky;
+    shader.uniforms.uFillBounce = shared.uFillBounce;
+    shader.uniforms.uFillKick = shared.uFillKick;
+    shader.uniforms.uFillSun = shared.uFillSun;
+    shader.uniforms.uFillKickDir = shared.uFillKickDir;
+    shader.uniforms.uFillSunDir = shared.uFillSunDir;
+  };
   const side = model.doubleSided ? DoubleSide : FrontSide;
 
   const material = new MeshLambertMaterial({ vertexColors: true, map: model.map, side });
   material.onBeforeCompile = (shader) => {
     bind(shader);
+    bindFill(shader);
     shader.vertexShader = figureVertex(shader.vertexShader);
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", `#include <common>\n${FILL_PARS}`)
+      .replace(
+        "#include <lights_fragment_maps>",
+        `#include <lights_fragment_maps>
+        irradiance += figFill(geometryNormal);`,
+      );
   };
   material.customProgramCacheKey = () => "battle-figure";
 
@@ -245,15 +295,17 @@ export function createFigureMaterials(
     });
     detailed.onBeforeCompile = (shader) => {
       bind(shader);
+      bindFill(shader);
       shader.uniforms.uEnvZenith = shared.uEnvZenith;
       shader.uniforms.uEnvHorizon = shared.uEnvHorizon;
       shader.uniforms.uEnvGround = shared.uEnvGround;
       shader.vertexShader = figureVertex(shader.vertexShader);
       shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", `#include <common>\n${SKY_PARS}`)
+        .replace("#include <common>", `#include <common>\n${SKY_PARS}\n${FILL_PARS}`)
         .replace(
           "#include <lights_fragment_maps>",
           `#include <lights_fragment_maps>
+          irradiance += figFill(geometryNormal);
           #if defined( RE_IndirectSpecular )
             radiance += figSkyRadiance(geometryViewDir, geometryNormal, material.roughness);
           #endif`,

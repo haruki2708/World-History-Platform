@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn). Task này sửa cả script của lane 1 (`art/blender/whp_*.py`) và của lane 2 (`art/blender/horse_*.py`); hai lane đọc mục "Đã đổi trong script" trước khi sửa tiếp các file đó.
 - **Model:** Fable 5.2 (xhigh).
 - **Nhánh:** `batch-i/look-sample`, worktree `E:\World_History_Platform_assets\wt-stage3` (cùng nhánh với [T-041](T-041-look-sample.md)).
-- **Trạng thái:** hai mô hình thử (lính La Mã, kỵ binh La Mã) đã dựng và có ảnh so sánh. **Chờ người dùng xem ảnh và chốt.** Chưa đưa gì vào cảnh 3D.
+- **Trạng thái:** hai mô hình thử (lính La Mã, kỵ binh La Mã) đã dựng và có ảnh so sánh. Người dùng xem và chọn **sửa ánh sáng lính trong cảnh trước, giữ mô hình cũ** (2026-11-18). Mô hình `hi` **để đó, chưa đưa vào cảnh**; quyết tiếp sau khi người dùng xem cảnh đã sửa ánh sáng ([T-041](T-041-look-sample.md), mục "Ánh sáng bù cho hình lính").
 - **Phạm vi file:** `art/blender/`, `art/renders/upgrade/`, `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" trước.
@@ -86,6 +86,10 @@ Ghi thẳng, để người dùng quyết:
 3. **Tầm trung và xa đổi rõ nhất.** Ở 26 điểm ảnh, hiện nay là hình ống màu phẳng, thang mới còn chất liệu: khiên đỏ, lông mũ, giáp vẫn đọc được.
 4. **Phần lớn cái "PS1" trong cảnh không nằm ở mô hình.** Cùng một mô hình đang dùng, render trong Blender dưới nắng thì trông ổn; trong cảnh 3D, nhìn từ phía có nắng cũng ổn, nhưng nhìn từ phía khuất nắng thì cả người và ngựa thành một khối đỏ sẫm, phẳng, mất hết vân chất liệu. Nguyên nhân nằm ở cách cảnh chiếu sáng hình lính (mặt khuất gần như không có ánh sáng bù, đường cong màu của T-041 ép tối thêm, chỉ người gần nhất được vẽ bằng vật liệu có phản xạ). Ảnh chụp cảnh để đối chiếu (không lưu trong repo): `E:\World_History_Platform_assets\main-tools\shots\now-inf.png` và `now-cav.png` (phía khuất nắng), `now-infsun.png` và `now-cavsun.png` (phía có nắng).
 5. **Ảnh mẫu của người dùng không dùng mô hình chi tiết hơn của ta.** Lính trong ảnh mẫu ít tam giác hơn; cái làm chúng sống là nắng gắt và ánh sáng bù mạnh, màu phe sáng, mỗi người một tư thế, trang bị khác nhau.
+
+### Người dùng chọn sau khi xem ảnh
+
+Ngày 2026-11-18, trong ba hướng (sửa ánh sáng lính trước; thử mô hình mới trong cảnh; nâng tiếp trong Blender), người dùng chọn **sửa ánh sáng lính trước**: giữ mô hình cũ, sửa cách cảnh mẫu chiếu sáng người và ngựa, xem xong mới quyết có cần mô hình mới hay không. Việc đó làm ở T-041.
 
 ### Chưa làm
 

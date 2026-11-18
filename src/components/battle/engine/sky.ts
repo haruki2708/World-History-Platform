@@ -93,6 +93,17 @@ const AMBIENT_COLOR: Stop<Color>[] = [
 const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#1b2030")], [-6, c("#2f3038")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
 const MOON_COLOR = c("#9db4e0");
 
+/**
+ * Light that only the figures get, by day (Sky.fill). Men and horses are
+ * small, upright things in a crowd: with the sun and the sky light alone,
+ * the side turned from the sun is one flat dark colour. `sky` and `kick`
+ * are shares of the sky light, `sun` a share of the sun.
+ */
+const FILL = { sky: 0.9, kick: 1.0, sun: 0.22 };
+/** What sunlit ground throws back up at them: its reflectance (linear). */
+const FILL_GROUND = new Color(0.2, 0.21, 0.13);
+const KICK_ELEVATION = 25 * DEG;
+
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
   return t * t * (3 - 2 * t);
@@ -112,6 +123,21 @@ export class Sky {
   readonly envZenith: Color;
   readonly envHorizon: Color;
   readonly envGround: Color;
+  /**
+   * Extra light for the figures alone (figures/material.ts), all zero by
+   * night. `sky`: more of the sky light from above. `bounce`: the sun
+   * thrown back by the ground, from below. `kick`: a soft second light from
+   * the side away from the sun (`kickDir`, towards it), which gives the
+   * shaded side its form. `sun`: the part of the sun that still reaches a
+   * man standing in the shadow of his neighbours. Updated in place.
+   */
+  readonly fill = {
+    sky: new Color(0, 0, 0),
+    bounce: new Color(0, 0, 0),
+    kick: new Color(0, 0, 0),
+    sun: new Color(0, 0, 0),
+    kickDir: new Vector3(0, 1, 0),
+  };
   /**
    * How bright the field is, 1 at noon and low at night: for the flat
    * markings on the ground (arrows, block outlines), which take no light.
@@ -251,6 +277,23 @@ export class Sky {
     this.daylight = Math.min(
       (this.ambient.intensity + this.light.intensity * Math.max(this.lightDir.y, 0)) / 4.5,
       1,
+    );
+
+    const day = smooth(-4, 10, elevation);
+    const fill = this.fill;
+    fill.sky.copy(this.ambient.color).multiplyScalar(FILL.sky * day);
+    fill.kick.copy(this.ambient.color).multiplyScalar(FILL.kick * day);
+    fill.sun.copy(this.light.color).multiplyScalar(this.light.intensity * FILL.sun * day);
+    fill.bounce
+      .copy(this.light.color)
+      .multiply(FILL_GROUND)
+      .multiplyScalar(this.light.intensity * Math.max(this.lightDir.y, 0) * day);
+    const flat = Math.hypot(this.lightDir.x, this.lightDir.z);
+    const along = Math.cos(KICK_ELEVATION) / (flat > 1e-3 ? flat : 1);
+    fill.kickDir.set(
+      flat > 1e-3 ? -this.lightDir.x * along : 0,
+      Math.sin(KICK_ELEVATION),
+      flat > 1e-3 ? -this.lightDir.z * along : Math.cos(KICK_ELEVATION),
     );
   }
 

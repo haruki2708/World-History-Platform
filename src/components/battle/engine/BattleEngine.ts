@@ -295,6 +295,12 @@ export class BattleEngine {
       uEnvZenith: { value: this.sky.envZenith },
       uEnvHorizon: { value: this.sky.envHorizon },
       uEnvGround: { value: this.sky.envGround },
+      uFillSky: { value: this.sky.fill.sky },
+      uFillBounce: { value: this.sky.fill.bounce },
+      uFillKick: { value: this.sky.fill.kick },
+      uFillSun: { value: this.sky.fill.sun },
+      uFillKickDir: { value: this.sky.fill.kickDir },
+      uFillSunDir: { value: this.sky.lightDirection },
     };
     this.scene.add(this.sky.dome, this.sky.light, this.sky.light.target, this.sky.ambient);
     this.scene.fog = this.fog;
