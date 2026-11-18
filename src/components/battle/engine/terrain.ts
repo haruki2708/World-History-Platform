@@ -34,6 +34,7 @@ import {
 } from "three";
 import { type BattleTerrain, type FieldPoint, type GroundCover, terrainUrl } from "@/lib/battle";
 import { River, type RiverLight } from "./river";
+import { WATER_GLSL } from "./water";
 
 export type HeightAt = (x: number, y: number) => number;
 
@@ -60,7 +61,7 @@ const PALETTE = {
   cliff: new Color("#86837d"),
   bank: new Color("#6d8546"),
   forest: new Color("#566643"),
-  sea: new Color("#2c566e"),
+  sea: new Color("#153a54"),
   strand: new Color("#d3c59c"),
 };
 
@@ -141,9 +142,18 @@ export class Terrain {
   private readonly far: Float32Array | null;
   /** A photograph of grass, repeated over the ground for its grain. */
   private readonly grain: Texture;
+  /** Photographs of river gravel and of beach sand, for the beds and the shore. */
+  private readonly gravel: Texture;
+  private readonly sand: Texture;
   private readonly textures: Texture[] = [];
-  /** What the sea gives back of the sky; set every frame. */
-  private readonly seaGlow = { value: new Color() };
+  /** What the sea reflects (water.ts); set every frame. */
+  private readonly seaLight = {
+    uWaterTime: { value: 0 },
+    uSkyZenith: { value: new Color() },
+    uSkyHorizon: { value: new Color() },
+    uSunDir: { value: new Vector3(0, 1, 0) },
+    uSunLight: { value: new Color() },
+  };
   private readonly rivers: River[] = [];
   /** How deep a man stands in a river, in centimetres, on a grid of WADE_CELL metres; null without rivers. */
   private wade: Uint8Array | null = null;
@@ -161,6 +171,16 @@ export class Terrain {
     this.grain.colorSpace = SRGBColorSpace;
     this.grain.anisotropy = 8;
     this.textures.push(this.grain);
+    const photo = (path: string) => {
+      const texture = new TextureLoader().load(path);
+      texture.wrapS = texture.wrapT = RepeatWrapping;
+      texture.colorSpace = SRGBColorSpace;
+      texture.anisotropy = 8;
+      this.textures.push(texture);
+      return texture;
+    };
+    this.gravel = photo("/battles/textures/gravel.jpg");
+    this.sand = photo("/battles/textures/sand.jpg");
     this.cellX = (data.maxX - data.minX) / Math.max(data.width - 1, 1);
     this.cellY = (data.maxY - data.minY) / Math.max(data.height - 1, 1);
     let min = Infinity;
@@ -175,7 +195,7 @@ export class Terrain {
     this.group.add(this.buildGround());
     for (const river of data.rivers) {
       if (river.points.length < 2) continue;
-      const drawn = new River(river, data.landmarks, this.heightAt);
+      const drawn = new River(river, data.landmarks, this.heightAt, this.gravel);
       this.rivers.push(drawn);
       this.group.add(drawn.mesh);
       this.stampWading(river.points, river.width);
@@ -243,8 +263,12 @@ export class Terrain {
   /** Call every frame: moving water, and the sky it reflects. */
   update(seconds: number, sky: RiverLight): void {
     for (const river of this.rivers) river.update(seconds, sky);
-    // The sea is always seen at a low angle: it mirrors the sky near the horizon.
-    this.seaGlow.value.copy(sky.envHorizon).multiplyScalar(0.42);
+    const sea = this.seaLight;
+    sea.uWaterTime.value = seconds;
+    sea.uSkyZenith.value.copy(sky.envZenith);
+    sea.uSkyHorizon.value.copy(sky.envHorizon);
+    sea.uSunDir.value.copy(sky.lightDirection);
+    sea.uSunLight.value.copy(sky.light.color).multiplyScalar(sky.light.intensity * 0.5);
   }
 
   /** Height of the far ground at a field point, metres above sea level (the sea is 0). */
@@ -453,7 +477,8 @@ export class Terrain {
       shader.uniforms.uGrain = { value: this.grain };
       shader.uniforms.uSea = { value: PALETTE.sea };
       shader.uniforms.uStrand = { value: PALETTE.strand };
-      shader.uniforms.uSeaGlow = this.seaGlow;
+      Object.assign(shader.uniforms, this.seaLight);
+      shader.uniforms.uSand = { value: this.sand };
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
@@ -485,8 +510,14 @@ export class Terrain {
           uniform float uFields;
           uniform sampler2D uGrain;
           uniform vec3 uSea;
-          uniform vec3 uSeaGlow;
           uniform vec3 uStrand;
+          uniform float uWaterTime;
+          uniform vec3 uSkyZenith;
+          uniform vec3 uSkyHorizon;
+          uniform vec3 uSunDir;
+          uniform vec3 uSunLight;
+          uniform sampler2D uSand;
+          ${WATER_GLSL}
           varying vec3 vGroundPos;
           varying float vOverlay;
           varying vec2 vLie;
@@ -623,12 +654,36 @@ export class Terrain {
             ground *= 1.0 + (0.16 * (tuft - 0.5) + 0.1 * (speck - 0.5)) * (1.0 - smoothstep(25.0, 160.0, distance));
             ground *= 0.9 + 0.2 * (mottle - 0.5) * mid + 0.22 * (grain - 0.5) * near + 0.16 * (regions - 0.5);
             groundReliefShown = 1.0 - smoothstep(30.0, 190.0, distance);
-            // The shore: a strand of sand, then shallows, then the sea.
+            // The shore: a strand of sand, then shallows, then the sea (water.ts).
             float shore = vSea + (mottle - 0.5) * 0.12;
             float seaShare = smoothstep(0.42, 0.6, shore);
-            ground = mix(ground, uStrand * (0.92 + 0.16 * grain), smoothstep(0.05, 0.3, shore));
-            ground = mix(ground, mix(uStrand, uSea, 0.55 + 0.45 * smoothstep(0.6, 0.95, shore)), seaShare);
-            groundGlow = uSeaGlow * seaShare;
+            if (shore > 0.02) {
+              vec3 sandPhoto = mix(texture2D(uSand, g / 5.0).rgb, texture2D(uSand, g / 23.0 + 0.4).rgb, smoothstep(40.0, 200.0, distance));
+              vec3 strand = mix(uStrand, sandPhoto * 1.1, 0.7);
+              ground = mix(ground, strand, smoothstep(0.05, 0.3, shore));
+              // Wet sand where the waves reach.
+              ground = mix(ground, ground * 0.72, smoothstep(0.3, 0.44, shore));
+              if (seaShare > 0.0) {
+                float depth = smoothstep(0.55, 0.95, shore);
+                vec3 water = mix(mix(strand, uSea, 0.6), uSea, depth);
+                float footprint = max(length(fwidth(g)), 0.01);
+                // The sea runs in from the south-east; the swell is longer than on a river.
+                vec2 slope = waterSlope(g * 0.8, uWaterTime, 2.4, 1.2, footprint, 0.0);
+                vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+                vec3 toEye = normalize(cameraPosition - vGroundPos);
+                float fresnel;
+                vec3 thrown = waterLight(n, toEye, uSunDir, uSunLight, uSkyZenith, uSkyHorizon, fresnel);
+                // Surf: bands of foam that run in to the strand and break up.
+                float band = sin(shore * 70.0 - uWaterTime * 1.3 + groundNoise(g * 0.02) * 6.0);
+                float surf = smoothstep(0.55, 0.95, band) * (1.0 - smoothstep(0.5, 0.75, shore));
+                surf = max(surf, 1.0 - smoothstep(0.43, 0.5, shore));
+                surf *= waterFoam(g * 0.8, uWaterTime) * (1.0 - smoothstep(600.0, 3000.0, distance) * 0.7);
+                water *= 1.0 - fresnel * 0.8;
+                water = mix(water, vec3(0.9, 0.92, 0.9), surf);
+                ground = mix(ground, water, seaShare);
+                groundGlow = thrown * seaShare * (1.0 - surf);
+              }
+            }
             groundReliefShown *= 1.0 - smoothstep(0.05, 0.3, shore);
             diffuseColor.rgb *= ground;
           }`,

@@ -7,8 +7,9 @@
  * wanders from side to side in it, leaving bars of gravel; at a ford it
  * spreads thin over the whole bed. Without that it fills the bed.
  *
- * The water takes the colour of the sky at a low angle and a glint of the
- * sun, and its ripples run downstream.
+ * The water (water.ts) mirrors the sky and breaks the sun into sparkles on
+ * its waves, which run downstream; foam gathers along its edges and over a
+ * ford. The bed is a photograph of river gravel.
  */
 
 import {
@@ -19,9 +20,11 @@ import {
   type IUniform,
   Mesh,
   MeshLambertMaterial,
+  type Texture,
   Vector3,
 } from "three";
 import type { BattleLandmark, BattleRiver } from "@/lib/battle";
+import { WATER_GLSL } from "./water";
 
 type HeightAt = (x: number, y: number) => number;
 
@@ -50,8 +53,8 @@ const FORD_REACH = 150;
 const MAX_FORDS = 8;
 
 const COLORS = {
-  deep: new Color("#3f6672"),
-  shallow: new Color("#7d8f78"),
+  deep: new Color("#24586b"),
+  shallow: new Color("#5f8a80"),
   gravel: new Color("#b9ad95"),
   reedDark: new Color("#66783f"),
   reedLight: new Color("#98985a"),
@@ -61,7 +64,8 @@ export class River {
   readonly mesh: Mesh;
   private readonly uniforms: Record<string, IUniform>;
 
-  constructor(river: BattleRiver, landmarks: BattleLandmark[], heightAt: HeightAt) {
+  /** gravel: a photograph of river gravel, repeating (terrain.ts loads it). */
+  constructor(river: BattleRiver, landmarks: BattleLandmark[], heightAt: HeightAt, gravel: Texture) {
     const low = river.level?.stage === "low";
     const waterHalf = river.width / 2;
     // At low water the bed is the wider thing; otherwise the water fills it.
@@ -82,6 +86,8 @@ export class River {
     // then 1 on land and 0 in the sea, where the river ends.
     const coords = new Float32Array(vertices * 2);
     const land = new Float32Array(vertices);
+    // Per vertex: the way the course runs, on the field (x east, then z).
+    const flow = new Float32Array(vertices * 2);
     const point = new Vector3();
     const tangent = new Vector3();
     const centres: Vector3[] = [];
@@ -106,6 +112,8 @@ export class River {
         positions[k * 3 + 2] = z;
         coords[k * 2] = u * length;
         coords[k * 2 + 1] = offset;
+        flow[k * 2] = tangent.x / norm;
+        flow[k * 2 + 1] = tangent.z / norm;
       }
     }
 
@@ -130,6 +138,7 @@ export class River {
     geometry.setAttribute("position", new BufferAttribute(positions, 3));
     geometry.setAttribute("aCourse", new BufferAttribute(coords, 2));
     geometry.setAttribute("aLand", new BufferAttribute(land, 1));
+    geometry.setAttribute("aFlow", new BufferAttribute(flow, 2));
     geometry.setIndex(new BufferAttribute(index, 1));
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
@@ -168,6 +177,7 @@ export class River {
       uSkyHorizon: { value: new Color() },
       uSunDir: { value: new Vector3(0, 1, 0) },
       uGlint: { value: new Color() },
+      uGravelMap: { value: gravel },
     };
 
     const material = new MeshLambertMaterial({
@@ -186,8 +196,10 @@ export class River {
           /* glsl */ `#include <common>
           attribute vec2 aCourse;
           attribute float aLand;
+          attribute vec2 aFlow;
           varying vec2 vCourse;
           varying float vLand;
+          varying vec2 vFlow;
           varying vec3 vRiverWorld;`,
         )
         .replace(
@@ -195,6 +207,7 @@ export class River {
           /* glsl */ `#include <begin_vertex>
           vCourse = aCourse;
           vLand = aLand;
+          vFlow = aFlow;
           vRiverWorld = (modelMatrix * vec4(position, 1.0)).xyz;`,
         );
       shader.fragmentShader = shader.fragmentShader
@@ -217,10 +230,13 @@ export class River {
           uniform vec3 uSkyHorizon;
           uniform vec3 uSunDir;
           uniform vec3 uGlint;
+          uniform sampler2D uGravelMap;
           varying vec2 vCourse;
           varying float vLand;
+          varying vec2 vFlow;
           varying vec3 vRiverWorld;
           vec3 riverGlow = vec3(0.0);
+          ${WATER_GLSL}
           float riverHash(vec2 p) {
             vec3 q = fract(vec3(p.xyx) * 0.1031);
             q += dot(q, q.yzx + 33.33);
@@ -235,11 +251,7 @@ export class River {
               mix(riverHash(i + vec2(0.0, 1.0)), riverHash(i + vec2(1.0, 1.0)), u.x),
               u.y);
           }
-          // The height of the ripples: two layers running downstream at different speeds.
-          float riverRipple(vec2 p) {
-            return riverNoise(vec2(p.x - uTime * 1.1, p.y) * 0.35)
-              + 0.4 * riverNoise(vec2(p.x - uTime * 1.9, p.y + uTime * 0.2) * 1.1 + 7.0);
-          }`,
+`,
         )
         .replace(
           "#include <color_fragment>",
@@ -275,10 +287,14 @@ export class River {
               ? smoothstep(0.0, ${FADE.toFixed(1)}, inStrip) * (0.55 + 0.4 * clumps)
               : 0.0;
 
-            // Bed: pale gravel, speckled, darker where it is wet by the water.
-            float pebbles = riverNoise(vec2(s, m) * 2.3 + 5.0);
+            // Bed: gravel (a photograph at two sizes, so that no repeat
+            // shows), lighter on the bars, darker where it is wet.
             float bars = riverNoise(vec2(s * 0.06, m * 0.2) + 19.0);
-            vec3 bed = uGravel * (0.8 + 0.28 * bars) * (0.93 + 0.14 * pebbles * (1.0 - smoothstep(40.0, 260.0, distance)));
+            vec3 stones = mix(
+              texture2D(uGravelMap, vec2(s, m) / 4.3 + 0.21).rgb,
+              texture2D(uGravelMap, vec2(m, s) / 1.6).rgb,
+              1.0 - smoothstep(25.0, 90.0, distance));
+            vec3 bed = mix(uGravel, stones * 1.25, 0.75) * (0.82 + 0.3 * bars);
             // Weeds take hold on the bars away from the water.
             float weeds = smoothstep(0.55, 0.8, clumps * 0.6 + bars * 0.4) * smoothstep(-2.0, -9.0, inWater);
             bed = mix(bed, uReedLight * 0.95, weeds * 0.6);
@@ -294,23 +310,29 @@ export class River {
             color = mix(color, water, waterMask);
             float alpha = mix(bankAlpha, 1.0, bedMask);
 
-            // What the water throws back: the sky by Fresnel, and the sun.
-            vec2 rp = vec2(s, m);
-            float h0 = riverRipple(rp);
-            float steep = (0.16 + 0.3 * ford) * (1.0 - smoothstep(120.0, 900.0, distance));
-            vec3 n = normalize(vec3(
-              (h0 - riverRipple(rp + vec2(0.4, 0.0))) * steep,
-              1.0,
-              (h0 - riverRipple(rp + vec2(0.0, 0.4))) * steep));
+            // What the water throws back (water.ts). The waves run
+            // downstream with the current, rougher over a ford.
+            vec2 rp = vec2(s - uTime * 0.6, m);
+            float footprint = max(length(fwidth(vec2(s, m))), 0.01);
+            vec2 slope = waterSlope(rp, uTime, 0.0, 1.3, footprint, 0.35 - 0.35 * ford);
+            // From the frame of the course (along, across) to the field.
+            vec2 along = normalize(vFlow);
+            vec2 across = vec2(along.y, -along.x);
+            vec2 g = slope.x * along + slope.y * across;
+            vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
             vec3 toEye = normalize(cameraPosition - vRiverWorld);
-            float facing = clamp(dot(n, toEye), 0.0, 1.0);
-            float fresnel = 0.03 + 0.97 * pow(1.0 - facing, 5.0);
-            vec3 mirrored = reflect(-toEye, n);
-            vec3 sky = mix(uSkyHorizon, uSkyZenith, pow(clamp(mirrored.y, 0.0, 1.0), 0.5));
-            float sun = pow(max(dot(mirrored, uSunDir), 0.0), 180.0);
+            float fresnel;
+            vec3 thrown = waterLight(n, toEye, uSunDir, uGlint, uSkyZenith, uSkyHorizon, fresnel);
             float shine = waterMask * (0.35 + 0.65 * depth);
-            riverGlow = (sky * fresnel * 0.7 + uGlint * sun) * shine;
-            color *= 1.0 - fresnel * 0.7 * shine;
+
+            // Foam: a broken line along the edges of the stream, more over a ford.
+            float edge = 1.0 - smoothstep(0.0, 2.2 + 3.0 * ford, inWater);
+            float foam = waterFoam(rp * vec2(0.7, 1.2), uTime) * waterMask
+              * max(edge * 0.85, ford * 0.55 * smoothstep(0.3, 0.8, riverNoise(vec2(s * 0.08, m * 0.3) + 31.0)));
+            foam *= 1.0 - smoothstep(250.0, 1200.0, distance) * 0.6;
+            riverGlow = thrown * shine * (1.0 - foam);
+            color *= 1.0 - fresnel * 0.8 * shine;
+            color = mix(color, vec3(0.9, 0.92, 0.9), foam);
 
             // The river ends where the ground does: the sea takes over.
             float ashore = smoothstep(0.3, 0.7, vLand);

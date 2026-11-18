@@ -254,5 +254,7 @@ Link cho khung xem trận (`MODEL_CREDIT_LINKS`), thêm vào các link đã có:
 | File | Nguồn | Giấy phép | Đã làm gì |
 |---|---|---|---|
 | `grass.jpg` | ambientCG, [Grass001](https://ambientcg.com/view?id=Grass001), bản đồ màu của gói `Grass001_1K-JPG`, tải 2026-11-18 | CC0 1.0 (trang ambientCG ghi mọi tài sản của họ theo CC0) | Thu nhỏ còn 512 × 512, nén JPEG mức 80 bằng Blender. Dùng làm vân mặt đất (T-041) |
+| `gravel.jpg` | ambientCG, [Gravel022](https://ambientcg.com/view?id=Gravel022), bản đồ màu của gói `Gravel022_1K-JPG`, tải 2026-11-18 | CC0 1.0 | Thu nhỏ còn 512 × 512, nén JPEG mức 80 (Pillow). Lòng sông (T-044) |
+| `sand.jpg` | ambientCG, [Ground054](https://ambientcg.com/view?id=Ground054), bản đồ màu của gói `Ground054_1K-JPG`, tải 2026-11-18 | CC0 1.0 | Thu nhỏ còn 512 × 512, nén JPEG mức 80 (Pillow). Bãi cát bờ biển (T-044) |
 
 Gói gốc lưu ngoài repo ở `E:\World_History_Platform_assets\textures\ambientcg\`. CC0 không buộc ghi công; ghi ở đây để biết nguồn.
