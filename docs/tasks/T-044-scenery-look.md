@@ -119,3 +119,9 @@ Người dùng duyệt màu của bước 1 ("màu mới được nhé"). Bướ
 **Chưa làm (nước):** bờ sông vẫn phẳng (sỏi là hình vẽ, không có hòn đá nổi); không có đá lớn ở bờ biển; nước không trong suốt (không thấy đáy ở chỗ nông, chỉ đổi màu).
 
 **Hai ảnh mới** trong `public/battles/textures/` (tổng 115 KB): `gravel.jpg`, `sand.jpg`; ghi công ở `art/CREDITS.md`.
+
+### Trước khi gộp (2026-11-19)
+
+Người dùng chọn hoàn thiện để gộp. Đã làm: ghi chú căn cứ của `ground` (Cannae) viết lại cho lớp phủ xanh, mức `illustrative`; hai dòng của hộp thoại Giới thiệu viết lại (cảnh vật: mặt đất xanh trái mùa, bỏ chữ "ruộng"; giáp lá cà: hàng sau chen lấn và lao ném qua đầu là minh hoạ), cả tiếng Anh và tiếng Việt; `docs/ARCHITECTURE.md` thêm mục "Đồ hoạ theo ảnh mẫu (đợt I)"; `docs/data/battles/cannae.md` thêm mục 16.
+
+**Kiểm tra bản cuối** (commit 1c34d1e, bản production dựng ở worktree tạm): `npm run lint`, `npm run validate`, `next build` qua; hồi quy lõi 17/17, không lỗi console; hộp thoại Giới thiệu hiện hai dòng mới ở cả hai ngôn ngữ. Số khung hình, hai lượt `s-perf3.mjs` (lúc mở; phát giai đoạn 3; giai đoạn 4): 93,3; 64,6; 61,2 và 93,4; 65,2; 60,6. Mức chất lượng thấp: xem ảnh chụp bốn góc, cây, nước, bụi cỏ và lều đều hiện đúng, không shader nào lỗi. Nhánh đứng thẳng trên `main` (5b2b28b), gộp được bằng fast-forward.
