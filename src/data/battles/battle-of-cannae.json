@@ -1504,6 +1504,186 @@
               { "title": "Livy, Ab Urbe Condita 22.49 (Latin)", "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml" }
             ]
           }
+        },
+        {
+          "id": "farm-1",
+          "kind": "farm",
+          "center": { "x": 2700, "y": -1000 },
+          "width": 70,
+          "depth": 50,
+          "facing": 200,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-2",
+          "kind": "farm",
+          "center": { "x": 3400, "y": -2300 },
+          "width": 70,
+          "depth": 50,
+          "facing": 120,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-3",
+          "kind": "farm",
+          "center": { "x": 1500, "y": -2500 },
+          "width": 70,
+          "depth": 50,
+          "facing": 70,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-4",
+          "kind": "farm",
+          "center": { "x": -300, "y": -2900 },
+          "width": 70,
+          "depth": 50,
+          "facing": 160,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-5",
+          "kind": "farm",
+          "center": { "x": -2600, "y": -2700 },
+          "width": 70,
+          "depth": 50,
+          "facing": 30,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-6",
+          "kind": "farm",
+          "center": { "x": 3900, "y": -900 },
+          "width": 70,
+          "depth": 50,
+          "facing": 250,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-7",
+          "kind": "farm",
+          "center": { "x": -4600, "y": 1500 },
+          "width": 70,
+          "depth": 50,
+          "facing": 100,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-8",
+          "kind": "farm",
+          "center": { "x": -3300, "y": 2300 },
+          "width": 70,
+          "depth": 50,
+          "facing": 190,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-9",
+          "kind": "farm",
+          "center": { "x": 600, "y": -1800 },
+          "width": 70,
+          "depth": 50,
+          "facing": 300,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-10",
+          "kind": "farm",
+          "center": { "x": 2200, "y": -3900 },
+          "width": 70,
+          "depth": 50,
+          "facing": 340,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-11",
+          "kind": "farm",
+          "center": { "x": -1500, "y": -2100 },
+          "width": 70,
+          "depth": 50,
+          "facing": 140,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
+        },
+        {
+          "id": "farm-12",
+          "kind": "farm",
+          "center": { "x": -3000, "y": -3500 },
+          "width": 70,
+          "depth": 50,
+          "facing": 60,
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "No source mentions a farm here. The farmsteads are drawn so that the plain looks lived in: this was farmed country, but where its houses stood, and what they looked like, is not known.",
+              "vi": "Không nguồn nào nhắc tới một trại nông nào ở đây. Các nhà nông được vẽ để đồng bằng trông có người ở: đây là vùng có canh tác, nhưng nhà cửa nằm ở đâu và trông ra sao thì không rõ."
+            }
+          }
         }
       ],
       "wind": {

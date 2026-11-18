@@ -303,7 +303,7 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
 
 ### Phong cảnh (đợt H)
 
-Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Công trình, mảng đất riêng (`areas`), gió và bụi **chưa được vẽ**: các chặng sau làm.
+Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Chặng 2 (T-039) dựng công trình. Mảng đất riêng (`areas`), gió và bụi **chưa được vẽ**: các chặng sau làm.
 
 - **Nguyên tắc:** vẽ cho giống thật, nhưng mỗi thứ phải nói rõ nó dựa vào đâu. Mọi phần của phong cảnh mang một `evidence` (kiểu `SceneryEvidence`):
   - `basis`: `attested` (nguồn cổ nói có; bắt buộc kèm `sources`), `inferred` (suy từ nguồn hoặc từ địa hình), hoặc `illustrative` (không có căn cứ, chỉ hợp với vùng và thời ấy).
@@ -312,10 +312,11 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - `attested` chỉ nói thứ đó có thật. Kích thước và vị trí chính xác thường vẫn là giả định, và ghi chú phải nói vậy.
 - **Mặt đất** (`scenery.ground`, `scenery.areas`): `ground.cover` là lớp phủ ở mọi chỗ không có mảng riêng. `areas` là các mảng có lớp phủ khác, cho bằng đường bao (`outline`, ít nhất ba điểm). Lớp phủ (`GroundCover`): `stubble` (ruộng đã gặt), `grass`, `scrub` (bụi thấp), `reeds` (lau sậy và cây thấp ven nước), `woodland`, `bare`.
 - **Sông** (thêm vào `BattleRiver`): `level.stage` là `low` (nước cạn, lộ bãi sỏi, lội qua được ở các địa danh loại `ford`) hoặc `full`; `banks` là lớp phủ dọc hai bờ, trong một dải rộng `width` mét tính từ mép nước.
-- **Công trình** (`scenery.structures`, kiểu `SceneryStructure`): `camp` (trại quân: hào, luỹ, cọc rào, cổng, lều; bắt buộc có `side`), `citadel` (thành nhỏ có tường), `village` (nhà không có tường bao). Phần đất của công trình là một hình chữ nhật cho giống `Formation`: `center`, `width` (bề ngang mặt trước), `depth`, `facing` (hướng mặt trước, tức cổng chính). `ruined` là đổ nát.
+- **Công trình** (`scenery.structures`, kiểu `SceneryStructure`): `camp` (trại quân: hào, luỹ, cọc rào, cổng, lều; bắt buộc có `side`), `citadel` (thành nhỏ có tường), `village` (nhà không có tường bao), `farm` (nhà nông với chuồng trại trong sân có tường, thêm ở T-039). Phần đất của công trình là một hình chữ nhật cho giống `Formation`: `center`, `width` (bề ngang mặt trước), `depth`, `facing` (hướng mặt trước, tức cổng chính). `ruined` là đổ nát.
   - Phần đất tính theo **kích thước thật**. Những thứ đứng trong đó (lều, nhà) cảnh vẽ to hơn thật và ít hơn thật, như cách vẽ lính (`FIGURE_SCALE`, một hình bằng 20 người).
   - Nhãn tên vẫn thuộc về `landmarks`. Nhãn của một trại hay thị trấn nên nằm trong công trình tương ứng; `npm run validate` cảnh báo nếu không.
-  - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh phải để trống chỗ đó.
+  - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh để trống chỗ đó: lều không được dựng ở nơi một khối quân đứng hay đi qua.
+  - **Trong cảnh** (T-039, `engine/structures.ts`): mọi công trình được sinh bằng code lúc mở trận, bám theo mặt đất, có hạt giống ngẫu nhiên là id trận và id công trình (cùng một trận luôn ra cùng một cảnh). Không có file mô hình nào. Trại của bên có id `rome` xếp lều theo quy tắc (khoảng trống sau luỹ, đường lớn, lối đi); trại của bên khác xếp lỏng. Một lều cho chừng `MEN_PER_FIGURE` người. Chi tiết ở `docs/tasks/T-039-structures.md`.
 - **Gió** (`scenery.wind`): `from` là hướng gió thổi **tới từ đâu**, độ theo chiều kim đồng hồ từ hướng bắc; `speed` tính bằng mét mỗi giây. **Bụi** (`scenery.dust`): `level` từ 0 (đất ẩm, không bụi) tới 1 (đất khô nẻ, bụi dày).
 - **Trận không có `scenery`** vẫn hợp lệ: mặt đất vẽ như trước đợt H (không có ô ruộng), sông đầy nước và không có dải bờ.
 - **Vùng xa** (`terrain.far`, kiểu `BattleFarTerrain`, T-038): một lưới độ cao thưa của cả vùng quanh chiến trường, cùng định dạng với lưới chính, để chân trời có đồi núi và biển thật.
@@ -351,4 +352,4 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
-- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Các chặng sau: công trình, thực vật, bụi.
+- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Các chặng sau: thực vật, bụi.

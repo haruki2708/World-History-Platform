@@ -56,7 +56,7 @@ const en = {
   "about.accuracy.battle.pulses":
     "the fighting is shown without a pause; in a real battle the lines probably fought in short bursts and drew apart to rest in between;",
   "about.accuracy.battle.scenery":
-    "the country around the armies is part evidence and part illustration: the hills, the river and the shore follow today’s elevation data, though river and shore have both moved since antiquity; the fields only show that this was farmland, and are no record of any real field;",
+    "the country around the armies is part evidence and part illustration: the hills, the river and the shore follow today’s elevation data, though river and shore have both moved since antiquity; the three camps, the citadel and the village of Cannae are in the ancient sources, but their size, their place and all that stands in them are reconstructed; the fields and the farms only show that this was farmed country, and are no record of any real field or house;",
   "about.accuracy.battle.colours":
     "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
   "about.credits.heading": "Sources and credits",
@@ -322,7 +322,7 @@ const vi: Record<MessageKey, string> = {
   "about.accuracy.battle.pulses":
     "cảnh vẽ hai bên đánh liên tục; trong trận thật, nhiều khả năng hai tuyến đánh theo từng đợt ngắn, giữa các đợt thì lùi ra nghỉ;",
   "about.accuracy.battle.scenery":
-    "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: đồi núi, sông và bờ biển theo dữ liệu độ cao ngày nay, dù sông và bờ biển đều đã đổi chỗ từ thời cổ; các thửa ruộng chỉ cho thấy đây là đất canh tác, không phải ghi chép về thửa ruộng nào có thật;",
+    "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: đồi núi, sông và bờ biển theo dữ liệu độ cao ngày nay, dù sông và bờ biển đều đã đổi chỗ từ thời cổ; ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; ruộng và nhà nông chỉ cho thấy đây là vùng có canh tác, không phải ghi chép về thửa ruộng hay ngôi nhà nào có thật;",
   "about.accuracy.battle.colours":
     "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
   "about.credits.heading": "Nguồn và ghi công",

@@ -18,7 +18,7 @@ const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "ret
 const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
 const SCENERY_BASES = new Set(["attested", "inferred", "illustrative"]);
 const GROUND_COVERS = new Set(["stubble", "grass", "scrub", "reeds", "woodland", "bare"]);
-const STRUCTURE_KINDS = new Set(["camp", "citadel", "village"]);
+const STRUCTURE_KINDS = new Set(["camp", "citadel", "village", "farm"]);
 const RIVER_STAGES = new Set(["low", "full"]);
 
 const errors = [];

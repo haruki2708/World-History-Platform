@@ -29,6 +29,7 @@ import { createPlaceholderSource } from "./figures/placeholder";
 import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
+import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
 import { BattleClock, formationPoint, opposition, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
@@ -174,6 +175,7 @@ export class BattleEngine {
   private readonly battle: Battle;
   private terrain: Terrain | null = null;
   private arrows: ArrowLayer | null = null;
+  private structures: Structures | null = null;
   private clock: BattleClock | null = null;
 
   private quality: Quality;
@@ -539,6 +541,7 @@ export class BattleEngine {
     for (const model of this.models) model.dispose();
     this.models.clear();
     this.arrows?.dispose();
+    this.structures?.dispose();
     this.terrain?.dispose();
     this.sky.dispose();
     this.scene.clear();
@@ -639,6 +642,9 @@ export class BattleEngine {
 
     this.arrows = new ArrowLayer(battle, colorOfSide, terrain.heightAt);
     this.scene.add(this.arrows.group);
+
+    this.structures = new Structures(battle, terrain.heightAt);
+    this.scene.add(this.structures.group);
 
     this.frameView();
     await this.compileShaders();

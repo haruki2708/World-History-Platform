@@ -264,7 +264,7 @@ export interface SceneryArea {
 }
 
 /**
- * Something built: a camp, a citadel, a village. The ground it covers is a
+ * Something built: a camp, a citadel, a village, a farm. The ground it covers is a
  * rectangle given like a Formation, at true size (the scene draws what stands
  * in it, tents or houses, larger than life and fewer, as it does the men).
  */
@@ -275,8 +275,9 @@ export interface SceneryStructure {
    * - `camp`: an army's camp: ditch, rampart, palisade, gates, tents
    * - `citadel`: a small walled stronghold
    * - `village`: houses without a wall
+   * - `farm`: a farmhouse with its barns, in a walled yard
    */
-  kind: "camp" | "citadel" | "village";
+  kind: "camp" | "citadel" | "village" | "farm";
   /** BattleSide.id of the army whose camp it is. Required for a camp. */
   side?: string;
   center: FieldPoint;

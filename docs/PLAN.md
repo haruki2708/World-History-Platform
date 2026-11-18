@@ -76,6 +76,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Hiệu năng (đo xen kẽ ba vòng, hai bản production, RTX 3050, không có Blender chạy): lúc phát giai đoạn 3 trung bình 58,4 khung hình/giây so với 62,4 của `main`; giai đoạn 4: 58,9 so với 61,4; đứng yên lúc mở: 95 so với 99. Chậm hơn khoảng 4–6%, nhỏ hơn dao động giữa các lượt đo (một lượt của nhánh xuống 50,5). Vẫn trên mục tiêu 50.
   - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17.
   - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng chọn chặng tiếp theo là **công trình (chặng 2), phiên chính làm tiếp**.
+- **2026-11-18:** Phiên chính xong chặng 2 của đợt H (T-039) trên nhánh `batch-h/stage2-structures`. Ba trại có hào, luỹ, cọc rào, cổng và lều (trại La Mã xếp theo hàng lối, trại của Hannibal xếp lỏng); thành Cannae có tường, tháp, nhà kho; làng Cannae đổ nát một phần; 12 nhà nông minh hoạ trên đồng (loại công trình mới `farm`). Lều không dựng ở chỗ quân đứng hay đi qua.
+  - **Khác với đề xuất:** mọi công trình dựng bằng code trong cảnh (`engine/structures.ts`), không dùng Blender; hình dáng vì thế đơn giản hơn. Lý do và cái giá ghi ở T-039.
+  - Hộp thoại Giới thiệu: câu về cảnh vật viết lại, nói thêm về trại, thành, làng và nhà nông (câu chữ chờ người dùng duyệt).
+  - Số đo hiệu năng và kết quả kiểm tra ghi ở T-039. Chờ người dùng xem trong cảnh thật và duyệt gộp.
 
 ## Việc để giai đoạn 5
 
@@ -142,7 +146,7 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 |---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong, đã gộp 2026-11-18 |
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong, đã gộp 2026-11-18 |
-| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
+| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng. Dựng bằng code trong cảnh, không dùng Blender như đã trình (lý do ở T-039) | Bay tới trại thấy luỹ, cổng, lều | [T-039](tasks/T-039-structures.md) | Xong trên nhánh `batch-h/stage2-structures`, chờ người dùng xem và duyệt gộp |
 | 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
 | 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Chưa bắt đầu |
 
@@ -157,7 +161,8 @@ Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặn
 
 **Việc phát sinh, chưa giao:**
 - Thêm một khối quân Carthage giữ trại của Hannibal (Polybius 3.117): hiện `camp-force` đánh vào một trại không người. Nên làm cùng chặng 2.
-- Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius.
+- Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius. (T-039 mới giữ ba ý: khoảng trống sau luỹ, đường lớn, lều xếp hàng.)
+- Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại lớn, để trại không trống một góc (T-039).
 
 ## Không làm (điện thoại chỉ cần dùng được)
 

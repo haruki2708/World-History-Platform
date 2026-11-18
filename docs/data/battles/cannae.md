@@ -466,3 +466,34 @@ Hướng chạy của kỵ binh đồng minh không có trong nguồn (Varro tho
 
 - Giữa hai mốc, cảnh nội suy thẳng: phép kiểm tra chỉ xét các mốc, chưa xét đường đi giữa chúng. Đường đi của hai khối kỵ binh ở giai đoạn 6 đã xem bằng mắt (trên bờ).
 - Bờ biển thời cổ: nếu tìm được nghiên cứu địa mạo về châu thổ Ofanto thì nên ghi vào đây và cân nhắc dời bờ.
+
+## 14. Công trình trong cảnh và nhà nông minh hoạ (T-039, đợt H chặng 2)
+
+### Cái gì theo tư liệu, cái gì là phỏng dựng
+
+| Thứ trong cảnh | Căn cứ |
+|---|---|
+| Có ba trại, có luỹ | Polybius 3.110–111, Livy 22.44–45 (mục 12) |
+| Hào, cọc rào, bốn cổng | Cách đóng trại của quân La Mã nói chung (Polybius 6.27–34); không nguồn nào tả riêng ở Cannae. Kích thước hào luỹ là giả định |
+| Khoảng trống 200 bộ sau luỹ, đường lớn, lều xếp hàng trong trại La Mã | Polybius 6.27–32 qua từ điển của W. Smith (mục 12). Cảnh chỉ giữ ba ý đó; chỗ của từng loại quân trong trại thì không vẽ |
+| Lều da | Lều của quân La Mã làm bằng da là điều quen thuộc trong các sách về quân đội La Mã; ở đây ghi theo hiểu biết chung, chưa dẫn nguồn cổ cụ thể |
+| Bên trong trại của Hannibal (lều xếp lỏng, ba màu) | Không có nguồn: minh hoạ |
+| Thành Cannae có tường, tháp, cổng, nhà kho | Có thành, có lương trữ trong đó: Polybius 3.107. Tường, tháp và nhà kho trông ra sao: minh hoạ |
+| Làng Cannae đổ nát một phần, không tường | Polybius 3.107, Livy 22.49 (mục 12). Số nhà, kiểu nhà: minh hoạ |
+| 12 nhà nông trên đồng | Không có nguồn: minh hoạ, theo lựa chọn của người dùng cho cảnh có nhiều nhà hơn tư liệu |
+
+### Mười hai nhà nông
+
+Mỗi cái 70 × 50 m, mức `illustrative`. Vị trí (x, y): (2700, −1000), (3400, −2300), (1500, −2500), (−300, −2900), (−2600, −2700), (3900, −900), (−4600, 1500), (−3300, 2300), (600, −1800), (2200, −3900), (−1500, −2100), (−3000, −3500).
+
+Cách chọn: thử 24 điểm rải quanh chiến trường, giữ điểm nào có đất cao trên 1,5 m và chênh dưới 4 m trong phần đất, cách đường giữa sông trên 200 m, cách mọi đường đi của các khối quân trên 250 m (tính tới mép khối) và cách công trình khác trên 200 m; lấy 12 điểm trong số đạt. Không cái nào nằm trong vùng hai đạo quân dàn trận.
+
+### Lều và chỗ quân đứng
+
+Lều không được dựng ở nơi một khối quân đứng hay đi qua. Vì `camp-force` và `roman-cavalry` xuất phát từ trong trại lớn và đi chéo qua trại, góc tây nam của trại lớn gần như không có lều. Ba khối đồng minh xuất phát từ nửa nam của trại nhỏ, nên nửa đó cũng thưa lều.
+
+### Còn lại
+
+- Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại thì trại lớn mới đầy lều.
+- Khối quân Carthage giữ trại của Hannibal (Polybius 3.117) vẫn chưa có.
+- Câu về lều da cần một nguồn dẫn được trước khi đưa vào ghi chú cho người xem.
