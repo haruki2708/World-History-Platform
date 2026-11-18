@@ -83,7 +83,7 @@ Cả bốn nguồn tắt dần khi mặt trời xuống dưới 10° và bằng 
 
 ### Chưa làm (so với ảnh mẫu)
 
-- **Giáp lá cà vẫn ngay hàng thẳng lối**: lính đứng theo hàng, cùng một dáng; ảnh mẫu là đám đông chen nhau, mỗi người một tư thế, lao bay. Đây là khác biệt lớn nhất còn lại.
+- (Bản cắt đầu tiên đã làm ở [T-043](T-043-melee-press.md): hàng sau chen lấn, lao bay.) **Giáp lá cà vẫn ngay hàng thẳng lối**: lính đứng theo hàng, cùng một dáng; ảnh mẫu là đám đông chen nhau, mỗi người một tư thế, lao bay. Đây là khác biệt lớn nhất còn lại.
 - **Chất liệu lính chưa tô lại**; mọi người lính vẫn là bản sao.
 - **Lều, nhà, cây vẫn là hình dựng bằng code**, chưa thay bằng mô hình có chất liệu.
 - **Nước** chưa có vệt nắng lấp lánh trên biển, sóng và bọt bờ.

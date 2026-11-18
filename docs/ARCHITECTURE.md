@@ -300,6 +300,11 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
 - **Kỵ binh** đấu từng cặp và nhận đòn như bộ binh (chặng 3). Khoảng cách đấu của họ tính theo thân ngựa, nên hai con ngựa đứng chạm mũi nhau và mũi giáo chỉ tới đầu ngựa của địch.
+- **Hỗn chiến** (T-043, đợt I). Người không có đối thủ riêng trong khối đang `fight` không đứng nghiêm trong hàng:
+  - Xê dịch quanh chỗ của mình và xoay người theo (`PRESS_SHARE`, `PRESS_MAX`, `PRESS_TURN`, `PRESS_RANKS` trong `units.ts`), mạnh nhất ở hai hàng ngay sau hàng đầu. Thỉnh thoảng đâm với qua người đứng trước hoặc giơ khiên: clip `attack`, `block` phủ lên như của người đang đấu, nhưng theo nhịp riêng của từng người (`PRESS_PERIOD`).
+  - Từ hàng thứ tư, lượt "đâm" của bộ binh là một cây lao ném qua đầu các hàng trước (`PRESS_THROWS`).
+  - **Vật bay** (`engine/missiles.ts`): lớp `Missiles` vẽ lao và đá đang bay bằng hai `InstancedMesh`. Nó không giữ gì giữa hai khung hình: mỗi khung, `UnitBlock.update` báo vật nào đang bay và đã bay được bao nhiêu phần đường (`Missiles.add`), tính từ lúc người ném buông tay. Khối `skirmish` ném theo đúng vòng lặp clip `attack` mà shader phát cho họ (đồng hồ thật); tầm ném là khoảng cách tới khối địch gần nhất phía trước (`Crowd.aim`).
+  - Tất cả suy ra từ đồng hồ và số ngẫu nhiên cố định của hình lính, nên tua cho đúng cảnh như phát. Phần này vẽ cho giống trận đánh, không lấy từ tư liệu.
 
 ### Phong cảnh (đợt H)
 
