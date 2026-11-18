@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính.
 - **Model:** Opus 5.5.
 - **Nhánh:** `batch-i/look-sample`, worktree `E:\World_History_Platform_assets\wt-stage3`, `next dev` cổng 3106.
-- **Trạng thái:** chặng 1 (nước) xong, chờ người dùng xem; chặng 2 (lều và nhà) và 3 (cây) chưa làm.
+- **Trạng thái:** nước xong; người dùng duyệt màu mới (bước 1 của "khớp số đo"); bước 2 (chi tiết trên cây, mặt đất, lều, nhà) xong, **chờ người dùng xem**. Số chi tiết chưa tới đích của ảnh mẫu.
 - **Phạm vi file:** `src/components/battle/engine/` (`water.ts`, `river.ts`, `terrain.ts`, `structures.ts`, `vegetation.ts`), `public/battles/textures/`, `art/CREDITS.md`, `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" trước.
@@ -68,6 +68,54 @@ Kết luận: cảm giác "hoạt hình" đến từ màu quá đậm (cỏ cây
 
 Ảnh trước và sau: `E:\World_History_Platform_assets\duyet\T-044-buoc1-mau\`.
 
-**Chưa làm:** bờ sông vẫn phẳng (sỏi là hình vẽ, không có hòn đá nổi); không có đá lớn ở bờ biển; nước không trong suốt (không thấy đáy ở chỗ nông, chỉ đổi màu).
+### Khớp số đo, bước 2: chi tiết trên cây, mặt đất, lều và nhà (2026-11-19)
+
+Người dùng duyệt màu của bước 1 ("màu mới được nhé"). Bước 2 thêm chi tiết nhỏ, đích là 4–6 trên vùng xanh lá.
+
+**Cây và lau sậy** (`engine/vegetation.ts`, `scripts/battles/build-foliage.py`, `public/battles/textures/foliage.webp`, 363 KB):
+
+- Tấm lá của tán cây là ảnh ghép từ **lá chụp thật** (lá sồi của ambientCG `LeafSet016`, lá dài của `LeafSet005`): mỗi tấm là một chùm lá mọc trên cành con, lá phía sau sẫm hơn. Màu mỗi chiếc lá được chia cho màu trung bình của nó, nên cảnh vẫn tô màu theo loài cây; phần còn lại của ảnh là hình lá, gân lá và độ sáng tối.
+- Thân cây phủ **vỏ cây chụp thật** (`Bark012`), tám cạnh, gốc xoè ra như rễ; thêm ba, bốn cành toả vào tán. Số tấm lá mỗi cây tăng 1,5 lần, mỗi tấm nhỏ đi.
+- Lau sậy: lá dài và thân có bông, thay cho các nét vẽ.
+- Bỏ hàm vẽ lá bằng canvas.
+
+**Mặt đất và bụi cỏ** (`engine/grass.ts`, shader mặt đất trong `terrain.ts`):
+
+- Bụi cỏ **sẫm hơn mặt đất** (gốc `#263f17`, ngọn `#5f8a38`), như ảnh mẫu; trước đây bụi cỏ sáng hơn đất nên gần như chìm vào nền.
+- Ngoài tầm của bụi cỏ thật (145 m), mặt đất vẫn lốm đốm: mỗi ô 2,7 m một đốm sẫm, hiện từ 55 m và tắt dần khi đốm nhỏ hơn khoảng một điểm ảnh.
+- Vân ảnh cỏ trên mặt đất mạnh hơn.
+
+**Lều và nhà** (`engine/structures.ts`, `scripts/battles/build-materials.py`, ba ảnh xám `cloth.jpg`, `masonry.jpg`, `planks.jpg`, tổng 232 KB):
+
+- Ba ảnh chụp (vải dệt `Fabric030`, tường gạch đá `Bricks085`, ván gỗ `Planks021`) đổi sang xám, trung bình 0,5; shader nhân màu của tường, mái, lều với hai lần giá trị ảnh. Ảnh cho mạch vữa, sợi vải, vân gỗ; cảnh cho màu.
+- Lều: mỗi lều một sắc vải (mới, cũ, bạc nắng), tấm vải khâu rõ hơn, có nếp chảy từ nóc xuống.
+- Tường đá là tường xây thật; tường trát vữa lộ gạch ở chỗ vữa bong và có vệt nước mưa; ngói mỗi viên một sắc, hàng ngói rõ hơn; gỗ và mái rạ có vân.
+- **Hình dáng chưa đổi:** nhà vẫn là hộp có mái, làng đổ nát vẫn là tường không mái, chưa có gạch vụn, cửa sổ, đồ vật quanh lều.
+
+**Ánh sáng sáng sớm** (`sky.ts`): nắng và ánh sáng trời lúc mặt trời thấp tăng nhẹ (8°: nắng 1,8 lên 2,4, trời 1,6 lên 1,9). Trên ảnh gần như không đổi; cảnh mở đầu lúc 6:45 vẫn tối hơn ảnh mẫu (độ sáng vùng xanh lá 0,26–0,40 so với 0,34–0,50).
+
+**Số đo sau bước 2** (bảy góc chuẩn; "trước" là trước bước 1):
+
+| Góc | Chi tiết trên vùng xanh lá: trước | sau | Chi tiết toàn ảnh: trước | sau |
+|---|---|---|---|---|
+| Nhìn từ trên (field) | 2,2 | 3,5 | 2,8 | 3,6 |
+| Bộ binh phía khuất nắng (inf) | 3,3 | 3,1 | 3,2 | 3,0 |
+| Bộ binh phía có nắng (infsun) | 3,1 | 2,9 | 3,2 | 2,8 |
+| Sông (river) | 2,9 | 2,5 | 2,6 | 2,3 |
+| Làng (village) | 1,9 | 2,0 | 1,9 | 2,4 |
+| Bờ biển (shore) | 1,3 | 1,5 | 1,8 | 1,7 |
+| Lều (tents) | 2,6 | 2,2 | 3,0 | 2,6 |
+
+**Chưa đạt đích.** Ảnh mẫu là 3,8–6,4 trên vùng xanh lá và 3,3–6,0 toàn ảnh. Chỉ góc nhìn từ trên tới gần (3,5). Lý do đọc từ số và ảnh:
+
+- Bước 1 hạ tương phản và độ đậm, làm số chi tiết của mọi góc giảm khoảng 10%; bước 2 mới bù lại được ở góc nhìn từ trên.
+- Ở các góc nhìn thấp, phần lớn vùng xanh là mặt đất ở xa nhìn xiên: đốm cỏ tắt ở đó để khỏi nhấp nháy, nên đất xa vẫn trơn.
+- Thước đo lấy trung bình cả ảnh, nên cây và lều (ít điểm ảnh) kéo số lên rất ít dù nhìn bằng mắt đổi nhiều.
+
+**Kiểm tra** (commit ce59b9e, bản production dựng ở worktree tạm): `npm run lint`, `npm run validate`, `next build` qua; hồi quy lõi 17/17, không lỗi console. Số khung hình, hai lượt `s-perf3.mjs` (lúc mở; phát giai đoạn 3; giai đoạn 4): 86,2; 62,2; 58,9 và 84,9; 59,0; 51,7. Lượt trước đó (T-043): 78,7; 51,9; 55,4 và 90,9; 62,0; 55,3. Không thấy chậm đi; giai đoạn 4 có lượt xuống 51,7, sát mục tiêu 50. Chưa xem ở mức chất lượng thấp.
+
+Ảnh trước và sau: `E:\World_History_Platform_assets\duyet\T-044-buoc2-chi-tiet\`.
+
+**Chưa làm (nước):** bờ sông vẫn phẳng (sỏi là hình vẽ, không có hòn đá nổi); không có đá lớn ở bờ biển; nước không trong suốt (không thấy đáy ở chỗ nông, chỉ đổi màu).
 
 **Hai ảnh mới** trong `public/battles/textures/` (tổng 115 KB): `gravel.jpg`, `sand.jpg`; ghi công ở `art/CREDITS.md`.
