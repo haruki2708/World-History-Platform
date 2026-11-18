@@ -60,4 +60,9 @@ Phần này vẽ cho giống một trận đánh, **không lấy từ tư liệu
 
 ### Kiểm tra
 
-Ghi ở cuối file sau khi chạy.
+Commit 6fec471, bản production dựng ở worktree tạm:
+
+- `npm run lint`, `npm run validate`, `next build` qua.
+- Hồi quy lõi (`main-tools/reg-core.js`): 17/17, không lỗi console.
+- Số khung hình mỗi giây, hai lượt `s-perf3.mjs` (lúc mở; phát giai đoạn 3; giai đoạn 4): 78,7; 51,9; 55,4 và 90,9; 62,0; 55,3. Lượt đo ngay trước thay đổi này (T-041, một lượt): 90,9; 65,4; 60,3. Tức giai đoạn 4, lúc giáp lá cà đông nhất, chậm đi khoảng 5 khung hình mỗi giây (60 xuống 55), vẫn trên mục tiêu 50. Chưa đo xen kẽ và chưa tách phần của xê dịch (bốn, năm phép lượng giác mỗi hình lính mỗi khung) với phần của lao.
+- Xem bằng ảnh chụp ở cổng 3106 (`E:\World_History_Platform_assets\main-tools\shots\press1-side.png`, `press1-high.png`, `press2-inf.png`, `press2-skirmlow.png`): hàng ngũ xô lệch, người xoay nhiều hướng, lao và đá hiện trên trời. **Chuyển động khi phát chưa ai xem bằng mắt**: phiên chính chỉ xem ảnh tĩnh.
