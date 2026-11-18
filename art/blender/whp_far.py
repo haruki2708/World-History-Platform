@@ -36,6 +36,7 @@ LOD1_DENSITY = 0.25     # texel density of LOD1's islands against LOD0's (linear
 LOD1_CONE = 90.0        # degrees: a chart's faces keep within this of its mean normal
 LOD1_PAD = 3            # texels round LOD1's islands filled with their edge colours (the atlas margin)
 WELD = 1e-5             # metres: corners this close are one vertex of a LOD1 piece
+SPECK = 3               # faces: smaller loose pieces of a LOD1 piece are dropped
 
 
 def far_name(name):
@@ -171,6 +172,37 @@ def _merge_charts(bm, chart, limit):
     return len(members)
 
 
+def _drop_specks(obj, smallest):
+    """Delete the connected pieces of fewer than `smallest` faces; returns
+    how many faces went."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    seen, specks = set(), []
+    for face in bm.faces:
+        if face.index in seen:
+            continue
+        piece, stack = [], [face]
+        seen.add(face.index)
+        while stack:
+            f = stack.pop()
+            piece.append(f)
+            for edge in f.edges:
+                for g in edge.link_faces:
+                    if g.index not in seen:
+                        seen.add(g.index)
+                        stack.append(g)
+        if len(piece) < smallest:
+            specks += piece
+    if specks:
+        verts = {v for f in specks for v in f.verts}
+        bmesh.ops.delete(bm, geom=specks, context="FACES_ONLY")
+        bmesh.ops.delete(bm, geom=[v for v in verts if not v.link_faces], context="VERTS")
+        bm.to_mesh(obj.data)
+        obj.data.update()
+    bm.free()
+    return len(specks)
+
+
 def lod1_pieces(names, lows, budgets, after=None):
     """LOD1 pieces from LOD0 parts (before the atlas is packed): each part
     with a budget is decimated as before (the LOD0 part's UVs still on it,
@@ -189,6 +221,10 @@ def lod1_pieces(names, lows, budgets, after=None):
             after(name, piece)
         # A source mesh split along its own seams (the Celt) would cut every chart short there.
         merge_by_distance(piece, WELD)
+        # Loose bits of a face or two left by the decimator (inside the head, under the hair): a
+        # chart of one triangle unwraps to nothing, and the exporter's tangents and normals for it
+        # came out different from one build to the next.
+        dropped = _drop_specks(piece, SPECK)
         weights = np.empty(len(piece.data.polygons))
         attr = piece.data.attributes.get(lod.UV_WEIGHT)
         if attr is None or attr.domain != "FACE":
@@ -202,7 +238,8 @@ def lod1_pieces(names, lows, budgets, after=None):
         attr = piece.data.attributes[lod.UV_WEIGHT]
         attr.data.foreach_set("value", (weights * LOD1_DENSITY).tolist())
         pieces.append(piece)
-        log(f"LOD1 {name}: {triangle_count(piece)} triangles, {charts} charts")
+        log(f"LOD1 {name}: {triangle_count(piece)} triangles, {charts} charts"
+            + (f", {dropped} loose faces dropped" if dropped else ""))
     return pieces
 
 
