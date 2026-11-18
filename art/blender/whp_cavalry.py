@@ -72,6 +72,7 @@ SADDLE = horse_rig.SADDLE_BONE
 RIDER_ROOTS = ("pelvis", "ik_foot_root", "ik_hand_root")
 BONES = 67 + 40             # the rider's, and the horse's 40 (horse_rig.BONES and the saddle bone)
 HORSE_DETAILED = {"body": horse_rig.BODY_NAME, "mane": "horse-mane", "tail": "horse-tail",
+                  "mane_far": "horse-mane-far", "tail_far": "horse-tail-far",
                   "cloth": "horse-cloth", "bridle": "horse-bridle", "neckrope": "horse-neckrope"}
 # Clip of the cavalry model <- the horse's clip.
 HORSE_CLIP = {"idle": "idle", "walk": "walk", "jog": "trot", "run": "run", "die": "die"}
@@ -283,10 +284,18 @@ class Mount:
         self.horse = horse
 
 
+def horse_keys(horse):
+    """The horse's pieces a model takes from the horse's file: the body,
+    mane and tail, its tack; from the "hi" horse also the plain far mane
+    and tail (horse_lod.FAR)."""
+    far = horse_lod.FAR if HORSE_BLEND.endswith("-hi.blend") else ()
+    return ("body",) + horse.parts + far
+
+
 def _append_horse(horse):
     if not os.path.isfile(HORSE_BLEND):
         raise SystemExit(f"{HORSE_BLEND} is missing: build the horse first (art/blender/horse_build.py)")
-    wanted = [HORSE_RIG] + [HORSE_DETAILED[k] for k in ("body",) + horse.parts]
+    wanted = [HORSE_RIG] + [HORSE_DETAILED[k] for k in horse_keys(horse)]
     clips = sorted(set(HORSE_CLIP.values()))
     with bpy.data.libraries.load(HORSE_BLEND, link=False) as (src, dst):
         missing = [n for n in wanted if n not in src.objects] + [n for n in clips if n not in src.actions]
@@ -302,7 +311,7 @@ def _append_horse(horse):
         action.name = f"horse-{name}"
         actions[name] = action
     rig = objs[HORSE_RIG]
-    meshes = [objs[HORSE_DETAILED[k]] for k in ("body",) + horse.parts]
+    meshes = [objs[HORSE_DETAILED[k]] for k in horse_keys(horse)]
     for obj in meshes:
         obj.hide_render = False
         obj.hide_set(False)
@@ -1087,7 +1096,7 @@ def stage_lod(unit, limits):
     scene = bpy.context.scene
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
     horse = unit.HORSE
-    horse_objs = [bpy.data.objects[HORSE_DETAILED[k]] for k in ("body",) + horse.parts]
+    horse_objs = [bpy.data.objects[HORSE_DETAILED[k]] for k in horse_keys(horse)]
     rider_detailed = [o for o in scene.objects if o.type == "MESH" and not o.name.endswith(".low")
                       and o not in horse_objs]
     generated_low = [o for o in scene.objects if o.type == "MESH" and o.name.endswith(".low")]
@@ -1096,24 +1105,32 @@ def stage_lod(unit, limits):
     whp_skeleton.reset_pose(armature)
     ground = float(armature["whp_rider_lift"][2]) if "whp_rider_lift" in armature else 0.0
 
-    rider_parts = ul.build_low_parts(unit.PARTS, ground=ground)
+    hi = len(limits) == 4               # the "hi" ladder (whp_build --hi)
+    game = [ul.game_budget(part) for part in unit.PARTS]
+    rider_parts = ul.build_low_parts(unit.PARTS, ground=ground, hi=hi)
     for part, low in zip(unit.PARTS, rider_parts):
         log(f"LOD0 {part.name}: {triangle_count(low)} triangles")
     log(f"LOD0 rider: {sum(triangle_count(p) for p in rider_parts)} triangles")
     delete_objects(generated_low)
-    horse_parts, sources = horse_lod.low_parts(keys=horse.parts, uv=horse.uv)
+    horse_parts, sources = horse_lod.low_parts(keys=horse.parts, uv=horse.uv, hi=hi)
     horse_specs = horse_lod.specs(horse_parts, sources)
     specs = list(unit.PARTS) + horse_specs
     sets = [[s.name for s in unit.PARTS], [s.name for s in horse_specs]]
     with horse_lod.Unskinned(horse_objs):
         parts, final, color_image, clean_up = ul.bake_atlas(model, specs, rider_parts + horse_parts,
-                                                            rider_detailed + horse_objs, ao_sets=sets)
+                                                            rider_detailed + horse_objs, ao_sets=sets,
+                                                            normal_size=ul.HI_NORMAL_SIZE if hi else ul.NORMAL_SIZE)
     rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
 
-    levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground)
     rest = {b.name: np.array(b.matrix_local) for b in armature.data.bones if b.name.startswith("horse_")}
-    for group, pieces in horse_lod.levels(horse_parts, rest, color_image).items():
-        for i in range(3):
+    if hi:
+        levels = ul.figure_levels_hi(unit.PARTS, rider_parts, game, armature, color_image, unit.LOD2, ground=ground)
+        horse_levels = horse_lod.levels_hi(horse_parts, rest, color_image)
+    else:
+        levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground)
+        horse_levels = horse_lod.levels(horse_parts, rest, color_image)
+    for group, pieces in horse_levels.items():
+        for i in range(len(levels)):
             levels[i] += pieces[i]
     lods = [ul.finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 

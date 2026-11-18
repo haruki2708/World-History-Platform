@@ -163,13 +163,13 @@ def _node_matrices(doc):
     return [get(i) for i in range(len(nodes))]
 
 
-def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024):
+def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024, max_bytes=MAX_BYTES):
     """Check the file against the contract; return a list of problems."""
     doc, binary, size = read_glb(path)
     problems = []
     log(f"check {os.path.basename(path)}: {size / 1024:.0f} KB")
-    if size > MAX_BYTES:
-        problems.append(f"file is {size / 1024 / 1024:.2f} MB, over 4 MB")
+    if size > max_bytes:
+        problems.append(f"file is {size / 1024 / 1024:.2f} MB, over {max_bytes / 1024 / 1024:.0f} MB")
 
     meshes = {m["name"]: m for m in doc.get("meshes", [])}
     node_names = [n.get("name") for n in doc["nodes"]]

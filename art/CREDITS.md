@@ -248,3 +248,15 @@ Link cho khung xem trận (`MODEL_CREDIT_LINKS`), thêm vào các link đã có:
 - "Horse" (Tarnyloo): https://blendswap.com/blend/17172
 - "Horse Rigged All Gaits" (fdoss001): https://blendswap.com/blend/28627
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
+
+## Ảnh chất liệu của cảnh (`public/battles/textures/`)
+
+| File | Nguồn | Giấy phép | Đã làm gì |
+|---|---|---|---|
+| `grass.jpg` | ambientCG, [Grass001](https://ambientcg.com/view?id=Grass001), bản đồ màu của gói `Grass001_1K-JPG`, tải 2026-11-18 | CC0 1.0 (trang ambientCG ghi mọi tài sản của họ theo CC0) | Thu nhỏ còn 512 × 512, nén JPEG mức 80 bằng Blender. Dùng làm vân mặt đất (T-041) |
+| `gravel.jpg` | ambientCG, [Gravel022](https://ambientcg.com/view?id=Gravel022), bản đồ màu của gói `Gravel022_1K-JPG`, tải 2026-11-18 | CC0 1.0 | Thu nhỏ còn 512 × 512, nén JPEG mức 80 (Pillow). Lòng sông (T-044) |
+| `sand.jpg` | ambientCG, [Ground054](https://ambientcg.com/view?id=Ground054), bản đồ màu của gói `Ground054_1K-JPG`, tải 2026-11-18 | CC0 1.0 | Thu nhỏ còn 512 × 512, nén JPEG mức 80 (Pillow). Bãi cát bờ biển (T-044) |
+| `foliage.webp` | ambientCG, [LeafSet016](https://ambientcg.com/view?id=LeafSet016) (lá sồi), [LeafSet005](https://ambientcg.com/view?id=LeafSet005) (lá dài), [Bark012](https://ambientcg.com/view?id=Bark012) (vỏ cây); các gói `_1K-JPG`, tải 2026-11-19 | CC0 1.0 | `scripts/battles/build-foliage.py` cắt từng chiếc lá, chia màu cho màu trung bình của lá, ghép thành chùm lá trên cành và bụi lau; vỏ cây đổi tương phản. Cây và lau sậy (T-044) |
+| `cloth.jpg`, `masonry.jpg`, `planks.jpg` | ambientCG, [Fabric030](https://ambientcg.com/view?id=Fabric030), [Bricks085](https://ambientcg.com/view?id=Bricks085), [Planks021](https://ambientcg.com/view?id=Planks021); bản đồ màu của các gói `_1K-JPG`, tải 2026-11-19 | CC0 1.0 | `scripts/battles/build-materials.py` đổi sang xám, thu còn 512 × 512, tăng tương phản. Vân của lều, tường và gỗ (T-044) |
+
+Gói gốc lưu ngoài repo ở `E:\World_History_Platform_assets\textures\ambientcg\`. CC0 không buộc ghi công; ghi ở đây để biết nguồn.

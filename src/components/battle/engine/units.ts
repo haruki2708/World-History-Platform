@@ -27,6 +27,7 @@ import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
 import { type BlowFigures, Blows } from "./blows";
 import { Melee, type MeleeFigures, swingInto } from "./melee";
+import { type MissileKind, Missiles } from "./missiles";
 import type { Occluder } from "./occlusion";
 import type { HeightAt } from "./terrain";
 import { DYING, GONE, type UnitTrack } from "./timeline";
@@ -196,6 +197,70 @@ const STEP_FULL = 0.45;
 const STOW_SECONDS = 0.3;
 const BLOCK = CLIP_INDEX.block;
 const HIT = CLIP_INDEX.hit;
+
+/**
+ * The press behind the front rank ("Hỗn chiến" in docs/ARCHITECTURE.md). In
+ * a unit that fights hand to hand, the men who have no enemy of their own do
+ * not stand in their files like men on parade:
+ *
+ * - Each sways about his place, up to PRESS_SHARE of the room a man has in
+ *   the block (PRESS_MAX metres at most), and turns as he does, up to
+ *   PRESS_TURN: most in the ranks next to the front (PRESS_RANKS, by the men
+ *   who stand before him in his file), less further back.
+ * - Now and then (every PRESS_PERIOD to PRESS_PERIOD + PRESS_PERIOD_SPAN
+ *   seconds of playback) he thrusts past the man in front of him, or puts
+ *   his shield up: the attack and block clips, on top of what his legs do.
+ *   From the fourth rank back a thrust is a javelin thrown over the heads of
+ *   the ranks in front (PRESS_THROWS of his turns; foot only).
+ *
+ * All of it follows from the battle clock and the figure's fixed random
+ * number, so a seek shows what playing up to that moment shows. It is drawn
+ * to look like a fight, not taken from a source.
+ */
+const PRESS_SHARE = 0.3;
+const PRESS_MAX = 2.4;
+const PRESS_TURN = 0.55;
+const PRESS_RANKS = [0.5, 1, 1, 0.85, 0.7, 0.55, 0.45, 0.4];
+const PRESS_PERIOD = 5;
+const PRESS_PERIOD_SPAN = 6;
+/**
+ * Of his turns, how many a man spends on a thrust, by the men before him: the
+ * head of a file without an enemy in reach does not strike at the air.
+ */
+const PRESS_THRUSTS = [0, 0.5, 0.35];
+const PRESS_THROWS = 0.22;
+const PRESS_GUARDS = 0.2;
+/** From this many men before him, his thrust is a throw. */
+const THROW_FROM = 3;
+
+/**
+ * Missiles (missiles.ts). A javelin or a stone leaves the hand as the blow
+ * of the attack clip lands, and flies at this speed, metres a second as
+ * drawn, to a point in the enemy: for a unit that fights at a distance, as
+ * far as the nearest enemy before it (Crowd.aim), between RANGE_MIN and
+ * RANGE_MAX; over the front rank of a fight hand to hand, a little beyond
+ * that rank. Every throw goes a little wide and long or short.
+ */
+const MISSILE_SPEED: Record<MissileKind, number> = { javelin: 46, stone: 70 };
+const LOB_SPEED = 30;
+const RANGE_MIN = 25;
+const RANGE_MAX = 110;
+const RANGE_DEFAULT = 60;
+/** Where it leaves the hand, and where it comes down, as shares of the figure's height. */
+const HAND_HEIGHT = 0.95;
+const LAND_HEIGHT = 0.3;
+
+function fract(v: number): number {
+  return v - Math.floor(v);
+}
+
+/** A fixed random number in [0, 1) for a whole number and a figure's seed. */
+function hash01(n: number, seed: number): number {
+  let h = (Math.imul(n | 0, 0x9e3779b1) ^ Math.floor(seed * 4294967296)) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
 
 /** One gait of a model: its clip and its natural ground speed (m/s, as drawn). */
 interface Gait {
@@ -477,6 +542,12 @@ export class UnitBlock {
   private readonly offY: Float32Array;
   /** How far each figure has put away what its model stows to fight, 0..1 (see STOW_SECONDS). */
   private readonly stowed: Float32Array;
+  /** What the unit throws when it fights at a distance. */
+  private readonly missile: MissileKind;
+  /** Its rear ranks throw over the front of a fight hand to hand: foot who do not sling. */
+  private readonly lobs: boolean;
+  /** How far its missiles fly when it fights at a distance, metres; set by Crowd.aim. */
+  range = RANGE_DEFAULT;
 
   constructor(
     readonly track: UnitTrack,
@@ -487,6 +558,9 @@ export class UnitBlock {
     /** Blocks with different numbers are enemies. */
     readonly side = 0,
   ) {
+    const slings = track.unit.type.includes("sling");
+    this.missile = slings ? "stone" : "javelin";
+    this.lobs = !slings && !track.unit.type.includes("cavalry");
     this.offX = new Float32Array(track.count);
     this.offY = new Float32Array(track.count);
     this.stowed = new Float32Array(track.count);
@@ -559,7 +633,14 @@ export class UnitBlock {
    * says how the battle clock got here: figures step only while it runs, and
    * stand at ease when it is stopped or jumps.
    */
-  update(time: number, clock: number, now: number, march: March, heightAt: HeightAt): void {
+  update(
+    time: number,
+    clock: number,
+    now: number,
+    march: March,
+    heightAt: HeightAt,
+    missiles: Missiles | null = null,
+  ): void {
     const { track, model } = this;
     if (march.halted) {
       this.speed = 0;
@@ -641,6 +722,20 @@ export class UnitBlock {
     const ownLegs = track.fighting && fromRest === IDLE && this.toRest === IDLE;
     const stepFrom = this.gaits[0].speed * STEP_FROM;
     const stepFull = this.gaits[0].speed * STEP_FULL;
+    // The press behind the front rank (see PRESS_SHARE): the room a man has, and how far he sways.
+    let room = 0;
+    let press = 0;
+    if (figures !== null && this.standing > 0) {
+      const key = track.formationAt(time);
+      room = Math.sqrt((key.frontage * key.depth) / this.standing);
+      press = Math.min(room * PRESS_SHARE, PRESS_MAX);
+    }
+    const ahead = track.before;
+    // Missiles (see MISSILE_SPEED).
+    const strikeSeconds = model.strike.seconds;
+    const strikeImpact = Math.min(model.strike.impact, strikeSeconds);
+    const handHeight = figureHeight * HAND_HEIGHT;
+    const landDrop = figureHeight * (LAND_HEIGHT - HAND_HEIGHT);
 
     for (const chunk of this.chunks) {
       const posYaw = chunk.posYaw.array as Float32Array;
@@ -662,11 +757,24 @@ export class UnitBlock {
         let opponent = -1;
         let wantX = 0;
         let wantY = 0;
+        // In the press behind the front rank: how much, 0..1, and which way he leans, -1..1.
+        let restless = 0;
+        let sway = 0;
         if (figures !== null && status !== DYING) {
           opponent = figures.opponent[i];
           if (opponent !== -1) {
             wantX = figures.offsetX[i];
             wantY = figures.offsetY[i];
+          } else if (press > 0 && track.turningAbout[i] === 0) {
+            // In the press: he sways about his place.
+            const s = track.seed[i];
+            restless = PRESS_RANKS[Math.min(ahead[i], PRESS_RANKS.length - 1)];
+            const a = clock * (0.55 + 0.5 * s) + s * 91.7;
+            const b = clock * (0.83 + 0.4 * fract(s * 7.3)) + s * 37.1;
+            sway = Math.sin(b);
+            const span = press * restless;
+            wantX = span * (0.62 * Math.sin(a) + 0.38 * sway);
+            wantY = span * (0.62 * Math.sin(a * 1.31 + 2) + 0.38 * Math.sin(b * 0.71 + 4));
           }
         }
         let ox = offX[i];
@@ -746,6 +854,14 @@ export class UnitBlock {
           if (opponent !== -1 && figures !== null) {
             // Hand to hand: facing his enemy.
             target = Math.min(Math.max(angleDelta(heading, figures.bearing[i]), -FIGHT_TURN), FIGHT_TURN);
+            back[i] = 0;
+            if (snap) {
+              t = target;
+              turn[i] = t;
+            }
+          } else if (restless > 0) {
+            // In the press: he turns as he sways.
+            target = PRESS_TURN * restless * sway;
             back[i] = 0;
             if (snap) {
               t = target;
@@ -834,6 +950,81 @@ export class UnitBlock {
               since = clock - blows.reactFrom[i];
               left = blows.reaction - into;
               overlay = blows.through[i] === 1 ? HIT : BLOCK;
+            } else if (restless > 0) {
+              // In the press: a thrust past the man in front, a throw over him, or the shield up.
+              const s = track.seed[i];
+              const before = ahead[i];
+              const period = PRESS_PERIOD + PRESS_PERIOD_SPAN * fract(s * 13.37);
+              const at = clock + s * 61;
+              const cycle = Math.floor(at / period);
+              const local = at - cycle * period;
+              const pick = hash01(cycle, s);
+              const throws = before >= THROW_FROM;
+              const thrusts = throws ? (this.lobs ? PRESS_THROWS : 0) : PRESS_THRUSTS[before];
+              if (pick < thrusts) {
+                if (local < blows.seconds) {
+                  into = local;
+                  since = local;
+                  left = blows.seconds - local;
+                }
+                if (throws && missiles !== null && local >= blows.impact) {
+                  // Over the ranks in front, to come down a little beyond the front rank.
+                  const far = before * room + 6 + 22 * hash01(cycle + 7, s);
+                  const seconds = far / LOB_SPEED;
+                  const flown = local - blows.impact;
+                  if (flown < seconds) {
+                    const bearing = track.heading[i] + (hash01(cycle + 3, s) - 0.5) * 0.3;
+                    missiles.add(
+                      "javelin",
+                      x,
+                      y + handHeight,
+                      z,
+                      Math.sin(bearing),
+                      Math.cos(bearing),
+                      far,
+                      landDrop,
+                      seconds,
+                      flown / seconds,
+                    );
+                  }
+                }
+              } else if (pick < thrusts + PRESS_GUARDS && local < blows.reaction) {
+                into = local;
+                since = local;
+                left = blows.reaction - local;
+                overlay = BLOCK;
+              }
+            }
+          }
+          if (acts && missiles !== null) {
+            // He throws as the figure shader plays him (figFrame in figures/material.ts):
+            // the attack clip over and over on the wall clock, at his own pace.
+            const s = track.seed[i];
+            const rate = 0.88 + 0.24 * fract(s * 7.31);
+            const played = now * rate + s * 23;
+            let loop = Math.floor(played / strikeSeconds);
+            let released = played - loop * strikeSeconds - strikeImpact;
+            if (released < 0) {
+              released += strikeSeconds;
+              loop--;
+            }
+            const far = this.range * (0.8 + 0.4 * hash01(loop, s));
+            const seconds = far / MISSILE_SPEED[this.missile];
+            const flown = released / rate;
+            if (flown < seconds) {
+              const bearing = heading + (hash01(loop + 5, s) - 0.5) * 0.24;
+              missiles.add(
+                this.missile,
+                x,
+                y + handHeight,
+                z,
+                Math.sin(bearing),
+                Math.cos(bearing),
+                far,
+                landDrop,
+                seconds,
+                flown / seconds,
+              );
             }
           }
           if (into >= 0) {
@@ -1018,6 +1209,18 @@ export class Crowd {
   private lastClock = NaN;
   private melee: Melee | null = null;
   private blows: Blows | null = null;
+  /** What is in the air (missiles.ts). */
+  readonly missiles = new Missiles();
+  // Scratch of `aim`: where each block stands and which way it faces.
+  private aimX = new Float32Array(0);
+  private aimY = new Float32Array(0);
+  private aimDepth = new Float32Array(0);
+  private aimSin = new Float32Array(0);
+  private aimCos = new Float32Array(0);
+
+  constructor() {
+    this.group.add(this.missiles.group);
+  }
 
   add(block: UnitBlock): void {
     this.blocks.push(block);
@@ -1084,7 +1287,64 @@ export class Crowd {
         this.blows.update(this.melee.figures, time, clock, march.jumped);
       }
     }
-    for (const block of this.blocks) block.update(time, clock, now, march, heightAt);
+    // What is in the air is told afresh whenever the clock moves; while it
+    // stands still, the missiles hang where they were.
+    const missiles = advance !== 0 ? this.missiles : null;
+    if (missiles !== null) {
+      this.aim(time);
+      missiles.begin();
+    }
+    for (const block of this.blocks) block.update(time, clock, now, march, heightAt, missiles);
+    missiles?.end();
+  }
+
+  /**
+   * How far the missiles of each block that fights at a distance fly: to
+   * the middle of the nearest enemy block before it, from its own front.
+   */
+  private aim(time: number): void {
+    const { blocks } = this;
+    if (this.aimX.length !== blocks.length) {
+      this.aimX = new Float32Array(blocks.length);
+      this.aimY = new Float32Array(blocks.length);
+      this.aimDepth = new Float32Array(blocks.length);
+      this.aimSin = new Float32Array(blocks.length);
+      this.aimCos = new Float32Array(blocks.length);
+    }
+    const { aimX, aimY, aimDepth, aimSin, aimCos } = this;
+    let throwing = false;
+    for (let b = 0; b < blocks.length; b++) {
+      const track = blocks[b].track;
+      // The formation is a scratch value of the track: take what is needed at once.
+      const key = track.formationAt(time);
+      aimX[b] = key.center.x;
+      aimY[b] = key.center.y;
+      aimDepth[b] = key.depth;
+      aimSin[b] = Math.sin(key.facing);
+      aimCos[b] = Math.cos(key.facing);
+      if (track.actionAt(time) === "skirmish") throwing = true;
+    }
+    if (!throwing) return;
+    for (let b = 0; b < blocks.length; b++) {
+      const block = blocks[b];
+      if (block.track.actionAt(time) !== "skirmish") continue;
+      let nearest = Infinity;
+      for (let e = 0; e < blocks.length; e++) {
+        const enemy = blocks[e];
+        if (enemy.side === block.side || enemy.standing === 0) continue;
+        const dx = aimX[e] - aimX[b];
+        const dy = aimY[e] - aimY[b];
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Before it: within 70° of the way it faces.
+        const along = dx * aimSin[b] + dy * aimCos[b];
+        if (along < distance * 0.34) continue;
+        if (distance < nearest) nearest = distance;
+      }
+      block.range =
+        nearest === Infinity
+          ? RANGE_DEFAULT
+          : Math.min(Math.max(nearest - aimDepth[b] / 2, RANGE_MIN), RANGE_MAX);
+    }
   }
 
   /**
@@ -1215,5 +1475,6 @@ export class Crowd {
     for (const block of this.blocks) block.dispose();
     this.blocks.length = 0;
     this.chunks.length = 0;
+    this.missiles.dispose();
   }
 }

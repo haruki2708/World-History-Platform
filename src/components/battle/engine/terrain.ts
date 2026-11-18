@@ -17,18 +17,35 @@ import {
   BufferGeometry,
   CatmullRomCurve3,
   Color,
+  DataTexture,
+  FloatType,
   Group,
+  LinearFilter,
   Mesh,
   MeshLambertMaterial,
+  NearestFilter,
+  RedFormat,
+  RepeatWrapping,
+  SRGBColorSpace,
+  type Texture,
+  TextureLoader,
+  UnsignedByteType,
   Vector3,
 } from "three";
 import { type BattleTerrain, type FieldPoint, type GroundCover, terrainUrl } from "@/lib/battle";
 import { River, type RiverLight } from "./river";
+import { WATER_GLSL } from "./water";
 
 export type HeightAt = (x: number, y: number) => number;
 
 /** How far the flat apron around the grid reaches, metres, when the battle has no far ground. */
 const APRON = 40000;
+/** The grid that says where grass grows has a cell every so many metres. */
+const MASK_CELL = 8;
+/** The wading grid has a cell every so many metres. */
+const WADE_CELL = 5;
+/** How deep the figures stand in the middle of a river, metres: knee-deep at their size. */
+const WADE_DEPTH = 1.5;
 /** Ground at or below this height, metres above sea level, is sea. */
 export const SEA_LEVEL = 0.05;
 /** The far ground sinks with distance as the curve of the earth makes it: d² / 2R. */
@@ -44,7 +61,7 @@ const PALETTE = {
   cliff: new Color("#86837d"),
   bank: new Color("#6d8546"),
   forest: new Color("#566643"),
-  sea: new Color("#2c566e"),
+  sea: new Color("#1d3a4e"),
   strand: new Color("#d3c59c"),
 };
 
@@ -55,7 +72,7 @@ const PALETTE = {
  */
 const COVERS: Record<GroundCover, { main: Color; other: Color; bare: Color; fields: boolean }> = {
   stubble: { main: PALETTE.stubble, other: PALETTE.grass, bare: PALETTE.earth, fields: true },
-  grass: { main: new Color("#a3a162"), other: PALETTE.grass, bare: PALETTE.earth, fields: false },
+  grass: { main: new Color("#7d9a4a"), other: new Color("#5f8238"), bare: new Color("#c4c096"), fields: false },
   scrub: { main: PALETTE.scrub, other: new Color("#6f7a4a"), bare: PALETTE.earth, fields: false },
   reeds: { main: new Color("#8a8f52"), other: PALETTE.bank, bare: PALETTE.earth, fields: false },
   woodland: { main: new Color("#6f7a4a"), other: new Color("#5d6b40"), bare: PALETTE.earth, fields: false },
@@ -123,9 +140,25 @@ export class Terrain {
   readonly data: BattleTerrain;
   private readonly heights: Float32Array;
   private readonly far: Float32Array | null;
-  /** What the sea gives back of the sky; set every frame. */
-  private readonly seaGlow = { value: new Color() };
+  /** A photograph of grass, repeated over the ground for its grain. */
+  private readonly grain: Texture;
+  /** Photographs of river gravel and of beach sand, for the beds and the shore. */
+  private readonly gravel: Texture;
+  private readonly sand: Texture;
+  private readonly textures: Texture[] = [];
+  /** What the sea reflects (water.ts); set every frame. */
+  private readonly seaLight = {
+    uWaterTime: { value: 0 },
+    uSkyZenith: { value: new Color() },
+    uSkyHorizon: { value: new Color() },
+    uSunDir: { value: new Vector3(0, 1, 0) },
+    uSunLight: { value: new Color() },
+  };
   private readonly rivers: River[] = [];
+  /** How deep a man stands in a river, in centimetres, on a grid of WADE_CELL metres; null without rivers. */
+  private wade: Uint8Array | null = null;
+  private wadeCols = 0;
+  private wadeRows = 0;
   private readonly cellX: number;
   private readonly cellY: number;
 
@@ -133,6 +166,21 @@ export class Terrain {
     this.data = data;
     this.heights = heights;
     this.far = data.far ? far : null;
+    this.grain = new TextureLoader().load("/battles/textures/grass.jpg");
+    this.grain.wrapS = this.grain.wrapT = RepeatWrapping;
+    this.grain.colorSpace = SRGBColorSpace;
+    this.grain.anisotropy = 8;
+    this.textures.push(this.grain);
+    const photo = (path: string) => {
+      const texture = new TextureLoader().load(path);
+      texture.wrapS = texture.wrapT = RepeatWrapping;
+      texture.colorSpace = SRGBColorSpace;
+      texture.anisotropy = 8;
+      this.textures.push(texture);
+      return texture;
+    };
+    this.gravel = photo("/battles/textures/gravel.jpg");
+    this.sand = photo("/battles/textures/sand.jpg");
     this.cellX = (data.maxX - data.minX) / Math.max(data.width - 1, 1);
     this.cellY = (data.maxY - data.minY) / Math.max(data.height - 1, 1);
     let min = Infinity;
@@ -147,17 +195,80 @@ export class Terrain {
     this.group.add(this.buildGround());
     for (const river of data.rivers) {
       if (river.points.length < 2) continue;
-      const drawn = new River(river, data.landmarks, this.heightAt);
+      const drawn = new River(river, data.landmarks, this.heightAt, this.gravel);
       this.rivers.push(drawn);
       this.group.add(drawn.mesh);
+      this.stampWading(river.points, river.width);
     }
   }
+
+  /** Marks the water of a river on the wading grid: deepest in the middle, nothing at the edge. */
+  private stampWading(points: FieldPoint[], width: number): void {
+    const { minX, maxX, minY, maxY } = this.data;
+    if (!this.wade) {
+      this.wadeCols = Math.ceil((maxX - minX) / WADE_CELL) + 1;
+      this.wadeRows = Math.ceil((maxY - minY) / WADE_CELL) + 1;
+      this.wade = new Uint8Array(this.wadeCols * this.wadeRows);
+    }
+    const wade = this.wade;
+    const curve = new CatmullRomCurve3(
+      points.map((p) => new Vector3(p.x, 0, -p.y)),
+      false,
+      "centripetal",
+    );
+    const half = width * 0.45;
+    const steps = Math.ceil(curve.getLength() / (WADE_CELL / 2));
+    const point = new Vector3();
+    const tangent = new Vector3();
+    for (let i = 0; i <= steps; i++) {
+      curve.getPointAt(i / steps, point);
+      curve.getTangentAt(i / steps, tangent);
+      const norm = Math.hypot(tangent.x, tangent.z) || 1;
+      for (let offset = -half; offset <= half; offset += WADE_CELL / 2) {
+        const x = point.x + (tangent.z / norm) * offset;
+        const y = -(point.z - (tangent.x / norm) * offset);
+        if (this.heightAt(x, y) <= SEA_LEVEL) continue;
+        const col = Math.round((x - minX) / WADE_CELL);
+        const row = Math.round((maxY - y) / WADE_CELL);
+        if (col < 0 || row < 0 || col >= this.wadeCols || row >= this.wadeRows) continue;
+        const depth = Math.round(WADE_DEPTH * 100 * (1 - (offset / half) ** 2));
+        const k = row * this.wadeCols + col;
+        if (depth > wade[k]) wade[k] = depth;
+      }
+    }
+  }
+
+  /**
+   * Where a man's feet are at a field point: the ground, or the bed of a
+   * river when he wades it. Use it for the figures; heightAt for all else.
+   */
+  readonly footingAt: HeightAt = (x, y) => {
+    const ground = this.heightAt(x, y);
+    const wade = this.wade;
+    if (!wade) return ground;
+    const gx = (x - this.data.minX) / WADE_CELL;
+    const gy = (this.data.maxY - y) / WADE_CELL;
+    const col = Math.floor(gx);
+    const row = Math.floor(gy);
+    if (col < 0 || row < 0 || col >= this.wadeCols - 1 || row >= this.wadeRows - 1) return ground;
+    const fx = gx - col;
+    const fy = gy - row;
+    const k = row * this.wadeCols + col;
+    const depth =
+      (wade[k] * (1 - fx) + wade[k + 1] * fx) * (1 - fy) +
+      (wade[k + this.wadeCols] * (1 - fx) + wade[k + this.wadeCols + 1] * fx) * fy;
+    return ground - depth / 100;
+  };
 
   /** Call every frame: moving water, and the sky it reflects. */
   update(seconds: number, sky: RiverLight): void {
     for (const river of this.rivers) river.update(seconds, sky);
-    // The sea is always seen at a low angle: it mirrors the sky near the horizon.
-    this.seaGlow.value.copy(sky.envHorizon).multiplyScalar(0.42);
+    const sea = this.seaLight;
+    sea.uWaterTime.value = seconds;
+    sea.uSkyZenith.value.copy(sky.envZenith);
+    sea.uSkyHorizon.value.copy(sky.envHorizon);
+    sea.uSunDir.value.copy(sky.lightDirection);
+    sea.uSunLight.value.copy(sky.light.color).multiplyScalar(sky.light.intensity * 0.5);
   }
 
   /** Height of the far ground at a field point, metres above sea level (the sea is 0). */
@@ -363,9 +474,11 @@ export class Terrain {
       shader.uniforms.uEarth = { value: cover.bare };
       shader.uniforms.uBank = { value: PALETTE.bank };
       shader.uniforms.uFields = { value: cover.fields ? 1 : 0 };
+      shader.uniforms.uGrain = { value: this.grain };
       shader.uniforms.uSea = { value: PALETTE.sea };
       shader.uniforms.uStrand = { value: PALETTE.strand };
-      shader.uniforms.uSeaGlow = this.seaGlow;
+      Object.assign(shader.uniforms, this.seaLight);
+      shader.uniforms.uSand = { value: this.sand };
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
@@ -395,9 +508,16 @@ export class Terrain {
           uniform vec3 uEarth;
           uniform vec3 uBank;
           uniform float uFields;
+          uniform sampler2D uGrain;
           uniform vec3 uSea;
-          uniform vec3 uSeaGlow;
           uniform vec3 uStrand;
+          uniform float uWaterTime;
+          uniform vec3 uSkyZenith;
+          uniform vec3 uSkyHorizon;
+          uniform vec3 uSunDir;
+          uniform vec3 uSunLight;
+          uniform sampler2D uSand;
+          ${WATER_GLSL}
           varying vec3 vGroundPos;
           varying float vOverlay;
           varying vec2 vLie;
@@ -515,6 +635,30 @@ export class Terrain {
               groundRelief = mix(groundRelief, relief, fieldShare * rowShown);
             }
 
+            {
+              // The grain of real grass: fine close by, broad farther off, so
+              // that no one repeat shows. It shades the colour and tints it.
+              vec3 fine = texture2D(uGrain, g / 11.0).rgb;
+              vec3 broad = texture2D(uGrain, g / 63.0 + 0.37).rgb;
+              vec3 grain3 = mix(broad, fine, 1.0 - smoothstep(60.0, 320.0, distance));
+              float shadeOf = dot(grain3, vec3(0.3, 0.6, 0.1)) / 0.2;
+              float grainShown = 1.0 - smoothstep(900.0, 3200.0, distance);
+              ground *= mix(1.0, clamp(shadeOf, 0.35, 1.9), 0.85 * grainShown);
+              ground = mix(ground, ground * 0.6 + grain3 * 0.9, 0.3 * grainShown);
+            }
+            {
+              // Beyond the reach of the tufts that stand on the ground
+              // (grass.ts) it is tufted still: a dark speck for each, as far
+              // as a speck is wider than a pixel or so.
+              const float CELL = 2.7;
+              vec2 cell = floor(g / CELL);
+              vec2 within = fract(g / CELL) - 0.5
+                - (vec2(groundHash(cell + 7.1), groundHash(cell + 3.3)) - 0.5) * 0.55;
+              float speck = (1.0 - smoothstep(0.1, 0.33, length(within))) * step(0.4, groundHash(cell));
+              float footprint = length(fwidth(g));
+              float shown = smoothstep(55.0, 130.0, distance) * (1.0 - smoothstep(0.5, 1.6, footprint / CELL * 2.5));
+              ground *= 1.0 - 0.42 * speck * shown * (1.0 - uFields);
+            }
             ground = mix(ground, vColor.rgb, vOverlay);
             // Greener where the river keeps the ground moist.
             ground = mix(ground, uBank, (1.0 - smoothstep(10.0, 150.0, vLie.y)) * 0.32);
@@ -523,12 +667,36 @@ export class Terrain {
             ground *= 1.0 + (0.16 * (tuft - 0.5) + 0.1 * (speck - 0.5)) * (1.0 - smoothstep(25.0, 160.0, distance));
             ground *= 0.9 + 0.2 * (mottle - 0.5) * mid + 0.22 * (grain - 0.5) * near + 0.16 * (regions - 0.5);
             groundReliefShown = 1.0 - smoothstep(30.0, 190.0, distance);
-            // The shore: a strand of sand, then shallows, then the sea.
+            // The shore: a strand of sand, then shallows, then the sea (water.ts).
             float shore = vSea + (mottle - 0.5) * 0.12;
             float seaShare = smoothstep(0.42, 0.6, shore);
-            ground = mix(ground, uStrand * (0.92 + 0.16 * grain), smoothstep(0.05, 0.3, shore));
-            ground = mix(ground, mix(uStrand, uSea, 0.55 + 0.45 * smoothstep(0.6, 0.95, shore)), seaShare);
-            groundGlow = uSeaGlow * seaShare;
+            if (shore > 0.02) {
+              vec3 sandPhoto = mix(texture2D(uSand, g / 5.0).rgb, texture2D(uSand, g / 23.0 + 0.4).rgb, smoothstep(40.0, 200.0, distance));
+              vec3 strand = mix(uStrand, sandPhoto * 1.1, 0.7);
+              ground = mix(ground, strand, smoothstep(0.05, 0.3, shore));
+              // Wet sand where the waves reach.
+              ground = mix(ground, ground * 0.72, smoothstep(0.3, 0.44, shore));
+              if (seaShare > 0.0) {
+                float depth = smoothstep(0.55, 0.95, shore);
+                vec3 water = mix(mix(strand, uSea, 0.6), uSea, depth);
+                float footprint = max(length(fwidth(g)), 0.01);
+                // The sea runs in from the south-east; the swell is longer than on a river.
+                vec2 slope = waterSlope(g * 0.8, uWaterTime, 2.4, 1.2, footprint, 0.0);
+                vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+                vec3 toEye = normalize(cameraPosition - vGroundPos);
+                float fresnel;
+                vec3 thrown = waterLight(n, toEye, uSunDir, uSunLight, uSkyZenith, uSkyHorizon, fresnel);
+                // Surf: bands of foam that run in to the strand and break up.
+                float band = sin(shore * 70.0 - uWaterTime * 1.3 + groundNoise(g * 0.02) * 6.0);
+                float surf = smoothstep(0.55, 0.95, band) * (1.0 - smoothstep(0.5, 0.75, shore));
+                surf = max(surf, 1.0 - smoothstep(0.43, 0.5, shore));
+                surf *= waterFoam(g * 0.8, uWaterTime) * (1.0 - smoothstep(600.0, 3000.0, distance) * 0.7);
+                water *= 1.0 - fresnel * 0.8;
+                water = mix(water, vec3(0.9, 0.92, 0.9), surf);
+                ground = mix(ground, water, seaShare);
+                groundGlow = thrown * seaShare * (1.0 - surf);
+              }
+            }
             groundReliefShown *= 1.0 - smoothstep(0.05, 0.3, shore);
             diffuseColor.rgb *= ground;
           }`,
@@ -640,7 +808,57 @@ export class Terrain {
     return new Mesh(geometry, material);
   }
 
+  /** The ground as textures, for the grass that the vertex shader stands on it. */
+  grassGround(): { heights: DataTexture; mask: DataTexture; width: number; height: number; minX: number; maxX: number; minY: number; maxY: number } {
+    const { width, height, minX, maxX, minY, maxY, rivers } = this.data;
+    const heights = new DataTexture(this.heights, width, height, RedFormat, FloatType);
+    heights.minFilter = heights.magFilter = NearestFilter;
+    heights.needsUpdate = true;
+
+    // Where grass grows: not in the sea, not in the bed of a river. A grid of MASK_CELL metres.
+    // Its first and last points lie on the edges of the ground, as those of the elevation grid do.
+    const cols = Math.round((maxX - minX) / MASK_CELL) + 1;
+    const rows = Math.round((maxY - minY) / MASK_CELL) + 1;
+    const stepX = (maxX - minX) / (cols - 1);
+    const stepY = (maxY - minY) / (rows - 1);
+    const grows = new Uint8Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        grows[r * cols + c] = this.heightAt(minX + c * stepX, maxY - r * stepY) > SEA_LEVEL + 0.35 ? 255 : 0;
+      }
+    }
+    for (const river of rivers) {
+      if (river.points.length < 2) continue;
+      const half = (river.level?.stage === "low" ? river.width * 0.95 : river.width * 0.54) + 4;
+      const curve = new CatmullRomCurve3(
+        river.points.map((p) => new Vector3(p.x, 0, -p.y)),
+        false,
+        "centripetal",
+      );
+      const steps = Math.ceil(curve.getLength() / (MASK_CELL / 2));
+      const point = new Vector3();
+      const tangent = new Vector3();
+      for (let i = 0; i <= steps; i++) {
+        curve.getPointAt(i / steps, point);
+        curve.getTangentAt(i / steps, tangent);
+        const norm = Math.hypot(tangent.x, tangent.z) || 1;
+        for (let offset = -half; offset <= half; offset += MASK_CELL / 2) {
+          const col = Math.round((point.x + (tangent.z / norm) * offset - minX) / stepX);
+          const row = Math.round((maxY + (point.z - (tangent.x / norm) * offset)) / stepY);
+          if (col >= 0 && row >= 0 && col < cols && row < rows) grows[row * cols + col] = 0;
+        }
+      }
+    }
+    const mask = new DataTexture(grows, cols, rows, RedFormat, UnsignedByteType);
+    mask.minFilter = mask.magFilter = LinearFilter;
+    mask.unpackAlignment = 1;
+    mask.needsUpdate = true;
+    this.textures.push(heights, mask);
+    return { heights, mask, width, height, minX, maxX, minY, maxY };
+  }
+
   dispose(): void {
+    for (const texture of this.textures) texture.dispose();
     this.group.traverse((object) => {
       if (object instanceof Mesh) {
         object.geometry.dispose();

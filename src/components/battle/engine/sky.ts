@@ -76,22 +76,33 @@ const c = (hex: string) => new Color(hex);
 
 // All keyed by the elevation of the sun, in degrees.
 const ZENITH: Stop<Color>[] = [
-  [-18, c("#03050c")], [-6, c("#101a38")], [0, c("#2a4a80")], [8, c("#3b6fb5")], [25, c("#3a78c8")], [60, c("#3476cc")],
+  [-18, c("#03050c")], [-6, c("#101a38")], [0, c("#2a4a80")], [8, c("#3470c2")], [25, c("#2f74d6")], [60, c("#2a70d8")],
 ];
 const HORIZON: Stop<Color>[] = [
-  [-18, c("#070b16")], [-6, c("#2b3050")], [0, c("#c9a48a")], [8, c("#d9c3a8")], [25, c("#bfd3e6")], [60, c("#b3cdea")],
+  [-18, c("#070b16")], [-6, c("#2b3050")], [0, c("#c9a48a")], [8, c("#d9c3a8")], [25, c("#b4d2f0")], [60, c("#a6caf2")],
 ];
 const SUN_COLOR: Stop<Color>[] = [
   [-4, c("#ff7a3a")], [0, c("#ff8a48")], [8, c("#ffb878")], [25, c("#ffe9cc")], [60, c("#fff6e8")],
 ];
-const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.7], [25, 2.7], [60, 3.1]];
-const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
+const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 2.4], [25, 3.2], [60, 3.5]];
+const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.9], [25, 2.05], [60, 2.1]];
 // The colour of the light from the sky: moonlit blue by night.
 const AMBIENT_COLOR: Stop<Color>[] = [
   [-18, c("#5d74a8")], [-6, c("#6f7fa6")], [0, c("#b9b3c0")], [8, c("#c9d2e0")], [25, c("#cfdcee")],
 ];
 const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#1b2030")], [-6, c("#2f3038")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
 const MOON_COLOR = c("#9db4e0");
+
+/**
+ * Light that only the figures get, by day (Sky.fill). Men and horses are
+ * small, upright things in a crowd: with the sun and the sky light alone,
+ * the side turned from the sun is one flat dark colour. `sky` and `kick`
+ * are shares of the sky light, `sun` a share of the sun.
+ */
+const FILL = { sky: 0.9, kick: 1.0, sun: 0.22 };
+/** What sunlit ground throws back up at them: its reflectance (linear). */
+const FILL_GROUND = new Color(0.2, 0.21, 0.13);
+const KICK_ELEVATION = 25 * DEG;
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
@@ -112,6 +123,21 @@ export class Sky {
   readonly envZenith: Color;
   readonly envHorizon: Color;
   readonly envGround: Color;
+  /**
+   * Extra light for the figures alone (figures/material.ts), all zero by
+   * night. `sky`: more of the sky light from above. `bounce`: the sun
+   * thrown back by the ground, from below. `kick`: a soft second light from
+   * the side away from the sun (`kickDir`, towards it), which gives the
+   * shaded side its form. `sun`: the part of the sun that still reaches a
+   * man standing in the shadow of his neighbours. Updated in place.
+   */
+  readonly fill = {
+    sky: new Color(0, 0, 0),
+    bounce: new Color(0, 0, 0),
+    kick: new Color(0, 0, 0),
+    sun: new Color(0, 0, 0),
+    kickDir: new Vector3(0, 1, 0),
+  };
   /**
    * How bright the field is, 1 at noon and low at night: for the flat
    * markings on the ground (arrows, block outlines), which take no light.
@@ -251,6 +277,23 @@ export class Sky {
     this.daylight = Math.min(
       (this.ambient.intensity + this.light.intensity * Math.max(this.lightDir.y, 0)) / 4.5,
       1,
+    );
+
+    const day = smooth(-4, 10, elevation);
+    const fill = this.fill;
+    fill.sky.copy(this.ambient.color).multiplyScalar(FILL.sky * day);
+    fill.kick.copy(this.ambient.color).multiplyScalar(FILL.kick * day);
+    fill.sun.copy(this.light.color).multiplyScalar(this.light.intensity * FILL.sun * day);
+    fill.bounce
+      .copy(this.light.color)
+      .multiply(FILL_GROUND)
+      .multiplyScalar(this.light.intensity * Math.max(this.lightDir.y, 0) * day);
+    const flat = Math.hypot(this.lightDir.x, this.lightDir.z);
+    const along = Math.cos(KICK_ELEVATION) / (flat > 1e-3 ? flat : 1);
+    fill.kickDir.set(
+      flat > 1e-3 ? -this.lightDir.x * along : 0,
+      Math.sin(KICK_ELEVATION),
+      flat > 1e-3 ? -this.lightDir.z * along : Math.cos(KICK_ELEVATION),
     );
   }
 

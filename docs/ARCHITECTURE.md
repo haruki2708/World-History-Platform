@@ -300,10 +300,15 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
   - Khi dừng phát, nhát đánh đứng hình theo đồng hồ trận.
 - **Kỵ binh** đấu từng cặp và nhận đòn như bộ binh (chặng 3). Khoảng cách đấu của họ tính theo thân ngựa, nên hai con ngựa đứng chạm mũi nhau và mũi giáo chỉ tới đầu ngựa của địch.
+- **Hỗn chiến** (T-043, đợt I). Người không có đối thủ riêng trong khối đang `fight` không đứng nghiêm trong hàng:
+  - Xê dịch quanh chỗ của mình và xoay người theo (`PRESS_SHARE`, `PRESS_MAX`, `PRESS_TURN`, `PRESS_RANKS` trong `units.ts`), mạnh nhất ở hai hàng ngay sau hàng đầu. Thỉnh thoảng đâm với qua người đứng trước hoặc giơ khiên: clip `attack`, `block` phủ lên như của người đang đấu, nhưng theo nhịp riêng của từng người (`PRESS_PERIOD`).
+  - Từ hàng thứ tư, lượt "đâm" của bộ binh là một cây lao ném qua đầu các hàng trước (`PRESS_THROWS`).
+  - **Vật bay** (`engine/missiles.ts`): lớp `Missiles` vẽ lao và đá đang bay bằng hai `InstancedMesh`. Nó không giữ gì giữa hai khung hình: mỗi khung, `UnitBlock.update` báo vật nào đang bay và đã bay được bao nhiêu phần đường (`Missiles.add`), tính từ lúc người ném buông tay. Khối `skirmish` ném theo đúng vòng lặp clip `attack` mà shader phát cho họ (đồng hồ thật); tầm ném là khoảng cách tới khối địch gần nhất phía trước (`Crowd.aim`).
+  - Tất cả suy ra từ đồng hồ và số ngẫu nhiên cố định của hình lính, nên tua cho đúng cảnh như phát. Phần này vẽ cho giống trận đánh, không lấy từ tư liệu.
 
 ### Phong cảnh (đợt H)
 
-Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Công trình, mảng đất riêng (`areas`), gió và bụi **chưa được vẽ**: các chặng sau làm.
+Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Chặng 2 (T-039) dựng công trình. Chặng 3 (T-040) trồng cây, kể cả trong các mảng đất riêng (`areas`). Bụi **chưa được vẽ**; gió mới chỉ làm cây nghiêng.
 
 - **Nguyên tắc:** vẽ cho giống thật, nhưng mỗi thứ phải nói rõ nó dựa vào đâu. Mọi phần của phong cảnh mang một `evidence` (kiểu `SceneryEvidence`):
   - `basis`: `attested` (nguồn cổ nói có; bắt buộc kèm `sources`), `inferred` (suy từ nguồn hoặc từ địa hình), hoặc `illustrative` (không có căn cứ, chỉ hợp với vùng và thời ấy).
@@ -311,11 +316,14 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - Cảnh vẽ ba mức như nhau. Khác biệt được nói bằng chữ (hộp thoại Giới thiệu, thông tin trận), không bằng hình.
   - `attested` chỉ nói thứ đó có thật. Kích thước và vị trí chính xác thường vẫn là giả định, và ghi chú phải nói vậy.
 - **Mặt đất** (`scenery.ground`, `scenery.areas`): `ground.cover` là lớp phủ ở mọi chỗ không có mảng riêng. `areas` là các mảng có lớp phủ khác, cho bằng đường bao (`outline`, ít nhất ba điểm). Lớp phủ (`GroundCover`): `stubble` (ruộng đã gặt), `grass`, `scrub` (bụi thấp), `reeds` (lau sậy và cây thấp ven nước), `woodland`, `bare`.
+- **Cây lẻ** (`scenery.trees`, T-040): `perSquareKm` là số cây đứng riêng trên mỗi km² đất trống, kèm căn cứ.
+- **Thực vật trong cảnh** (T-040, `engine/vegetation.ts`): cây, bụi và lau sậy được sinh bằng code lúc mở trận, có hạt giống ngẫu nhiên. Mọc dọc sông có `banks`, theo `trees`, trong các `areas` (`woodland`, `scrub`, `reeds`), quanh nhà nông và làng, và bụi trên đất dốc. Không mọc trên biển, trong lòng sông, trên phần đất công trình, hay ở chỗ quân đứng và đi qua (cây lùi 55 m, bụi và lau sậy 14 m). Cây nghiêng theo `scenery.wind`. Chi tiết ở `docs/tasks/T-040-vegetation.md`.
 - **Sông** (thêm vào `BattleRiver`): `level.stage` là `low` (nước cạn, lộ bãi sỏi, lội qua được ở các địa danh loại `ford`) hoặc `full`; `banks` là lớp phủ dọc hai bờ, trong một dải rộng `width` mét tính từ mép nước.
-- **Công trình** (`scenery.structures`, kiểu `SceneryStructure`): `camp` (trại quân: hào, luỹ, cọc rào, cổng, lều; bắt buộc có `side`), `citadel` (thành nhỏ có tường), `village` (nhà không có tường bao). Phần đất của công trình là một hình chữ nhật cho giống `Formation`: `center`, `width` (bề ngang mặt trước), `depth`, `facing` (hướng mặt trước, tức cổng chính). `ruined` là đổ nát.
+- **Công trình** (`scenery.structures`, kiểu `SceneryStructure`): `camp` (trại quân: hào, luỹ, cọc rào, cổng, lều; bắt buộc có `side`), `citadel` (thành nhỏ có tường), `village` (nhà không có tường bao), `farm` (nhà nông với chuồng trại trong sân có tường, thêm ở T-039). Phần đất của công trình là một hình chữ nhật cho giống `Formation`: `center`, `width` (bề ngang mặt trước), `depth`, `facing` (hướng mặt trước, tức cổng chính). `ruined` là đổ nát.
   - Phần đất tính theo **kích thước thật**. Những thứ đứng trong đó (lều, nhà) cảnh vẽ to hơn thật và ít hơn thật, như cách vẽ lính (`FIGURE_SCALE`, một hình bằng 20 người).
   - Nhãn tên vẫn thuộc về `landmarks`. Nhãn của một trại hay thị trấn nên nằm trong công trình tương ứng; `npm run validate` cảnh báo nếu không.
-  - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh phải để trống chỗ đó.
+  - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh để trống chỗ đó: lều không được dựng ở nơi một khối quân đứng hay đi qua.
+  - **Trong cảnh** (T-039, `engine/structures.ts`): mọi công trình được sinh bằng code lúc mở trận, bám theo mặt đất, có hạt giống ngẫu nhiên là id trận và id công trình (cùng một trận luôn ra cùng một cảnh). Không có file mô hình nào. Trại chỉ vẽ lều: hào, luỹ và cọc rào không được vẽ (người dùng chọn, 2026-11-18). Trại của bên có id `rome` xếp lều theo quy tắc (đường lớn, lối đi); trại của bên khác xếp lỏng. Một lều cho chừng `MEN_PER_FIGURE` người. Chi tiết ở `docs/tasks/T-039-structures.md`.
 - **Gió** (`scenery.wind`): `from` là hướng gió thổi **tới từ đâu**, độ theo chiều kim đồng hồ từ hướng bắc; `speed` tính bằng mét mỗi giây. **Bụi** (`scenery.dust`): `level` từ 0 (đất ẩm, không bụi) tới 1 (đất khô nẻ, bụi dày).
 - **Trận không có `scenery`** vẫn hợp lệ: mặt đất vẽ như trước đợt H (không có ô ruộng), sông đầy nước và không có dải bờ.
 - **Vùng xa** (`terrain.far`, kiểu `BattleFarTerrain`, T-038): một lưới độ cao thưa của cả vùng quanh chiến trường, cùng định dạng với lưới chính, để chân trời có đồi núi và biển thật.
@@ -323,10 +331,23 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - Cảnh vẽ nó bằng chính vật liệu của mặt đất gần (`Terrain.buildFar`), khoét một lỗ là các ô nguyên của lưới xa bao quanh lưới chính; vòng đỉnh ngoài cùng của mặt đất gần nằm trên mép lỗ và lấy độ cao của lưới xa.
   - Đỉnh của vùng xa hạ thấp theo độ cong trái đất (d² / 2R): núi ở 45 km thấp đi khoảng 160 m.
   - `scripts/battles/build-terrain.mjs` ghi cả hai lưới; mỗi giá trị của lưới xa là trung bình của vùng đất quanh điểm lưới.
+- **Lội sông** (T-039): hình lính đi qua sông thì đứng ở đáy sông, không đứng trên mặt nước. `Terrain.footingAt` là mặt đất trừ đi độ sâu lấy từ một lưới 5 m dựng theo đường sông (sâu nhất 1,5 m ở giữa dòng); cảnh dùng nó cho hình lính, còn mọi thứ khác vẫn dùng `heightAt`. Ở một mốc, không khối quân nào được đứng trong nước sông quá 5% diện tích (`npm run validate`); vượt sông giữa hai mốc thì được.
 - **Biển** (T-038): đất có độ cao từ 0 trở xuống, ở cả hai lưới, được vẽ là biển, viền một dải cát. Trong lưới chính, mặt nạ biển được làm mờ hai lượt để đường bờ tròn lại. Sông dừng ở bờ biển. `npm run validate` không cho khối quân (quá 10% diện tích), địa danh hay công trình nào nằm trên biển.
 - **Mặt đất và sông trong cảnh** (T-038): `engine/terrain.ts` (ô ruộng, hàng rạ, độ gồ ghề gần camera) và `engine/river.ts` (lòng sỏi, dòng nước cạn, chỗ lội, dải bờ, phản chiếu trời). Chi tiết ở `docs/tasks/T-038-ground-river.md`.
 - **Kiểm tra** (`checkScenery` trong `scripts/battles/validate-battles.mjs`): mức căn cứ, ghi chú và nguồn; công trình nằm trọn trong vùng địa hình, không chồng nhau, không lấn vào sông và dải bờ; các số nằm trong khoảng cho phép.
 - **Căn cứ của Cannae:** `docs/data/battles/cannae.md`, mục 12.
+
+### Đồ hoạ theo ảnh mẫu (đợt I)
+
+Người dùng gửi năm ảnh mẫu và muốn cảnh trông như vậy. Cách làm chốt sau nhiều lần thử: **đo ảnh mẫu và ảnh chụp cảnh bằng cùng một thước rồi sửa cho khớp số**, không chỉnh bằng mắt (T-044). Thước đo nằm ngoài repo, ở `main-tools/look/` (`measure.py`, `check.sh`).
+
+- **Màu** (`engine/grade.ts`): cảnh dùng đường cong màu riêng (`CustomToneMapping`), sau đó giữ 96% màu và nâng màu đen một chút. Hai số này lấy từ phép đo: ảnh mẫu có độ đậm của vùng xanh lá 0,50–0,66 và vùng bóng vẫn nhìn được vào.
+- **Ánh sáng bù cho hình lính** (`Sky.fill` trong `sky.ts`, `figFill` trong `figures/material.ts`): riêng hình lính nhận thêm ánh sáng trời, ánh sáng đất hắt lên, một đèn phụ từ phía đối diện mặt trời và một phần nắng không bị bóng che. Thiếu nó, mặt khuất nắng của người và ngựa là một khối sẫm phẳng.
+- **Mặt nước** (`engine/water.ts`): GLSL dùng chung cho sông (`river.ts`) và biển (shader mặt đất). Sóng là tổng chín con sóng; con nào ngắn hơn khoảng hai điểm ảnh thì bỏ và tính thành độ nhám, nên nắng lấp lánh ở gần và thành vệt rộng ở xa.
+- **Chất liệu ảnh chụp** (`public/battles/textures/`, nguồn ambientCG, CC0, ghi ở `art/CREDITS.md`): cỏ, sỏi và cát cho mặt đất; `foliage.webp` (lá và vỏ cây, dựng bằng `scripts/battles/build-foliage.py`) cho cây và lau sậy; `cloth.jpg`, `masonry.jpg`, `planks.jpg` (ảnh xám, dựng bằng `scripts/battles/build-materials.py`) cho lều, tường và gỗ. Ảnh chỉ cho vân; màu vẫn do cảnh đặt.
+- **Bụi cỏ** (`engine/grass.ts`): 42 000 bụi quanh camera trong 145 m, sẫm hơn mặt đất; ngoài tầm đó shader mặt đất vẽ một đốm sẫm cho mỗi bụi.
+- **Hỗn chiến và vật bay**: xem mục "Giáp lá cà".
+- Mô hình lính **không đổi**. Thang chi tiết bốn mức `hi` (T-042, cờ `--hi` của script Blender) đã dựng thử nhưng không dùng: người dùng thấy sửa ánh sáng là đủ.
 
 ### Khung xem trận (đợt C)
 
@@ -351,4 +372,5 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt B:** các loại lính còn lại, ghép mô hình và dữ liệu thật.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
-- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Các chặng sau: công trình, thực vật, bụi.
+- **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
+- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Còn lại: bụi và gió.

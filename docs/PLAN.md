@@ -76,6 +76,23 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Hiệu năng (đo xen kẽ ba vòng, hai bản production, RTX 3050, không có Blender chạy): lúc phát giai đoạn 3 trung bình 58,4 khung hình/giây so với 62,4 của `main`; giai đoạn 4: 58,9 so với 61,4; đứng yên lúc mở: 95 so với 99. Chậm hơn khoảng 4–6%, nhỏ hơn dao động giữa các lượt đo (một lượt của nhánh xuống 50,5). Vẫn trên mục tiêu 50.
   - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17.
   - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng chọn chặng tiếp theo là **công trình (chặng 2), phiên chính làm tiếp**.
+- **2026-11-18:** Phiên chính xong chặng 2 của đợt H (T-039) trên nhánh `batch-h/stage2-structures`. Ba trại có hào, luỹ, cọc rào, cổng và lều (trại La Mã xếp theo hàng lối, trại của Hannibal xếp lỏng); thành Cannae có tường, tháp, nhà kho; làng Cannae đổ nát một phần; 12 nhà nông minh hoạ trên đồng (loại công trình mới `farm`). Lều không dựng ở chỗ quân đứng hay đi qua.
+  - **Khác với đề xuất:** mọi công trình dựng bằng code trong cảnh (`engine/structures.ts`), không dùng Blender; hình dáng vì thế đơn giản hơn. Lý do và cái giá ghi ở T-039.
+  - **Người dùng xem và nêu bốn điều**; đã sửa ba: sáu khối quân đứng đè lên sông lúc bắt đầu được dời khỏi dòng nước (và `npm run validate` chặn lỗi này, lính vượt sông thì lội nước); bỏ hẳn hào, luỹ, cọc rào, cổng của trại theo ý người dùng (trại chỉ còn lều); lều làm lại cho ra lều. Điều thứ tư là câu hỏi về đồ hoạ lính: xem mục "Việc cho trận đánh 3D".
+  - Hộp thoại Giới thiệu: câu về cảnh vật viết lại, nói thêm về trại, thành, làng và nhà nông (người dùng đã duyệt câu chữ).
+  - Hiệu năng (đo xen kẽ bốn vòng, hai bản production): bản đầu của nhánh chậm hơn rõ ở giai đoạn 4 vì hơn 100 lượt vẽ thêm; sau khi gom còn 16 lưới thì ngang `main` (giai đoạn 3: 57,3 so với 58,5; giai đoạn 4: 54,5 so với 54,1). Cả `main` lẫn nhánh hôm nay đều có lượt xuống 48–50, sát mục tiêu; xem mục "Việc cho trận đánh 3D".
+  - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17. Chờ người dùng xem trong cảnh thật và duyệt gộp.
+- **2026-11-18:** Phiên chính xong chặng 3 của đợt H (T-040) trên nhánh `batch-h/stage3-vegetation`, xếp chồng lên nhánh chặng 2 (chưa gộp) và làm ở worktree riêng để người dùng vẫn xem được chặng 2. Cây có thân và tán nhiều tấm lá, đổ bóng, đung đưa theo gió: lau sậy, bụi, dương và liễu ven sông; ô liu và sồi đứng lẻ trên đồng (14 cây mỗi km²); ba khu rừng nhỏ; cây quanh nhà nông và làng; bụi trên sườn dốc. Không cây nào mọc ở chỗ quân đứng hay đi qua. Mọi cây đều mức minh hoạ; cây trên đồng trái với Polybius 3.110 và hộp thoại Giới thiệu nói rõ (câu chữ chờ người dùng duyệt). Số đo và kết quả kiểm tra ghi ở T-040.
+- **2026-11-18:** Người dùng ngắt chặng 3 để đổi hướng đồ hoạ: gửi năm ảnh mẫu và muốn trận 3D trông như vậy. Phiên chính dừng đo hiệu năng chặng 3 (lần đo đầu: giai đoạn 4 còn 48 khung hình mỗi giây so với 55 của `main`; đã gom lượt vẽ nhưng chưa đo lại), trình đề xuất, người dùng chọn làm cảnh mẫu trước (mục "Đợt I"). Bản cắt đầu tiên của cảnh mẫu (T-041) xong trên nhánh `batch-i/look-sample`: đường cong màu riêng, nắng mạnh, mặt đất xanh có vân cỏ thật (ambientCG, CC0), 42 000 bụi cỏ có hình quanh camera, lính chi tiết hiện từ xa hơn, tán cây sáng hơn. Chờ người dùng xem.
+- **2026-11-18:** Người dùng xem bản cắt đầu tiên: khung cảnh đạt, lính và ngựa "vẫn mang hướng đồ hoạ ps1"; chọn nâng từ mô hình gốc trong Blender và xem ảnh render trước. Phiên chính dựng thang chi tiết bốn mức `hi` cho lính La Mã và kỵ binh La Mã ([T-042](tasks/T-042-model-upgrade.md)): LOD0 gấp ba tam giác, tầm xa còn chất liệu thay cho hình ống màu phẳng, bờm và đuôi ngựa bằng lọn lông. Ảnh so sánh ở `art/renders/upgrade/`. Nhận xét kèm theo: cận cảnh lính gần như không đổi, và phần lớn cái "PS1" trong cảnh đến từ cách cảnh chiếu sáng hình lính ở mặt khuất nắng chứ không phải từ mô hình. Chờ người dùng xem và chốt.
+- **2026-11-18:** Người dùng xem ảnh so sánh của T-042 và chọn **sửa ánh sáng lính trong cảnh trước, giữ mô hình cũ**. Phiên chính thêm ánh sáng bù cho riêng hình lính trong cảnh mẫu (trời, đất hắt lên, đèn phụ từ phía đối diện mặt trời, phần nắng lọt qua bóng; nhật ký ở [T-041](tasks/T-041-look-sample.md)): mặt khuất nắng của người và ngựa không còn là khối sẫm phẳng. Mô hình `hi` để đó. Chờ người dùng xem lại ở cổng 3106.
+- **2026-11-18:** Người dùng xem cảnh mẫu sau khi sửa ánh sáng: "tôi thấy lính và ngựa đã đạt rồi đấy". Mô hình cũ được giữ; mô hình `hi` của T-042 để đó.
+- **2026-11-18:** Người dùng chọn việc tiếp theo là giáp lá cà hỗn chiến. Phiên chính làm bản cắt đầu tiên ([T-043](tasks/T-043-melee-press.md)): hàng sau của khối đang đánh xê dịch, xoay người, đâm với và giơ khiên theo nhịp riêng; lao và đá bay thật trong không trung (`engine/missiles.ts`). Chờ người dùng xem ở cổng 3106.
+- **2026-11-18:** Người dùng xem giáp lá cà hỗn chiến khi phát: "tôi đã xem rồi, ưng ý với tôi đấy".
+- **2026-11-18:** Người dùng chọn làm tiếp cây, lều, nhà và nước; duyệt kế hoạch phủ chất liệu ảnh thật CC0, ba chặng. Chặng 1 (nước: sóng, nắng lấp lánh, bọt, lòng sỏi, bãi cát, sóng vỗ) xong ([T-044](tasks/T-044-scenery-look.md)), chờ người dùng xem.
+- **2026-11-19:** Người dùng thấy nước và cả cảnh "chưa chuẩn và thật như ảnh mẫu", hỏi lấy được gì từ ảnh mẫu. Phiên chính đo năm ảnh mẫu và ảnh chụp cảnh bằng cùng một thước (`main-tools/look/measure.py`): cảnh đậm màu gần gấp đôi (xanh lá 0,91–0,97 so với 0,50–0,66) và có nửa số chi tiết nhỏ. Bước 1 hạ độ đậm và nâng vùng bóng (người dùng duyệt); bước 2 đưa lá, vỏ cây, vải, tường, gỗ ảnh thật (ambientCG, CC0) vào cây, lều, nhà, làm bụi cỏ sẫm hơn đất và đất xa lốm đốm. Chờ người dùng xem.
+- **2026-11-19:** Người dùng xem ảnh bước 2 của T-044: "ok, đã đủ thật rồi". Cảnh mẫu của đợt I (màu, lính, hỗn chiến, nước, cây, lều, nhà) đã được duyệt từng phần; việc còn lại là hoàn thiện để gộp.
+- **2026-11-19:** Người dùng duyệt hai dòng viết lại của hộp thoại Giới thiệu (mặt đất xanh trái mùa; hàng sau chen lấn và lao ném qua đầu là minh hoạ) và cho gộp. Đợt H chặng 2 và 3 cùng đợt I gộp vào `main` trong một lần và đẩy lên GitHub. Còn lại của đợt H: chặng 4 (bụi và gió), hoãn.
 
 ## Việc để giai đoạn 5
 
@@ -135,16 +152,16 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
   - Hộp thoại Giới thiệu phải nói rõ: cảnh Cannae có cây và nhà mà nguồn cổ không nhắc, và đồng bằng thật theo Polybius là đất trống.
   - Những thứ có tư liệu (thành, làng, ba trại, sông, gió, bụi) vẫn dựng theo tư liệu.
   - Cây và nhà không đặt vào chỗ hai đạo quân dàn trận và giao chiến, để không che trận đánh.
-- **Phiên chính làm chặng 0 và 1.** Sau chặng 1, người dùng chọn: làm chặng 2 (công trình) tiếp theo, **phiên chính làm tiếp**. Ai làm chặng 3 và 4 thì chưa chọn.
+- **Phiên chính làm chặng 0 và 1.** Sau chặng 1, người dùng chọn: làm chặng 2 (công trình) tiếp theo, **phiên chính làm tiếp**. Sau chặng 2, người dùng chọn chặng tiếp theo là **thực vật (chặng 3)**, làm trước việc nâng cấp đồ hoạ lính; phiên chính làm tiếp (người dùng không chọn ai khác). Chặng 2 chưa gộp: người dùng muốn xem lại sau khi sửa.
 - Chia năm chặng, duyệt và gộp riêng từng chặng. Trong lúc làm, các lane không nhận việc trong vùng trận đánh (như đợt G).
 
 | Chặng | Nội dung | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong, đã gộp 2026-11-18 |
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong, đã gộp 2026-11-18 |
-| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, dựng bằng Blender, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng | Bay tới trại thấy luỹ, cổng, lều | Chưa viết | Chưa bắt đầu |
-| 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
-| 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Chưa bắt đầu |
+| 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng. Dựng bằng code trong cảnh, không dùng Blender như đã trình (lý do ở T-039) | Bay tới trại thấy luỹ, cổng, lều | [T-039](tasks/T-039-structures.md) | Xong, đã gộp 2026-11-19. Trại không có hào, luỹ, cọc rào (người dùng: "doanh trại không cần xây tường") |
+| 3 | Thực vật: lau sậy, bụi và cây ven sông, bụi trên sườn dốc; thêm cây lẻ (ô liu, sồi) và ba khu rừng nhỏ minh hoạ trên đồng, cây quanh nhà nông và làng | Bờ sông, sườn đồi và đồng bằng không còn trọc | [T-040](tasks/T-040-vegetation.md) | Xong, đã gộp 2026-11-19; lá và vỏ cây ảnh thật thêm ở T-044 |
+| 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Hoãn: chưa bắt đầu |
 
 Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặng 1.
 
@@ -157,7 +174,31 @@ Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặn
 
 **Việc phát sinh, chưa giao:**
 - Thêm một khối quân Carthage giữ trại của Hannibal (Polybius 3.117): hiện `camp-force` đánh vào một trại không người. Nên làm cùng chặng 2.
-- Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius.
+- Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius. (T-039 mới giữ ba ý: khoảng trống sau luỹ, đường lớn, lều xếp hàng.)
+- Sửa đường ra của `camp-force` và `roman-cavalry` để trại lớn không trống một góc (T-039).
+- **Đồ hoạ lính** (người dùng hỏi 2026-11-18: lính "trông đơn giản như hình khối, không như thật"). Nhận định của phiên chính: nhìn sát thì mô hình có chi tiết (áo giáp xích, ngù mũ); cái làm lính trông như hình khối là (1) cảnh chỉ dùng mức chi tiết cao nhất khi một hình cao từ 110 điểm ảnh trở lên, nên ở khoảng cách thường nhìn người xem thấy LOD1 và LOD2, mà LOD2 là thân người dựng bằng ống và elip tô màu phẳng; (2) mọi người lính là một bản sao, cùng khuôn mặt, cùng dáng đứng. Phương án, từ rẻ tới đắt: nới ngưỡng mức chi tiết trong ngân sách tam giác; làm lại LOD2 cho giống người hơn; thêm vài biến thể khuôn mặt, màu áo, dáng đứng; dựng lại mô hình gốc với lưới và chất liệu tốt hơn. **Người dùng chọn (2026-11-18): làm hai bước đầu trước** (nới ngưỡng mức chi tiết; làm lại LOD2), xem kết quả rồi mới quyết hai bước sau; và **làm sau chặng thực vật** của đợt H. Chưa viết task.
+- Hiệu năng sau chặng 1 và 2: khi phát giai đoạn 3–4, các lượt đo chiều 2026-11-18 dao động 48–65 khung hình mỗi giây ở cả `main` lẫn nhánh chặng 2, tức có lượt dưới mục tiêu 50. Buổi sáng, trước chặng 1, `main` đạt 56–66. Cần một lần đo trên máy sạch, nhiều vòng, để biết chặng 1 (shader mặt đất, vùng xa) lấy mất bao nhiêu; nếu đáng kể thì giảm số lần lấy nhiễu của shader mặt đất ở xa camera.
+
+## Đợt I: đồ hoạ theo ảnh mẫu của người dùng
+
+Ngày 2026-11-18, giữa chặng 3 của đợt H, người dùng gửi năm ảnh mẫu (`E:\World_History_Platform_assets\ảnh`, ảnh chụp một game chiến thuật thời cổ) và nói muốn đồ hoạ như vậy, kể cả cận cảnh đánh nhau; cách làm của đợt H "hơi xấu". Phiên chính trình đề xuất làm một cảnh mẫu trước. **Người dùng chọn:**
+
+- Làm cảnh mẫu trước, duyệt rồi mới áp dụng ra cả trận.
+- Mặt đất **xanh tươi như ảnh mẫu**, dù trái mùa của trận Cannae; hộp thoại Giới thiệu phải nói rõ.
+- Được dùng mô hình và chất liệu giấy phép mở (CC0), ghi vào `art/CREDITS.md`. Không chép tài sản của game trong ảnh mẫu.
+- Hai nhánh chặng 2 và 3 của đợt H **giữ làm nền, chưa gộp**; cảnh mẫu dựng tiếp trên chúng.
+
+| Việc | Nội dung | Task | Trạng thái |
+|---|---|---|---|
+| Cảnh mẫu | Một đoạn giáp lá cà cận cảnh trên cỏ, có cây và khúc sông, đạt chuẩn ảnh mẫu: màu và nắng, cỏ có hình, lính cận cảnh, hỗn chiến, cây và lều có chất liệu, nước | [T-041](tasks/T-041-look-sample.md) | Xong, đã gộp 2026-11-19: màu, ánh sáng bù cho lính, mặt đất xanh, bụi cỏ |
+| Lính và ngựa | Người dùng xem bản cắt đầu tiên: góc quay và khung cảnh đạt, nhưng lính bộ binh và ngựa "vẫn mang hướng đồ hoạ ps1". Thiết kế lại bằng cách **nâng từ mô hình gốc trong Blender** (giữ nhiều tam giác hơn ở cận cảnh, chất liệu nét và đậm hơn, vài khuôn mặt và sắc áo). Trình tự người dùng chọn: nâng một mẫu lính và một mẫu ngựa, **chụp ảnh render cho người dùng xem trước**; người dùng chốt rồi mới đưa vào cảnh làm bản thử; làm thử hai mô hình (lính La Mã, kỵ binh La Mã) trước 9 mô hình còn lại | [T-042](tasks/T-042-model-upgrade.md) | Người dùng thấy sửa ánh sáng là đủ ("lính và ngựa đã đạt"); mô hình `hi` của T-042 không dùng |
+| Hỗn chiến | Người dùng chọn làm tiếp sau khi lính và ngựa đạt: trong khối đang đánh, hàng sau chen lấn, mỗi người một hướng, đâm với và giơ khiên theo nhịp riêng; lao và đá bay (khối ném từ xa, và hàng sau ném qua đầu hàng trước) | [T-043](tasks/T-043-melee-press.md) | Xong, đã gộp 2026-11-19 (người dùng duyệt) |
+| Nước, lều, nhà, cây | Người dùng chọn làm tiếp sau hỗn chiến, duyệt kế hoạch: giữ hình dựng bằng code, phủ chất liệu ảnh thật CC0 (ambientCG), ba chặng nước → lều và nhà → cây, mỗi chặng gửi link xem | [T-044](tasks/T-044-scenery-look.md) | Xong, đã gộp 2026-11-19 (người dùng: "đã đủ thật rồi") |
+| Áp dụng ra cả trận | Sau khi người dùng duyệt cảnh mẫu | Chưa viết | Không cần làm riêng: mọi thay đổi của cảnh mẫu đã áp dụng cho cả trận |
+
+Việc nâng cấp đồ hoạ lính mà người dùng chọn trước đó ("bước 1 và 2": nới ngưỡng mức chi tiết, làm lại LOD2) nhập vào đợt này; bước 1 đã nằm trong bản cắt đầu tiên.
+
+Chặng 4 của đợt H (bụi và gió) hoãn tới sau cảnh mẫu.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 

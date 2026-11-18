@@ -466,3 +466,73 @@ Hướng chạy của kỵ binh đồng minh không có trong nguồn (Varro tho
 
 - Giữa hai mốc, cảnh nội suy thẳng: phép kiểm tra chỉ xét các mốc, chưa xét đường đi giữa chúng. Đường đi của hai khối kỵ binh ở giai đoạn 6 đã xem bằng mắt (trên bờ).
 - Bờ biển thời cổ: nếu tìm được nghiên cứu địa mạo về châu thổ Ofanto thì nên ghi vào đây và cân nhắc dời bờ.
+
+## 14. Công trình trong cảnh và nhà nông minh hoạ (T-039, đợt H chặng 2)
+
+### Cái gì theo tư liệu, cái gì là phỏng dựng
+
+| Thứ trong cảnh | Căn cứ |
+|---|---|
+| Có ba trại, có luỹ | Polybius 3.110–111, Livy 22.44–45 (mục 12) |
+| Hào, cọc rào, bốn cổng | Cách đóng trại của quân La Mã nói chung (Polybius 6.27–34); không nguồn nào tả riêng ở Cannae. Kích thước hào luỹ là giả định |
+| Khoảng trống 200 bộ sau luỹ, đường lớn, lều xếp hàng trong trại La Mã | Polybius 6.27–32 qua từ điển của W. Smith (mục 12). Cảnh chỉ giữ ba ý đó; chỗ của từng loại quân trong trại thì không vẽ |
+| Lều da | Lều của quân La Mã làm bằng da là điều quen thuộc trong các sách về quân đội La Mã; ở đây ghi theo hiểu biết chung, chưa dẫn nguồn cổ cụ thể |
+| Bên trong trại của Hannibal (lều xếp lỏng, ba màu) | Không có nguồn: minh hoạ |
+| Thành Cannae có tường, tháp, cổng, nhà kho | Có thành, có lương trữ trong đó: Polybius 3.107. Tường, tháp và nhà kho trông ra sao: minh hoạ |
+| Làng Cannae đổ nát một phần, không tường | Polybius 3.107, Livy 22.49 (mục 12). Số nhà, kiểu nhà: minh hoạ |
+| 12 nhà nông trên đồng | Không có nguồn: minh hoạ, theo lựa chọn của người dùng cho cảnh có nhiều nhà hơn tư liệu |
+
+### Mười hai nhà nông
+
+Mỗi cái 70 × 50 m, mức `illustrative`. Vị trí (x, y): (2700, −1000), (3400, −2300), (1500, −2500), (−300, −2900), (−2600, −2700), (3900, −900), (−4600, 1500), (−3300, 2300), (600, −1800), (2200, −3900), (−1500, −2100), (−3000, −3500).
+
+Cách chọn: thử 24 điểm rải quanh chiến trường, giữ điểm nào có đất cao trên 1,5 m và chênh dưới 4 m trong phần đất, cách đường giữa sông trên 200 m, cách mọi đường đi của các khối quân trên 250 m (tính tới mép khối) và cách công trình khác trên 200 m; lấy 12 điểm trong số đạt. Không cái nào nằm trong vùng hai đạo quân dàn trận.
+
+### Lều và chỗ quân đứng
+
+Lều không được dựng ở nơi một khối quân đứng hay đi qua. Vì `camp-force` và `roman-cavalry` xuất phát từ trong trại lớn và đi chéo qua trại, góc tây nam của trại lớn gần như không có lều. Ba khối đồng minh xuất phát từ nửa nam của trại nhỏ, nên nửa đó cũng thưa lều.
+
+### Còn lại
+
+- Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại thì trại lớn mới đầy lều.
+- Khối quân Carthage giữ trại của Hannibal (Polybius 3.117) vẫn chưa có.
+- Câu về lều da cần một nguồn dẫn được trước khi đưa vào ghi chú cho người xem.
+
+### Sửa sau khi người dùng xem (T-039)
+
+- **Trại không vẽ luỹ.** Nguồn có nói tới luỹ (Livy 22.44–45, mục 12), nhưng người dùng chọn không vẽ tường quanh trại: trại trong cảnh chỉ có lều. Dòng "Hào, cọc rào, bốn cổng" trong bảng trên vì thế không còn áp dụng cho cảnh.
+- **Vị trí lúc bắt đầu của sáu khối quân** (trước đây đè lên dòng sông):
+
+  | Khối | Trước | Sau |
+  |---|---|---|
+  | `roman-velites` | −525, 910 | −830, 930 |
+  | `hastati` | −525, 1045 | −830, 1045 |
+  | `principes` | −525, 1090 | −830, 1090 |
+  | `triarii` | −525, 1132 | −830, 1132 |
+  | `light-spearmen` | −1300, −440 | −1010, −440 |
+  | `gauls-right` | −1260, −650 | −1170, −650 |
+  | `gauls-left` | −2260, −650 | −2260, −600 |
+
+  Bộ binh La Mã giờ bắt đầu ở bờ tây, ngay trước chỗ lội, và vượt sông trong giai đoạn 1 (Polybius 3.113: Varro dẫn quân từ trại lớn vượt sông). Các khối của Hannibal chỉ nhích khỏi đoạn sông chảy về bắc.
+
+## 15. Cây cối (T-040, đợt H chặng 3)
+
+**Mọi cây trong cảnh Cannae đều là minh hoạ.** Polybius 3.110 nói vùng quanh Cannae "bằng phẳng và không có cây"; không nguồn nào tả cây ven sông hay cây trên đồng. Người dùng đã chọn cho cảnh có nhiều cây hơn tư liệu (`docs/PLAN.md`, mục "Đợt H"), và hộp thoại Giới thiệu nói rõ điều này.
+
+| Thứ | Dữ liệu | Ghi chú |
+|---|---|---|
+| Lau sậy, bụi, dương và liễu ven sông | `rivers[0].banks` (có từ chặng 0), dải 25 m mỗi bờ | Ngày nay dọc sông Ofanto có lau sậy, liễu, dương |
+| Cây lẻ trên đồng | `scenery.trees.perSquareKm: 14` | Ô liu và sồi. Trái với Polybius 3.110 |
+| Ba khu rừng nhỏ | `areas`: `wood-east` quanh (3600, −3000), `wood-south` quanh (−700, −3500), `wood-west` quanh (−4300, 2400), mỗi khu khoảng 300 × 220 m | Trái với Polybius 3.110. Đặt xa chỗ hai đạo quân dàn trận |
+| Cây quanh nhà nông và làng | Không có dữ liệu riêng: cảnh tự trồng 5 cây quanh mỗi nhà nông, 9 cây quanh làng | Đi theo các nhà nông minh hoạ của mục 14 |
+| Bụi trên sườn dốc | Không có dữ liệu riêng: cảnh tự trồng ở chỗ dốc từ 13% trở lên | Sườn gò Cannae và bậc đất phía nam |
+
+Loại cây (ô liu, sồi, dương, liễu) là cây quen thuộc của vùng Địa Trung Hải, chọn theo hiểu biết chung; chưa đối chiếu với nghiên cứu nào về thảm thực vật Apulia thời đó.
+
+Không cây nào đứng ở chỗ quân đứng hay đi qua (cây lùi 55 m so với mọi khối quân ở mọi thời điểm), nên vùng hai đạo quân dàn trận và giao chiến vẫn trống như lời Polybius.
+
+## 16. Mặt đất xanh (T-041, T-044, đợt I)
+
+Ngày 2026-11-18 người dùng chọn vẽ mặt đất **xanh tươi như ảnh mẫu**, dù biết trái mùa. `ground.cover` đổi từ `stubble` sang `grass`, mức căn cứ đổi từ `inferred` sang `illustrative`, và ghi chú nói rõ: theo Polybius (3.110) và Livy (22.43), ngày diễn ra trận đánh nơi đây là ruộng đã gặt và cỏ khô; cảnh vẽ xanh là lựa chọn cho vẻ ngoài. Bảng ở mục 12 ghi lớp phủ cũ. Hộp thoại Giới thiệu nói điều này trong dòng về cảnh vật (`about.accuracy.battle.scenery`).
+
+Phần hỗn chiến ở các hàng sau và lao ném qua đầu hàng trước (T-043) không có trong dữ liệu trận: cảnh tự vẽ, và dòng `about.accuracy.battle.duels` của hộp thoại Giới thiệu nói đó là minh hoạ.

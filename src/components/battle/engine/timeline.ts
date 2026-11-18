@@ -316,9 +316,13 @@ export class UnitTrack {
   private readonly deathX: Float32Array;
   private readonly deathY: Float32Array;
   private readonly deathHeading: Float32Array;
-  /** Scratch of `queue`: how far each figure has stepped up (in v) and how many men stand before it. */
+  /** Scratch of `queue`: how far each figure has stepped up (in v). */
   private readonly shift: Float32Array;
-  private readonly before: Float32Array;
+  /**
+   * In a hand-to-hand fight (`fighting`), how many men of its file still
+   * stand before each standing figure: 0 for the head of the file.
+   */
+  readonly before: Float32Array;
   private readonly clock: BattleClock;
   private readonly scratch: UnitKey;
 

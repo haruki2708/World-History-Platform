@@ -227,6 +227,30 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 
   Sau đó nhập lại file vào Blender và thử vài tư thế với mặt đất: khung đầu `idle` và `walk` đứng trên đế dép, khung cuối `die` nằm sát đất và không vật nào xuyên xuống. Có lỗi thì script dừng với mã 1.
 
+## Thang chi tiết `hi` (T-042, đang thử)
+
+Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đồ hoạ lính và ngựa. **Cảnh 3D chưa dùng**: file xuất ra `art/build/<id>/<id>-hi.glb`, không đụng `public/battles/models/` và `index.json`. Đường dựng thường không đổi. Chi tiết, số liệu và nhận xét ở [T-042](../docs/tasks/T-042-model-upgrade.md).
+
+| Mức | Lấy từ đâu | Giới hạn tam giác (bộ binh / kỵ binh) |
+|---|---|---|
+| LOD0 | Giảm từ lưới gốc, gấp ba LOD0 thường | 26 000 |
+| LOD1 | 0,7 lần LOD0 thường | 7 000 |
+| LOD2 | 1,2 lần LOD1 thường, có chất liệu | 1 800 / 2 400 |
+| LOD3 | Hình ống màu phẳng (LOD2 thường) | 300 / 330 |
+
+Ảnh pháp tuyến 2048; file tối đa 8 MB. Ngựa `hi` có bờm và đuôi bằng lọn lông ở LOD0 và LOD1; LOD2 dùng bờm và đuôi kiểu thường (`horse-mane-far`, `horse-tail-far`), vì lọn lông rời không giảm tam giác được.
+
+```powershell
+# Ngựa hi (ra art/build/horse/horse-hi.blend), rồi một mô hình trên thang hi
+& $blender --background --factory-startup --disable-autoexec --python art/blender/horse_build.py -- --hi
+& $blender --background --factory-startup --disable-autoexec --python art/blender/build_model.py -- --model roman-cavalry --hi
+
+# Ảnh so sánh trước và sau: art/renders/upgrade/<id>-NN-<tên>.jpg (close, strike, detail, levels, near, middle, far)
+& $blender --background --factory-startup --disable-autoexec --python art/blender/render_upgrade.py -- --model roman-cavalry
+```
+
+"Trước" trong ảnh so sánh là file trong `public/battles/models/`, "sau" là file `-hi.glb`. Ba ảnh khối quân (`near`, `middle`, `far`) vẽ mỗi người ở mức chi tiết mà chiều cao trên màn hình 1920×1080 của người đó cho, rồi cắt sát khối quân; `middle` phóng to gấp hai, `far` gấp ba.
+
 ## Ghi chú cho cảnh 3D (lane 3)
 
 - **Hoạt hình:** độ dài và quãng đường một vòng ở bảng "Clip" phía trên (cảnh tự đo từ clip, nên không phụ thuộc số trong tài liệu). Không có chuyển động gốc: hình lính đứng yên tại chỗ, cảnh tự di chuyển nó. `die` không lặp, giữ khung cuối.
@@ -243,6 +267,7 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 |---|---|
 | `build_model.py` | Điểm vào: dựng một mô hình hay tất cả. |
 | `render_review.py` | Ảnh duyệt, render từ file `.glb` đã xuất; ảnh các kiểu tấn công của thư viện. |
+| `render_upgrade.py` | Ảnh so sánh mô hình đang dùng với mô hình trên thang `hi` (T-042). |
 | `whp_build.py` | Các giai đoạn chung, dòng lệnh, kiểm tra, `index.json`. |
 | `whp_common.py` | Đường dẫn (`WHP_ASSETS`, `art/build/`), đọc tham số, nhập FBX, tiện ích chọn, gộp, nhân bản đối tượng. |
 | `whp_render.py` | Đèn, camera, render ảnh tĩnh bằng EEVEE. |

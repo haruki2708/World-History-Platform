@@ -44,6 +44,9 @@ IRON = (0.200, 0.200, 0.205)
 ROPE = (0.300, 0.230, 0.140)
 
 COAT_ATTR = "whp_color"          # not "color": Cycles reads that name as something else (black bakes)
+# The plain mane and tail of the "hi" horse, for the levels seen from afar.
+MANE_FAR = "horse-mane-far"
+TAIL_FAR = "horse-tail-far"
 
 
 # --------------------------------------------------------------------------
@@ -94,17 +97,19 @@ def material(name, color=None, roughness=0.6, metallic=0.0, attribute=False, noi
     return mat
 
 
-def body_materials():
+def body_materials(hi=False):
     """One material per source slot, in the source's order:
-    body, hooves, gums, teeth, eyes, cornea, hair."""
+    body, hooves, gums, teeth, eyes, cornea, hair. `hi`: a glossier coat
+    with more play in it (horse_build --hi)."""
     return [
-        material("horse-coat", roughness=0.62, attribute=True, noise=0.12),
+        material("horse-coat", roughness=0.46 if hi else 0.62, attribute=True, noise=0.2 if hi else 0.12),
         material("horse-hoof", HOOF, roughness=0.5, noise=0.1, streaks=True),
         material("horse-gums", (0.30, 0.08, 0.07), roughness=0.4),
         material("horse-teeth", (0.60, 0.55, 0.45), roughness=0.4),
         material("horse-eye", (0.012, 0.009, 0.007), roughness=0.08),
         material("horse-cornea", (0.012, 0.009, 0.007), roughness=0.08),
-        material("horse-hair", HAIR, roughness=0.55, noise=0.25, streaks=True),
+        # Hair in locks: dull, or every lock would catch the light its own way.
+        material("horse-hair", HAIR, roughness=0.9 if hi else 0.55, noise=0.25, streaks=True),
     ]
 
 
@@ -209,6 +214,36 @@ def coat_colours(body):
     muzzle = smoothstep(0.17, 0.07, np.linalg.norm(co - tip, axis=1))
     belly = smoothstep(0.95, 0.80, co[:, 2]) * (1 - np.clip(legs, 0, 1)) * (co[:, 2] > 0.6)
     colour = np.array(BAY)[None] * (1 - belly[:, None]) + np.array(BAY_LIGHT)[None] * belly[:, None]
+    colour = colour * (1 - muzzle[:, None]) + np.array(MUZZLE)[None] * muzzle[:, None]
+    colour = colour * (1 - dark_legs[:, None]) + np.array(POINTS)[None] * dark_legs[:, None]
+    set_colour(body.obj, colour)
+
+
+def coat_colours_hi(body):
+    """As coat_colours, with more in it: a darker line along the top, pale
+    flanks and belly, the black of the legs fading into the bay above the
+    knees and hocks, a dark muzzle with a paler ring behind it, dark tips
+    to the ears."""
+    co = body.co
+    z = co[:, 2]
+    legs = np.clip(body.weight_of([b for b in horse_rig.GAME_NAMES
+                                   if any(k in b for k in ("cannon", "pastern", "hoof", "forearm", "gaskin"))]), 0, 1)
+    head = np.clip(body.weight_of(["horse_head"]), 0, 1)
+    dark_legs = legs * smoothstep(0.74, 0.44, z)
+    tip = co[np.argmin(co[:, 1])]
+    reach = np.linalg.norm(co - tip, axis=1)
+    muzzle = smoothstep(0.17, 0.06, reach)
+    ring = smoothstep(0.30, 0.20, reach) * (1 - muzzle) * 0.35
+    belly = smoothstep(0.98, 0.76, z) * (1 - legs) * (z > 0.55)
+    top = smoothstep(1.26, 1.40, z) * (1 - head) * 0.4
+    ears = head * smoothstep(1.62, 1.70, z) * 0.6
+    bay = np.array((0.185, 0.060, 0.020))
+    light = np.array((0.270, 0.118, 0.048))
+    dark = np.array((0.078, 0.028, 0.012))
+    colour = bay[None] * (1 - belly[:, None]) + light[None] * belly[:, None]
+    colour = colour * (1 - ring[:, None]) + light[None] * ring[:, None]
+    shade = np.clip(top + ears, 0, 1)
+    colour = colour * (1 - shade[:, None]) + dark[None] * shade[:, None]
     colour = colour * (1 - muzzle[:, None]) + np.array(MUZZLE)[None] * muzzle[:, None]
     colour = colour * (1 - dark_legs[:, None]) + np.array(POINTS)[None] * dark_legs[:, None]
     set_colour(body.obj, colour)
@@ -338,6 +373,128 @@ def build_mane(body, hair):
     w = np.repeat(body.sample_weights(np.array(base_points)), 4, axis=0)
     obj = _object(b, "horse-mane", hair, w)
     log(f"mane: {len(stations)} stations, poll y {y_poll:.2f}, withers y {y_withers:.2f}")
+    return obj
+
+
+def _lock(b, path, widths, side):
+    """One lock of hair: a tapering strip along `path`, `widths` wide at
+    each point, lying across `side` (a vector per point or one for all).
+    Both faces are made, so that it shows from either side. Returns how
+    many vertices it added."""
+    path = np.asarray(path, dtype=float)
+    side = np.broadcast_to(np.asarray(side, dtype=float), path.shape)
+    rows = []
+    for p, w, s in zip(path, widths, side):
+        s = s / max(np.linalg.norm(s), 1e-9)
+        rows.append((b.vert(p - s * w / 2), b.vert(p + s * w / 2)))
+    for (a0, a1), (b0, b1) in zip(rows, rows[1:]):
+        b.face((a0, a1, b1, b0))
+        b.face((a0, b0, b1, a1))
+    return len(path) * 2
+
+
+def build_mane_hi(body, hair):
+    """A mane left to grow: locks that rise from the crest and lie down the
+    off side of the neck, a few short ones to the near side, and a forelock
+    between the ears. Each lock lies on the neck's skin (found by a ray
+    from the side) and follows the neck where it is rooted."""
+    ears = body.co[body.weight_of(["horse_head"]) > 0.5]
+    y_poll = float(ears[ears[:, 2] > np.percentile(ears[:, 2], 97), 1].max()) + 0.015
+    y_withers = withers_y(body)
+    b = Builder()
+    roots = []
+    count = 46
+    for i in range(count):
+        t = i / (count - 1)
+        y = y_poll + (y_withers - 0.03 - y_poll) * t
+        z = body.top_z(y)
+        # The line of the crest here: the locks lie across it.
+        ahead = np.array([0.0, 0.02, body.top_z(y + 0.02) - z])
+        ahead /= np.linalg.norm(ahead)
+        # Most fall to the off side (-X); every fifth to the near side, shorter.
+        near = i % 5 == 4
+        way = 1.0 if near else -1.0
+        length = (0.17 + 0.12 * math.sin(math.pi * min(t * 1.1, 1.0))) * (0.5 if near else 1.0)
+        length *= 0.85 + 0.3 * ((i * 37) % 11) / 10.0
+        drift = 0.02 * (((i * 53) % 7) / 6.0 - 0.5)
+        root = np.array([0.0, y, z - 0.006])
+        path = [root, root + [way * 0.016, 0.0, 0.014]]
+        for k, f in enumerate((0.22, 0.48, 0.74, 1.0)):
+            centre = np.array([0.0, y + (0.012 + drift) * f, z - length * f])
+            hit, _normal = body.cast_in(centre, (way, 0.0, 0.0), reach=0.45)
+            if hit is None:
+                break
+            path.append(hit + [way * (0.006 + 0.003 * k), 0.0, 0.0])
+        widths = [0.05, 0.058, 0.058, 0.054, 0.044, 0.026][:len(path)]
+        added = _lock(b, path, widths, ahead)
+        roots += [root + [0.0, 0.0, 0.006]] * added
+    # The forelock: a few locks from the poll forward over the forehead.
+    for i in range(5):
+        x = (i - 2) * 0.013
+        root = np.array([x, y_poll - 0.012, body.top_z(y_poll - 0.012, x) - 0.004])
+        path = [root]
+        for k, f in enumerate((0.35, 0.7, 1.0)):
+            p = root + [x * 0.5 * f, -0.075 * f, -0.06 * f * (0.8 + 0.1 * i)]
+            path.append(np.array(body.push_out(p, 0.006 + 0.003 * k)))
+        added = _lock(b, path, [0.028, 0.03, 0.026, 0.014], np.array([1.0, 0.0, 0.0]))
+        roots += [root + [0.0, 0.0, 0.004]] * added
+    obj = _object(b, "horse-mane", hair, body.sample_weights(np.array(roots)))
+    log(f"mane (locks): {count} locks and a forelock, {len(b.faces)} faces")
+    return obj
+
+
+def build_tail_hi(body, hair):
+    """A full tail: the dock, and locks of hair round it that fall to the
+    hocks and below, close together, a little apart at their ends."""
+    chain = [f"horse_tail_{i}" for i in range(1, 6)]
+    heads = [body.head(n) for n in chain]
+    end = heads[-1] + (heads[-1] - heads[-2]) * 0.6
+    dock = np.array(heads[1:] + [end])
+    b = Builder()
+    weights = []
+    idx = horse_rig.GAME_NAMES.index
+    dock_bones = ["horse_tail_2", "horse_tail_3", "horse_tail_4", "horse_tail_5", "horse_tail_5"]
+
+    def rows_of(bones, each):
+        out = np.zeros((len(bones) * each, len(horse_rig.GAME_NAMES)), dtype=np.float32)
+        for i, bone in enumerate(bones):
+            out[i * each:(i + 1) * each, idx(bone)] = 1.0
+        return out
+
+    # The dock itself, under the hair.
+    radius = np.interp(np.linspace(0, 1, len(dock)), [0, 1], [0.036, 0.022])
+    rings = tube(b, dock, radius, 6)
+    tip = b.vert(dock[-1] + (dock[-1] - dock[-2]) * 0.3)
+    for k in range(6):
+        b.face((rings[-1][k], rings[-1][(k + 1) % 6], tip))
+    weights.append(rows_of(dock_bones, 6))
+    weights.append(rows_of(["horse_tail_5"], 1))
+
+    count = 30
+    for i in range(count):
+        s = 0.04 + 0.94 * ((i * 7) % count) / (count - 1)        # where along the dock it is rooted
+        at = s * (len(dock) - 1)
+        k0 = min(int(at), len(dock) - 2)
+        root = dock[k0] + (dock[k0 + 1] - dock[k0]) * (at - k0)
+        bone = dock_bones[min(k0, len(dock_bones) - 1)]
+        turn = 2 * math.pi * ((i * 0.618) % 1.0)
+        # Round the dock, but not forwards into the quarters.
+        out = np.array([math.cos(turn), 0.5 + 0.5 * abs(math.sin(turn)), 0.0])
+        out /= np.linalg.norm(out)
+        tip_z = 0.36 + 0.22 * ((i * 29) % 13) / 12.0
+        drop = max(root[2] - tip_z, 0.2)
+        spread = 0.02 + 0.035 * ((i * 17) % 9) / 8.0
+        wave = 0.004 * (1 if i % 2 else -1)
+        path = [root, root + out * 0.028 + [0.0, 0.0, -0.02]]
+        for f in (0.2, 0.42, 0.66, 0.86, 1.0):
+            path.append(root + out * (0.028 + spread * f) + [wave * math.sin(f * 5.0), 0.0, -drop * f])
+        widths = [0.04, 0.066, 0.074, 0.074, 0.066, 0.052, 0.03]
+        side = np.array([-out[1], out[0], 0.0])
+        _lock(b, path, widths, side)
+        # The root follows its bone of the dock; the hair below hangs from the last one.
+        weights.append(rows_of([bone, bone] + ["horse_tail_5"] * 5, 2))
+    obj = _object(b, "horse-tail", hair, np.concatenate(weights))
+    log(f"tail (locks): the dock and {count} locks, {len(b.faces)} faces")
     return obj
 
 
