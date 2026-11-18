@@ -7,10 +7,13 @@
  * - woods and scrub in the areas of the scenery (BattleScenery.areas);
  * - a few trees round every farm, and bushes on steep ground.
  *
- * A plant is a trunk and a crown of leafy cards: flat pieces that carry a
- * picture of leaves with holes in it, set round the crown and lit as if they
- * lay on its surface. The pictures are drawn here once, into one texture.
- * Plants are larger than life, as the figures are, and sway in the wind.
+ * A plant is a trunk with a few limbs and a crown of leafy cards: flat pieces
+ * that carry a picture of a spray of leaves, set round the crown and lit as
+ * if they lay on its surface. The pictures are photographs of leaves and of
+ * bark, put together by scripts/battles/build-foliage.py into one texture
+ * (public/battles/textures/foliage.webp) and tinted here with the colour of
+ * each plant. Plants are larger than life, as the figures are, and sway in
+ * the wind.
  *
  * Nothing grows where a unit stands or passes, in a river, in the sea or on
  * the ground of a structure. Placing is seeded: the same battle always looks
@@ -20,7 +23,6 @@
 import {
   BufferAttribute,
   BufferGeometry,
-  CanvasTexture,
   Color,
   DoubleSide,
   Group,
@@ -29,6 +31,8 @@ import {
   MeshLambertMaterial,
   RGBADepthPacking,
   SRGBColorSpace,
+  type Texture,
+  TextureLoader,
 } from "three";
 import type { Battle, FieldPoint, SceneryStructure } from "@/lib/battle";
 import { createRng, hashString } from "./rng";
@@ -46,11 +50,15 @@ const CHUNK = 2600;
 /** Ground at or below this height is sea (terrain.ts). */
 const SEA_LEVEL = 0.05;
 
-/** The pictures in the texture: four squares, two by two. */
-const BROAD = 0;
-const FINE = 1;
-const BLADES = 2;
-const SOLID = 3;
+/** The pictures in the texture: four squares, two by two, counted from its bottom left. */
+const BLADES = 0;
+const BARK = 1;
+const BROAD = 2;
+const FINE = 3;
+/** One repeat of the bark covers this much of a trunk's height, metres. */
+const BARK_SPAN = 7;
+/** Sides of a trunk; even, so that the bark runs round it there and back without a seam. */
+const TRUNK_SIDES = 8;
 
 interface Kind {
   /** Height of the bare trunk, the crown's centre above the ground, its half width and half height, metres. */
@@ -206,51 +214,85 @@ function card(
   }
 }
 
+/**
+ * A tapering tube of bark from one point to another, `sides` round. The bark
+ * runs round it there and back and up it in `spans` repeats, there and back
+ * as well: the picture is one square of a larger texture and cannot repeat.
+ */
+function limb(
+  out: Leaves,
+  from: [number, number, number],
+  to: [number, number, number],
+  radiusFrom: number,
+  radiusTo: number,
+  sides: number,
+  spans: number,
+  color: Color,
+  swayFrom: number,
+  swayTo: number,
+): void {
+  const [u0, v0, side] = pictureAt(BARK);
+  const ax = to[0] - from[0];
+  const ay = to[1] - from[1];
+  const az = to[2] - from[2];
+  const length = Math.hypot(ax, ay, az) || 1;
+  // Two directions across the tube.
+  let px = -az;
+  let pz = ax;
+  const flat = Math.hypot(px, pz);
+  if (flat < 1e-4) {
+    px = 1;
+    pz = 0;
+  } else {
+    px /= flat;
+    pz /= flat;
+  }
+  const qx = (ay * pz) / length;
+  const qy = (az * px - ax * pz) / length;
+  const qz = (-ay * px) / length;
+  const ring = (t: number, s: number): [number, number, number, number, number, number, number, number, number] => {
+    const a = (s / sides) * Math.PI * 2;
+    const c = Math.cos(a);
+    const d = Math.sin(a);
+    const r = radiusFrom + (radiusTo - radiusFrom) * t;
+    const nx = px * c + qx * d;
+    const ny = qy * d;
+    const nz = pz * c + qz * d;
+    // There and back, round and along.
+    const round = 1 - Math.abs(1 - ((s / sides) * 2) % 2);
+    const along = 1 - Math.abs(1 - ((t * spans) % 2));
+    return [from[0] + ax * t + nx * r, from[1] + ay * t + ny * r, from[2] + az * t + nz * r, nx, ny, nz, u0 + round * side, v0 + along * side, swayFrom + (swayTo - swayFrom) * t];
+  };
+  for (let k = 0; k < spans; k++) {
+    const t0 = k / spans;
+    // Just short of the next repeat, so that it is not read as the start of one.
+    const t1 = (k + 1) / spans - 1e-4;
+    for (let s = 0; s < sides; s++) {
+      const s1 = s + 1 - 1e-4;
+      const quad = [ring(t0, s), ring(t0, s1), ring(t1, s1), ring(t1, s)];
+      for (const i of [0, 1, 2, 0, 2, 3]) {
+        const p = quad[i];
+        out.vertex(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], color, 1, p[8]);
+      }
+    }
+  }
+}
+
 /** A tree or a bush standing at world (x, ground, z), `scale` times its usual size. */
 function plant(out: Leaves, kind: Kind, x: number, ground: number, z: number, scale: number, rng: Rng): void {
-  const [su, sv, side] = pictureAt(SOLID);
-  const solidU = su + side / 2;
-  const solidV = sv + side / 2;
   const lean = (rng() - 0.5) * 0.12;
   const leanTurn = rng() * Math.PI * 2;
   const topX = x + Math.cos(leanTurn) * lean * kind.centre * scale;
   const topZ = z + Math.sin(leanTurn) * lean * kind.centre * scale;
   const crownY = ground + kind.centre * scale;
-
-  if (kind.trunk > 0) {
-    // The trunk: a tapering post of six sides, from below the ground into the crown.
-    const SIDES = 6;
-    const base = (kind.girth * scale) / 2;
-    const top = base * 0.45;
-    const height = (kind.centre - kind.tall * 0.35) * scale;
-    for (let s = 0; s < SIDES; s++) {
-      const a0 = (s / SIDES) * Math.PI * 2;
-      const a1 = ((s + 1) / SIDES) * Math.PI * 2;
-      const shade = 0.75 + 0.3 * Math.max(Math.cos(a0 - 0.8), 0);
-      const lowX = x;
-      const lowZ = z;
-      const highX = x + (topX - x) * 0.8;
-      const highZ = z + (topZ - z) * 0.8;
-      const ring = (a: number, r: number, bx: number, by: number, bz: number): [number, number, number, number, number, number] => [
-        bx + Math.cos(a) * r,
-        by,
-        bz + Math.sin(a) * r,
-        Math.cos(a),
-        0.1,
-        Math.sin(a),
-      ];
-      const quad = [ring(a0, base, lowX, ground - 0.4, lowZ), ring(a1, base, lowX, ground - 0.4, lowZ), ring(a1, top, highX, ground + height, highZ), ring(a0, top, highX, ground + height, highZ)];
-      for (const i of [0, 1, 2, 0, 2, 3]) {
-        const p = quad[i];
-        out.vertex(p[0], p[1], p[2], p[3], p[4], p[5], solidU, solidV, kind.bark, shade, i >= 2 ? 0.25 : 0);
-      }
-    }
-  }
+  // Where the limbs end: among the first cards of the crown.
+  const ends: [number, number, number][] = [];
 
   // The crown: cards set round an egg-shaped body, each lit as the body's surface there.
-  for (let c = 0; c < kind.cards; c++) {
+  const cards = Math.round(kind.cards * 1.5);
+  for (let c = 0; c < cards; c++) {
     // A point on the body, evenly spread, with some thrown inside it for depth.
-    const up = 1 - (2 * (c + 0.5)) / kind.cards;
+    const up = 1 - (2 * (c + 0.5)) / cards;
     const turn = c * 2.399963 + rng() * 0.6;
     const ring = Math.sqrt(Math.max(1 - up * up, 0));
     const depth = 0.55 + 0.45 * rng();
@@ -262,13 +304,54 @@ function plant(out: Leaves, kind: Kind, x: number, ground: number, z: number, sc
     // Lit as a rounded body: the normal points outwards and a little up.
     const nl = Math.hypot(dx * 0.55, up * 0.5 + 0.85, dz * 0.55) || 1;
     const normal: [number, number, number] = [(dx * 0.55) / nl, (up * 0.5 + 0.85) / nl, (dz * 0.55) / nl];
-    const size = Math.min(kind.wide, kind.tall * 1.3) * scale * (1.1 + rng() * 0.5);
+    const size = Math.min(kind.wide, kind.tall * 1.3) * scale * (0.85 + rng() * 0.45);
     // Darker inside and below, lighter outside and on top.
-    const shade = (0.8 + 0.25 * depth) * (0.9 + 0.2 * (up * 0.5 + 0.5)) * (0.94 + rng() * 0.14);
+    const shade = (0.72 + 0.34 * depth) * (0.82 + 0.3 * (up * 0.5 + 0.5)) * (0.92 + rng() * 0.16);
     const color = rng() < 0.35 ? kind.leafDark : kind.leaf;
     const face = rng() * Math.PI * 2;
     const swing = 0.35 + 0.65 * (up * 0.5 + 0.5);
     card(out, px, py, pz, size, size, Math.cos(face), Math.sin(face), (rng() - 0.5) * 0.5, normal, kind.picture, color, shade, swing, swing);
+    if (up < 0.35 && up > -0.75 && ends.length < 4 && c % 3 === 0) ends.push([px, py - size * 0.15, pz]);
+  }
+
+  if (kind.trunk > 0) {
+    // The trunk: spread at the foot like roots, tapering into the crown; then a few limbs out into it.
+    const base = (kind.girth * scale) / 2;
+    const top = base * 0.5;
+    const height = (kind.centre - kind.tall * 0.35) * scale;
+    const foot = Math.min(1.1 * scale, height * 0.2);
+    const headX = x + (topX - x) * 0.8;
+    const headZ = z + (topZ - z) * 0.8;
+    const kneeX = x + (headX - x) * (foot / height);
+    const kneeZ = z + (headZ - z) * (foot / height);
+    limb(out, [x, ground - 0.5, z], [kneeX, ground + foot, kneeZ], base * 1.7, base, TRUNK_SIDES, 1, kind.bark, 0, 0);
+    limb(
+      out,
+      [kneeX, ground + foot, kneeZ],
+      [headX, ground + height, headZ],
+      base,
+      top,
+      TRUNK_SIDES,
+      Math.max(Math.round((height - foot) / BARK_SPAN), 1),
+      kind.bark,
+      0,
+      0.25,
+    );
+    for (const end of ends) {
+      const from = 0.72 + rng() * 0.22;
+      limb(
+        out,
+        [kneeX + (headX - kneeX) * from, ground + foot + (height - foot) * from, kneeZ + (headZ - kneeZ) * from],
+        end,
+        top * 0.7,
+        top * 0.18,
+        4,
+        1,
+        kind.bark,
+        0.2,
+        0.45,
+      );
+    }
   }
 }
 
@@ -284,65 +367,12 @@ function reeds(out: Leaves, x: number, ground: number, z: number, scale: number,
   }
 }
 
-const REED_GREEN = new Color("#8e9a58");
-const REED_DRY = new Color("#b4a570");
+const REED_GREEN = new Color("#7f9450");
+const REED_DRY = new Color("#a89a66");
 
-/** The pictures of leaves and blades, drawn once: white shapes on nothing, tinted by the plant. */
-function drawPictures(): CanvasTexture {
-  const SIZE = 512;
-  const HALF = SIZE / 2;
-  const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const ctx = canvas.getContext("2d")!;
-  const rng = createRng(20161118);
-  ctx.clearRect(0, 0, SIZE, SIZE);
-
-  // A clump of leaves: many small leaves, thick in the middle, loose at the edge.
-  const clump = (ox: number, oy: number, leaves: number, length: number, breadth: number) => {
-    for (let i = 0; i < leaves; i++) {
-      const r = Math.pow(rng(), 0.7) * (HALF * 0.46);
-      const a = rng() * Math.PI * 2;
-      const x = ox + HALF / 2 + Math.cos(a) * r;
-      const y = oy + HALF / 2 + Math.sin(a) * r * 0.92;
-      const light = Math.round(150 + rng() * 105 - (r / (HALF * 0.46)) * 10);
-      ctx.fillStyle = `rgb(${light},${light},${light})`;
-      ctx.beginPath();
-      ctx.ellipse(x, y, length * (0.7 + rng() * 0.6), breadth * (0.7 + rng() * 0.6), rng() * Math.PI, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  };
-  // The picture is flipped by the texture: its row 0 is the top of the canvas.
-  clump(0, HALF, 520, 9, 5.5); // BROAD: texture square 0 (bottom left)
-  clump(HALF, HALF, 900, 8, 2.4); // FINE: square 1 (bottom right)
-
-  // Blades: reeds rising from the foot of the card, with plumes on some.
-  const bx = 0;
-  const by = 0;
-  for (let i = 0; i < 150; i++) {
-    const x0 = bx + 14 + rng() * (HALF - 28);
-    const top = by + 10 + rng() * HALF * 0.5;
-    const lean = (rng() - 0.5) * 46;
-    const light = Math.round(150 + rng() * 105);
-    ctx.strokeStyle = `rgb(${light},${light},${light})`;
-    ctx.lineWidth = 1.6 + rng() * 2.2;
-    ctx.beginPath();
-    ctx.moveTo(x0, by + HALF - 2);
-    ctx.quadraticCurveTo(x0 + lean * 0.3, (by + HALF + top) / 2, x0 + lean, top);
-    ctx.stroke();
-    if (rng() < 0.3) {
-      ctx.fillStyle = `rgb(${light},${light},${light})`;
-      ctx.beginPath();
-      ctx.ellipse(x0 + lean, top + 6, 3.2, 10, lean * 0.01, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Solid: for trunks.
-  ctx.fillStyle = "rgb(235,235,235)";
-  ctx.fillRect(HALF, 0, HALF, HALF);
-
-  const texture = new CanvasTexture(canvas);
+/** The photographed leaves and bark (scripts/battles/build-foliage.py), tinted by each plant. */
+function loadPictures(): Texture {
+  const texture = new TextureLoader().load("/battles/textures/foliage.webp");
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 4;
   return texture;
@@ -384,12 +414,12 @@ export class Vegetation {
   readonly group = new Group();
   private readonly material: MeshLambertMaterial;
   private readonly depthMaterial: MeshDepthMaterial;
-  private readonly texture: CanvasTexture;
+  private readonly texture: Texture;
   private readonly time = { value: 0 };
   private readonly wind = { value: [1, 0] as [number, number] };
 
   constructor(battle: Battle, heightAt: HeightAt) {
-    this.texture = drawPictures();
+    this.texture = loadPictures();
     this.material = this.leafMaterial();
     this.depthMaterial = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, map: this.texture, alphaTest: 0.45, side: DoubleSide });
     const scenery = battle.terrain.scenery;

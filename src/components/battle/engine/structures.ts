@@ -14,7 +14,18 @@
  * walks through one.
  */
 
-import { BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, MeshLambertMaterial } from "three";
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshLambertMaterial,
+  RepeatWrapping,
+  type Texture,
+  TextureLoader,
+} from "three";
 import { type Battle, type Formation, MEN_PER_FIGURE, type SceneryStructure } from "@/lib/battle";
 import { createRng, hashString } from "./rng";
 
@@ -580,9 +591,11 @@ export function occupancy(battle: Battle, margin = 8): (x: number, y: number) =>
 export class Structures {
   readonly group = new Group();
   private readonly material: MeshLambertMaterial;
+  private readonly grains: Grains;
 
   constructor(battle: Battle, heightAt: HeightAt) {
-    this.material = structureMaterial();
+    this.grains = loadGrains();
+    this.material = structureMaterial(this.grains);
     const structures = battle.terrain.scenery?.structures ?? [];
     if (structures.length === 0) return;
     const occupied = occupancy(battle);
@@ -617,13 +630,38 @@ export class Structures {
   dispose(): void {
     for (const child of this.group.children) (child as Mesh).geometry.dispose();
     this.material.dispose();
+    for (const texture of Object.values(this.grains)) texture.dispose();
   }
 }
 
-/** One material for everything built: the colour of each vertex, with the grain of its surface. */
-function structureMaterial(): MeshLambertMaterial {
+/** Photographs of cloth, of a wall of blocks and of sawn wood, grey (scripts/battles/build-materials.py). */
+interface Grains {
+  cloth: Texture;
+  masonry: Texture;
+  planks: Texture;
+}
+
+function loadGrains(): Grains {
+  const load = (name: string) => {
+    const texture = new TextureLoader().load(`/battles/textures/${name}.jpg`);
+    texture.wrapS = texture.wrapT = RepeatWrapping;
+    texture.anisotropy = 8;
+    return texture;
+  };
+  return { cloth: load("cloth"), masonry: load("masonry"), planks: load("planks") };
+}
+
+/**
+ * One material for everything built: the colour of each vertex, with the
+ * grain of its surface. The grain is a photograph where there is one for the
+ * surface (cloth, blocks, wood), on top of the joints and stains drawn here.
+ */
+function structureMaterial(grains: Grains): MeshLambertMaterial {
   const material = new MeshLambertMaterial({ vertexColors: true, side: DoubleSide });
   material.onBeforeCompile = (shader) => {
+    shader.uniforms.uCloth = { value: grains.cloth };
+    shader.uniforms.uMasonry = { value: grains.masonry };
+    shader.uniforms.uPlanks = { value: grains.planks };
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -644,6 +682,13 @@ function structureMaterial(): MeshLambertMaterial {
         /* glsl */ `#include <common>
         varying float vKind;
         varying vec3 vBuilt;
+        uniform sampler2D uCloth;
+        uniform sampler2D uMasonry;
+        uniform sampler2D uPlanks;
+        // A grey photograph as a share of the colour, about 1 on average.
+        float builtPhoto(sampler2D photo, vec2 at) {
+          return texture2D(photo, at).r * 2.0;
+        }
         float builtHash(vec2 p) {
           vec3 q = fract(vec3(p.xyx) * 0.1031);
           q += dot(q, q.yzx + 33.33);
@@ -676,31 +721,48 @@ function structureMaterial(): MeshLambertMaterial {
           } else if (vKind < 1.5) {
             // Timber: grain running up the wood.
             tone = 0.86 + 0.24 * builtNoise(vec2(face.x * 3.1, face.y * 0.25)) * near + 0.08 * blotch;
+            // The wood itself: its grain runs up the post.
+            tone *= mix(1.0, builtPhoto(uPlanks, vec2(face.y, face.x) / 3.4), 0.8);
           } else if (vKind < 2.5) {
             // Hide and cloth: panels sewn together, each of its own shade, weathered and creased.
             vec2 panel = vec2(face.x * 0.62, face.y * 0.8);
             float seam = max(smoothstep(0.44, 0.5, abs(fract(panel.x) - 0.5)), smoothstep(0.45, 0.5, abs(fract(panel.y) - 0.5)));
             float hide = builtHash(floor(panel));
             float crease = builtNoise(vec2(face.x * 2.2, face.y * 0.5));
-            tone = 0.92 + 0.1 * blotch + (0.1 * (hide - 0.5) + 0.08 * (crease - 0.5) - 0.12 * seam) * near;
+            tone = 0.9 + 0.12 * blotch + (0.22 * (hide - 0.5) + 0.2 * (crease - 0.5) - 0.2 * seam) * near;
+            // No two tents are of one shade: new cloth and old, sun-bleached and stained.
+            tone *= 0.74 + 0.5 * builtNoise(vBuilt.xz * 0.11 + 5.0);
+            // Folds that run down the cloth from the ridge, and its weave.
+            tone *= 0.9 + 0.2 * builtNoise(vec2(face.x * 0.9, face.y * 0.12) + 9.0);
+            tone *= mix(1.0, builtPhoto(uCloth, face / 2.6), 0.55 * near);
           } else if (vKind < 3.5) {
             // Stone: courses of blocks, their joints staggered.
             float course = floor(face.y / 1.5);
             float bed = smoothstep(0.42, 0.5, abs(fract(face.y / 1.5) - 0.5));
             float joint = smoothstep(0.44, 0.5, abs(fract(face.x / 2.6 + 0.5 * mod(course, 2.0)) - 0.5));
             float block = builtHash(vec2(floor(face.x / 2.6 + 0.5 * mod(course, 2.0)), course));
-            tone = 0.9 + 0.14 * block * near + 0.1 * blotch - 0.22 * max(bed, joint) * near;
+            tone = 0.9 + 0.14 * block * near + 0.14 * blotch - 0.1 * max(bed, joint) * near;
+            // The blocks themselves: a photograph of a wall.
+            tone *= mix(1.0, builtPhoto(uMasonry, face / 7.5), 0.85);
           } else if (vKind < 4.5) {
             // Plaster and mud brick: stained, cracked at the foot.
-            tone = 0.9 + 0.14 * blotch + 0.08 * (grain - 0.5) * near;
+            tone = 0.86 + 0.24 * blotch + 0.12 * (grain - 0.5) * near;
+            // The brick shows through the plaster here and there, most where it has fallen off.
+            float bare = smoothstep(0.55, 0.8, builtNoise(face * 0.45 + 21.0));
+            tone *= mix(1.0, builtPhoto(uMasonry, face / 6.0), 0.2 + 0.6 * bare);
+            // Rain has run down it.
+            tone *= 0.9 + 0.16 * builtNoise(vec2(face.x * 1.4, face.y * 0.15) + 3.0);
           } else if (vKind < 5.5) {
             // Tiles: rows down the slope.
             float row = smoothstep(0.3, 0.5, abs(fract(vBuilt.y * 1.1 + grain * 0.15) - 0.5));
             float ridge = smoothstep(0.38, 0.5, abs(fract(face.x * 0.9) - 0.5));
-            tone = 0.88 + 0.16 * blotch - 0.16 * row * near - 0.1 * ridge * near;
+            // Each tile of its own shade, as fired.
+            float fired = builtHash(vec2(floor(face.x * 0.9), floor(vBuilt.y * 1.1)));
+            tone = 0.84 + 0.2 * blotch + 0.22 * (fired - 0.5) * near - 0.3 * row * near - 0.24 * ridge * near;
           } else {
             // Thatch: streaks down the slope.
             tone = 0.86 + 0.2 * builtNoise(vec2(face.x * 2.6, face.y * 0.4)) * near + 0.1 * blotch;
+            tone *= mix(1.0, builtPhoto(uPlanks, vec2(face.y * 0.6, face.x * 2.2) / 3.0), 0.7);
           }
           diffuseColor.rgb *= tone;
         }`,

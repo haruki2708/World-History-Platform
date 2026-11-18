@@ -643,8 +643,21 @@ export class Terrain {
               vec3 grain3 = mix(broad, fine, 1.0 - smoothstep(60.0, 320.0, distance));
               float shadeOf = dot(grain3, vec3(0.3, 0.6, 0.1)) / 0.2;
               float grainShown = 1.0 - smoothstep(900.0, 3200.0, distance);
-              ground *= mix(1.0, clamp(shadeOf, 0.45, 1.7), 0.7 * grainShown);
+              ground *= mix(1.0, clamp(shadeOf, 0.35, 1.9), 0.85 * grainShown);
               ground = mix(ground, ground * 0.6 + grain3 * 0.9, 0.3 * grainShown);
+            }
+            {
+              // Beyond the reach of the tufts that stand on the ground
+              // (grass.ts) it is tufted still: a dark speck for each, as far
+              // as a speck is wider than a pixel or so.
+              const float CELL = 2.7;
+              vec2 cell = floor(g / CELL);
+              vec2 within = fract(g / CELL) - 0.5
+                - (vec2(groundHash(cell + 7.1), groundHash(cell + 3.3)) - 0.5) * 0.55;
+              float speck = (1.0 - smoothstep(0.1, 0.33, length(within))) * step(0.4, groundHash(cell));
+              float footprint = length(fwidth(g));
+              float shown = smoothstep(55.0, 130.0, distance) * (1.0 - smoothstep(0.5, 1.6, footprint / CELL * 2.5));
+              ground *= 1.0 - 0.42 * speck * shown * (1.0 - uFields);
             }
             ground = mix(ground, vColor.rgb, vOverlay);
             // Greener where the river keeps the ground moist.

@@ -84,8 +84,8 @@ const HORIZON: Stop<Color>[] = [
 const SUN_COLOR: Stop<Color>[] = [
   [-4, c("#ff7a3a")], [0, c("#ff8a48")], [8, c("#ffb878")], [25, c("#ffe9cc")], [60, c("#fff6e8")],
 ];
-const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.8], [25, 3.1], [60, 3.5]];
-const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
+const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 2.4], [25, 3.2], [60, 3.5]];
+const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.9], [25, 2.05], [60, 2.1]];
 // The colour of the light from the sky: moonlit blue by night.
 const AMBIENT_COLOR: Stop<Color>[] = [
   [-18, c("#5d74a8")], [-6, c("#6f7fa6")], [0, c("#b9b3c0")], [8, c("#c9d2e0")], [25, c("#cfdcee")],

@@ -89,8 +89,8 @@ export class Grass {
     uMask: { value: null as DataTexture | null },
     uGrid: { value: new Vector2() },
     uBounds: { value: new Vector4() },
-    uFoot: { value: new Color("#4a6b2c") },
-    uTip: { value: new Color("#93b356") },
+    uFoot: { value: new Color("#263f17") },
+    uTip: { value: new Color("#5f8a38") },
   };
 
   constructor(ground: GrassGround, windFromDegrees?: number) {
@@ -213,7 +213,7 @@ export class Grass {
           {
             // Dark at the foot, bright at the tip; every tuft of its own green.
             vec3 green = mix(uFoot, uTip, vBlade * (0.75 + 0.5 * fract(vSeed * 13.7)));
-            green *= 0.85 + 0.3 * fract(vSeed * 5.3);
+            green *= 0.72 + 0.45 * fract(vSeed * 5.3);
             // A few tufts are in flower: white, yellow or violet towards the tip.
             float flower = step(0.955, fract(vSeed * 91.3));
             vec3 petal = fract(vSeed * 17.1) < 0.4 ? vec3(0.95, 0.94, 0.86) : fract(vSeed * 17.1) < 0.75 ? vec3(0.96, 0.82, 0.25) : vec3(0.62, 0.5, 0.86);
