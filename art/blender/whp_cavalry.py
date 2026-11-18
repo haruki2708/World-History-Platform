@@ -3,7 +3,8 @@
 The contract (docs/ARCHITECTURE.md, "Kỵ binh"): one skeleton, the rider's
 67 bones and the horse's 40 (107 in all); LOD0 at most 8 000 triangles for
 both; one material, so one atlas; the clips of every unit model (idle,
-walk, jog, run, attack, die), none with root motion.
+walk, jog, run, attack, die, and block and hit of the fight hand to hand),
+none with root motion.
 
 The rider is built like a foot soldier (whp_build: stages source, kit and
 rig, from the unit module). Then, instead of the foot soldier's stages:
@@ -37,6 +38,12 @@ Clips (horse | rider):
     die     falls, rolls on its right   | goes down with the horse, is thrown
                                         |   off to the side the horse rolls
                                         |   to and lies still beside it
+    block   standing, starts a little   | brings the shield up before him
+                                        |   to meet the blow, it is driven
+                                        |   back on him, he sits up again
+    hit     standing, throws its head   | the blow gets through: thrown
+                                        |   back and round in the seat, the
+                                        |   head goes down, he sits up again
 
 Axes as everywhere: metres, X to the figure's left, -Y forwards, Z up.
 """
@@ -149,6 +156,8 @@ LEAN = {
     "run": (13.0, 0.6, 60.0),
     "attack": (0.0, 0.0, 0.0),
     "die": (0.0, 0.5, 0.0),
+    "block": (0.0, 0.0, 0.0),
+    "hit": (0.0, 0.0, 0.0),
 }
 PELVIS_TILT = 8.0           # degrees the pelvis tips back from upright (seated on the seat bones)
 SEAT_CLEAR = 0.004          # the seat of the breeches this far above the seat point
@@ -527,6 +536,15 @@ class RiderPoser:
                  (Vector((-0.25, -0.85, -0.45)).normalized(), Vector((0.75, -0.1, 0.65)).normalized()))
         self.arms._twist("l")
 
+    def left_arm(self, wrist, elbow, fingers, back):
+        """Left wrist at `wrist`, the elbow towards `elbow`, the fist
+        turned so the fingers point along `fingers` and the back of the
+        hand faces `back` (all in the rest frame of the saddle)."""
+        p = self.p
+        p.limb("upperarm_l", "lowerarm_l", "hand_l", wrist, elbow)
+        p.orient("hand_l", (self.fingers_l, self.back_l), (Vector(fingers).normalized(), Vector(back).normalized()))
+        self.arms._twist("l")
+
     def right(self, carry):
         self.arms.hold(carry)
 
@@ -595,7 +613,9 @@ class RiderPoser:
         if extra is not None:
             extra(self, f)
         skin = {n: np.array(hm[n] @ p.rest[n].inverted()) for n in self.m.horse_names}
-        if self.rider.reins:
+        if getattr(self, "_left", None) is not None:
+            self._left(self, f, carry_saddle.inverted() @ self.reins_at(skin) if self.rider.reins else None)
+        elif self.rider.reins:
             target = carry_saddle.inverted() @ self.reins_at(skin)
             self.left_on_reins(target)
         elif self.rider.shield == "hand":
@@ -613,11 +633,15 @@ class RiderPoser:
     def key(self, f):
         self.p.key(f, self.keyed, located=tuple(self.located), scaled=tuple(self.scaled))
 
-    def clip(self, name, horse_pose, extra=None, right=None, frames=None, loop=True, pose=None):
-        """Key a clip: frames + 1 keys (a loop's last is its first)."""
+    def clip(self, name, horse_pose, extra=None, right=None, frames=None, loop=True, pose=None, left=None):
+        """Key a clip: frames + 1 keys (a loop's last is its first).
+        `right(self, f)` and `left(self, f, reins)` pose an arm instead of
+        the way the rider carries his weapon and holds the reins or the
+        shield (`reins`: where the reins are, None for a rider without)."""
         count = frames if frames is not None else len(horse_pose[SADDLE]) - 1
         action = new_action(self.armature, name)
         self._right = right
+        self._left = left
         for f in range(count + 1):
             k = f % count if loop else f
             if pose is not None:
@@ -626,6 +650,7 @@ class RiderPoser:
                 self.frame(name, k, horse_pose, extra)
             self.key(f)
         self._right = None
+        self._left = None
         finish_action(self.armature, action, count, loop=loop)
         return action
 
@@ -647,9 +672,10 @@ def _keyframes(keys, u):
     return keys[-1][1]
 
 
-def _stance(mount, frames, breath=0.6, nod=2.0):
+def _stance(mount, frames, breath=0.6, nod=2.0, toss=None):
     """The horse standing for the attack: the bind stance, breathing once
-    and nodding a little with the stroke, looping over `frames`."""
+    and nodding a little with the stroke, looping over `frames`.
+    `toss(f)`: degrees the head is thrown up at frame f, on top."""
     rest = {n: np.array(mount.armature.data.bones[n].matrix_local) for n in mount.horse_names}
     bones = mount.armature.data.bones
     basis = {n: [np.eye(4) for _ in range(frames + 1)] for n in mount.horse_names}
@@ -658,7 +684,10 @@ def _stance(mount, frames, breath=0.6, nod=2.0):
         for n, sign in (("horse_spine_2", 1.0), ("horse_spine_3", -1.0)):
             basis[n][f] = np.array(Matrix.Rotation(math.radians(breath * math.sin(a) * sign), 4, "X"))
         for n in ("horse_neck_1", "horse_neck_2", "horse_head"):
-            basis[n][f] = np.array(Matrix.Rotation(math.radians(nod * math.sin(a + 0.6)), 4, "X"))
+            angle = nod * math.sin(a + 0.6)
+            if toss is not None:
+                angle += TOSS_SIGN * toss(f) / 3.0
+            basis[n][f] = np.array(Matrix.Rotation(math.radians(angle), 4, "X"))
     pose = {}
     for n in mount.horse_names:
         parent = bones[n].parent
@@ -725,6 +754,134 @@ def _stroke(table, keys, twist, lean, frames):
                      turn @ Vector(hand["aim"]).normalized(), turn @ Vector(hand["up"]).normalized())
 
     return extra, right
+
+
+# --------------------------------------------------------------------------
+# Taking a blow hand to hand (batch G)
+# --------------------------------------------------------------------------
+#
+# The riders' block and hit, as the foot soldiers' (whp_clips.REACT): both
+# begin and end seated as in idle, are REACT["frames"] long, and the blow
+# lands REACT["impact"] frames in. The horse stands as for the attack.
+
+TOSS_SIGN = -1.0            # the horse's neck bones turn about X this way to raise the head
+
+# The left arm of a rider with the shield slung on his forearm, as he meets
+# a blow: the fist leaves the reins and the forearm comes up across the
+# body, the shield before the chest and face. In the chest's frame (as
+# whp_clips.Arms.shield: X to his left, -Y forwards, Z up, from the top of
+# the spine), the chest's turn followed by SHIELD_UP_FOLLOW.
+SHIELD_UP = {
+    # Raised and pushed out towards the blow.
+    "block": dict(wrist=(-0.10, -0.36, -0.07), elbow=(1.0, -0.15, -0.3),
+                  fingers=(-0.95, -0.20, 0.25), back=(0.2, -0.95, 0.2)),
+    # The blow lands on it: driven back on the chest.
+    "jolt": dict(wrist=(-0.06, -0.26, -0.10), elbow=(1.0, -0.1, -0.35),
+                 fingers=(-0.95, -0.10, 0.25), back=(0.15, -0.95, 0.25)),
+}
+SHIELD_UP_FOLLOW = 0.5
+# The fist on the reins (RiderPoser.left_on_reins), to blend from.
+REINS_GRIP = dict(offset=(0.025, 0.075, 0.035), elbow=(1.0, 0.5, -0.6),
+                  fingers=(-0.25, -0.85, -0.45), back=(0.75, -0.1, 0.65))
+
+# A shield in the left fist (Rider.shield == "hand"), as whp_clips.SHIELD_CARRY
+# for the man on foot: pushed out to meet the blow, driven back, and knocked
+# open when the blow gets through.
+RIDE_SHIELD_REACT = {
+    "block": dict(wrist=(0.18, -0.48, -0.12), down=(0.0, -0.14, -1.0), out=(0.10, -1.0, 0.06),
+                  elbow=(1.0, 0.15, -0.5), follow=0.3),
+    "jolt": dict(wrist=(0.20, -0.33, -0.17), down=(0.0, -0.32, -1.0), out=(0.22, -1.0, 0.14),
+                 elbow=(1.0, 0.3, -0.5), follow=0.5),
+    "open": dict(wrist=(0.36, -0.20, -0.36), down=(0.08, -0.12, -1.0), out=(0.80, -0.6, 0.0),
+                 elbow=(1.0, 0.4, -0.35), follow=0.8),
+}
+
+# The trunk, degrees at frames of the clip (eased between): turned to the
+# left (Z), leaned forwards (X) and to his left (Y), and the head nodding
+# forwards on top. The blow lands at frame 9.
+REACT_TRUNK = {
+    # He turns the shield side to the blow and leans into it; it rocks him back.
+    "block": dict(twist=[(0, 0.0), (7, -14.0), (9, -14.0), (12, -6.0), (30, 0.0)],
+                  lean=[(0, 0.0), (7, 6.0), (9, 6.0), (12, -5.0), (18, -1.0), (30, 0.0)],
+                  side=[(0, 0.0), (30, 0.0)],
+                  nod=[(0, 0.0), (7, 4.0), (9, 4.0), (12, 0.0), (30, 0.0)]),
+    # Thrown back and round in the seat, the head whipping forwards, then up again.
+    "hit": dict(twist=[(0, 0.0), (9, 0.0), (12, 16.0), (17, 11.0), (30, 0.0)],
+                lean=[(0, 0.0), (8, 0.0), (12, -18.0), (17, -11.0), (30, 0.0)],
+                side=[(0, 0.0), (9, 0.0), (13, -7.0), (30, 0.0)],
+                nod=[(0, 0.0), (8, 0.0), (11, 14.0), (16, -4.0), (30, 0.0)]),
+}
+REACT_TOSS = {"block": 3.0, "hit": 10.0}        # degrees the horse throws its head up
+
+
+def _at(keys, f):
+    """Value at frame f of (frame, value) keys, eased between them."""
+    return _keyframes([(k / keys[-1][0], v) for k, v in keys], f / keys[-1][0])
+
+
+def _reaction(rider, name):
+    """A clip of whp_clips.REACT for a rider: returns (extra, left, toss)
+    for RiderPoser.clip and _stance. `left` is None where the left arm
+    stays as it rides."""
+    frames, impact = whp_clips.REACT["frames"], whp_clips.REACT["impact"]
+    trunk = REACT_TRUNK[name]
+
+    def extra(rp, f):
+        twist, lean, side, nod = (_at(trunk[k], f) for k in ("twist", "lean", "side", "nod"))
+        rp.bend(twist, "Z")
+        rp.bend(lean)
+        rp.bend(side, "Y")
+        rp.level_head(lean)
+        rp.p.rotate("neck_01", "Z", -twist * 0.4)
+        rp.p.rotate("head", "Z", -twist * 0.4)
+        rp.p.rotate("neck_01", "X", nod * 0.5)
+        rp.p.rotate("head", "X", nod * 0.5)
+
+    def raised(f):
+        """How far the shield is up: there two frames before the blow, down again over the last half."""
+        if f <= impact + 4:
+            return smooth(f / (impact - 2))
+        return 1.0 - smooth((f - impact - 4) / (frames - impact - 4))
+
+    def slung(rp, f, reins):
+        w = raised(f)
+        if w <= 0.0:
+            rp.left_on_reins(reins)
+            return
+        up = _keyframes([(0.0, SHIELD_UP["block"]), (impact / frames, SHIELD_UP["block"]),
+                         ((impact + 3) / frames, SHIELD_UP["jolt"]), (1.0, SHIELD_UP["jolt"])], f / frames)
+        turn, origin = rp.arms.chest(SHIELD_UP_FOLLOW)
+        grip = REINS_GRIP
+        rp.left_arm((reins + Vector(grip["offset"])).lerp(origin + turn @ Vector(up["wrist"]), w),
+                    Vector(grip["elbow"]).lerp(turn @ Vector(up["elbow"]), w),
+                    Vector(grip["fingers"]).normalized().lerp(turn @ Vector(up["fingers"]).normalized(), w),
+                    Vector(grip["back"]).normalized().lerp(turn @ Vector(up["back"]).normalized(), w))
+
+    def held(rp, f, _reins):
+        rest, react = rp.rider.shield_carry, RIDE_SHIELD_REACT
+        if name == "block":
+            if f <= impact:
+                carry = whp_clips.blend_carry(rest, react["block"], smooth(f / (impact - 2)))
+            elif f <= impact + 3:
+                carry = whp_clips.blend_carry(react["block"], react["jolt"], smooth((f - impact) / 3.0))
+            else:
+                carry = whp_clips.blend_carry(react["jolt"], rest, smooth((f - impact - 3) / (frames - impact - 3)))
+        elif f <= impact + 4:
+            carry = whp_clips.blend_carry(rest, react["open"], smooth((f - impact) / 4.0))
+        else:
+            carry = whp_clips.blend_carry(react["open"], rest, smooth((f - impact - 4) / (frames - impact - 4)))
+        rp.arms.shield(carry)
+
+    def toss(f):
+        return REACT_TOSS[name] * smooth((f - impact + 1) / 3.0) * (1.0 - smooth((f - impact - 2) / 12.0))
+
+    if rider.shield == "hand" and not rider.reins:
+        left = held
+    elif rider.shield == "forearm" and rider.reins and name == "block":
+        left = slung
+    else:
+        left = None
+    return extra, left, toss
 
 
 def horse_strides(mount, horse_pose, label):
@@ -891,6 +1048,12 @@ def stage_anim(unit):
         extra, right = _stroke(THROW, THROW_KEYS, THROW_TWIST, THROW_LEAN, frames)
     actions.append(rp.clip("attack", stance, extra=extra, right=right, frames=frames))
     actions.append(die_clip(rp, death))
+    # After the first six: they come out as they did without these two.
+    frames = whp_clips.REACT["frames"]
+    for name in ("block", "hit"):
+        extra, left, toss = _reaction(unit.RIDER, name)
+        actions.append(rp.clip(name, _stance(m, frames, toss=toss), extra=extra, left=left, frames=frames,
+                               loop=whp_clips.LOOPS[name]))
     for action in actions:
         log(f"clip {action.name}: {int(action.frame_end)} frames at {FPS} fps")
     rider.animation_data.action = None

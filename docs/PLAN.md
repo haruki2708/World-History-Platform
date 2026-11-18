@@ -101,7 +101,7 @@ Người dùng duyệt 2026-11-18. **Phiên chính làm hết** (cảnh, dữ li
 |---|---|---|---|
 | 1 | Cảnh và dữ liệu Cannae, dùng clip `attack` sẵn có: hàng đầu áp sát, ghép cặp, chỉ đánh khi có đối thủ trong tầm, người ngã là người vừa bị đánh, người sau bước lên. Thêm một câu về độ chính xác vào hộp thoại Giới thiệu | [T-032](tasks/T-032-melee-stage1.md), lane 3 đọc lại: [T-032 review](tasks/T-032-review.md) | Xong, đã gộp 2026-11-18 |
 | 2 | Clip đỡ đòn (`block`) và trúng đòn (`hit`) cho 6 mô hình bộ binh đánh gần. Làm cặp `roman-legionary` với `gallic-infantry` trước, người dùng xem trong `/battle-lab?duel=1` rồi mới làm bốn mô hình còn lại | [T-033](tasks/T-033-melee-stage2.md), lane 3 đọc lại: [T-033 review](tasks/T-033-review.md) | Xong, đã gộp 2026-11-18 |
-| 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh. Thêm từ review chặng 2: phản ứng của người bị đánh đi theo nhát đánh thật của địch | chưa viết | Chưa bắt đầu, chờ người dùng cho bắt đầu |
+| 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh. Thêm từ review chặng 2: phản ứng của người bị đánh đi theo nhát đánh thật của địch | [T-034](tasks/T-034-melee-stage3.md), lane 1 đọc lại thay lane 3: [T-034 review](tasks/T-034-review.md) | Xong 2026-11-18 trên nhánh `batch-g/stage3-cavalry`; lane 1 đã đọc lại, phiên chính đã sửa theo review; chờ người dùng duyệt gộp |
 
 ## Không làm (điện thoại chỉ cần dùng được)
 

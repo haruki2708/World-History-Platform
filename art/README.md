@@ -157,7 +157,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `block` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Đỡ đòn bằng khiên: nâng khiên và đẩy ra trước, khiên bị dội về ngực lúc đòn chạm (khung 9), rồi hồi lại. Thân nhận 35% cú giật của `Hit_Chest`. **Không lặp.** |
 | `hit` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Trúng đòn: đứng như `idle` tới khung 9, rồi cả cú giật `Hit_Chest`, tay khiên bị bật ra; hồi lại. **Không lặp.** |
 
-**`block` và `hit`** (đợt G, `whp_clips.REACT`, `Builder.block`, `Builder.hit`): cảnh phát hai clip này đè lên `idle` khi đòn của địch chạm vào hình lính. Đòn chạm ở khung 9 (0,3 s), trùng với `REACTION_IMPACT` trong `src/lib/battle.ts`; đổi số này là đổi hợp đồng. Hai clip dựng sau `jog`, nên sáu clip trước giống hệt từng byte. Có ở sáu mô hình bộ binh đánh gần; hai mô hình đánh từ xa (kiểu tấn công trong `whp_clips.THROWN`: `roman-velites`, `balearic-slinger`) giữ sáu clip, file không đổi; kỵ binh chưa có (`whp_build.clips_of`). Ảnh hai mô hình đối mặt quanh lúc đòn chạm: `render_review.py -- --model A --duel B`, ra `art/renders/duel-A-B.jpg`.
+**`block` và `hit`** (đợt G, `whp_clips.REACT`, `Builder.block`, `Builder.hit`): cảnh phát hai clip này đè lên `idle` khi đòn của địch chạm vào hình lính. Đòn chạm ở khung 9 (0,3 s), trùng với `REACTION_IMPACT` trong `src/lib/battle.ts`; đổi số này là đổi hợp đồng. Hai clip dựng sau `jog`, nên sáu clip trước giống hệt từng byte. Có ở sáu mô hình bộ binh đánh gần và ba mô hình kỵ binh (mục "Kỵ binh"); hai mô hình bộ binh đánh từ xa (kiểu tấn công trong `whp_clips.THROWN`: `roman-velites`, `balearic-slinger`) giữ sáu clip, file không đổi (`whp_build.clips_of`). Ảnh hai mô hình đối mặt quanh lúc đòn chạm: `render_review.py -- --model A --duel B`, ra `art/renders/duel-A-B.jpg`.
 
 **Quãng đường một vòng** đo như cảnh đo (`plantedStride` trong `src/components/battle/engine/figures/model.ts`): đỉnh đế bàn chân nào nằm trong 2 cm trên điểm thấp nhất của clip ở hai khung liền nhau thì đang chạm đất, và lùi về sau đúng bằng tốc độ hình lính đi. Lấy trung vị các tốc độ đó, nhân với độ dài clip. Log của giai đoạn `anim` đo trên lưới chi tiết; `art/tools/gait_check.py` đo trên LOD0 của file `.glb` (hai số chênh nhau dưới 0,01 m). Số ở bảng là của mô hình La Mã; các mô hình khác chênh dưới 0,02 m.
 
@@ -625,6 +625,8 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 | `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo chĩa ra trước | 0,433 s (13 khung) |
 | `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, hoặc phóng lao | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
 | `die` | `die` của ngựa | ngã theo ngựa, rồi văng khỏi lưng, nằm yên | 1,967 s (59 khung), không lặp |
+| `block` | đứng bốn chân như `attack`, hất đầu nhẹ lúc đòn chạm | đưa khiên ra trước người đỡ đòn, khiên bị dội lại, rồi ngồi lại như cũ | 1,0 s (30 khung), không lặp |
+| `hit` | đứng bốn chân như `attack`, hất đầu lúc đòn chạm | bật ngửa và xoay người trên lưng ngựa, đầu gục tới, rồi ngồi lại | 1,0 s (30 khung), không lặp |
 
 - **Đâm giáo** (La Mã, Iberia/Gaul):
   - giáo giơ trên vai phải, chĩa ra trước và xuống; kéo về sau, đâm tới qua bên phải đầu ngựa, giữ một nhịp, rồi về;
@@ -637,6 +639,12 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - cú ngã ấy đặt trên mặt đất phía ngựa lăn sang, mặt hướng về ngựa: người văng qua lưng ngựa và ngã ngửa ra xa nó. Chỗ nằm tính từ khung cuối: phía người gần ngựa cách thân ngựa 6 cm;
   - từ khung 46 người nằm yên;
   - khiên đeo cẳng tay đi theo tay rồi nằm phẳng xuống đất cạnh tay trái; giáo nằm ngang.
+- **Đỡ đòn và trúng đòn** (đợt G, `_reaction`, cùng hợp đồng với bộ binh: `whp_clips.REACT`, đòn chạm ở khung 9):
+  - `block`, người đeo khiên ở cẳng tay (La Mã, Iberia/Gaul): tay trái rời dây cương, cẳng tay đưa ngang trước ngực cho mặt khiên quay ra trước (`SHIELD_UP`); thân xoay bên khiên về phía đòn 14°, chồm tới 6°. Đòn chạm thì khiên bị dội về ngực, thân bật ngửa 5°; nửa sau clip tay trở lại dây cương. Dây cương là lưới của ngựa nên vẫn nằm ở cổ ngựa lúc tay rời ra;
+  - `block`, người cầm khiên trong tay (Numidia): đẩy khiên ra trước rồi bị dội lại, như lính bộ binh (`RIDE_SHIELD_REACT`);
+  - `hit`: thân bật ngửa 18°, xoay 16°, nghiêng 7°, đầu gục tới rồi ngẩng lại (`REACT_TRUNK`); tay trái giữ dây cương, khiên của người Numidia bị bật sang trái;
+  - ngựa hất đầu lên lúc đòn chạm (`REACT_TOSS`: 3° và 10°);
+  - hai clip dựng sau `die`, nên sáu clip trước giống hệt từng byte so với trước đợt G.
 - Mọi clip đều không có chuyển động gốc.
 
 **Sải bước đo như cảnh** (`gait_check.py` trên LOD0 của file `.glb`; "đế chân" là móng ngựa):
@@ -687,6 +695,8 @@ Chỉ `horse_lod.py`; kết quả của con ngựa không đổi:
 | `03-lods.jpg` | LOD0, LOD1, LOD2. |
 | `04-anim-idle.jpg` … `09-anim-die.jpg` | Ba khung mỗi clip (`idle`, `walk`, `jog`, `run`, `attack`, `die`), nhìn từ bên phải ngựa. |
 | `10-beside-roman-legionary.jpg` | Cạnh `roman-legionary`: nhìn trước, rồi nhìn nghiêng (người đứng trước đầu ngựa). |
+
+`block` và `hit` của kỵ binh xem ở ảnh hai kỵ binh đối mặt quanh lúc đòn chạm (`render_review.py -- --model A --duel B`): `art/renders/duel-roman-cavalry-iberian-gallic-cavalry.jpg`, `art/renders/duel-roman-cavalry-numidian-cavalry.jpg`.
 
 - `art/renders/cavalry-lineup.jpg`: ba mô hình kỵ binh nhìn nghiêng (bên phải).
 - `art/renders/roman-legionary/17-jog-before-after.jpg`: hàng trên là `run` (trước T-022, cảnh phát clip này chậm lại khi khối quân đi vừa phải), hàng dưới là `jog`; sáu khung mỗi clip.
