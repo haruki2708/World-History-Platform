@@ -61,7 +61,7 @@ const PALETTE = {
   cliff: new Color("#86837d"),
   bank: new Color("#6d8546"),
   forest: new Color("#566643"),
-  sea: new Color("#153a54"),
+  sea: new Color("#1d3a4e"),
   strand: new Color("#d3c59c"),
 };
 
