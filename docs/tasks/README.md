@@ -63,3 +63,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-042](T-042-model-upgrade.md) | Phiên chính | Trận đánh 3D, đợt I: nâng lính La Mã và kỵ binh La Mã từ mô hình gốc (thang chi tiết bốn mức `hi`, bờm và đuôi ngựa bằng lọn lông), render ảnh so sánh | Dựng thử xong, **không dùng**: người dùng thấy sửa ánh sáng lính (T-041) là đủ. Script và ảnh đã gộp 2026-11-19, cảnh không đọc mô hình `hi` |
 | [T-043](T-043-melee-press.md) | Phiên chính | Trận đánh 3D, đợt I: giáp lá cà hỗn chiến (hàng sau chen lấn, đâm với, giơ khiên; lao và đá bay) | Xong, đã gộp 2026-11-19 (người dùng duyệt từng phần; không có lane đọc lại) |
 | [T-044](T-044-scenery-look.md) | Phiên chính | Trận đánh 3D, đợt I: nước, lều, nhà và cây có chất liệu ảnh thật (CC0) | Xong, đã gộp 2026-11-19 (người dùng duyệt từng phần; không có lane đọc lại) |
+| [T-045](T-045-camp-guard.md) | 2 | Trận đánh 3D, đợt J: quân giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó; ra và về trại lớn qua cổng | Đã giao 2026-11-19 |
+| [T-046](T-046-footprint-fade.md) | Phiên chính | Trận đánh 3D, đợt J: mảng màu phe dưới chân khối quân mờ đi khi nhìn gần | Đang làm |

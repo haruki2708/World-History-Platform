@@ -11,7 +11,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
 | 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Đang làm. Xong: T-007 (giới hạn, trần chi phí), T-008 (link chia sẻ, nhớ ngôn ngữ, phím tắt), T-013 (giới thiệu, ghi công) |
 | 6. Mở rộng | Gia sư dẫn đường trên bản đồ; sau đó quiz, thời kỳ mới | Lane 1 (T-010), Lane 2 (T-011) | Câu trả lời có nút đưa tới đúng sự kiện và năm | Gia sư dẫn đường xong ở chế độ giả lập và với máy chủ Claude giả (T-010, T-011, đã gộp 2026-11-16); chưa thử với model thật |
-| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H" |
+| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H"; đợt I (đồ hoạ theo ảnh mẫu) gộp 2026-11-19; đợt J (làm nốt Cannae) bắt đầu 2026-11-19 |
 
 ## Nhật ký
 
@@ -93,6 +93,8 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-19:** Người dùng thấy nước và cả cảnh "chưa chuẩn và thật như ảnh mẫu", hỏi lấy được gì từ ảnh mẫu. Phiên chính đo năm ảnh mẫu và ảnh chụp cảnh bằng cùng một thước (`main-tools/look/measure.py`): cảnh đậm màu gần gấp đôi (xanh lá 0,91–0,97 so với 0,50–0,66) và có nửa số chi tiết nhỏ. Bước 1 hạ độ đậm và nâng vùng bóng (người dùng duyệt); bước 2 đưa lá, vỏ cây, vải, tường, gỗ ảnh thật (ambientCG, CC0) vào cây, lều, nhà, làm bụi cỏ sẫm hơn đất và đất xa lốm đốm. Chờ người dùng xem.
 - **2026-11-19:** Người dùng xem ảnh bước 2 của T-044: "ok, đã đủ thật rồi". Cảnh mẫu của đợt I (màu, lính, hỗn chiến, nước, cây, lều, nhà) đã được duyệt từng phần; việc còn lại là hoàn thiện để gộp.
 - **2026-11-19:** Người dùng duyệt hai dòng viết lại của hộp thoại Giới thiệu (mặt đất xanh trái mùa; hàng sau chen lấn và lao ném qua đầu là minh hoạ) và cho gộp. Đợt H chặng 2 và 3 cùng đợt I gộp vào `main` trong một lần và đẩy lên GitHub. Còn lại của đợt H: chặng 4 (bụi và gió), hoãn.
+- **2026-11-19:** Kiểm tra sau khi gộp đợt I (người dùng chọn): build lại `main` cho bản xem thử ở cổng 3000; hồi quy lõi 17/17, console sạch. Chụp Cannae lúc 5:30 (mặt trời cao khoảng 8°) và 17:00, góc mở trận ở 1280 và 390 px: không lỗi; lính phía khuất nắng vẫn sáng. Trận chạy 5:30–17:00 nên không có hoàng hôn hay đêm. Hai chỗ để người dùng xem: biển lúc bình minh nhạt gần trùng màu trời; mảng màu phe dưới chân khối quân rất rõ khi nhìn từ trên cao.
+- **2026-11-19:** Người dùng chọn **làm nốt trận Cannae, giao cho các lane** (mục "Đợt J"). Giao T-045 cho lane 2 (quân giữ trại của Hannibal; đi ra, về trại lớn qua cổng). Người dùng chọn thêm: mảng màu phe mờ đi khi nhìn gần; việc này nhỏ nên phiên chính làm (T-046). Bụi và gió, LOD nhẹ hơn và sửa kỵ binh, hình nhà và làng, đám đông dày hơn, biển lúc bình minh, móng ngựa khi đi bước: đã nêu, người dùng chưa chọn.
 
 ## Việc để giai đoạn 5
 
@@ -173,9 +175,9 @@ Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặn
 - Kiểu dữ liệu phong cảnh dùng chung cho mọi trận: trận sau (có rừng, có làng) chỉ thêm dữ liệu và mô hình.
 
 **Việc phát sinh, chưa giao:**
-- Thêm một khối quân Carthage giữ trại của Hannibal (Polybius 3.117): hiện `camp-force` đánh vào một trại không người. Nên làm cùng chặng 2.
+- Thêm một khối quân Carthage giữ trại của Hannibal (Polybius 3.117): hiện `camp-force` đánh vào một trại không người. Giao ở đợt J: [T-045](tasks/T-045-camp-guard.md).
 - Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius. (T-039 mới giữ ba ý: khoảng trống sau luỹ, đường lớn, lều xếp hàng.)
-- Sửa đường ra của `camp-force` và `roman-cavalry` để trại lớn không trống một góc (T-039).
+- Sửa đường ra của `camp-force` và `roman-cavalry` để trại lớn không trống một góc (T-039). Giao ở đợt J: [T-045](tasks/T-045-camp-guard.md).
 - **Đồ hoạ lính** (người dùng hỏi 2026-11-18: lính "trông đơn giản như hình khối, không như thật"). Nhận định của phiên chính: nhìn sát thì mô hình có chi tiết (áo giáp xích, ngù mũ); cái làm lính trông như hình khối là (1) cảnh chỉ dùng mức chi tiết cao nhất khi một hình cao từ 110 điểm ảnh trở lên, nên ở khoảng cách thường nhìn người xem thấy LOD1 và LOD2, mà LOD2 là thân người dựng bằng ống và elip tô màu phẳng; (2) mọi người lính là một bản sao, cùng khuôn mặt, cùng dáng đứng. Phương án, từ rẻ tới đắt: nới ngưỡng mức chi tiết trong ngân sách tam giác; làm lại LOD2 cho giống người hơn; thêm vài biến thể khuôn mặt, màu áo, dáng đứng; dựng lại mô hình gốc với lưới và chất liệu tốt hơn. **Người dùng chọn (2026-11-18): làm hai bước đầu trước** (nới ngưỡng mức chi tiết; làm lại LOD2), xem kết quả rồi mới quyết hai bước sau; và **làm sau chặng thực vật** của đợt H. Chưa viết task.
 - Hiệu năng sau chặng 1 và 2: khi phát giai đoạn 3–4, các lượt đo chiều 2026-11-18 dao động 48–65 khung hình mỗi giây ở cả `main` lẫn nhánh chặng 2, tức có lượt dưới mục tiêu 50. Buổi sáng, trước chặng 1, `main` đạt 56–66. Cần một lần đo trên máy sạch, nhiều vòng, để biết chặng 1 (shader mặt đất, vùng xa) lấy mất bao nhiêu; nếu đáng kể thì giảm số lần lấy nhiễu của shader mặt đất ở xa camera.
 
@@ -199,6 +201,19 @@ Ngày 2026-11-18, giữa chặng 3 của đợt H, người dùng gửi năm ả
 Việc nâng cấp đồ hoạ lính mà người dùng chọn trước đó ("bước 1 và 2": nới ngưỡng mức chi tiết, làm lại LOD2) nhập vào đợt này; bước 1 đã nằm trong bản cắt đầu tiên.
 
 Chặng 4 của đợt H (bụi và gió) hoãn tới sau cảnh mẫu.
+
+## Đợt J: làm nốt trận Cannae
+
+Ngày 2026-11-19, sau khi gộp đợt I, người dùng chọn làm nốt các việc dở của Cannae và cho giao lane. Phiên chính nêu các việc dở; người dùng chọn hai việc dưới đây.
+
+| Việc | Nội dung | Ai | Task | Trạng thái |
+|---|---|---|---|---|
+| Quân giữ trại, đường ra trại | Thêm khối Carthage giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó thay vì đánh từ xa vào trại không người; `camp-force` và `roman-cavalry` ra (và về) trại lớn qua cổng để trại không trống một mảng lều (hiện 34,6% diện tích trại lớn không được dựng lều) | Lane 2 | [T-045](tasks/T-045-camp-guard.md) | Đã giao 2026-11-19 |
+| Mảng màu phe khi nhìn gần | Giữ mảng màu dưới chân khối quân khi nhìn xa, mờ hẳn khi nhìn gần (hiện còn độ đục 0,1, trông như đất trống dưới chân lính) | Phiên chính | [T-046](tasks/T-046-footprint-fade.md) | Đang làm |
+
+**Đã nêu, người dùng chưa chọn:** bụi và gió (chặng 4 của đợt H); xuất LOD1, LOD2 ít đường nối UV (GPU nhẹ hơn khoảng một phần ba theo lane 3 đo ở T-031) và sửa các chỗ chưa ưng của kỵ binh, nhát chém của lính Gaul; hình nhà và làng; đám đông dày hơn ở chỗ giáp mặt; biển lúc bình minh; móng ngựa trượt khi đi bước (phải xuất lại ba mô hình kỵ binh).
+
+**Không cần làm:** hành động ở giai đoạn 1 của Cannae đã đúng (21 khối `advance`); kỵ binh Numidia không đỡ đòn chỉ thấy ở trận thử `?duel=1`, vì ở Cannae họ chỉ đánh từ xa.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 
