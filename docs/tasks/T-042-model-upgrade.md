@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn). Task này sửa cả script của lane 1 (`art/blender/whp_*.py`) và của lane 2 (`art/blender/horse_*.py`); hai lane đọc mục "Đã đổi trong script" trước khi sửa tiếp các file đó.
 - **Model:** Fable 5.2 (xhigh).
 - **Nhánh:** `batch-i/look-sample`, worktree `E:\World_History_Platform_assets\wt-stage3` (cùng nhánh với [T-041](T-041-look-sample.md)).
-- **Trạng thái:** hai mô hình thử (lính La Mã, kỵ binh La Mã) đã dựng và có ảnh so sánh. Người dùng xem và chọn **sửa ánh sáng lính trong cảnh trước, giữ mô hình cũ** (2026-11-18). Mô hình `hi` **để đó, chưa đưa vào cảnh**; quyết tiếp sau khi người dùng xem cảnh đã sửa ánh sáng ([T-041](T-041-look-sample.md), mục "Ánh sáng bù cho hình lính").
+- **Trạng thái:** hai mô hình thử (lính La Mã, kỵ binh La Mã) đã dựng và có ảnh so sánh. Người dùng xem và chọn **sửa ánh sáng lính trong cảnh trước, giữ mô hình cũ** (2026-11-18). Sau khi xem cảnh đã sửa ánh sáng ([T-041](T-041-look-sample.md), mục "Ánh sáng bù cho hình lính"), người dùng nói: "tôi thấy lính và ngựa đã đạt rồi đấy". Mô hình `hi` vì vậy **để đó, không đưa vào cảnh** (diễn giải của phiên chính: mô hình cũ đã đủ; người dùng chưa nói bỏ hẳn). Script và ảnh giữ lại trên nhánh để dùng nếu sau này cần.
 - **Phạm vi file:** `art/blender/`, `art/renders/upgrade/`, `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" trước.

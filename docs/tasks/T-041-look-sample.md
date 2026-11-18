@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính.
 - **Model:** Fable 5.2.
 - **Nhánh:** `batch-i/look-sample`, xếp chồng lên `batch-h/stage3-vegetation` (chặng 3) và `batch-h/stage2-structures` (chặng 2); cả hai chưa gộp, người dùng chọn giữ làm nền. Làm ở worktree `E:\World_History_Platform_assets\wt-stage3`, `next dev` cổng 3106.
-- **Trạng thái:** người dùng đã xem bản cắt đầu tiên: góc quay và khung cảnh đạt, lính và ngựa chưa đạt ("ps1"). Đã thêm ánh sáng bù cho hình lính (mục cùng tên bên dưới), **chờ người dùng xem lại**. **Chưa phải cảnh mẫu hoàn chỉnh** (xem "Chưa làm").
+- **Trạng thái:** người dùng đã xem bản cắt đầu tiên: góc quay và khung cảnh đạt, lính và ngựa chưa đạt ("ps1"). Đã thêm ánh sáng bù cho hình lính (mục cùng tên bên dưới); người dùng xem lại và nói (2026-11-18): "tôi thấy lính và ngựa đã đạt rồi đấy". **Chưa phải cảnh mẫu hoàn chỉnh** (xem "Chưa làm").
 - **Phạm vi file:** `src/components/battle/`, `src/app/battle-lab/`, `src/data/battles/`, `public/battles/textures/`, `art/CREDITS.md`, `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" ở cuối trước.
