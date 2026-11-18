@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (đợt G, người dùng chọn 2026-11-18).
 - **Model:** Fable 5.2, effort `high` (người dùng đặt).
 - **Nhánh:** `batch-g/stage3-cavalry` (tạo từ `main` sau khi gộp chặng 2).
-- **Trạng thái:** xong 2026-11-18; lane 1 đã đọc lại thay lane 3 (`T-034-review.md`), đã sửa theo review (mục "Sau review của lane 1"); chờ người dùng duyệt gộp.
+- **Trạng thái:** xong, **đã gộp vào `main` 2026-11-18** (người dùng duyệt). Lane 1 đọc lại thay lane 3: `T-034-review.md`; phần sửa theo review ở mục "Sau review của lane 1".
 - **Phạm vi file:** `src/components/battle/engine/`, `src/app/battle-lab/`, `art/`, `public/battles/models/`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G". Chặng 2: `T-033-melee-stage2.md`, review của lane 3: `T-033-review.md`.
 

@@ -58,6 +58,12 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Chuyển sang chặng 3: phản ứng đi theo nhát đánh thật của địch (hiện khoảng một trên mười lần đỡ đòn ở Cannae không có đòn nào tới).
   - Kiểm tra trước khi gộp: lint, validate, build qua; hồi quy lõi 17/17; console sạch.
   - Người dùng duyệt gộp và đẩy lên GitHub. Chặng 3 chờ người dùng cho bắt đầu.
+- **2026-11-18:** Phiên chính xong chặng 3 của đợt G (T-034), **đợt G xong cả ba chặng**. Ba mô hình kỵ binh có `block` và `hit` (sáu clip cũ giống hệt từng byte). Cảnh: người bị đánh phản ứng theo nhát đánh thật của địch (`engine/blows.ts`); lần đỡ đòn mà không có đòn nào tới ở Cannae giảm từ 789 xuống 5. Trận thử `/battle-lab?duel=1` có thêm cặp kỵ binh Numidia.
+  - Lane 3 hết hạn mức, nên người dùng giao lane 1 đọc lại thay (`docs/tasks/T-034-review.md`): không có lỗi làm hỏng cảnh; tốc độ ngang `main`; hai chỗ nên sửa, phiên chính sửa cả hai trước khi gộp (sau khi tua, người bị đánh vào đúng giữa clip phản ứng: thiếu phản ứng 61% xuống 7%; khối đang đánh từ xa không phản ứng).
+  - Kiểm tra trước khi gộp: lint, validate, build qua; hồi quy lõi 17/17; console sạch.
+  - Người dùng duyệt gộp và đẩy lên GitHub.
+  - Còn lại của đợt G: kỵ binh Numidia đánh gần hầu như không đỡ đòn (clip phóng lao lấy đà lâu; chỉ thấy ở trận thử); mũi giáo kỵ binh chỉ tới đầu ngựa của địch; giai đoạn 5 của Cannae đổi đối thủ 1,3 giây một lần (muốn giảm phải sửa dữ liệu); nhát chém của lính Gaul qua mép khiên sớm 2–3 khung.
+  - Người dùng chọn làm ngay một việc nhỏ sau đợt G: hastatus không cầm hai cây *pilum* trong lúc giáp lá cà (hiện chúng biến đi rồi hiện lại mỗi lần đánh, đỡ hay trúng đòn).
 
 ## Việc để giai đoạn 5
 
@@ -101,7 +107,7 @@ Người dùng duyệt 2026-11-18. **Phiên chính làm hết** (cảnh, dữ li
 |---|---|---|---|
 | 1 | Cảnh và dữ liệu Cannae, dùng clip `attack` sẵn có: hàng đầu áp sát, ghép cặp, chỉ đánh khi có đối thủ trong tầm, người ngã là người vừa bị đánh, người sau bước lên. Thêm một câu về độ chính xác vào hộp thoại Giới thiệu | [T-032](tasks/T-032-melee-stage1.md), lane 3 đọc lại: [T-032 review](tasks/T-032-review.md) | Xong, đã gộp 2026-11-18 |
 | 2 | Clip đỡ đòn (`block`) và trúng đòn (`hit`) cho 6 mô hình bộ binh đánh gần. Làm cặp `roman-legionary` với `gallic-infantry` trước, người dùng xem trong `/battle-lab?duel=1` rồi mới làm bốn mô hình còn lại | [T-033](tasks/T-033-melee-stage2.md), lane 3 đọc lại: [T-033 review](tasks/T-033-review.md) | Xong, đã gộp 2026-11-18 |
-| 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh. Thêm từ review chặng 2: phản ứng của người bị đánh đi theo nhát đánh thật của địch | [T-034](tasks/T-034-melee-stage3.md), lane 1 đọc lại thay lane 3: [T-034 review](tasks/T-034-review.md) | Xong 2026-11-18 trên nhánh `batch-g/stage3-cavalry`; lane 1 đã đọc lại, phiên chính đã sửa theo review; chờ người dùng duyệt gộp |
+| 3 | Clip đỡ đòn và trúng đòn cho 3 mô hình kỵ binh. Thêm từ review chặng 2: phản ứng của người bị đánh đi theo nhát đánh thật của địch | [T-034](tasks/T-034-melee-stage3.md), lane 1 đọc lại thay lane 3: [T-034 review](tasks/T-034-review.md) | Xong, đã gộp 2026-11-18 |
 
 ## Không làm (điện thoại chỉ cần dùng được)
 
