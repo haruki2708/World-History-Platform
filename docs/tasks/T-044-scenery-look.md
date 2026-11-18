@@ -40,7 +40,7 @@ Người dùng xem từng chặng và nói đạt; hiệu năng phát lúc đôn
 - **Sông** (`river.ts`): sóng chạy xuôi dòng theo đúng hướng của dòng chảy ở từng đoạn; bọt trắng đứt quãng dọc hai mép nước, nhiều hơn ở chỗ lội. Lòng sông là ảnh chụp sỏi (ambientCG `Gravel022`, CC0), trải ở hai cỡ để không thấy lặp; sáng hơn trên bãi, sẫm hơn chỗ ướt.
 - **Biển** (shader mặt đất trong `terrain.ts`): dùng cùng mặt nước, sóng dài hơn, chạy vào từ đông nam; màu xanh thẫm hơn. Bãi là ảnh chụp cát (ambientCG `Ground054`, CC0), sẫm ở dải cát ướt; sóng vỗ là những dải bọt chạy vào bờ rồi tan.
 
-**Sửa sau khi người dùng xem ảnh (2026-11-18):** người dùng nói nước "vẫn còn thiên hướng hoạt hình chút, chưa rất chân thực như ảnh mẫu". Phiên chính so với ảnh mẫu số 4 (sông xanh thẫm, lặng, bờ đất dốc) và sửa sông: nước thẫm hơn và lặng hơn (sóng còn khoảng 30%, chỗ lội vẫn gợn), bọt mép nước mảnh và nhạt hơn, bờ là đất nâu dốc xuống nước, sẫm ở chân bờ và có cỏ mọc, sỏi chỉ còn sát mép nước. Ảnh: `E:World_History_Platform_assetsduyetT-044-chang1-nuoc-lan2`.
+**Sửa sau khi người dùng xem ảnh (2026-11-18):** người dùng nói nước "vẫn còn thiên hướng hoạt hình chút, chưa rất chân thực như ảnh mẫu". Phiên chính so với ảnh mẫu số 4 (sông xanh thẫm, lặng, bờ đất dốc) và sửa sông: nước thẫm hơn và lặng hơn (sóng còn khoảng 30%, chỗ lội vẫn gợn), bọt mép nước mảnh và nhạt hơn, bờ là đất nâu dốc xuống nước, sẫm ở chân bờ và có cỏ mọc, sỏi chỉ còn sát mép nước. Ảnh: `E:\World_History_Platform_assets\duyet\T-044-chang1-nuoc-lan2\`.
 
 **Chưa làm:** bờ sông vẫn phẳng (sỏi là hình vẽ, không có hòn đá nổi); không có đá lớn ở bờ biển; nước không trong suốt (không thấy đáy ở chỗ nông, chỉ đổi màu).
 
