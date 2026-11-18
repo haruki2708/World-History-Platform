@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính.
 - **Model:** Opus 5.5.
 - **Nhánh:** `batch-i/look-sample`, worktree `E:\World_History_Platform_assets\wt-stage3`, `next dev` cổng 3106.
-- **Trạng thái:** nước xong; người dùng duyệt màu mới (bước 1 của "khớp số đo"); bước 2 (chi tiết trên cây, mặt đất, lều, nhà) xong, **chờ người dùng xem**. Số chi tiết chưa tới đích của ảnh mẫu.
+- **Trạng thái:** nước xong; người dùng duyệt màu mới (bước 1 của "khớp số đo"); bước 2 (chi tiết trên cây, mặt đất, lều, nhà) xong; người dùng xem ảnh và duyệt (2026-11-19): "ok, đã đủ thật rồi". Số chi tiết đo được chưa tới đích của ảnh mẫu, nhưng người dùng thấy đủ; không làm thêm trừ khi được yêu cầu. Chưa gộp.
 - **Phạm vi file:** `src/components/battle/engine/` (`water.ts`, `river.ts`, `terrain.ts`, `structures.ts`, `vegetation.ts`), `public/battles/textures/`, `art/CREDITS.md`, `docs/`.
 
 File này vừa là đề bài vừa là nhật ký: phiên nào làm tiếp thì đọc mục "Kết quả" trước.
