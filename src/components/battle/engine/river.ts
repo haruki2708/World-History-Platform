@@ -53,9 +53,10 @@ const FORD_REACH = 150;
 const MAX_FORDS = 8;
 
 const COLORS = {
-  deep: new Color("#24586b"),
-  shallow: new Color("#5f8a80"),
-  gravel: new Color("#b9ad95"),
+  deep: new Color("#173a55"),
+  shallow: new Color("#2c5662"),
+  gravel: new Color("#8a7a5e"),
+  earth: new Color("#7a6447"),
   reedDark: new Color("#66783f"),
   reedLight: new Color("#98985a"),
 };
@@ -171,6 +172,7 @@ export class River {
       uDeep: { value: COLORS.deep },
       uShallow: { value: COLORS.shallow },
       uGravel: { value: COLORS.gravel },
+      uEarth: { value: COLORS.earth },
       uReedDark: { value: COLORS.reedDark },
       uReedLight: { value: COLORS.reedLight },
       uSkyZenith: { value: new Color() },
@@ -224,6 +226,7 @@ export class River {
           uniform vec3 uDeep;
           uniform vec3 uShallow;
           uniform vec3 uGravel;
+          uniform vec3 uEarth;
           uniform vec3 uReedDark;
           uniform vec3 uReedLight;
           uniform vec3 uSkyZenith;
@@ -294,15 +297,23 @@ export class River {
               texture2D(uGravelMap, vec2(s, m) / 4.3 + 0.21).rgb,
               texture2D(uGravelMap, vec2(m, s) / 1.6).rgb,
               1.0 - smoothstep(25.0, 90.0, distance));
-            vec3 bed = mix(uGravel, stones * 1.25, 0.75) * (0.82 + 0.3 * bars);
-            // Weeds take hold on the bars away from the water.
-            float weeds = smoothstep(0.55, 0.8, clumps * 0.6 + bars * 0.4) * smoothstep(-2.0, -9.0, inWater);
-            bed = mix(bed, uReedLight * 0.95, weeds * 0.6);
-            bed = mix(bed, bed * 0.66, smoothstep(-3.0, 0.0, inWater));
+            // Gravel by the water; up the bank, earth: the bank is a slope
+            // down to the stream, darker at its foot.
+            float upBank = smoothstep(1.5, 6.0, -inWater);
+            vec3 gravel = mix(uGravel, stones, 0.8) * (0.85 + 0.25 * bars);
+            vec3 earth = uEarth * (0.8 + 0.4 * fine) * (0.85 + 0.3 * stones.g);
+            vec3 bed = mix(gravel, earth, upBank * (0.55 + 0.45 * bars));
+            // Grass and weeds take hold on the bars and up the bank.
+            float weeds = smoothstep(0.45, 0.75, clumps * 0.6 + bars * 0.4) * smoothstep(-3.0, -10.0, inWater);
+            bed = mix(bed, mix(uReedDark, uReedLight, fine) * 0.9, weeds * 0.75);
+            // In the shade of the bank by the water, and wet.
+            bed *= mix(1.0, 0.62, smoothstep(-4.0, 0.0, inWater));
+            // The top of the bank, where the field ends: a darker lip.
+            bed *= 1.0 - 0.25 * smoothstep(3.0, 0.0, inBed);
 
             // Water: the bed shows through at the edges and at a ford.
-            float depth = smoothstep(0.0, waterHalf * 0.75, inWater) * (1.0 - 0.75 * ford);
-            vec3 water = mix(mix(bed, uShallow, 0.7), uDeep, depth);
+            float depth = smoothstep(0.0, waterHalf * 0.5, inWater) * (1.0 - 0.7 * ford);
+            vec3 water = mix(mix(bed, uShallow, 0.75), uDeep, depth);
 
             float waterMask = smoothstep(-soft, soft, inWater);
             float bedMask = smoothstep(-soft, soft, inBed);
@@ -314,7 +325,8 @@ export class River {
             // downstream with the current, rougher over a ford.
             vec2 rp = vec2(s - uTime * 0.6, m);
             float footprint = max(length(fwidth(vec2(s, m))), 0.01);
-            vec2 slope = waterSlope(rp, uTime, 0.0, 1.3, footprint, 0.35 - 0.35 * ford);
+            // A lowland river in summer: smooth, ripples only where it runs over a ford.
+            vec2 slope = waterSlope(rp, uTime, 0.0, 1.3, footprint, 0.72 - 0.5 * ford);
             // From the frame of the course (along, across) to the field.
             vec2 along = normalize(vFlow);
             vec2 across = vec2(along.y, -along.x);
@@ -326,9 +338,9 @@ export class River {
             float shine = waterMask * (0.35 + 0.65 * depth);
 
             // Foam: a broken line along the edges of the stream, more over a ford.
-            float edge = 1.0 - smoothstep(0.0, 2.2 + 3.0 * ford, inWater);
-            float foam = waterFoam(rp * vec2(0.7, 1.2), uTime) * waterMask
-              * max(edge * 0.85, ford * 0.55 * smoothstep(0.3, 0.8, riverNoise(vec2(s * 0.08, m * 0.3) + 31.0)));
+            float edge = 1.0 - smoothstep(0.0, 0.9 + 2.5 * ford, inWater);
+            float foam = waterFoam(rp * vec2(0.9, 1.6), uTime) * waterMask
+              * max(edge * 0.5, ford * 0.45 * smoothstep(0.3, 0.8, riverNoise(vec2(s * 0.08, m * 0.3) + 31.0)));
             foam *= 1.0 - smoothstep(250.0, 1200.0, distance) * 0.6;
             riverGlow = thrown * shine * (1.0 - foam);
             color *= 1.0 - fresnel * 0.8 * shine;
