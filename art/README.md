@@ -188,7 +188,7 @@ Số đo trên LOD0 của file `.glb` (`gait_check.py`): 2,07–2,10 m mỗi vò
 | `spear-thrust` | `Punch_Cross` (UAL 1) | 1,0 s | Đâm giáo tầm hông, cán giáo chạy qua mép phải khiên, khiên giữ yên. `roman-triarii`. |
 | `javelin-throw` | `OverhandThrow` (UAL 2) | 1,333 s | Phóng lao qua vai. Thân giữ một nửa biên độ của nguồn (lính trong hàng không lao cả người), chân một phần tư (T-024: với nửa biên độ, đùi bước ra trước chọc qua vạt áo). `roman-velites`. |
 | `sling` | `OverhandThrow` (UAL 2) | 1,333 s | Một vòng rưỡi dây trên đầu, hòn đá chạy sau bàn tay; rồi vung lên sau vai, ném ra trước và lên; dây rũ xuống. Đường tay tự dựng (không có clip nguồn cho dây ném). Chân giữ một phần tư biên độ, như `javelin-throw`. `balearic-slinger`. |
-| `sword-slash` | `OverhandThrow` (UAL 2) | 1,333 s | Giơ kiếm qua vai phải, lưỡi chĩa lên sau, rồi bổ xuống trước và chéo sang trái; khiên giữ yên. Thân giữ nửa biên độ. `gallic-infantry`. |
+| `sword-slash` | `OverhandThrow` (UAL 2) | 1,333 s | Giơ kiếm qua vai phải, lưỡi chĩa lên sau, rồi đưa qua đầu ra trước; vươn xa nhất khi lưỡi kiếm nằm ngang ở tầm mép trên khiên đối thủ (cảnh lấy lúc này làm lúc đòn chạm), rồi mới bổ xuống và chéo sang trái (`whp_clips._cut`, T-047); khiên giữ yên. Thân giữ nửa biên độ. `gallic-infantry`. |
 
 **Giáo dài** (`SPEAR_CARRY`): khi không đánh, cánh tay phải giải bằng IK, cẳng tay đưa ra trước, giáo dựng đứng cạnh đùi, đế giáo cách đất vài cm, mũi giáo cao khoảng 2,44 m. Hướng giáo đặt trong khung ngực, mà ngực nghiêng ra trước khoảng 9° khi đứng và đi, nên trong khung đó giáo ngả về sau bằng chừng ấy (T-024): nhìn nghiêng, giáo lệch khỏi phương thẳng đứng dưới 3° khi đứng và đi, ngả ra trước khoảng 18° khi chạy (trước là 14°, 15° và 30°).
 

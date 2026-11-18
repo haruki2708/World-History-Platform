@@ -888,16 +888,56 @@ def spear_thrust(b):
     return _stroke(b, "Punch_Cross", guard, stab, shield=("guard", "guard"))
 
 
+def _cut(b, source, raised, level, down, shield=("guard", "guard"), follow=0.3, lead=3, pack="ual2", calm=None,
+         settle=4):
+    """An overhead cut: as _stroke, the right hand goes from `raised` to
+    `level` as the source's right hand reaches out, so the blade is furthest
+    forwards (the moment the scene takes for the blow landing:
+    UnitModel.strike) when it is level, at the height of the top of a
+    shield; from there it goes on down to `down` over `settle` frames,
+    and comes back to `raised` as the source's hand comes back."""
+    rt = b.retarget(pack)
+    frames = rt.pack.clip(source).frames
+    reach = _extension(rt, source, frames)
+    peak = int(np.argmax(reach))
+
+    def pose_at(frame):
+        rt.pose(rt.sample(source, frame, calm) if calm else rt.sample(source, frame))
+        e = smooth(reach[frame])
+        if b.kit.shield:
+            ahead = smooth(reach[min(frame + lead, frames)])
+            b.arms.shield(blend_carry(SHIELD_CARRY[shield[0]], SHIELD_CARRY[shield[1]], ahead))
+        if frame <= peak:
+            end = level
+        else:
+            d = smooth((frame - peak) / settle)
+            end = {key: lerp(level[key], down[key], d) for key in level}
+        s = {key: lerp(raised[key], end[key], e) for key in raised}
+        turn, origin = b.arms.chest(follow)
+        b.arms.hand("r", origin + turn @ _vec(s["wrist"]), turn @ _vec(s["elbow"]),
+                    turn @ _vec(s["aim"]).normalized(), turn @ _vec(s["up"]).normalized())
+
+    return b.clip("attack", frames, pose_at)
+
+
 def sword_slash(b):
     """A downward cut with a long sword: raised over the right shoulder,
-    the blade back and up, then brought over and down forwards and a
-    little across, the shield held up. Polybius 2.33: the Gauls' swords
-    cut only, with a long swing. Body: OverhandThrow (UAL 2) at half its
-    lunge; the hand is up while the library's arm is drawn back to throw
-    and down when it is stretched out."""
+    the blade back and up, then brought over and forwards; it is furthest
+    forwards with the blade level at the height of the top of a shield (the
+    moment the scene takes for the blow landing), then goes on down and a
+    little across, the shield held up. Polybius 2.33: the Gauls' swords cut
+    only, with a long swing. Body: OverhandThrow (UAL 2) at half its lunge;
+    the hand is up while the library's arm is drawn back to throw and
+    forwards when it is stretched out (_cut). The library's lunge bends
+    the trunk forwards at that moment, so `level` points up in the chest's
+    frame; in the clip the blade is then at 1.27-1.42 m, the top of a
+    Roman's shield at 1.38 m (1.58 m raised to block). T-047; before, the
+    cut was furthest forwards with the blade already down beside the
+    shield."""
     raised = dict(wrist=(-0.20, 0.04, 0.30), aim=(-0.25, 0.55, 0.80), up=(-1.0, 0.0, 0.1), elbow=(-1.0, 0.2, 0.4))
-    cut = dict(wrist=(-0.12, -0.48, -0.22), aim=(0.18, -0.75, -0.62), up=(-1.0, 0.0, 0.25), elbow=(-1.0, 0.3, -0.5))
-    return _stroke(b, "OverhandThrow", raised, cut, shield=("guard", "guard"), follow=0.3, pack="ual2", calm=CALM_THROW)
+    level = dict(wrist=(-0.14, -0.46, 0.62), aim=(0.10, -0.84, 0.52), up=(-1.0, 0.0, 0.3), elbow=(-1.0, 0.25, 0.05))
+    down = dict(wrist=(-0.10, -0.32, -0.18), aim=(0.18, -0.70, -0.68), up=(-1.0, 0.0, 0.25), elbow=(-1.0, 0.4, -0.5))
+    return _cut(b, "OverhandThrow", raised, level, down, follow=0.3, pack="ual2", calm=CALM_THROW)
 
 
 # The library's throw is a big lunge; a man in a line throws with less of
