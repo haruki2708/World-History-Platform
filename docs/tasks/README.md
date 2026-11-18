@@ -65,3 +65,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-044](T-044-scenery-look.md) | Phiên chính | Trận đánh 3D, đợt I: nước, lều, nhà và cây có chất liệu ảnh thật (CC0) | Xong, đã gộp 2026-11-19 (người dùng duyệt từng phần; không có lane đọc lại) |
 | [T-045](T-045-camp-guard.md) | 2 | Trận đánh 3D, đợt J: quân giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó; ra và về trại lớn qua cổng | Đã giao 2026-11-19 |
 | [T-046](T-046-footprint-fade.md) | Phiên chính | Trận đánh 3D, đợt J: mảng màu phe dưới chân khối quân mờ đi khi nhìn gần | Xong, đã gộp 2026-11-19 (không có lane đọc lại, theo lựa chọn của người dùng) |
+| [T-047](T-047-lod-cavalry.md) | 1 | Trận đánh 3D, đợt J: LOD1, LOD2 ít đường nối UV cho 11 mô hình; vạt áo, tóc Numidia, người Gaul trong kỵ binh Iberia/Gaul; nhát chém của lính Gaul | Đã giao 2026-11-19 |
+| [T-048](T-048-dust-wind.md) | 3 | Trận đánh 3D, đợt J (chặng 4 của đợt H): bụi theo khối quân và kỵ binh, trôi theo gió Volturnus | Đã giao 2026-11-19 |
