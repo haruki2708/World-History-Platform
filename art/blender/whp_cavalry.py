@@ -1033,6 +1033,81 @@ def _spare_falls(rp, f, seated, w):
     p.matrix[bone] = _slerp_matrix(follow, flat, late)
 
 
+# The skirt of a rider's tunic (and mail shirt), T-047. At rest the man
+# stands, and the skirt flares out from the hips; seated, the thighs it is
+# weighted to lift it, and the flare stands out sideways. Below the hip the
+# skirt is drawn in towards the legs (what lies beyond SKIRT_CLEAR is kept
+# to SKIRT_KEEP of it; the shift smoothed over the mesh, so the cloth does
+# not fold), so that it lies along the thighs; behind the rider it is left
+# as it hangs and follows the pelvis instead, down over the horse's back.
+SKIRTS = ("Tunic_1", "Mail")
+SKIRT_CLEAR = 0.02          # metres off the legs
+SKIRT_KEEP = 0.15
+SKIRT_DROP = (0.01, 0.15)   # below the hip joints: from no change to all of it
+SKIRT_SMOOTH = 12           # passes of smoothing the shift over the mesh's edges
+
+
+def drape_skirts(armature):
+    """Draw the rider's skirts in to the legs (see SKIRTS). Run after the
+    clips are built: they do not depend on it."""
+    from mathutils.bvhtree import BVHTree
+    import whp_skin
+    from whp_mesh import smoothstep
+
+    legs = bpy.data.objects.get("New_legs")
+    if legs is None:
+        return
+    tree = BVHTree.FromPolygons([v.co.copy() for v in legs.data.vertices], [tuple(p.vertices) for p in legs.data.polygons])
+    bones = armature.data.bones
+    hip = (bones["thigh_l"].head_local.z + bones["thigh_r"].head_local.z) / 2
+    pelvis = bones["pelvis"].head_local
+    names = [b.name for b in bones]
+    index = {n: i for i, n in enumerate(names)}
+    leg_bones = [index[n] for n in names if n.startswith(("thigh", "calf", "foot", "ball"))]
+    for name in SKIRTS:
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            continue
+        mesh = obj.data
+        co = np.array([v.co for v in mesh.vertices])
+        below = smoothstep(hip - SKIRT_DROP[0], hip - SKIRT_DROP[1], co[:, 2])
+        dx, dy = co[:, 0] - pelvis.x, co[:, 1] - pelvis.y
+        behind = np.clip(dy / np.maximum(np.hypot(dx, dy), 1e-6), 0.0, 1.0)
+        # How far each vertex would move, then smoothed over the mesh's edges:
+        # neighbours drawn to different points of the legs would fold the cloth.
+        shift = np.zeros_like(co)
+        for i, (v, b) in enumerate(zip(mesh.vertices, below * (1.0 - behind))):
+            if b <= 0.0:
+                continue
+            hit, _normal, _face, distance = tree.find_nearest(v.co)
+            if hit is None or distance <= SKIRT_CLEAR:
+                continue
+            target = hit + (v.co - hit).normalized() * (SKIRT_CLEAR + (distance - SKIRT_CLEAR) * SKIRT_KEEP)
+            shift[i] = (np.array(target) - co[i]) * b
+        edges = np.array([e.vertices for e in mesh.edges])
+        for _ in range(SKIRT_SMOOTH):
+            total = np.zeros_like(shift)
+            count = np.zeros(len(shift))
+            np.add.at(total, edges[:, 0], shift[edges[:, 1]])
+            np.add.at(total, edges[:, 1], shift[edges[:, 0]])
+            np.add.at(count, edges.ravel(), 1)
+            shift = 0.5 * shift + 0.5 * total / np.maximum(count, 1)[:, None]
+        shift *= np.minimum(below * 4.0, 1.0)[:, None]          # nothing above the hip
+        before = np.array([p.normal.copy() for p in mesh.polygons])
+        mesh.vertices.foreach_set("co", (co + shift).ravel())
+        mesh.update()
+        after = np.array([p.normal.copy() for p in mesh.polygons])
+        flipped = int(((before * after).sum(axis=1) < 0.0).sum())
+        moved = int((np.linalg.norm(shift, axis=1) > 1e-4).sum())
+        weights = whp_skin.read_groups(obj, names)
+        move = below * behind
+        taken = weights[:, leg_bones].sum(axis=1) * move
+        weights[:, leg_bones] *= (1.0 - move)[:, None]
+        weights[:, index["pelvis"]] += taken
+        whp_skin.write_groups(obj, whp_skin.prune(weights), names)
+        log(f"{name}: skirt drawn in to the legs ({moved} vertices, {flipped} faces turned over), behind the rider on the pelvis")
+
+
 def stage_anim(unit):
     """Stage "anim" of a cavalry model (see the module's docstring)."""
     scene = bpy.context.scene
@@ -1068,6 +1143,8 @@ def stage_anim(unit):
         log(f"clip {action.name}: {int(action.frame_end)} frames at {FPS} fps")
     rider.animation_data.action = None
     scene.frame_set(0)
+    # Last: the clips (the fallen rider's place among them) are built from the meshes as they were.
+    drape_skirts(rider)
 
 
 def _report_seat(rp):

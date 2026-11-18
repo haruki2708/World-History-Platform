@@ -124,6 +124,34 @@ def plain(name, color, dark, roughness=0.8, scale=40.0, bump=0.2):
     return mat
 
 
+def hair(dark=(0.014, 0.010, 0.008), light=(0.055, 0.038, 0.027), roughness=0.85):
+    """Dark hair (T-047): matte, in low-contrast streaks, curls in the bump
+    (Voronoi cells). The plain material it replaces was a smooth sheen."""
+    mat, tree, bsdf = _new("whp-hair", roughness)
+    coord = tree.nodes.new("ShaderNodeTexCoord")
+    cells = tree.nodes.new("ShaderNodeTexVoronoi")
+    cells.inputs["Scale"].default_value = 160.0
+    tree.links.new(coord.outputs["Object"], cells.inputs["Vector"])
+    streak = tree.nodes.new("ShaderNodeTexNoise")
+    streak.inputs["Scale"].default_value = 90.0
+    streak.inputs["Detail"].default_value = 8.0
+    streak.inputs["Distortion"].default_value = 2.0
+    tree.links.new(coord.outputs["Object"], streak.inputs["Vector"])
+    ramp = tree.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (*dark, 1.0)
+    ramp.color_ramp.elements[1].color = (*light, 1.0)
+    ramp.color_ramp.elements[0].position = 0.35
+    ramp.color_ramp.elements[1].position = 0.75
+    tree.links.new(streak.outputs["Fac"], ramp.inputs["Fac"])
+    tree.links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
+    bump = tree.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.7
+    bump.inputs["Distance"].default_value = 0.003
+    tree.links.new(cells.outputs["Distance"], bump.inputs["Height"])
+    tree.links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
 FUR = (0.20, 0.155, 0.11)
 FUR_DARK = (0.055, 0.045, 0.035)
 

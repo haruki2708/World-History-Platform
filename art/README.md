@@ -299,7 +299,7 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `roman_kit.py` | Phần chung của các mô hình dựng trên lính La Mã: chuẩn bị thân (kiếm trong tay, trong bao hay bỏ), mũ, khiên, vật liệu, luật gắn xương, dữ liệu cho clip. |
 | `roman_weapons.py` | Giáo *hasta*, lao nhẹ, lao Iberia; cất kiếm vào bao. |
 | `roman_parma.py` | Khiên tròn của velites. |
-| `roman_faces.py` | Màu da, râu và tóc dựng từ lưới đầu của mô hình nền. |
+| `roman_faces.py` | Màu da, râu và tóc dựng từ lưới đầu của mô hình nền; tóc xoăn dày, chân tóc không đều (`build_hair`, T-047). |
 | `balearic_kit.py` | Ba dây ném đá (dây cầm tay co giãn), túi đá. |
 | `celt_source.py` | Nhập mô hình Celt cho người Gaul; xoá hình vẽ trên da, nhuộm lại quần. |
 | `celt_hands.py` | Khép hai bàn tay mở của mô hình Celt thành nắm tay (bẻ xương ngón, lưới lấy hình đó làm tư thế gốc); tìm lòng nắm tay. |
@@ -636,7 +636,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - không có bàn đạp (chưa có vào năm 216 TCN).
 
   Log ghi bao nhiêu đỉnh của chân lọt vào trong thân ngựa ở `idle` khung 0: 12 trên 6 722 đỉnh, sâu nhất 1 mm.
-- **Áo:** vạt sau của áo và giáp lưới thõng xuống lọt vào lưng ngựa, khuất trong thân ngựa; nhìn ngoài như áo phủ lên lưng ngựa.
+- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy dưới hông vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo sát vào chân: phần cách chân quá 2 cm chỉ giữ lại 15%, độ dời làm mượt dọc các cạnh của lưới để vải không gấp; vạt áo rủ theo đùi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi.
 - **Thân theo nhịp ngựa** (`LEAN`):
   - mỗi clip một độ ngả ra trước: `walk` 2°, `jog` 4°, `run` 13°;
   - thân lấy lại một phần độ xoay của xương yên để giữ gần thẳng đứng: `walk` 50%, `jog` 70%, `run` 60%;

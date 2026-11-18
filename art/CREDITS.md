@@ -115,7 +115,7 @@ Năm mô hình đầu dựng trên cùng mô hình nền và khung xương như 
 
 - **Bỏ thêm:** không giáp, không mũ, không khiên; bỏ cả kiếm và bao kiếm.
 - **Sửa:** áo nhuộm màu len mộc, viền rộng 10 cm màu tía sẫm ở gấu; da màu ô liu.
-- **Thêm:** ba dây ném đá (một quấn hai vòng quanh đầu, một quấn quanh bụng thay đai, một cầm tay có túi và hòn đá); túi đá bằng da ở hông trái; tóc và râu sẫm (vỏ dựng từ lưới đầu).
+- **Thêm:** ba dây ném đá (một quấn hai vòng quanh đầu, một quấn quanh bụng thay đai, một cầm tay có túi và hòn đá); túi đá bằng da ở hông trái; tóc và râu sẫm (vỏ dựng từ lưới đầu; từ T-047 tóc dày hơn, xoăn, chân tóc không đều, vật liệu mờ).
 - **Hoạt hình:** `attack` là quay dây trên đầu rồi ném qua vai; dây cầm tay co giãn theo hòn đá.
 
 ### `gallic-infantry.glb`: bộ binh Gaul
@@ -211,6 +211,7 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
    - ngựa: `idle`, `walk`, `run` (phi), `die` của con ngựa; `jog` là nước kiệu (`trot`) của file gốc; `attack` là tư thế đứng của ngựa, thêm nhịp thở và gật đầu, tự làm;
    - người: tư thế ngồi, cầm cương, mang vũ khí, đâm giáo hay phóng lao tự dựng bằng IK; cú ngã dùng `Death01` của thư viện Quaternius (CC0), trộn từ tư thế ngồi khi bị văng khỏi ngựa.
 4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân. LOD1 và LOD2 ít đường nối UV như lính bộ binh (T-047).
+5. **Vạt áo người cưỡi** (T-047): dưới hông, vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo sát vào đùi để rủ theo đùi khi ngồi; vạt sau đi theo hông, rủ xuống lưng ngựa.
 
 ### `roman-cavalry.glb`: kỵ binh La Mã và đồng minh
 
@@ -232,7 +233,7 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
 
 - **Bỏ thêm:** không giáp, không mũ; bỏ kiếm và bao kiếm; không đai (áo không thắt lưng).
 - **Sửa:** áo nhuộm màu len mộc, viền rộng 10 cm màu nâu đỏ sẫm ở gấu; da sẫm như người Libya.
-- **Thêm:** tóc và râu sẫm (vỏ dựng từ lưới đầu); khiên tròn nhỏ bằng da sống, đường kính 0,52 m, cầm trong tay trái; ba cây lao 1,5 m mũi rộng (một trong tay phải, hai sau khiên).
+- **Thêm:** tóc và râu sẫm (vỏ dựng từ lưới đầu; từ T-047 tóc dày hơn, xoăn, chân tóc không đều, vật liệu mờ); khiên tròn nhỏ bằng da sống, đường kính 0,52 m, cầm trong tay trái; ba cây lao 1,5 m mũi rộng (một trong tay phải, hai sau khiên).
 - **Ngựa:** thu nhỏ còn 0,95 lần (cao 1,33 m tới vai); không yên, không cương, chỉ dây quàng cổ.
 - **Hoạt hình:** `attack` là phóng lao.
 

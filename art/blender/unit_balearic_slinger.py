@@ -38,7 +38,7 @@ EXTRA_MATERIALS = [
                                          roughness=0.9, scale=300.0, bump=0.5)),
     ("stone", lambda: whp_materials.plain("stone", (0.30, 0.29, 0.26), (0.16, 0.15, 0.14),
                                           roughness=0.8, scale=60.0, bump=0.3)),
-    ("hair", lambda: whp_materials.plain("hair", *roman_faces.HAIR_DARK, roughness=0.6, scale=400.0, bump=0.5)),
+    ("hair", whp_materials.hair),                    # T-047: curls, matte
 ]
 
 
@@ -63,7 +63,7 @@ def _kit(detail, suffix=""):
     if detail == 2:
         head = objs["New_head"]
         made += [balearic_kit.build_belly_sling(objs["Tunic_1"], mats),
-                 roman_faces.build_shell(head, "scalp", 0.007, mats, "Hair"),
+                 roman_faces.build_hair(head, mats, "Hair"),
                  roman_faces.build_shell(head, "beard", 0.004, mats, "Beard")]
     return made
 
