@@ -87,8 +87,8 @@ const KINDS = {
     tall: 6.5,
     cards: 19,
     picture: BROAD,
-    leaf: new Color("#5f7440"),
-    leafDark: new Color("#3d4d2b"),
+    leaf: new Color("#6d9440"),
+    leafDark: new Color("#4c7230"),
     bark: new Color("#5a4d3e"),
   },
   poplar: {
@@ -99,8 +99,8 @@ const KINDS = {
     tall: 12,
     cards: 19,
     picture: BROAD,
-    leaf: new Color("#86a058"),
-    leafDark: new Color("#5d7740"),
+    leaf: new Color("#8fb854"),
+    leafDark: new Color("#679040"),
     bark: new Color("#8f8a7a"),
   },
   willow: {
@@ -111,8 +111,8 @@ const KINDS = {
     tall: 5.5,
     cards: 17,
     picture: FINE,
-    leaf: new Color("#98aa62"),
-    leafDark: new Color("#6c7f45"),
+    leaf: new Color("#a3c060"),
+    leafDark: new Color("#779646"),
     bark: new Color("#6a5f4c"),
   },
   bush: {
@@ -123,8 +123,8 @@ const KINDS = {
     tall: 1.9,
     cards: 5,
     picture: FINE,
-    leaf: new Color("#7d8a56"),
-    leafDark: new Color("#566238"),
+    leaf: new Color("#84a24e"),
+    leafDark: new Color("#5e7c38"),
     bark: new Color("#5a4d3e"),
   },
 } satisfies Record<string, Kind>;
@@ -260,11 +260,11 @@ function plant(out: Leaves, kind: Kind, x: number, ground: number, z: number, sc
     const py = crownY + up * kind.tall * scale * depth;
     const pz = topZ + dz * kind.wide * scale * depth;
     // Lit as a rounded body: the normal points outwards and a little up.
-    const nl = Math.hypot(dx, up * 0.9 + 0.35, dz) || 1;
-    const normal: [number, number, number] = [dx / nl, (up * 0.9 + 0.35) / nl, dz / nl];
+    const nl = Math.hypot(dx * 0.55, up * 0.5 + 0.85, dz * 0.55) || 1;
+    const normal: [number, number, number] = [(dx * 0.55) / nl, (up * 0.5 + 0.85) / nl, (dz * 0.55) / nl];
     const size = Math.min(kind.wide, kind.tall * 1.3) * scale * (1.1 + rng() * 0.5);
     // Darker inside and below, lighter outside and on top.
-    const shade = (0.72 + 0.28 * depth) * (0.86 + 0.2 * (up * 0.5 + 0.5)) * (0.92 + rng() * 0.16);
+    const shade = (0.8 + 0.25 * depth) * (0.9 + 0.2 * (up * 0.5 + 0.5)) * (0.94 + rng() * 0.14);
     const color = rng() < 0.35 ? kind.leafDark : kind.leaf;
     const face = rng() * Math.PI * 2;
     const swing = 0.35 + 0.65 * (up * 0.5 + 0.5);

@@ -76,15 +76,15 @@ const c = (hex: string) => new Color(hex);
 
 // All keyed by the elevation of the sun, in degrees.
 const ZENITH: Stop<Color>[] = [
-  [-18, c("#03050c")], [-6, c("#101a38")], [0, c("#2a4a80")], [8, c("#3b6fb5")], [25, c("#3a78c8")], [60, c("#3476cc")],
+  [-18, c("#03050c")], [-6, c("#101a38")], [0, c("#2a4a80")], [8, c("#3470c2")], [25, c("#2f74d6")], [60, c("#2a70d8")],
 ];
 const HORIZON: Stop<Color>[] = [
-  [-18, c("#070b16")], [-6, c("#2b3050")], [0, c("#c9a48a")], [8, c("#d9c3a8")], [25, c("#bfd3e6")], [60, c("#b3cdea")],
+  [-18, c("#070b16")], [-6, c("#2b3050")], [0, c("#c9a48a")], [8, c("#d9c3a8")], [25, c("#b4d2f0")], [60, c("#a6caf2")],
 ];
 const SUN_COLOR: Stop<Color>[] = [
   [-4, c("#ff7a3a")], [0, c("#ff8a48")], [8, c("#ffb878")], [25, c("#ffe9cc")], [60, c("#fff6e8")],
 ];
-const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.7], [25, 2.7], [60, 3.1]];
+const SUN_INTENSITY: Stop<number>[] = [[-4, 0], [0, 0.35], [8, 1.8], [25, 3.1], [60, 3.5]];
 const AMBIENT_INTENSITY: Stop<number>[] = [[-18, 0.55], [-6, 0.7], [0, 1.1], [8, 1.6], [25, 2.0], [60, 2.1]];
 // The colour of the light from the sky: moonlit blue by night.
 const AMBIENT_COLOR: Stop<Color>[] = [

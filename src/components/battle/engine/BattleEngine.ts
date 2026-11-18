@@ -8,7 +8,7 @@
  */
 
 import {
-  ACESFilmicToneMapping,
+  CustomToneMapping,
   Color,
   Fog,
   PCFShadowMap,
@@ -29,6 +29,8 @@ import { createPlaceholderSource } from "./figures/placeholder";
 import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
+import { installGrade } from "./grade";
+import { Grass } from "./grass";
 import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
 import { Vegetation } from "./vegetation";
@@ -121,6 +123,21 @@ export interface EngineOptions {
    * Skipped when the user asks for reduced motion.
    */
   introFromAbove?: boolean;
+  /** Open looking at this place instead of framing the armies (see /battle-lab, ?cam=). */
+  startView?: StartView;
+}
+
+/**
+ * Where the camera looks and from where: a field point, the distance to it in
+ * metres, the camera's elevation above the horizon and its azimuth in degrees
+ * (0: the camera stands south of the point).
+ */
+export interface StartView {
+  x: number;
+  y: number;
+  distance: number;
+  elevation: number;
+  azimuth: number;
 }
 
 /** The opening move of the camera, milliseconds. */
@@ -135,8 +152,8 @@ const INTRO_POLAR = 0.02;
 const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
   high: {
     pixelRatio: 2,
-    lod0Pixels: 110,
-    lod1Pixels: 32,
+    lod0Pixels: 58,
+    lod1Pixels: 17,
     triangleBudget: 2_500_000,
     shadows: true,
     // Every level: figures keep their look (metal stays metal) as they
@@ -166,6 +183,7 @@ export class BattleEngine {
   private readonly controls: MapControls;
   private readonly sky: Sky;
   private readonly fog = new Fog(0xffffff, 1000, 60000);
+  private readonly grassCentre = new Vector3();
   private readonly crowd = new Crowd();
   private readonly shared: FigureShared;
   private readonly models = new Set<UnitModel>();
@@ -178,6 +196,7 @@ export class BattleEngine {
   private arrows: ArrowLayer | null = null;
   private structures: Structures | null = null;
   private vegetation: Vegetation | null = null;
+  private grass: Grass | null = null;
   private clock: BattleClock | null = null;
 
   private quality: Quality;
@@ -257,7 +276,8 @@ export class BattleEngine {
     container.appendChild(canvas);
     canvas.addEventListener("webglcontextlost", this.onContextLost);
 
-    this.renderer.toneMapping = ACESFilmicToneMapping;
+    installGrade();
+    this.renderer.toneMapping = CustomToneMapping;
     this.renderer.toneMappingExposure = 0.8;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
@@ -545,6 +565,7 @@ export class BattleEngine {
     this.arrows?.dispose();
     this.structures?.dispose();
     this.vegetation?.dispose();
+    this.grass?.dispose();
     this.terrain?.dispose();
     this.sky.dispose();
     this.scene.clear();
@@ -652,7 +673,24 @@ export class BattleEngine {
     this.vegetation = new Vegetation(battle, terrain.heightAt);
     this.scene.add(this.vegetation.group);
 
+    this.grass = new Grass(terrain.grassGround(), battle.terrain.scenery?.wind?.from);
+    this.scene.add(this.grass.mesh);
+
     this.frameView();
+    const view = this.options.startView;
+    if (view) {
+      const ground = terrain.heightAt(view.x, view.y);
+      const a = (view.azimuth * Math.PI) / 180;
+      const e = (view.elevation * Math.PI) / 180;
+      this.controls.target.set(view.x, ground, -view.y);
+      this.camera.position.set(
+        view.x - Math.sin(a) * view.distance * Math.cos(e),
+        ground + view.distance * Math.sin(e),
+        -(view.y - Math.cos(a) * view.distance * Math.cos(e)),
+      );
+      this.controls.update();
+      this.intro = null;
+    }
     await this.compileShaders();
     if (this.disposed) return;
     this.startedAt = performance.now();
@@ -809,12 +847,23 @@ export class BattleEngine {
     const distance = this.camera.position.distanceTo(this.controls.target);
     this.sky.follow(this.camera, this.controls.target, distance);
     this.fog.color.copy(this.sky.haze);
-    this.fog.near = distance * 2 + 1500;
-    this.fog.far = distance * 4 + 45000;
+    this.fog.near = distance * 2 + 3500;
+    this.fog.far = distance * 4 + 70000;
 
     this.shared.uTime.value = seconds;
     terrain.update(seconds, this.sky);
     this.vegetation?.update(seconds);
+    if (this.grass) {
+      // The tufts stand round a point a little ahead of the camera, on the way to what it looks at.
+      const eye = this.camera.position;
+      const target = this.controls.target;
+      const ahead = Math.hypot(target.x - eye.x, target.z - eye.z);
+      const reach = Math.min(ahead, 105) / (ahead || 1);
+      this.grassCentre.set(eye.x + (target.x - eye.x) * reach, 0, eye.z + (target.z - eye.z) * reach);
+      // From high up a tuft is smaller than a pixel: not drawn.
+      this.grass.mesh.visible = eye.distanceTo(target) < 900;
+      this.grass.update(this.grassCentre, seconds);
+    }
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.footingAt);
     this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(

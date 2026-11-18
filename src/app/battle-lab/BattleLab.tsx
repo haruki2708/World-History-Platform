@@ -17,7 +17,7 @@ const DEFAULT_BATTLE = "battle-of-cannae";
 
 const noSubscribe = () => () => {};
 
-/** ?battle=<event id>&stats=1&stress=<figures>&duel=1&lang=vi */
+/** ?battle=<event id>&stats=1&stress=<figures>&duel=1&lang=vi&t=<battle time>&cam=x,y,distance,elevation,azimuth */
 function useLabParams() {
   const search = useSyncExternalStore(
     noSubscribe,
@@ -31,6 +31,7 @@ function useLabParams() {
     showStats: params.get("stats") === "1",
     stressFigures: Number.isInteger(stress) && stress > 0 ? stress : undefined,
     duel: params.get("duel") === "1",
+    startTime: Number(params.get("t")),
     locale: params.get("lang") === "vi" ? ("vi" as const) : ("en" as const),
   };
 }
@@ -43,7 +44,7 @@ function formatHour(hour: number): string {
 }
 
 export function BattleLab() {
-  const { battleId, showStats, stressFigures, duel, locale } = useLabParams();
+  const { battleId, showStats, stressFigures, duel, locale, startTime } = useLabParams();
   const setLocale = useAppStore((s) => s.setLocale);
   useEffect(() => setLocale(locale), [locale, setLocale]);
   const [battle, setBattle] = useState<Battle | null>(null);
@@ -60,14 +61,17 @@ export function BattleLab() {
     loadBattle(battleId).then((loaded) => {
       if (!alive) return;
       // ?duel=1: a few pairs of blocks that fight hand to hand, on the ground of the battle.
-      if (loaded) setBattle(duel ? makeDuelBattle(loaded, unitTypes) : loaded);
-      else setMissing(true);
+      if (loaded) {
+        setBattle(duel ? makeDuelBattle(loaded, unitTypes) : loaded);
+        // ?t=: open at that time of the battle.
+        if (Number.isFinite(startTime) && startTime > 0) setTime(Math.min(startTime, loaded.phases.length));
+      } else setMissing(true);
     });
     return () => {
       alive = false;
       closeBattle();
     };
-  }, [battleId, duel, openBattle, closeBattle]);
+  }, [battleId, duel, openBattle, closeBattle, startTime, setTime]);
 
   // Playback: each phase takes its own playSeconds.
   useEffect(() => {

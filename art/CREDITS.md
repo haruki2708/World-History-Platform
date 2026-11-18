@@ -248,3 +248,11 @@ Link cho khung xem trận (`MODEL_CREDIT_LINKS`), thêm vào các link đã có:
 - "Horse" (Tarnyloo): https://blendswap.com/blend/17172
 - "Horse Rigged All Gaits" (fdoss001): https://blendswap.com/blend/28627
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
+
+## Ảnh chất liệu của cảnh (`public/battles/textures/`)
+
+| File | Nguồn | Giấy phép | Đã làm gì |
+|---|---|---|---|
+| `grass.jpg` | ambientCG, [Grass001](https://ambientcg.com/view?id=Grass001), bản đồ màu của gói `Grass001_1K-JPG`, tải 2026-11-18 | CC0 1.0 (trang ambientCG ghi mọi tài sản của họ theo CC0) | Thu nhỏ còn 512 × 512, nén JPEG mức 80 bằng Blender. Dùng làm vân mặt đất (T-041) |
+
+Gói gốc lưu ngoài repo ở `E:\World_History_Platform_assets\textures\ambientcg\`. CC0 không buộc ghi công; ghi ở đây để biết nguồn.

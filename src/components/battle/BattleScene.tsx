@@ -465,6 +465,7 @@ const SceneView = memo(function SceneView({
         },
         onFrame: placeLabels,
         introFromAbove,
+        startView: labView(),
       });
     } catch (error) {
       console.error("The battle scene could not start.", error);
@@ -887,4 +888,16 @@ function showLabel(element: HTMLDivElement, text: HTMLSpanElement, placement: La
   element.style.visibility = "visible";
   element.style.transform = `translate(${Math.round(placement.x)}px, ${Math.round(placement.y)}px)`;
   text.style.transform = `translate(${Math.round(placement.dx)}px, ${Math.round(placement.dy)}px)`;
+}
+
+/**
+ * /battle-lab?cam=x,y,distance,elevation,azimuth opens the scene looking at a
+ * chosen place: for links to a sample view. Nowhere else.
+ */
+function labView(): { x: number; y: number; distance: number; elevation: number; azimuth: number } | undefined {
+  if (typeof window === "undefined" || !window.location.pathname.startsWith("/battle-lab")) return undefined;
+  const numbers = (new URLSearchParams(window.location.search).get("cam") ?? "").split(",").map(Number);
+  if (numbers.length !== 5 || !numbers.every(Number.isFinite)) return undefined;
+  const [x, y, distance, elevation, azimuth] = numbers;
+  return { x, y, distance, elevation, azimuth };
 }

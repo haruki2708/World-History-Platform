@@ -17,9 +17,19 @@ import {
   BufferGeometry,
   CatmullRomCurve3,
   Color,
+  DataTexture,
+  FloatType,
   Group,
+  LinearFilter,
   Mesh,
   MeshLambertMaterial,
+  NearestFilter,
+  RedFormat,
+  RepeatWrapping,
+  SRGBColorSpace,
+  type Texture,
+  TextureLoader,
+  UnsignedByteType,
   Vector3,
 } from "three";
 import { type BattleTerrain, type FieldPoint, type GroundCover, terrainUrl } from "@/lib/battle";
@@ -29,6 +39,8 @@ export type HeightAt = (x: number, y: number) => number;
 
 /** How far the flat apron around the grid reaches, metres, when the battle has no far ground. */
 const APRON = 40000;
+/** The grid that says where grass grows has a cell every so many metres. */
+const MASK_CELL = 8;
 /** The wading grid has a cell every so many metres. */
 const WADE_CELL = 5;
 /** How deep the figures stand in the middle of a river, metres: knee-deep at their size. */
@@ -59,7 +71,7 @@ const PALETTE = {
  */
 const COVERS: Record<GroundCover, { main: Color; other: Color; bare: Color; fields: boolean }> = {
   stubble: { main: PALETTE.stubble, other: PALETTE.grass, bare: PALETTE.earth, fields: true },
-  grass: { main: new Color("#a3a162"), other: PALETTE.grass, bare: PALETTE.earth, fields: false },
+  grass: { main: new Color("#7d9a4a"), other: new Color("#5f8238"), bare: new Color("#c4c096"), fields: false },
   scrub: { main: PALETTE.scrub, other: new Color("#6f7a4a"), bare: PALETTE.earth, fields: false },
   reeds: { main: new Color("#8a8f52"), other: PALETTE.bank, bare: PALETTE.earth, fields: false },
   woodland: { main: new Color("#6f7a4a"), other: new Color("#5d6b40"), bare: PALETTE.earth, fields: false },
@@ -127,6 +139,9 @@ export class Terrain {
   readonly data: BattleTerrain;
   private readonly heights: Float32Array;
   private readonly far: Float32Array | null;
+  /** A photograph of grass, repeated over the ground for its grain. */
+  private readonly grain: Texture;
+  private readonly textures: Texture[] = [];
   /** What the sea gives back of the sky; set every frame. */
   private readonly seaGlow = { value: new Color() };
   private readonly rivers: River[] = [];
@@ -141,6 +156,11 @@ export class Terrain {
     this.data = data;
     this.heights = heights;
     this.far = data.far ? far : null;
+    this.grain = new TextureLoader().load("/battles/textures/grass.jpg");
+    this.grain.wrapS = this.grain.wrapT = RepeatWrapping;
+    this.grain.colorSpace = SRGBColorSpace;
+    this.grain.anisotropy = 8;
+    this.textures.push(this.grain);
     this.cellX = (data.maxX - data.minX) / Math.max(data.width - 1, 1);
     this.cellY = (data.maxY - data.minY) / Math.max(data.height - 1, 1);
     let min = Infinity;
@@ -430,6 +450,7 @@ export class Terrain {
       shader.uniforms.uEarth = { value: cover.bare };
       shader.uniforms.uBank = { value: PALETTE.bank };
       shader.uniforms.uFields = { value: cover.fields ? 1 : 0 };
+      shader.uniforms.uGrain = { value: this.grain };
       shader.uniforms.uSea = { value: PALETTE.sea };
       shader.uniforms.uStrand = { value: PALETTE.strand };
       shader.uniforms.uSeaGlow = this.seaGlow;
@@ -462,6 +483,7 @@ export class Terrain {
           uniform vec3 uEarth;
           uniform vec3 uBank;
           uniform float uFields;
+          uniform sampler2D uGrain;
           uniform vec3 uSea;
           uniform vec3 uSeaGlow;
           uniform vec3 uStrand;
@@ -582,6 +604,17 @@ export class Terrain {
               groundRelief = mix(groundRelief, relief, fieldShare * rowShown);
             }
 
+            {
+              // The grain of real grass: fine close by, broad farther off, so
+              // that no one repeat shows. It shades the colour and tints it.
+              vec3 fine = texture2D(uGrain, g / 11.0).rgb;
+              vec3 broad = texture2D(uGrain, g / 63.0 + 0.37).rgb;
+              vec3 grain3 = mix(broad, fine, 1.0 - smoothstep(60.0, 320.0, distance));
+              float shadeOf = dot(grain3, vec3(0.3, 0.6, 0.1)) / 0.2;
+              float grainShown = 1.0 - smoothstep(900.0, 3200.0, distance);
+              ground *= mix(1.0, clamp(shadeOf, 0.45, 1.7), 0.7 * grainShown);
+              ground = mix(ground, ground * 0.6 + grain3 * 0.9, 0.3 * grainShown);
+            }
             ground = mix(ground, vColor.rgb, vOverlay);
             // Greener where the river keeps the ground moist.
             ground = mix(ground, uBank, (1.0 - smoothstep(10.0, 150.0, vLie.y)) * 0.32);
@@ -707,7 +740,57 @@ export class Terrain {
     return new Mesh(geometry, material);
   }
 
+  /** The ground as textures, for the grass that the vertex shader stands on it. */
+  grassGround(): { heights: DataTexture; mask: DataTexture; width: number; height: number; minX: number; maxX: number; minY: number; maxY: number } {
+    const { width, height, minX, maxX, minY, maxY, rivers } = this.data;
+    const heights = new DataTexture(this.heights, width, height, RedFormat, FloatType);
+    heights.minFilter = heights.magFilter = NearestFilter;
+    heights.needsUpdate = true;
+
+    // Where grass grows: not in the sea, not in the bed of a river. A grid of MASK_CELL metres.
+    // Its first and last points lie on the edges of the ground, as those of the elevation grid do.
+    const cols = Math.round((maxX - minX) / MASK_CELL) + 1;
+    const rows = Math.round((maxY - minY) / MASK_CELL) + 1;
+    const stepX = (maxX - minX) / (cols - 1);
+    const stepY = (maxY - minY) / (rows - 1);
+    const grows = new Uint8Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        grows[r * cols + c] = this.heightAt(minX + c * stepX, maxY - r * stepY) > SEA_LEVEL + 0.35 ? 255 : 0;
+      }
+    }
+    for (const river of rivers) {
+      if (river.points.length < 2) continue;
+      const half = (river.level?.stage === "low" ? river.width * 0.95 : river.width * 0.54) + 4;
+      const curve = new CatmullRomCurve3(
+        river.points.map((p) => new Vector3(p.x, 0, -p.y)),
+        false,
+        "centripetal",
+      );
+      const steps = Math.ceil(curve.getLength() / (MASK_CELL / 2));
+      const point = new Vector3();
+      const tangent = new Vector3();
+      for (let i = 0; i <= steps; i++) {
+        curve.getPointAt(i / steps, point);
+        curve.getTangentAt(i / steps, tangent);
+        const norm = Math.hypot(tangent.x, tangent.z) || 1;
+        for (let offset = -half; offset <= half; offset += MASK_CELL / 2) {
+          const col = Math.round((point.x + (tangent.z / norm) * offset - minX) / stepX);
+          const row = Math.round((maxY + (point.z - (tangent.x / norm) * offset)) / stepY);
+          if (col >= 0 && row >= 0 && col < cols && row < rows) grows[row * cols + col] = 0;
+        }
+      }
+    }
+    const mask = new DataTexture(grows, cols, rows, RedFormat, UnsignedByteType);
+    mask.minFilter = mask.magFilter = LinearFilter;
+    mask.unpackAlignment = 1;
+    mask.needsUpdate = true;
+    this.textures.push(heights, mask);
+    return { heights, mask, width, height, minX, maxX, minY, maxY };
+  }
+
   dispose(): void {
+    for (const texture of this.textures) texture.dispose();
     this.group.traverse((object) => {
       if (object instanceof Mesh) {
         object.geometry.dispose();

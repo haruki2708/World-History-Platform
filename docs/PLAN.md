@@ -83,6 +83,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Hiệu năng (đo xen kẽ bốn vòng, hai bản production): bản đầu của nhánh chậm hơn rõ ở giai đoạn 4 vì hơn 100 lượt vẽ thêm; sau khi gom còn 16 lưới thì ngang `main` (giai đoạn 3: 57,3 so với 58,5; giai đoạn 4: 54,5 so với 54,1). Cả `main` lẫn nhánh hôm nay đều có lượt xuống 48–50, sát mục tiêu; xem mục "Việc cho trận đánh 3D".
   - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17. Chờ người dùng xem trong cảnh thật và duyệt gộp.
 - **2026-11-18:** Phiên chính xong chặng 3 của đợt H (T-040) trên nhánh `batch-h/stage3-vegetation`, xếp chồng lên nhánh chặng 2 (chưa gộp) và làm ở worktree riêng để người dùng vẫn xem được chặng 2. Cây có thân và tán nhiều tấm lá, đổ bóng, đung đưa theo gió: lau sậy, bụi, dương và liễu ven sông; ô liu và sồi đứng lẻ trên đồng (14 cây mỗi km²); ba khu rừng nhỏ; cây quanh nhà nông và làng; bụi trên sườn dốc. Không cây nào mọc ở chỗ quân đứng hay đi qua. Mọi cây đều mức minh hoạ; cây trên đồng trái với Polybius 3.110 và hộp thoại Giới thiệu nói rõ (câu chữ chờ người dùng duyệt). Số đo và kết quả kiểm tra ghi ở T-040.
+- **2026-11-18:** Người dùng ngắt chặng 3 để đổi hướng đồ hoạ: gửi năm ảnh mẫu và muốn trận 3D trông như vậy. Phiên chính dừng đo hiệu năng chặng 3 (lần đo đầu: giai đoạn 4 còn 48 khung hình mỗi giây so với 55 của `main`; đã gom lượt vẽ nhưng chưa đo lại), trình đề xuất, người dùng chọn làm cảnh mẫu trước (mục "Đợt I"). Bản cắt đầu tiên của cảnh mẫu (T-041) xong trên nhánh `batch-i/look-sample`: đường cong màu riêng, nắng mạnh, mặt đất xanh có vân cỏ thật (ambientCG, CC0), 42 000 bụi cỏ có hình quanh camera, lính chi tiết hiện từ xa hơn, tán cây sáng hơn. Chờ người dùng xem.
 
 ## Việc để giai đoạn 5
 
@@ -168,6 +169,24 @@ Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặn
 - Sửa đường ra của `camp-force` và `roman-cavalry` để trại lớn không trống một góc (T-039).
 - **Đồ hoạ lính** (người dùng hỏi 2026-11-18: lính "trông đơn giản như hình khối, không như thật"). Nhận định của phiên chính: nhìn sát thì mô hình có chi tiết (áo giáp xích, ngù mũ); cái làm lính trông như hình khối là (1) cảnh chỉ dùng mức chi tiết cao nhất khi một hình cao từ 110 điểm ảnh trở lên, nên ở khoảng cách thường nhìn người xem thấy LOD1 và LOD2, mà LOD2 là thân người dựng bằng ống và elip tô màu phẳng; (2) mọi người lính là một bản sao, cùng khuôn mặt, cùng dáng đứng. Phương án, từ rẻ tới đắt: nới ngưỡng mức chi tiết trong ngân sách tam giác; làm lại LOD2 cho giống người hơn; thêm vài biến thể khuôn mặt, màu áo, dáng đứng; dựng lại mô hình gốc với lưới và chất liệu tốt hơn. **Người dùng chọn (2026-11-18): làm hai bước đầu trước** (nới ngưỡng mức chi tiết; làm lại LOD2), xem kết quả rồi mới quyết hai bước sau; và **làm sau chặng thực vật** của đợt H. Chưa viết task.
 - Hiệu năng sau chặng 1 và 2: khi phát giai đoạn 3–4, các lượt đo chiều 2026-11-18 dao động 48–65 khung hình mỗi giây ở cả `main` lẫn nhánh chặng 2, tức có lượt dưới mục tiêu 50. Buổi sáng, trước chặng 1, `main` đạt 56–66. Cần một lần đo trên máy sạch, nhiều vòng, để biết chặng 1 (shader mặt đất, vùng xa) lấy mất bao nhiêu; nếu đáng kể thì giảm số lần lấy nhiễu của shader mặt đất ở xa camera.
+
+## Đợt I: đồ hoạ theo ảnh mẫu của người dùng
+
+Ngày 2026-11-18, giữa chặng 3 của đợt H, người dùng gửi năm ảnh mẫu (`E:\World_History_Platform_assets\ảnh`, ảnh chụp một game chiến thuật thời cổ) và nói muốn đồ hoạ như vậy, kể cả cận cảnh đánh nhau; cách làm của đợt H "hơi xấu". Phiên chính trình đề xuất làm một cảnh mẫu trước. **Người dùng chọn:**
+
+- Làm cảnh mẫu trước, duyệt rồi mới áp dụng ra cả trận.
+- Mặt đất **xanh tươi như ảnh mẫu**, dù trái mùa của trận Cannae; hộp thoại Giới thiệu phải nói rõ.
+- Được dùng mô hình và chất liệu giấy phép mở (CC0), ghi vào `art/CREDITS.md`. Không chép tài sản của game trong ảnh mẫu.
+- Hai nhánh chặng 2 và 3 của đợt H **giữ làm nền, chưa gộp**; cảnh mẫu dựng tiếp trên chúng.
+
+| Việc | Nội dung | Task | Trạng thái |
+|---|---|---|---|
+| Cảnh mẫu | Một đoạn giáp lá cà cận cảnh trên cỏ, có cây và khúc sông, đạt chuẩn ảnh mẫu: màu và nắng, cỏ có hình, lính cận cảnh, hỗn chiến, cây và lều có chất liệu, nước | [T-041](tasks/T-041-look-sample.md) | Bản cắt đầu tiên xong trên nhánh `batch-i/look-sample` (màu và nắng, mặt đất xanh, bụi cỏ có hình, lính chi tiết hiện từ xa hơn); chờ người dùng xem. Chưa làm: hỗn chiến, tô lại lính, mô hình cây và lều, nước |
+| Áp dụng ra cả trận | Sau khi người dùng duyệt cảnh mẫu | Chưa viết | Chưa bắt đầu |
+
+Việc nâng cấp đồ hoạ lính mà người dùng chọn trước đó ("bước 1 và 2": nới ngưỡng mức chi tiết, làm lại LOD2) nhập vào đợt này; bước 1 đã nằm trong bản cắt đầu tiên.
+
+Chặng 4 của đợt H (bụi và gió) hoãn tới sau cảnh mẫu.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 
