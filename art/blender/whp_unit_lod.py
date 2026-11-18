@@ -47,6 +47,17 @@ AO_STRENGTH = 0.75
 SAMPLES = {"NORMAL": 4, "EMIT": 4, "AO": 32}
 SURFACE_DEFAULT = (1.0, 0.7, 0.0)   # unused texels: rough, not metal
 
+# The "hi" ladder of four levels (whp_build --hi), in terms of the budgets a
+# Part gives for the game ladder of three:
+#   LOD0  HI_SCALE times its LOD0 budget: the figure seen close
+#   LOD1  HI_MID times its LOD0 budget
+#   LOD2  HI_FAR times its LOD1 budget, textured like the others
+#   LOD3  the game ladder's LOD2: the stand-in of tubes, one flat colour a triangle
+HI_SCALE = 3.0
+HI_MID = 0.7
+HI_FAR = 1.2
+HI_NORMAL_SIZE = 2048
+
 
 class Part:
     """One piece of the game mesh.
@@ -61,10 +72,12 @@ class Part:
               that move away from the body: the shield and the sword)
     sole:     objects to push the underside of the part down onto (the
               sandals: the figure then stands on their soles)
+    hi:       (objects, triangles) for LOD0 of the "hi" ladder, when the
+              default will not do (see hi_source)
     """
 
     def __init__(self, name, low, bake, budget, covers=(), reach=0.03, uv=1.0,
-                 extrusion=0.012, ray=0.03, ao_alone=False, sole=()):
+                 extrusion=0.012, ray=0.03, ao_alone=False, sole=(), hi=None):
         self.name = name
         self.low = low
         self.bake = bake
@@ -76,19 +89,42 @@ class Part:
         self.ray = ray
         self.ao_alone = ao_alone
         self.sole = sole
+        self.hi = hi
 
 
 def _objects(names):
     return [bpy.data.objects[n] for n in names]
 
 
-def build_low_parts(specs, ground=0.0):
+def game_budget(part):
+    """The Part's triangles at the three levels of the game ladder; where
+    it keeps a generated mesh as it is (None), that mesh's count."""
+    first = part.budget[0]
+    if first is None:
+        first = sum(triangle_count(o) for o in _objects(part.low))
+    return (first, part.budget[1] or 0, part.budget[2] or 0)
+
+
+def hi_source(part):
+    """Objects and triangles of a Part's LOD0 in the "hi" ladder. A part
+    cut down from the source mesh gets HI_SCALE times its game budget. A
+    generated part has a game-resolution copy (".low") and a detailed
+    one: the detailed one is cut down to HI_SCALE times the copy's count."""
+    if part.hi is not None:
+        return part.hi
+    generated = all(name.endswith(".low") for name in part.low)
+    return (part.bake if generated else part.low), int(round(game_budget(part)[0] * HI_SCALE))
+
+
+def build_low_parts(specs, ground=0.0, hi=False):
     """The low copy of each Part, its hidden faces removed, its UVs
     projected, decimated to its LOD0 budget. `ground`: height of the soles
-    at rest (a rider's rest pose stands above the horse's ground)."""
+    at rest (a rider's rest pose stands above the horse's ground). `hi`:
+    LOD0 of the "hi" ladder (hi_source)."""
     parts = []
     for part in specs:
-        low = lod.low_copy(_objects(part.low), part.name)
+        names, budget = hi_source(part) if hi else (part.low, part.budget[0])
+        low = lod.low_copy(_objects(names), part.name)
         if part.covers:
             gone = lod.remove_covered(low, _objects(part.covers), part.reach)
             log(f"{part.name}: removed {gone} hidden faces")
@@ -100,8 +136,8 @@ def build_low_parts(specs, ground=0.0):
         weight = part.uv if callable(part.uv) else (lambda slot, w=part.uv: w)
         lod.set_uv_weight(low, weight)
         lod.project_uvs(low)
-        if part.budget[0] is not None:
-            lod.decimate(low, part.budget[0])
+        if budget is not None:
+            lod.decimate(low, budget)
         parts.append(low)
     return parts
 
@@ -185,8 +221,8 @@ def compose_surface(model, surface_raw):
     return lod.save_image(f"{model}-surface", rgb, path, False)
 
 
-def compose_textures(model, color_raw, normal_raw, ao_raw):
-    """Final 8-bit images: colour x AO in sRGB, normals averaged down."""
+def compose_textures(model, color_raw, normal_raw, ao_raw, normal_size=NORMAL_SIZE):
+    """Final 8-bit images: colour x AO in sRGB, normals averaged down to `normal_size`."""
     color = lod.pixels_of(color_raw)
     mask = color[..., 3] > 0.5
     rgb = color[..., :3]
@@ -203,7 +239,7 @@ def compose_textures(model, color_raw, normal_raw, ao_raw):
     normal = lod.pixels_of(normal_raw)
     nmask = normal[..., 3] > 0.5
     vec = np.where(nmask[..., None], normal[..., :3] * 2.0 - 1.0, 0.0)
-    factor = NORMAL_BAKE_SIZE // NORMAL_SIZE
+    factor = NORMAL_BAKE_SIZE // normal_size
     vec = lod.downsample(vec, factor)
     count = lod.downsample(nmask[..., None].astype(np.float32), factor)[..., 0]
     length = np.linalg.norm(vec, axis=2, keepdims=True)
@@ -335,7 +371,7 @@ def finish_lod(objs, name, limit, armature, material):
 _finish_lod = finish_lod            # the old name (horse_lod used it)
 
 
-def bake_atlas(model, specs, parts, detailed, ao_sets=None):
+def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_SIZE):
     """Pack the low parts into one atlas and bake it from the detailed
     objects: normals, colour, the metallicRoughness map, ambient occlusion
     (in `ao_sets`, see bake_ao). Each spec needs `name`, `bake` (names of
@@ -360,7 +396,7 @@ def bake_atlas(model, specs, parts, detailed, ao_sets=None):
         bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
     bake_ao(scene, specs, parts, ao_raw, material, ao_sets)
 
-    color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw)
+    color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw, normal_size)
     surface_image = compose_surface(model, surface_raw)
     final = lod.final_material(model, color_image, normal_image, surface_image=surface_image)
 
@@ -394,9 +430,31 @@ def figure_levels(specs, parts, armature, color_image, spec, ground=0.0):
     return levels
 
 
+def figure_levels_hi(specs, parts, game, armature, color_image, spec, ground=0.0):
+    """The pieces of the four levels of the "hi" ladder from the baked LOD0
+    parts (see HI_SCALE). `game`: game_budget of each part. Returns four
+    lists of objects."""
+    levels = [[], [], [], []]
+    levels[3].append(build_lod2_proxy(parts, armature, color_image, spec, ground))
+    for part, low, (first, second, third) in zip(specs, parts, game):
+        targets = (None, int(round(first * HI_MID)), int(round(second * HI_FAR)),
+                   third if part.name in spec["own"] else 0)
+        for level in (1, 2, 3):
+            if targets[level]:
+                copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
+                lod.decimate(copy, targets[level])
+                levels[level].append(copy)
+                log(f"LOD{level} {part.name}: {triangle_count(copy)} triangles")
+        levels[0].append(low)
+    return levels
+
+
 def build(unit, limits):
+    """`limits`: triangles of each level. Three levels: the game ladder;
+    four: the "hi" ladder."""
     model = unit.MODEL
     specs = unit.PARTS
+    hi = len(limits) == 4
     scene = bpy.context.scene
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
     detailed = [o for o in scene.objects if o.type == "MESH" and not o.name.endswith(".low")]
@@ -405,16 +463,21 @@ def build(unit, limits):
         armature.animation_data.action = None
     whp_skeleton.reset_pose(armature)
 
-    parts = build_low_parts(specs)
+    game = [game_budget(part) for part in specs]
+    parts = build_low_parts(specs, hi=hi)
     for part, low in zip(specs, parts):
         log(f"LOD0 {part.name}: {triangle_count(low)} triangles")
     log(f"LOD0 total: {sum(triangle_count(p) for p in parts)} triangles")
     delete_objects(generated_low)
 
-    parts, final, color_image, clean_up = bake_atlas(model, specs, parts, detailed)
+    parts, final, color_image, clean_up = bake_atlas(model, specs, parts, detailed,
+                                                     normal_size=HI_NORMAL_SIZE if hi else NORMAL_SIZE)
 
-    # LOD1 from the baked LOD0 parts; LOD2 from a segmented stand-in.
-    levels = figure_levels(specs, parts, armature, color_image, unit.LOD2)
+    # The lower levels from the baked LOD0 parts; the last from a segmented stand-in.
+    if hi:
+        levels = figure_levels_hi(specs, parts, game, armature, color_image, unit.LOD2)
+    else:
+        levels = figure_levels(specs, parts, armature, color_image, unit.LOD2)
     lods = [finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.

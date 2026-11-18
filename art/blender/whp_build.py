@@ -64,6 +64,16 @@ CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
 REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models that fight
                                     # hand to hand, and the horsemen
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
+# The "hi" ladder (--hi): a more detailed model for the figure seen close,
+# and better ones for the middle distance; its last level is the game
+# ladder's LOD2. Not yet what the 3D scene loads: the file goes to
+# art/build/<model>/<model>-hi.glb and is not listed in index.json.
+HI_LODS = ("LOD0", "LOD1", "LOD2", "LOD3")
+HI_LIMITS = (26000, 7000, 1800, 300)
+HI_LIMITS_MOUNTED = (26000, 7000, 2400, 330)        # a horseman and his horse
+HI_MAX_BYTES = 8 * 1024 * 1024
+HI_NORMAL_MAX = 2048
+PROFILE = {"hi": False}
 BONES = 67
 INDEX = os.path.join(MODELS_DIR, "index.json")
 
@@ -94,7 +104,19 @@ def work_dir(model):
 
 
 def glb_path(model):
+    if PROFILE["hi"]:
+        return os.path.join(work_dir(model), f"{model}-hi.glb")
     return os.path.join(MODELS_DIR, f"{model}.glb")
+
+
+def lods():
+    return HI_LODS if PROFILE["hi"] else LODS
+
+
+def limits(unit=None):
+    if not PROFILE["hi"]:
+        return LIMITS
+    return HI_LIMITS_MOUNTED if unit is not None and hasattr(unit, "HORSE") else HI_LIMITS
 
 
 def base_name(obj):
@@ -194,16 +216,17 @@ def stage_anim(unit):
 def stage_lod(unit):
     if hasattr(unit, "HORSE"):
         import whp_cavalry
-        return whp_cavalry.stage_lod(unit, LIMITS)
-    whp_unit_lod.build(unit, LIMITS)
+        return whp_cavalry.stage_lod(unit, limits(unit))
+    whp_unit_lod.build(unit, limits(unit))
 
 
 def stage_export(unit):
     armature = bpy.data.objects[whp_skeleton.RIG_NAME]
-    meshes = [bpy.data.objects[name] for name in LODS]
-    os.makedirs(MODELS_DIR, exist_ok=True)
+    meshes = [bpy.data.objects[name] for name in lods()]
+    os.makedirs(os.path.dirname(glb_path(unit.MODEL)), exist_ok=True)
     whp_export.export_glb(glb_path(unit.MODEL), armature, meshes, clips_of(unit))
-    update_index(unit.MODEL)
+    if not PROFILE["hi"]:
+        update_index(unit.MODEL)
 
 
 RUN = {
@@ -226,9 +249,14 @@ def check_model(model):
     if not os.path.isfile(path):
         return [f"{path} does not exist"]
     unit = load_unit(model)
-    problems = whp_export.check_glb(path, LODS, LIMITS, clips_of(unit), bone_count=getattr(unit, "BONES", BONES))
+    hi = PROFILE["hi"]
+    problems = whp_export.check_glb(path, lods(), limits(unit), clips_of(unit), bone_count=getattr(unit, "BONES", BONES),
+                                    normal_max=HI_NORMAL_MAX if hi else 1024,
+                                    max_bytes=HI_MAX_BYTES if hi else whp_export.MAX_BYTES)
     ground = getattr(unit, "GROUND_CHECKS", whp_export.GROUND_CHECKS)
-    problems += whp_export.reimport(path, LODS, ground)
+    problems += whp_export.reimport(path, lods(), ground)
+    if hi:
+        return problems
     with open(INDEX, encoding="utf-8") as f:
         if model not in json.load(f).get("models", []):
             problems.append(f"{model} is not listed in {INDEX}")
@@ -255,7 +283,12 @@ def update_index(model):
 # --------------------------------------------------------------------------
 
 def stage_file(model, index):
-    return os.path.join(work_dir(model), f"{index + 1}-{STAGES[index]}.blend")
+    # The "hi" ladder shares the stages up to anim with the game ladder; a
+    # horseman's only up to rig, for his horse joins him at anim, and the
+    # "hi" ladder has a horse of its own (horse_build --hi).
+    own = ("anim", "lod", "export") if hasattr(load_unit(model), "HORSE") else ("lod", "export")
+    suffix = "-hi" if PROFILE["hi"] and STAGES[index] in own else ""
+    return os.path.join(work_dir(model), f"{index + 1}-{STAGES[index]}{suffix}.blend")
 
 
 def preview(model, name):
@@ -312,7 +345,13 @@ def main(argv):
     parser.add_argument("--to", dest="last", choices=STAGES, default=STAGES[-1])
     parser.add_argument("--preview", action="store_true", help="quick renders after each stage")
     parser.add_argument("--check", action="store_true", help="only check the exported .glb")
+    parser.add_argument("--hi", action="store_true",
+                        help="the four-level ladder with a detailed LOD0, to art/build/<model>/<model>-hi.glb")
     args = parser.parse_args(argv)
+    PROFILE["hi"] = args.hi
+    if args.hi:
+        import whp_cavalry
+        whp_cavalry.HORSE_BLEND = os.path.join(BUILD_DIR, "horse", "horse-hi.blend")
     models = ids if args.model == "all" else [args.model]
     problems = []
     for model in models:

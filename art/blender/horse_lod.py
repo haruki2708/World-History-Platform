@@ -33,7 +33,7 @@ from whp_common import delete_objects, deselect_all, duplicate_object, log, tria
 
 MODEL = "horse"
 GROUPS = ("horse", "horse_cloth", "horse_bridle", "horse_neckrope")
-GROUP_OF = {"body": "horse", "mane": "horse", "tail": "horse",
+GROUP_OF = {"body": "horse", "mane": "horse", "tail": "horse", "mane_far": "horse", "tail_far": "horse",
             "cloth": "horse_cloth", "bridle": "horse_bridle", "neckrope": "horse_neckrope"}
 # Triangles at LOD0, LOD1, LOD2 (LOD2 for the body is the stand-in).
 BUDGET = {
@@ -43,9 +43,22 @@ BUDGET = {
     "cloth": (None, 60, 12),
     "bridle": (None, 0, 0),           # thin, loose pieces: decimated they tear; unseen at that range
     "neckrope": (None, 24, 0),
+    "mane_far": (None, 0, 0),         # the "hi" ladder only (HI_HAIR)
+    "tail_far": (None, 0, 0),
 }
 LIMITS = (3500, 700, 150)       # per horse with all its tack (task T-020)
-SOURCE = {"body": rig.BODY_NAME, "mane": "horse-mane", "tail": "horse-tail", "cloth": "horse-cloth",
+# The "hi" ladder of four levels (horse_build --hi): the body's LOD0 is
+# HI_BODY times its game budget; then as whp_unit_lod's HI_MID and HI_FAR.
+# The mane and the tail are locks of hair there, and keep their shape down
+# to LOD1; below that they are cut down hard.
+HI_BODY = 3.6
+HI_LIMITS = (13500, 4200, 1100, 150)
+# Mane and tail at LOD1, LOD2, LOD3 (None: whole, 0: absent). The locks go
+# down to LOD1; below it the plain far pieces stand in (horse_kit.MANE_FAR).
+HI_HAIR = {"mane": (None, 0, 0), "tail": (None, 0, 0), "mane_far": (0, None, 0), "tail_far": (0, 60, 0)}
+FAR = ("mane_far", "tail_far")
+SOURCE = {"body": rig.BODY_NAME, "mane": "horse-mane", "tail": "horse-tail", "mane_far": "horse-mane-far",
+          "tail_far": "horse-tail-far", "cloth": "horse-cloth",
           "bridle": "horse-bridle", "neckrope": "horse-neckrope"}
 INNER_SLOTS = (2, 3, 5)          # gums, teeth, cornea (horse_kit.INNER_SLOTS)
 
@@ -71,20 +84,23 @@ def _body_shell(body):
 TACK = ("mane", "tail", "cloth", "bridle", "neckrope")
 
 
-def low_parts(keys=TACK, uv=1.0):
+def low_parts(keys=TACK, uv=1.0, hi=False):
     """LOD0 parts, each with its own UV islands, and the detailed objects
     each bakes from: the body, and the pieces in `keys` (default all; a
     rider model takes the tack its horsemen used). `uv`: texel density
-    weight (whp_lod.set_uv_weight) when the horse shares an atlas."""
+    weight (whp_lod.set_uv_weight) when the horse shares an atlas. `hi`:
+    the body of the "hi" ladder."""
     parts, sources = [], []
     body = bpy.data.objects[rig.BODY_NAME]
     shell = _body_shell(body)
     lod.triangulate(shell)
     lod.set_uv_weight(shell, lambda slot: uv)
     lod.project_uvs(shell)
-    lod.decimate(shell, BUDGET["body"][0])
+    lod.decimate(shell, int(BUDGET["body"][0] * HI_BODY) if hi else BUDGET["body"][0])
     parts.append(shell)
     sources.append([body])
+    if hi:
+        keys = tuple(keys) + FAR
     for key in keys:
         obj = bpy.data.objects[SOURCE[key]]
         low = duplicate_object(obj, key)
@@ -163,7 +179,7 @@ def lod2_body(parts, rest, color_image):
     head, four legs of two tubes each and the tail, each shape following
     one bone, coloured flat from the atlas."""
     body = next(p for p in parts if p.name == "body")
-    tail = next(p for p in parts if p.name == "tail")
+    tail = next((p for p in parts if p.name == "tail_far"), None) or next(p for p in parts if p.name == "tail")
     # Measured on the detailed skin (the decimated one is too sparse).
     detailed = bpy.data.objects[rig.BODY_NAME].data
     co = np.empty(len(detailed.vertices) * 3)
@@ -255,26 +271,63 @@ def levels(parts, rest, color_image):
     return levels
 
 
-def build(armature, rest):
-    parts, sources = low_parts()
+def levels_hi(parts, rest, color_image):
+    """As levels, for the "hi" ladder: {group: [[LOD0], [LOD1], [LOD2], [LOD3]]}."""
+    by_name = {p.name: p for p in parts}
+    out = {g: [[], [], [], []] for g in GROUPS}
+    for key, budget in BUDGET.items():
+        if key not in by_name:
+            continue
+        group = GROUP_OF[key]
+        low = by_name[key]
+        first = budget[0] if budget[0] is not None else triangle_count(low)
+        if key in HI_HAIR:
+            targets = HI_HAIR[key]
+        elif key == "body":
+            targets = (int(first * ul.HI_MID), int((budget[1] or 0) * ul.HI_FAR), None)
+        else:
+            # Tack: whole at LOD1 (cut down, straps tear), then the game ladder's lower levels.
+            targets = (None, int((budget[1] or 0) * ul.HI_FAR), budget[2] or 0)
+        if key not in FAR:
+            out[group][0].append(low)
+        for level, target in zip((1, 2, 3), targets):
+            if level == 3 and key == "body":
+                out[group][3].append(lod2_body(parts, rest, color_image))
+                continue
+            if target == 0:
+                continue
+            copy = duplicate_object(low, f"{key}.lod{level}")
+            if target is not None:
+                lod.decimate(copy, target)
+                if key == "cloth":
+                    _push_out(copy, 0.012 if level < 3 else 0.02)
+            out[group][level].append(copy)
+            log(f"LOD{level} {key}: {triangle_count(copy)} triangles")
+    return out
+
+
+def build(armature, rest, hi=False):
+    parts, sources = low_parts(hi=hi)
     parts, final, color_image = bake(parts, sources)
-    levels_ = levels(parts, rest, color_image)
+    count = 4 if hi else 3
+    limits = HI_LIMITS if hi else LIMITS
+    levels_ = levels_hi(parts, rest, color_image) if hi else levels(parts, rest, color_image)
     out = {}
-    totals = [0, 0, 0]
+    totals = [0] * count
     for group in GROUPS:
-        for i in range(3):
+        for i in range(count):
             objs = levels_[group][i]
             if not objs:
                 continue
             name = f"{group}_LOD{i}"
-            obj = ul.finish_lod(objs, name, LIMITS[i], armature, final)
+            obj = ul.finish_lod(objs, name, limits[i], armature, final)
             # The coat colours live in the atlas now; a colour attribute
             # left on the mesh would be exported (COLOR_0) and multiply it.
             for attr in list(obj.data.color_attributes):
                 obj.data.color_attributes.remove(attr)
             out[name] = obj
             totals[i] += triangle_count(obj)
-    for i in range(3):
-        log(f"LOD{i} with all tack: {totals[i]} triangles (target about {LIMITS[i]})")
+    for i in range(count):
+        log(f"LOD{i} with all tack: {totals[i]} triangles (target about {limits[i]})")
     deselect_all()
     return out, totals

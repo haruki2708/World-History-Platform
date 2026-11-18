@@ -45,15 +45,35 @@ from whp_common import BUILD_DIR, ensure_dir, log, open_blend, reset_scene, save
 STAGES = ("source", "rig", "anim", "lod", "finish")
 WORK = os.path.join(BUILD_DIR, "horse")
 NPZ = os.path.join(WORK, "source.npz")
-OUT = os.path.join(WORK, "horse.blend")
-TEST_GLB = os.path.join(WORK, "horse-test.glb")
-INFO = os.path.join(WORK, "horse-info.json")
+# --hi: the horse of the "hi" ladder (a richer coat, mane and tail of locks,
+# four levels), in files of its own beside the game horse's: 1-rig-hi.blend
+# ... horse-hi.blend. Both read the same source.npz.
+PROFILE = {"hi": False}
+
+
+def _named(name):
+    if not PROFILE["hi"]:
+        return os.path.join(WORK, name)
+    stem, ext = os.path.splitext(name)
+    return os.path.join(WORK, f"{stem}-hi{ext}")
+
+
+def out_blend():
+    return _named("horse.blend")
+
+
+def test_glb():
+    return _named("horse-test.glb")
+
+
+def info_json():
+    return _named("horse-info.json")
 CLIPS = ("idle", "walk", "run", "die")
 EXTRA_CLIPS = ("trot", "canter")
 
 
 def stage_file(i):
-    return os.path.join(WORK, f"{i}-{STAGES[i]}.blend")
+    return _named(f"{i}-{STAGES[i]}.blend")
 
 
 def load_data():
@@ -77,14 +97,23 @@ def stage_rig():
     scene = bpy.context.scene
     scene.render.fps = rig.FPS
     data, frame = load_data()
-    mats = horse_kit.body_materials()
+    hi = PROFILE["hi"]
+    mats = horse_kit.body_materials(hi)
     body_obj, weights = rig.build_body(data, frame, mats)
     rest0 = rig.rest_matrices(data, frame, np.zeros(3))
     body = horse_kit.Body(body_obj, weights, rest0, frame.scale)
-    horse_kit.coat_colours(body)
+    (horse_kit.coat_colours_hi if hi else horse_kit.coat_colours)(body)
     tack = horse_kit.tack_materials()
-    mane = horse_kit.build_mane(body, mats[horse_kit.SLOT_HAIR])
-    tail = horse_kit.build_tail(body, mats[horse_kit.SLOT_HAIR])
+    far = []
+    if hi:
+        # Locks of hair do not come down to a few triangles (each is a loose
+        # piece): the plain mane and tail stay in the file as the far pieces.
+        for build, name in ((horse_kit.build_mane, horse_kit.MANE_FAR), (horse_kit.build_tail, horse_kit.TAIL_FAR)):
+            piece = build(body, mats[horse_kit.SLOT_HAIR])
+            piece.name = piece.data.name = name
+            far.append(piece)
+    mane = (horse_kit.build_mane_hi if hi else horse_kit.build_mane)(body, mats[horse_kit.SLOT_HAIR])
+    tail = (horse_kit.build_tail_hi if hi else horse_kit.build_tail)(body, mats[horse_kit.SLOT_HAIR])
     cloth, seat = horse_kit.build_cloth(body, tack["wool"], tack["leather"])
     bridle = horse_kit.build_bridle(body, tack["leather"], tack["iron"])
     neckrope = horse_kit.build_neckrope(body, tack["rope"])
@@ -99,7 +128,7 @@ def stage_rig():
     armature = rig.build_armature(data, frame, seat, parent)
     armature["whp_seat"] = [float(x) for x in seat]
     armature["whp_seat_parent"] = parent
-    for obj in (body_obj, mane, tail, cloth, bridle, neckrope):
+    for obj in (body_obj, mane, tail, cloth, bridle, neckrope, *far):
         rig.bind(obj, armature)
     log(f"rig: {len(armature.data.bones)} bones; saddle bone under {parent} at {np.round(seat, 3).tolist()}")
     save_blend(stage_file(1))
@@ -175,7 +204,7 @@ def stage_anim():
     info["seat"] = {"bone": rig.SADDLE_BONE, "parent": parent, "rest": [round(float(x), 3) for x in seat]}
     info["withers_m"] = rig.WITHERS_HEIGHT
     info["scale_from_source"] = round(frame.scale, 4)
-    with open(INFO, "w", encoding="utf-8") as f:
+    with open(info_json(), "w", encoding="utf-8") as f:
         json.dump(info, f, indent=2)
     log("clip info:", json.dumps(info["clips"]))
     scene.frame_start, scene.frame_end = 0, 60
@@ -186,11 +215,11 @@ def stage_lod():
     open_blend(stage_file(2))
     armature = bpy.data.objects[rig.RIG_NAME]
     rest = armature_rest(armature)
-    lods, totals = horse_lod.build(armature, rest)
-    info = json.load(open(INFO, encoding="utf-8")) if os.path.exists(INFO) else {}
+    lods, totals = horse_lod.build(armature, rest, hi=PROFILE["hi"])
+    info = json.load(open(info_json(), encoding="utf-8")) if os.path.exists(info_json()) else {}
     info["triangles"] = {name: _tris(obj) for name, obj in sorted(lods.items())}
     info["triangles_total"] = totals
-    with open(INFO, "w", encoding="utf-8") as f:
+    with open(info_json(), "w", encoding="utf-8") as f:
         json.dump(info, f, indent=2)
     save_blend(stage_file(3))
 
@@ -222,19 +251,21 @@ def stage_finish():
     for obj in game.objects:
         if obj.type == "MESH":
             obj.hide_render = not obj.name.endswith("LOD0")
-    save_blend(OUT)
-    log(f"saved {OUT}")
+    save_blend(out_blend())
+    log(f"saved {out_blend()}")
 
     # Test export: the horse alone with its four clips, checked and read
     # back. Not shipped; it shows the file exports cleanly for T-022.
-    meshes = [bpy.data.objects[f"{g}_LOD{i}"] for g in ("horse",) for i in range(3)]
-    whp_export.export_glb(TEST_GLB, armature, meshes, CLIPS)
-    problems = whp_export.check_glb(TEST_GLB, [m.name for m in meshes], horse_lod.LIMITS, CLIPS,
-                                    len(armature.data.bones))
+    hi = PROFILE["hi"]
+    meshes = [bpy.data.objects[f"{g}_LOD{i}"] for g in ("horse",) for i in range(4 if hi else 3)]
+    whp_export.export_glb(test_glb(), armature, meshes, CLIPS)
+    problems = whp_export.check_glb(test_glb(), [m.name for m in meshes],
+                                    horse_lod.HI_LIMITS if hi else horse_lod.LIMITS, CLIPS,
+                                    len(armature.data.bones), max_bytes=8 * 1024 * 1024 if hi else whp_export.MAX_BYTES)
     ground = (("idle", 0, (-0.03, 0.03), (1.5, 2.1)),
               ("walk", 0, (-0.03, 0.03), (1.5, 2.1)),
               ("die", "last", (-0.05, 0.05), (0.3, 1.2)))
-    problems += whp_export.reimport(TEST_GLB, [m.name for m in meshes], ground=ground)
+    problems += whp_export.reimport(test_glb(), [m.name for m in meshes], ground=ground)
     for p in problems:
         log("PROBLEM", p)
     if problems:
@@ -249,7 +280,9 @@ def main(argv):
     parser = argparse.ArgumentParser(prog="horse_build.py")
     parser.add_argument("--from", dest="start", choices=STAGES, default=STAGES[0])
     parser.add_argument("--to", dest="stop", choices=STAGES, default=STAGES[-1])
+    parser.add_argument("--hi", action="store_true", help='the horse of the "hi" ladder, to horse-hi.blend')
     args = parser.parse_args(argv)
+    PROFILE["hi"] = args.hi
     a, b = STAGES.index(args.start), STAGES.index(args.stop)
     for stage in STAGES[a:b + 1]:
         log(f"=== horse: stage {stage}")
