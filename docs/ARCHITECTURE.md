@@ -287,7 +287,9 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Ba trên mười đòn lọt qua (`hit`); đòn hạ gục luôn lọt qua. Chọn clip nào là cố định theo từng hình và từng đòn.
   - **Mỗi lúc một clip, không clip nào bị cắt ngang:** hình lính đang dở nhát đánh của mình thì không phản ứng; nhát đánh kế tiếp của nó sẽ bắt đầu trước khi phản ứng phát xong thì cũng không phản ứng; đang phản ứng thì nhát đánh của nó chờ phản ứng phát xong (còn dưới 0,1 giây). Hai người trong một cặp vốn đánh luân phiên, nên các quy tắc này chỉ có tác dụng lúc đổi đối thủ hay đổi nhịp. Ngoại lệ duy nhất: nhát hạ gục đối thủ không chờ.
   - Clip đánh dài và lấy đà lâu thì không đủ chỗ cho cả hai trong một chu kỳ: kỵ binh Numidia đánh gần (phóng lao, đòn chạm ở giây 0,73) hầu như không đỡ đòn.
-  - Sau khi tua, hình lính vào ngay nhát đánh mà đồng hồ trận cho nó; người bị đánh chỉ phản ứng với nhát còn kịp bắt đầu clip.
+  - Sau khi tua, hình lính vào ngay nhát đánh mà đồng hồ trận cho nó, và người bị nhắm vào ngay giữa clip `block` hay `hit` tương ứng, kể cả khi đòn đã chạm. (Lúc phát liên tục, một nhát chỉ được báo tới lúc đòn chạm.)
+  - Khối đang đánh từ xa (`skirmish`) không phản ứng, kể cả với nhát của địch bắt đầu trước khi khối chuyển sang ném.
+  - Lý do người Numidia không đỡ được: gọi d là khoảng từ lúc đòn của họ chạm tới lúc đòn của đối thủ chạm; họ cần d từ 1,38 tới 1,50 giây, kỵ binh đối diện cần 0,83 tới 1,28 giây. Hai khoảng không giao nhau, nên chỉnh độ lệch nhịp không sửa được.
 - **Vẽ** (`engine/units.ts`):
   - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối.
   - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).

@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (đợt G, người dùng chọn 2026-11-18).
 - **Model:** Fable 5.2, effort `high` (người dùng đặt).
 - **Nhánh:** `batch-g/stage3-cavalry` (tạo từ `main` sau khi gộp chặng 2).
-- **Trạng thái:** xong 2026-11-18; chờ lane 3 đọc lại nhánh và người dùng duyệt gộp.
+- **Trạng thái:** xong 2026-11-18; lane 1 đã đọc lại thay lane 3 (`T-034-review.md`), đã sửa theo review (mục "Sau review của lane 1"); chờ người dùng duyệt gộp.
 - **Phạm vi file:** `src/components/battle/engine/`, `src/app/battle-lab/`, `art/`, `public/battles/models/`, `docs/`.
 - **Kế hoạch chung:** `docs/PLAN.md`, mục "Đợt G". Chặng 2: `T-033-melee-stage2.md`, review của lane 3: `T-033-review.md`.
 
@@ -78,4 +78,15 @@ Chi phí: `Blows.update` 0,14 ms mỗi khung ở Cannae (6 810 hình, đo bằng
 - **Lúc đỡ đòn, tay trái rời dây cương** nhưng dây cương vẫn nằm ở cổ ngựa (dây là lưới của ngựa, không gắn vào tay).
 - **Nhát hạ gục cắt ngang phản ứng** (231 lần ở Cannae) và cắt ngang nhát đang dở (650 lần), như chặng 1 và 2.
 - **Hai cây *pilum* của hastatus** vẫn biến đi rồi hiện lại mỗi lần phát `attack`, `block`, `hit`; chưa quyết (xem `T-033-melee-stage2.md`).
-- Sau khi tua, người bị đánh chỉ phản ứng với nhát nào còn kịp bắt đầu clip (0,3 giây đầu); nhát đang dở lúc tua thì chạm mà không có phản ứng.
+- ~~Sau khi tua, người bị đánh chỉ phản ứng với nhát nào còn kịp bắt đầu clip.~~ Đã sửa, xem mục "Sau review của lane 1".
+
+## Sau review của lane 1 (2026-11-18)
+
+Lane 3 hết hạn mức, nên người dùng giao lane 1 đọc lại thay (Opus 5.5): `docs/tasks/T-034-review.md`, nhánh ở commit `f466aaf`. Không có lỗi làm hỏng cảnh; sáu clip cũ của ba mô hình kỵ binh giống hệt `main`; các số của bảng "Số đo" chạy lại ra đúng; tốc độ ngang `main` (`crowd.update` 1,96 so với 1,99 ms mỗi khung; khung hình 57,2 so với 57,7, máy lúc đo dao động lớn). Hai chỗ nên sửa, đã sửa cả hai trong `blows.ts`:
+
+- **Sau khi tua, người bị đánh đứng thủ trong khi đòn đã tới.** Một nhát chỉ được báo cho người bị nhắm tới lúc đòn chạm, nên tua vào sau lúc chạm thì người đó không phản ứng. Giờ lúc tua thì báo cả nhát đã chạm mà chưa hết clip. Đo bằng `tools/blows-edge.mjs` của lane 1 (so cảnh ngay sau một lần tua với cảnh lúc phát liên tục, mỗi 3 giây phát): số hình đang `block`/`hit` lúc phát mà sau khi tua không có clip nào giảm từ 1 384 xuống 166 trên 2 272 ở Cannae (61% xuống 7%), từ 631 xuống 59 trên 1 028 ở trận thử.
+- **Khối chuyển từ `fight` sang `skirmish` vẫn có thể phát `block`/`hit`** nếu còn nhát của địch đang tới. Giờ khối đang ném bị bỏ qua ở lượt "đòn nhận vào". Dữ liệu hiện tại không có khối nào chuyển như vậy.
+
+Sau khi sửa, mọi số của `blows-check.mjs` khi phát liên tục giống hệt trước (Cannae và trận thử), và các biến thể biên của lane 1 không còn người ném nào mang clip phản ứng.
+
+Để nguyên theo review: kỵ binh Numidia đánh gần không đỡ đòn (lane 1 tính ra hai khoảng độ lệch nhịp không giao nhau; đã ghi vào `ARCHITECTURE.md`).

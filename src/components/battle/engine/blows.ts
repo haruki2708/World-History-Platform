@@ -9,7 +9,10 @@
  * - First the blows struck. A blow is timed by the battle clock: the attack
  *   clip plays once every STRIKE_PERIOD, placed so that the blow lands on
  *   the beat of the enemy (swingBeat in melee.ts). A figure with a blow
- *   under way tells the man it is aimed at, until the blow lands.
+ *   under way tells the man it is aimed at, until the blow lands. After a
+ *   jump it tells him of a blow that has landed too, as long as its clip
+ *   plays: the man struck is then in the middle of the blow he takes, as
+ *   the man who strikes is in the middle of his.
  * - Then the blows taken. A figure told of a blow plays block or hit once,
  *   started REACTION_IMPACT before the blow lands: it answers the blow its
  *   enemy really strikes, so no shield goes up at a blow that never comes.
@@ -26,7 +29,7 @@
  *
  * A blow or a clip under way is played to its end even if the enemy has
  * fallen or the unit has stopped fighting; a unit that fights at a distance
- * (skirmish) drops them at once.
+ * (skirmish) drops them at once, and takes no blow while it throws.
  */
 
 import { REACTION_IMPACT } from "@/lib/battle";
@@ -62,7 +65,7 @@ export interface BlowFigures {
   /** The same for the blow each figure is taking. */
   react: Float32Array;
   reactFrom: Float32Array;
-  /** 1 when the blow a figure is taking gets through (hit), 0 when he meets it (block). */
+  /** 1 when the blow a figure is taking gets through (hit), 0 when he meets it (block). Not kept up between blows. */
   through: Uint8Array;
 }
 
@@ -132,7 +135,8 @@ export class Blows {
         if (beat < 0) continue;
         react[i] = -1;
         const enemy = target[i];
-        if (enemy !== -1 && swingInto(beat, clock, impact) <= impact) coming[enemy >> 16][enemy & 0xffff] = beat;
+        // Only after a jump a blow that has landed: playing on, it could hide the next blow of another man.
+        if (enemy !== -1 && (snap || swingInto(beat, clock, impact) <= impact)) coming[enemy >> 16][enemy & 0xffff] = beat;
       }
     }
 
@@ -140,11 +144,12 @@ export class Blows {
     for (let u = 0; u < units.length; u++) {
       const { track, block, hit } = units[u];
       const { impact, reaction, swing, react, reactFrom, through } = figures[u];
-      if (reaction <= 0) continue;
+      // The men who throw take no blow, not even one begun before they fell back to throw.
+      if (reaction <= 0 || track.actionAt(time) === "skirmish") continue;
       const fight = track.fighting ? fights[u] : null;
       const blows = coming[u];
       for (let i = 0; i < track.count; i++) {
-        // In a blow of his own he takes none (and the fallen, and the men who throw: cleared above).
+        // In a blow of his own he takes none (and the fallen: cleared above).
         if (swing[i] >= 0 || track.status[i] !== ALIVE) continue;
         let incoming = blows[i];
         const own = fight !== null && fight.opponent[i] !== -1 ? fight.beat[i] : -1;
