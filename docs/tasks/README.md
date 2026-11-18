@@ -64,4 +64,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-043](T-043-melee-press.md) | Phiên chính | Trận đánh 3D, đợt I: giáp lá cà hỗn chiến (hàng sau chen lấn, đâm với, giơ khiên; lao và đá bay) | Xong, đã gộp 2026-11-19 (người dùng duyệt từng phần; không có lane đọc lại) |
 | [T-044](T-044-scenery-look.md) | Phiên chính | Trận đánh 3D, đợt I: nước, lều, nhà và cây có chất liệu ảnh thật (CC0) | Xong, đã gộp 2026-11-19 (người dùng duyệt từng phần; không có lane đọc lại) |
 | [T-045](T-045-camp-guard.md) | 2 | Trận đánh 3D, đợt J: quân giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó; ra và về trại lớn qua cổng | Đã giao 2026-11-19 |
-| [T-046](T-046-footprint-fade.md) | Phiên chính | Trận đánh 3D, đợt J: mảng màu phe dưới chân khối quân mờ đi khi nhìn gần | Đang làm |
+| [T-046](T-046-footprint-fade.md) | Phiên chính | Trận đánh 3D, đợt J: mảng màu phe dưới chân khối quân mờ đi khi nhìn gần | Xong, đã gộp 2026-11-19 (không có lane đọc lại, theo lựa chọn của người dùng) |

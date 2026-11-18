@@ -95,6 +95,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-19:** Người dùng duyệt hai dòng viết lại của hộp thoại Giới thiệu (mặt đất xanh trái mùa; hàng sau chen lấn và lao ném qua đầu là minh hoạ) và cho gộp. Đợt H chặng 2 và 3 cùng đợt I gộp vào `main` trong một lần và đẩy lên GitHub. Còn lại của đợt H: chặng 4 (bụi và gió), hoãn.
 - **2026-11-19:** Kiểm tra sau khi gộp đợt I (người dùng chọn): build lại `main` cho bản xem thử ở cổng 3000; hồi quy lõi 17/17, console sạch. Chụp Cannae lúc 5:30 (mặt trời cao khoảng 8°) và 17:00, góc mở trận ở 1280 và 390 px: không lỗi; lính phía khuất nắng vẫn sáng. Trận chạy 5:30–17:00 nên không có hoàng hôn hay đêm. Hai chỗ để người dùng xem: biển lúc bình minh nhạt gần trùng màu trời; mảng màu phe dưới chân khối quân rất rõ khi nhìn từ trên cao.
 - **2026-11-19:** Người dùng chọn **làm nốt trận Cannae, giao cho các lane** (mục "Đợt J"). Giao T-045 cho lane 2 (quân giữ trại của Hannibal; đi ra, về trại lớn qua cổng). Người dùng chọn thêm: mảng màu phe mờ đi khi nhìn gần; việc này nhỏ nên phiên chính làm (T-046). Bụi và gió, LOD nhẹ hơn và sửa kỵ binh, hình nhà và làng, đám đông dày hơn, biển lúc bình minh, móng ngựa khi đi bước: đã nêu, người dùng chưa chọn.
+- **2026-11-19:** Phiên chính xong [T-046](tasks/T-046-footprint-fade.md): mảng màu phe dưới chân khối quân ẩn hẳn khi hình lính gần nhất của khối cao từ 18 điểm ảnh, nhìn xa đục như trước. Kiểm tra: lint, validate, build qua; hồi quy lõi 17/17 trên bản production của nhánh. Người dùng xem ảnh trước/sau và cho gộp, đẩy luôn (không qua lane đọc lại).
 
 ## Việc để giai đoạn 5
 
@@ -209,7 +210,7 @@ Ngày 2026-11-19, sau khi gộp đợt I, người dùng chọn làm nốt các 
 | Việc | Nội dung | Ai | Task | Trạng thái |
 |---|---|---|---|---|
 | Quân giữ trại, đường ra trại | Thêm khối Carthage giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó thay vì đánh từ xa vào trại không người; `camp-force` và `roman-cavalry` ra (và về) trại lớn qua cổng để trại không trống một mảng lều (hiện 34,6% diện tích trại lớn không được dựng lều) | Lane 2 | [T-045](tasks/T-045-camp-guard.md) | Đã giao 2026-11-19 |
-| Mảng màu phe khi nhìn gần | Giữ mảng màu dưới chân khối quân khi nhìn xa, mờ hẳn khi nhìn gần (hiện còn độ đục 0,1, trông như đất trống dưới chân lính) | Phiên chính | [T-046](tasks/T-046-footprint-fade.md) | Đang làm |
+| Mảng màu phe khi nhìn gần | Giữ mảng màu dưới chân khối quân khi nhìn xa, mờ hẳn khi nhìn gần (hiện còn độ đục 0,1, trông như đất trống dưới chân lính) | Phiên chính | [T-046](tasks/T-046-footprint-fade.md) | Xong, đã gộp 2026-11-19 (người dùng duyệt ảnh trước/sau) |
 
 **Đã nêu, người dùng chưa chọn:** bụi và gió (chặng 4 của đợt H); xuất LOD1, LOD2 ít đường nối UV (GPU nhẹ hơn khoảng một phần ba theo lane 3 đo ở T-031) và sửa các chỗ chưa ưng của kỵ binh, nhát chém của lính Gaul; hình nhà và làng; đám đông dày hơn ở chỗ giáp mặt; biển lúc bình minh; móng ngựa trượt khi đi bước (phải xuất lại ba mô hình kỵ binh).
 
