@@ -182,6 +182,7 @@ Ngày 2026-11-18, giữa chặng 3 của đợt H, người dùng gửi năm ả
 | Việc | Nội dung | Task | Trạng thái |
 |---|---|---|---|
 | Cảnh mẫu | Một đoạn giáp lá cà cận cảnh trên cỏ, có cây và khúc sông, đạt chuẩn ảnh mẫu: màu và nắng, cỏ có hình, lính cận cảnh, hỗn chiến, cây và lều có chất liệu, nước | [T-041](tasks/T-041-look-sample.md) | Bản cắt đầu tiên xong trên nhánh `batch-i/look-sample` (màu và nắng, mặt đất xanh, bụi cỏ có hình, lính chi tiết hiện từ xa hơn); chờ người dùng xem. Chưa làm: hỗn chiến, tô lại lính, mô hình cây và lều, nước |
+| Lính và ngựa | Người dùng xem bản cắt đầu tiên: góc quay và khung cảnh đạt, nhưng lính bộ binh và ngựa "vẫn mang hướng đồ hoạ ps1". Thiết kế lại bằng cách **nâng từ mô hình gốc trong Blender** (giữ nhiều tam giác hơn ở cận cảnh, chất liệu nét và đậm hơn, vài khuôn mặt và sắc áo). Trình tự người dùng chọn: nâng một mẫu lính và một mẫu ngựa, **chụp ảnh render cho người dùng xem trước**; người dùng chốt rồi mới đưa vào cảnh làm bản thử; làm thử hai mô hình (lính La Mã, kỵ binh La Mã) trước 9 mô hình còn lại | Chưa viết | Chưa bắt đầu: người dùng sẽ đổi model rồi báo (phiên chính đề nghị Fable 5.2 xhigh cho mô hình thử, Fable 5.2 high cho phần nhân ra) |
 | Áp dụng ra cả trận | Sau khi người dùng duyệt cảnh mẫu | Chưa viết | Chưa bắt đầu |
 
 Việc nâng cấp đồ hoạ lính mà người dùng chọn trước đó ("bước 1 và 2": nới ngưỡng mức chi tiết, làm lại LOD2) nhập vào đợt này; bước 1 đã nằm trong bản cắt đầu tiên.
