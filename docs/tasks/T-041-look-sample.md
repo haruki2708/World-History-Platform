@@ -72,7 +72,14 @@ Cả bốn nguồn tắt dần khi mặt trời xuống dưới 10° và bằng 
 
 **Kết quả nhìn bằng mắt.** Mặt khuất nắng: áo đỏ đọc được là đỏ tươi và có hình khối, ngựa có màu lông thay vì khối sẫm. Mặt có nắng: sáng hơn một chút, áo trắng của velites chưa cháy sáng.
 
-**Chưa kiểm:** hiệu năng (thêm vài phép tính mỗi điểm ảnh của hình lính; chưa đo), hoàng hôn và ban đêm (trận Cannae không có giờ đó trên thanh thời gian).
+**Kiểm tra** (commit 14d4661, bản production dựng ở worktree tạm):
+
+- `npm run lint`, `npm run validate`, `next build` qua.
+- Hồi quy lõi (`main-tools/reg-core.js`): 17/17, không lỗi console.
+- Mức chất lượng thấp (mọi hình lính dùng vật liệu Lambert): shader dịch được, ánh sáng bù có tác dụng.
+- Số khung hình mỗi giây, một lượt `s-perf3.mjs`: lúc mở 90,9; phát giai đoạn 3: 65,4; giai đoạn 4: 60,3. Cao hơn các lượt đo trước của nhánh này (72–74; 46–55; 45–53), nên không thấy ánh sáng bù tốn gì. Chênh lệch giữa hai lần đo chưa giải thích được và không phải do thay đổi này; chưa đo xen kẽ.
+
+**Chưa kiểm:** hoàng hôn và ban đêm (trận Cannae không có giờ đó trên thanh thời gian).
 
 ### Chưa làm (so với ảnh mẫu)
 
