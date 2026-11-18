@@ -64,6 +64,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng duyệt gộp và đẩy lên GitHub.
   - Còn lại của đợt G: kỵ binh Numidia đánh gần hầu như không đỡ đòn (clip phóng lao lấy đà lâu; chỉ thấy ở trận thử); mũi giáo kỵ binh chỉ tới đầu ngựa của địch; giai đoạn 5 của Cannae đổi đối thủ 1,3 giây một lần (muốn giảm phải sửa dữ liệu); nhát chém của lính Gaul qua mép khiên sớm 2–3 khung.
   - Người dùng chọn làm ngay một việc nhỏ sau đợt G: hastatus không cầm hai cây *pilum* trong lúc giáp lá cà (hiện chúng biến đi rồi hiện lại mỗi lần đánh, đỡ hay trúng đòn). [T-035](tasks/T-035-hastatus-pila.md): xong và đã gộp 2026-11-18, chỉ sửa cảnh (không dựng lại mô hình). Người dùng chọn gộp luôn, không qua bước lane đọc lại; kiểm tra trước khi gộp: lint, validate, build qua, hồi quy lõi 17/17.
+- **2026-11-18:** Người dùng hỏi cảnh giáp lá cà có đúng thực tế không. Phiên chính nêu chỗ khác: cảnh vẽ đánh liên tục, còn trận thật nhiều khả năng đánh theo từng đợt có nghỉ. Người dùng chọn chỉ thêm một dòng vào hộp thoại Giới thiệu, không sửa cảnh: [T-036](tasks/T-036-about-pulses.md), xong trên nhánh `t036-about-pulses`, chờ duyệt câu chữ và gộp.
 
 ## Việc để giai đoạn 5
 
