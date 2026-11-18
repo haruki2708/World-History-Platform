@@ -53,6 +53,8 @@ const en = {
   "about.accuracy.battle.duels":
     "the men who fight in pairs show what hand-to-hand fighting was like; they are not a record of who fought whom;",
   "about.accuracy.battle.time": "Cannae, a battle of about 11 hours, plays in a few minutes;",
+  "about.accuracy.battle.pulses":
+    "the fighting is shown without a pause; in a real battle the lines probably fought in short bursts and drew apart to rest in between;",
   "about.accuracy.battle.colours":
     "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
   "about.credits.heading": "Sources and credits",
@@ -315,6 +317,8 @@ const vi: Record<MessageKey, string> = {
   "about.accuracy.battle.duels":
     "các cặp lính đấu với nhau là minh hoạ cho cảnh giáp lá cà, không phải ghi chép ai đánh với ai;",
   "about.accuracy.battle.time": "trận Cannae kéo dài khoảng 11 giờ được phát trong vài phút;",
+  "about.accuracy.battle.pulses":
+    "cảnh vẽ hai bên đánh liên tục; trong trận thật, nhiều khả năng hai tuyến đánh theo từng đợt ngắn, giữa các đợt thì lùi ra nghỉ;",
   "about.accuracy.battle.colours":
     "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
   "about.credits.heading": "Nguồn và ghi công",
