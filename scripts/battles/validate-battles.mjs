@@ -377,6 +377,35 @@ for (const file of battleFiles) {
     }
     return wet / all;
   };
+  /** Share of a rectangle (from corners()) that lies in the water of a river, sampled 21 × 5. */
+  const riverShare = (r) => {
+    let wet = 0;
+    let all = 0;
+    for (let u = -1; u <= 1.001; u += 0.1) {
+      for (let v = -1; v <= 1.001; v += 0.5) {
+        all++;
+        const x = r.c.x + r.along.x * u * r.hw + r.ahead.x * v * r.hd;
+        const y = r.c.y + r.along.y * u * r.hw + r.ahead.y * v * r.hd;
+        for (const river of t.rivers ?? []) {
+          if (!Array.isArray(river.points) || !isNumber(river.width)) continue;
+          let inWater = false;
+          for (let k = 0; k + 1 < river.points.length && !inWater; k++) {
+            const a = river.points[k];
+            const b = river.points[k + 1];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const s = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+            inWater = Math.hypot(x - a.x - dx * s, y - a.y - dy * s) <= river.width / 2;
+          }
+          if (inWater) {
+            wet++;
+            break;
+          }
+        }
+      }
+    }
+    return wet / all;
+  };
   for (const [i, mark] of (t.landmarks ?? []).entries()) {
     if (atSea(mark.point)) fail(`${terrainWhere}.landmarks[${i}]`, `${mark.name?.en} lies in the sea`);
   }
@@ -401,6 +430,9 @@ for (const file of battleFiles) {
       else if (isNumber(f.frontage) && isNumber(f.depth) && isNumber(f.facing)) {
         const share = seaShare(corners(f));
         if (share > 0.1) fail(sw, `${Math.round(share * 100)}% of the formation stands in the sea`);
+        // A unit may wade a river between two keys, but it does not halt in the water.
+        const wet = riverShare(corners(f));
+        if (wet > 0.05) fail(sw, `${Math.round(wet * 100)}% of the formation stands in a river`);
       }
       if (!(isNumber(f.frontage) && f.frontage > 0 && isNumber(f.depth) && f.depth > 0)) fail(sw, "frontage and depth must be positive");
       if (!(isNumber(f.facing) && f.facing >= 0 && f.facing < 360)) fail(sw, "facing must be in [0, 360)");

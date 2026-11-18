@@ -78,6 +78,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng duyệt **gộp và đẩy luôn, không qua lane đọc lại**; đã gộp vào `main` 2026-11-18. Người dùng chọn chặng tiếp theo là **công trình (chặng 2), phiên chính làm tiếp**.
 - **2026-11-18:** Phiên chính xong chặng 2 của đợt H (T-039) trên nhánh `batch-h/stage2-structures`. Ba trại có hào, luỹ, cọc rào, cổng và lều (trại La Mã xếp theo hàng lối, trại của Hannibal xếp lỏng); thành Cannae có tường, tháp, nhà kho; làng Cannae đổ nát một phần; 12 nhà nông minh hoạ trên đồng (loại công trình mới `farm`). Lều không dựng ở chỗ quân đứng hay đi qua.
   - **Khác với đề xuất:** mọi công trình dựng bằng code trong cảnh (`engine/structures.ts`), không dùng Blender; hình dáng vì thế đơn giản hơn. Lý do và cái giá ghi ở T-039.
+  - **Người dùng xem và nêu bốn điều**; đã sửa ba: sáu khối quân đứng đè lên sông lúc bắt đầu được dời khỏi dòng nước (và `npm run validate` chặn lỗi này, lính vượt sông thì lội nước); bỏ hẳn hào, luỹ, cọc rào, cổng của trại theo ý người dùng (trại chỉ còn lều); lều làm lại cho ra lều. Điều thứ tư là câu hỏi về đồ hoạ lính: xem mục "Việc cho trận đánh 3D".
   - Hộp thoại Giới thiệu: câu về cảnh vật viết lại, nói thêm về trại, thành, làng và nhà nông (người dùng đã duyệt câu chữ).
   - Hiệu năng (đo xen kẽ bốn vòng, hai bản production): bản đầu của nhánh chậm hơn rõ ở giai đoạn 4 vì hơn 100 lượt vẽ thêm; sau khi gom còn 16 lưới thì ngang `main` (giai đoạn 3: 57,3 so với 58,5; giai đoạn 4: 54,5 so với 54,1). Cả `main` lẫn nhánh hôm nay đều có lượt xuống 48–50, sát mục tiêu; xem mục "Việc cho trận đánh 3D".
   - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17. Chờ người dùng xem trong cảnh thật và duyệt gộp.
@@ -163,7 +164,8 @@ Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặn
 **Việc phát sinh, chưa giao:**
 - Thêm một khối quân Carthage giữ trại của Hannibal (Polybius 3.117): hiện `camp-force` đánh vào một trại không người. Nên làm cùng chặng 2.
 - Khi dựng trại: đọc Polybius 6.27–32 về cách xếp lều, đường và cổng. Kích thước hào và luỹ không có trong Polybius. (T-039 mới giữ ba ý: khoảng trống sau luỹ, đường lớn, lều xếp hàng.)
-- Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại lớn, để trại không trống một góc (T-039).
+- Sửa đường ra của `camp-force` và `roman-cavalry` để trại lớn không trống một góc (T-039).
+- **Đồ hoạ lính** (người dùng hỏi 2026-11-18: lính "trông đơn giản như hình khối, không như thật"). Nhận định của phiên chính: nhìn sát thì mô hình có chi tiết (áo giáp xích, ngù mũ); cái làm lính trông như hình khối là (1) cảnh chỉ dùng mức chi tiết cao nhất khi một hình cao từ 110 điểm ảnh trở lên, nên ở khoảng cách thường nhìn người xem thấy LOD1 và LOD2, mà LOD2 là thân người dựng bằng ống và elip tô màu phẳng; (2) mọi người lính là một bản sao, cùng khuôn mặt, cùng dáng đứng. Phương án, từ rẻ tới đắt: nới ngưỡng mức chi tiết trong ngân sách tam giác; làm lại LOD2 cho giống người hơn; thêm vài biến thể khuôn mặt, màu áo, dáng đứng; dựng lại mô hình gốc với lưới và chất liệu tốt hơn. Chưa giao; chờ người dùng chọn.
 - Hiệu năng sau chặng 1 và 2: khi phát giai đoạn 3–4, các lượt đo chiều 2026-11-18 dao động 48–65 khung hình mỗi giây ở cả `main` lẫn nhánh chặng 2, tức có lượt dưới mục tiêu 50. Buổi sáng, trước chặng 1, `main` đạt 56–66. Cần một lần đo trên máy sạch, nhiều vòng, để biết chặng 1 (shader mặt đất, vùng xa) lấy mất bao nhiêu; nếu đáng kể thì giảm số lần lấy nhiễu của shader mặt đất ở xa camera.
 
 ## Không làm (điện thoại chỉ cần dùng được)

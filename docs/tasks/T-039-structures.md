@@ -15,7 +15,7 @@ Sau chặng 1, ba trại, thành và làng Cannae vẫn chỉ là nhãn tên tr�
 
 ## Xong khi
 
-- Bay tới mỗi trại thấy hào, luỹ, cọc rào, cổng và lều.
+- Bay tới mỗi trại thấy lều (lúc đầu còn có hào, luỹ, cọc rào, cổng; người dùng yêu cầu bỏ).
 - Thành Cannae có tường, tháp, cổng, nhà kho; làng Cannae có nhà, một phần đổ nát.
 - Có nhà nông rải rác trên đồng, đánh dấu là minh hoạ.
 - Không hình lính nào đi xuyên qua lều.
@@ -41,8 +41,8 @@ Cái giá: hình dáng đơn giản hơn mô hình Blender (lều là khối có
 **Cảnh (`engine/structures.ts`, file mới; `BattleEngine.ts` nối vào).**
 
 - Mỗi công trình trong `scenery.structures` được dựng trên phần đất của nó, bám theo mặt đất, bằng bộ sinh số ngẫu nhiên có hạt giống (id trận và id công trình).
-- **Trại (`camp`):** hào (dải đất sẫm ngoài luỹ), luỹ đất cao 3 m, cọc rào nhọn trên mép ngoài luỹ, mỗi cạnh một cổng rộng 22 m có hai tháp gỗ và xà ngang. Lều: một lều cho chừng 20 người (`MEN_PER_FIGURE`), tính theo 19,1 m² đất mỗi người.
-  - Trại của bên `rome` xếp theo quy tắc: khoảng trống 59 m (200 bộ La Mã) sau luỹ, một đường lớn chạy ngang, một đường dọc giữa trại, khoảng sân của bộ chỉ huy có lều lớn, lối đi giữa các cụm lều.
+- **Trại (`camp`):** chỉ có lều (bản đầu có hào, luỹ, cọc rào và cổng; đã bỏ theo nhận xét của người dùng, xem cuối file). Một lều cho chừng 20 người (`MEN_PER_FIGURE`), tính theo 19,1 m² đất mỗi người.
+  - Trại của bên `rome` xếp theo quy tắc: lều cách mép phần đất 30 m, một đường lớn chạy ngang, một đường dọc giữa trại, khoảng sân của bộ chỉ huy có lều lớn, lối đi giữa các cụm lều.
   - Trại của bên khác (Hannibal) xếp lỏng: lều lệch chỗ, xoay đủ hướng, ba màu (da, vải lanh, len), lều lớn ở giữa.
   - **Chỗ quân đứng và đi qua không có lều:** một lưới 12 m ghi mọi chỗ các khối quân đứng ở các mốc và đi qua giữa hai mốc (đường thẳng, rộng hơn khối 8 m mỗi bên); lều rơi vào đó bị bỏ.
 - **Thành (`citadel`):** tường đá cao 9 m quanh phần đất, đỉnh tường đi theo mặt đất; tháp ở bốn góc và hai bên cổng; cổng ở mặt trước; bên trong là các nhà kho dài mái ngói xếp hai dãy.
@@ -94,3 +94,16 @@ Cái giá: hình dáng đơn giản hơn mô hình Blender (lều là khối có
 - Tường sân nhà nông và nhà trong làng không tránh ruộng: luống cày chạy xuyên qua sân.
 - Chưa xem ban đêm, hoàng hôn và ở mức chất lượng thấp. Chưa có mức chi tiết theo khoảng cách cho công trình (mọi lều luôn vẽ đủ).
 - `scenery.areas`, gió và bụi vẫn chưa được vẽ (chặng 3 và 4).
+
+### Sửa theo nhận xét của người dùng (2026-11-18, sau khi xem lần đầu)
+
+Người dùng xem nhánh và nêu bốn điều. Nguyên văn, lược bớt: quân La Mã "đứng trên sông"; khi quân từ trại đi ra thì "đi xuyên qua tường của doanh trại"; "doanh trại nhìn xấu quá, lều như khối đá hình tam giác, ý tôi là doanh trại không cần xây tường đâu"; và hỏi có nên nâng cấp đồ hoạ lính không vì "nhìn trông đơn giản như hình khối quá, không như thật".
+
+- **Quân đứng trên sông.** Lúc bắt đầu, bốn khối bộ binh La Mã (velites, hastati, principes, triarii) và hai khối của Hannibal (lính giáo nhẹ, người Gaul bên phải) được đặt đè lên dòng sông; lỗi có từ T-016, tới khi sông có lòng và nước rõ ràng mới lộ ra. Đã dời: bộ binh La Mã sang bờ tây, sắp vượt sông (tâm x từ −525 thành −830; velites y từ 910 thành 930); lính giáo nhẹ từ x −1300 thành −1010; người Gaul bên phải từ x −1260 thành −1170; người Gaul bên trái từ y −650 thành −600 (ra khỏi bãi sỏi). `check-overlap.mjs --min 0.04` không đổi.
+  - `validate-battles.mjs` thêm luật: ở mỗi mốc, không khối quân nào có quá 5% diện tích nằm trong nước của một con sông. Đã thử với dữ liệu cũ: bắt đủ sáu khối. Vượt sông **giữa** hai mốc thì được.
+  - Khi đi qua sông, hình lính giờ **lội nước**: chân họ đứng ở đáy sông, sâu tới 1,5 m ở giữa dòng (ngang đầu gối ở cỡ hình lính). `Terrain.footingAt` dùng một lưới độ sâu 5 m dựng từ đường sông; cảnh dùng nó thay cho `heightAt` khi đặt hình lính.
+- **Đi xuyên tường trại, và trại không cần tường.** Đã bỏ hẳn hào, luỹ, cọc rào và cổng: trại giờ chỉ có lều. Lều vẫn không dựng ở chỗ quân đứng hay đi qua. Phiên chính có nói với người dùng rằng Livy 22.44–45 nhắc tới luỹ của hai trại La Mã; cảnh không vẽ là theo lựa chọn của người dùng, còn ghi chú căn cứ trong dữ liệu vẫn nói nguồn viết gì.
+- **Lều như khối đá.** Lều làm lại: vách thấp, mái võng giữa nóc và mép, nóc hơi trũng giữa hai cột, cửa mở ở mặt trước, cột nhô ở hai đầu nóc, bốn dây căng ở góc; màu da sáng hơn; shader vẽ các tấm da khâu lại, mỗi tấm một sắc độ. Khoảng 56 tam giác mỗi lều.
+- **Đồ hoạ lính.** Chưa đổi gì; phiên chính trả lời câu hỏi bằng nhận định và các phương án (xem `docs/PLAN.md`, mục "Việc cho trận đánh 3D").
+
+Ảnh sau khi sửa: `main-tools/shots/h2-e-*`, `h2-f-*`.

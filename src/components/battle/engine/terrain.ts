@@ -29,6 +29,10 @@ export type HeightAt = (x: number, y: number) => number;
 
 /** How far the flat apron around the grid reaches, metres, when the battle has no far ground. */
 const APRON = 40000;
+/** The wading grid has a cell every so many metres. */
+const WADE_CELL = 5;
+/** How deep the figures stand in the middle of a river, metres: knee-deep at their size. */
+const WADE_DEPTH = 1.5;
 /** Ground at or below this height, metres above sea level, is sea. */
 export const SEA_LEVEL = 0.05;
 /** The far ground sinks with distance as the curve of the earth makes it: d² / 2R. */
@@ -126,6 +130,10 @@ export class Terrain {
   /** What the sea gives back of the sky; set every frame. */
   private readonly seaGlow = { value: new Color() };
   private readonly rivers: River[] = [];
+  /** How deep a man stands in a river, in centimetres, on a grid of WADE_CELL metres; null without rivers. */
+  private wade: Uint8Array | null = null;
+  private wadeCols = 0;
+  private wadeRows = 0;
   private readonly cellX: number;
   private readonly cellY: number;
 
@@ -150,8 +158,67 @@ export class Terrain {
       const drawn = new River(river, data.landmarks, this.heightAt);
       this.rivers.push(drawn);
       this.group.add(drawn.mesh);
+      this.stampWading(river.points, river.width);
     }
   }
+
+  /** Marks the water of a river on the wading grid: deepest in the middle, nothing at the edge. */
+  private stampWading(points: FieldPoint[], width: number): void {
+    const { minX, maxX, minY, maxY } = this.data;
+    if (!this.wade) {
+      this.wadeCols = Math.ceil((maxX - minX) / WADE_CELL) + 1;
+      this.wadeRows = Math.ceil((maxY - minY) / WADE_CELL) + 1;
+      this.wade = new Uint8Array(this.wadeCols * this.wadeRows);
+    }
+    const wade = this.wade;
+    const curve = new CatmullRomCurve3(
+      points.map((p) => new Vector3(p.x, 0, -p.y)),
+      false,
+      "centripetal",
+    );
+    const half = width * 0.45;
+    const steps = Math.ceil(curve.getLength() / (WADE_CELL / 2));
+    const point = new Vector3();
+    const tangent = new Vector3();
+    for (let i = 0; i <= steps; i++) {
+      curve.getPointAt(i / steps, point);
+      curve.getTangentAt(i / steps, tangent);
+      const norm = Math.hypot(tangent.x, tangent.z) || 1;
+      for (let offset = -half; offset <= half; offset += WADE_CELL / 2) {
+        const x = point.x + (tangent.z / norm) * offset;
+        const y = -(point.z - (tangent.x / norm) * offset);
+        if (this.heightAt(x, y) <= SEA_LEVEL) continue;
+        const col = Math.round((x - minX) / WADE_CELL);
+        const row = Math.round((maxY - y) / WADE_CELL);
+        if (col < 0 || row < 0 || col >= this.wadeCols || row >= this.wadeRows) continue;
+        const depth = Math.round(WADE_DEPTH * 100 * (1 - (offset / half) ** 2));
+        const k = row * this.wadeCols + col;
+        if (depth > wade[k]) wade[k] = depth;
+      }
+    }
+  }
+
+  /**
+   * Where a man's feet are at a field point: the ground, or the bed of a
+   * river when he wades it. Use it for the figures; heightAt for all else.
+   */
+  readonly footingAt: HeightAt = (x, y) => {
+    const ground = this.heightAt(x, y);
+    const wade = this.wade;
+    if (!wade) return ground;
+    const gx = (x - this.data.minX) / WADE_CELL;
+    const gy = (this.data.maxY - y) / WADE_CELL;
+    const col = Math.floor(gx);
+    const row = Math.floor(gy);
+    if (col < 0 || row < 0 || col >= this.wadeCols - 1 || row >= this.wadeRows - 1) return ground;
+    const fx = gx - col;
+    const fy = gy - row;
+    const k = row * this.wadeCols + col;
+    const depth =
+      (wade[k] * (1 - fx) + wade[k + 1] * fx) * (1 - fy) +
+      (wade[k + this.wadeCols] * (1 - fx) + wade[k + this.wadeCols + 1] * fx) * fy;
+    return ground - depth / 100;
+  };
 
   /** Call every frame: moving water, and the sky it reflects. */
   update(seconds: number, sky: RiverLight): void {

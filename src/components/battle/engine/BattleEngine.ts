@@ -808,7 +808,7 @@ export class BattleEngine {
 
     this.shared.uTime.value = seconds;
     terrain.update(seconds, this.sky);
-    this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
+    this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.footingAt);
     this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(
       this.camera,

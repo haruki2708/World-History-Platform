@@ -497,3 +497,20 @@ Lều không được dựng ở nơi một khối quân đứng hay đi qua. V�
 - Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại thì trại lớn mới đầy lều.
 - Khối quân Carthage giữ trại của Hannibal (Polybius 3.117) vẫn chưa có.
 - Câu về lều da cần một nguồn dẫn được trước khi đưa vào ghi chú cho người xem.
+
+### Sửa sau khi người dùng xem (T-039)
+
+- **Trại không vẽ luỹ.** Nguồn có nói tới luỹ (Livy 22.44–45, mục 12), nhưng người dùng chọn không vẽ tường quanh trại: trại trong cảnh chỉ có lều. Dòng "Hào, cọc rào, bốn cổng" trong bảng trên vì thế không còn áp dụng cho cảnh.
+- **Vị trí lúc bắt đầu của sáu khối quân** (trước đây đè lên dòng sông):
+
+  | Khối | Trước | Sau |
+  |---|---|---|
+  | `roman-velites` | −525, 910 | −830, 930 |
+  | `hastati` | −525, 1045 | −830, 1045 |
+  | `principes` | −525, 1090 | −830, 1090 |
+  | `triarii` | −525, 1132 | −830, 1132 |
+  | `light-spearmen` | −1300, −440 | −1010, −440 |
+  | `gauls-right` | −1260, −650 | −1170, −650 |
+  | `gauls-left` | −2260, −650 | −2260, −600 |
+
+  Bộ binh La Mã giờ bắt đầu ở bờ tây, ngay trước chỗ lội, và vượt sông trong giai đoạn 1 (Polybius 3.113: Varro dẫn quân từ trại lớn vượt sông). Các khối của Hannibal chỉ nhích khỏi đoạn sông chảy về bắc.

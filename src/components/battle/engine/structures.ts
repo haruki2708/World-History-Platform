@@ -1,7 +1,8 @@
 /**
- * What is built on the field (BattleScenery.structures): the camps with
- * ditch, rampart, palisade, gates and tents; a citadel with its wall, towers
- * and store-houses; a village or a farm of small houses, some in ruins.
+ * What is built on the field (BattleScenery.structures): the tents of the
+ * camps; a citadel with its wall, towers and store-houses; a village or a
+ * farm of small houses, some in ruins. The ditch and rampart of a camp are
+ * not drawn.
  *
  * Everything is made here from simple shapes, laid on the ground of the
  * battle and placed by a seeded generator: the same battle always looks the
@@ -26,7 +27,7 @@ type P = [number, number, number];
 const GROUND_PER_MAN = 19.1;
 
 /** Surfaces, for the patterns the shader lays on them. */
-const EARTH = 0;
+// 0 is earth.
 const TIMBER = 1;
 const CLOTH = 2;
 const STONE = 3;
@@ -35,16 +36,13 @@ const TILE = 5;
 const THATCH = 6;
 
 const COLORS = {
-  ditch: new Color("#5d5140"),
-  rampart: new Color("#9a8763"),
-  rampartTop: new Color("#a8956c"),
-  stake: new Color("#7a6247"),
   timber: new Color("#6b543c"),
-  leather: new Color("#a88862"),
-  leatherDark: new Color("#8c6c49"),
-  linen: new Color("#c9bb98"),
-  wool: new Color("#8c7f6a"),
-  pavilion: new Color("#b9a27a"),
+  leather: new Color("#b89a72"),
+  leatherDark: new Color("#a08158"),
+  linen: new Color("#d2c6a6"),
+  wool: new Color("#a3957b"),
+  pavilion: new Color("#cdb88f"),
+  rope: new Color("#6e5d45"),
   stone: new Color("#c2b596"),
   stoneDark: new Color("#a89b7e"),
   plaster: new Color("#d6c8a8"),
@@ -211,29 +209,70 @@ function building(
   shapes.tri(g[2], g[3], ridge1, look.wall, look.wallKind, shade * 0.95);
 }
 
-/** A tent: low walls and a ridged roof of hide or cloth, standing on the ground. */
+/**
+ * A tent of hide or cloth: low walls, a roof that sags between ridge and
+ * eaves, an open door in the front, a pole at each end of the ridge and guy
+ * ropes at the corners. `length` runs along the ridge.
+ */
 function tent(shapes: Shapes, plot: Plot, u: number, v: number, length: number, width: number, wall: number, ridge: number, angle: number, color: Color, shade: number): void {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const corner = (i: number, j: number): [number, number] => [
-    u + cos * i * (length / 2) - sin * j * (width / 2),
-    v + sin * i * (length / 2) + cos * j * (width / 2),
-  ];
   const ground = plot.ground(u, v);
-  const c = [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)];
-  const foot = c.map(([cu, cv]) => plot.level(cu, cv, ground - 0.3));
-  const eave = c.map(([cu, cv]) => plot.level(cu, cv, ground + wall));
-  const [a0, a1] = [corner(-1, 0), corner(1, 0)];
-  const top0 = plot.level(a0[0], a0[1], ground + ridge);
-  const top1 = plot.level(a1[0], a1[1], ground + ridge);
-  shapes.quad(foot[0], foot[1], eave[1], eave[0], color, CLOTH, shade * 0.86);
-  shapes.quad(foot[2], foot[3], eave[3], eave[2], color, CLOTH, shade * 0.8);
-  shapes.quad(foot[1], foot[2], eave[2], eave[1], color, CLOTH, shade * 0.78);
-  shapes.quad(foot[3], foot[0], eave[0], eave[3], color, CLOTH, shade * 0.78);
-  shapes.quad(eave[0], eave[1], top1, top0, color, CLOTH, shade);
-  shapes.quad(eave[2], eave[3], top0, top1, color, CLOTH, shade * 0.9);
-  shapes.tri(eave[3], eave[0], top0, color, CLOTH, shade * 0.82);
-  shapes.tri(eave[1], eave[2], top1, color, CLOTH, shade * 0.82);
+  /** i along the ridge and j across it, each from -1 to 1; `up` metres above the ground under the tent. */
+  const at = (i: number, j: number, up: number): P =>
+    plot.level(u + cos * i * (length / 2) - sin * j * (width / 2), v + sin * i * (length / 2) + cos * j * (width / 2), ground + up);
+
+  // Walls, darker at the foot where the hide is wet and trodden.
+  const walls: [number, number, number, number, number][] = [
+    [-1, -1, 1, -1, 0.9],
+    [1, 1, -1, 1, 0.82],
+    [1, -1, 1, 1, 0.8],
+    [-1, 1, -1, -1, 0.8],
+  ];
+  for (const [i0, j0, i1, j1, tone] of walls) {
+    shapes.quad(at(i0, j0, -0.3), at(i1, j1, -0.3), at(i1, j1, wall), at(i0, j0, wall), color, CLOTH, shade * tone * 0.9);
+  }
+
+  // Roof: three strips from eave to ridge on each side, hanging slack; the
+  // ridge itself dips a little between the poles.
+  const STRIPS = 3;
+  const roof = (i: number, side: number, t: number): P => {
+    const dip = (1 - i * i) * 0.28;
+    const slack = Math.sin(Math.PI * t) * 0.42;
+    return at(i, side * 1.07 * (1 - t), wall + (ridge - wall) * t - slack - dip * t);
+  };
+  for (const side of [-1, 1]) {
+    for (let s = 0; s < STRIPS; s++) {
+      const t0 = s / STRIPS;
+      const t1 = (s + 1) / STRIPS;
+      for (const [i0, i1] of [
+        [-1.04, 0],
+        [0, 1.04],
+      ]) {
+        shapes.quad(roof(i0, side, t0), roof(i1, side, t0), roof(i1, side, t1), roof(i0, side, t1), color, CLOTH, shade * (side < 0 ? 1.06 : 0.94) * (0.94 + 0.06 * s));
+      }
+    }
+  }
+
+  // Gable ends; the front one has the door flaps drawn back.
+  for (const end of [-1, 1]) {
+    const tone = shade * 0.84;
+    shapes.quad(at(end, -1, -0.3), at(end, 1, -0.3), at(end, 1, wall), at(end, -1, wall), color, CLOTH, tone);
+    shapes.tri(at(end, -1, wall), at(end, 1, wall), at(end, 0, ridge), color, CLOTH, tone);
+    if (end === 1) {
+      const out = 1.012;
+      shapes.tri(at(out, -0.3, -0.25), at(out, 0.3, -0.25), at(out, 0, ridge * 0.66), COLORS.door, CLOTH);
+    }
+    // The pole stands a little above the ridge.
+    shapes.quad(at(end, -0.035, ridge - 0.4), at(end, 0.035, ridge - 0.4), at(end, 0.035, ridge + 0.55), at(end, -0.035, ridge + 0.55), COLORS.timber, TIMBER);
+  }
+
+  // Guy ropes from the corners of the eaves to pegs in the ground.
+  for (const i of [-1, 1]) {
+    for (const j of [-1, 1]) {
+      shapes.quad(at(i, j, wall), at(i * 1.01, j * 1.02, wall), at(i * 1.3, j * 1.62, 0.05), at(i * 1.28, j * 1.6, 0.05), COLORS.rope, TIMBER);
+    }
+  }
 }
 
 /** An upright box of timber or stone on the ground at (u, v): a tower, a gate post. */
@@ -293,61 +332,14 @@ function perimeter(plot: Plot, inset: number, step: number, gap: number): { u: n
   return runs;
 }
 
-/** Earthworks of a camp: ditch, rampart and palisade round it, with a gate in each side. */
-function earthworks(shapes: Shapes, plot: Plot, rng: Rng): void {
-  const GATE = 22;
-  const HEIGHT = 3;
-  for (const run of perimeter(plot, 4, 8, GATE)) {
-    for (let i = 0; i + 1 < run.length; i++) {
-      const a = run[i];
-      const b = run[i + 1];
-      const off = (p: typeof a, out: number, up: number): P => plot.at(p.u + p.nu * out, p.v + p.nv * out, up);
-      // Ditch: a dark strip outside the rampart.
-      shapes.quad(off(a, 4.2, 0.12), off(b, 4.2, 0.12), off(b, 9.5, 0.12), off(a, 9.5, 0.12), COLORS.ditch, EARTH);
-      // Rampart: outer slope, top, inner slope.
-      shapes.quad(off(a, 4, -0.3), off(b, 4, -0.3), off(b, 1.3, HEIGHT), off(a, 1.3, HEIGHT), COLORS.rampart, EARTH, 0.95);
-      shapes.quad(off(a, 1.3, HEIGHT), off(b, 1.3, HEIGHT), off(b, -1.3, HEIGHT), off(a, -1.3, HEIGHT), COLORS.rampartTop, EARTH);
-      shapes.quad(off(a, -1.3, HEIGHT), off(b, -1.3, HEIGHT), off(b, -4.5, -0.3), off(a, -4.5, -0.3), COLORS.rampart, EARTH, 0.88);
-      // Palisade: pointed stakes along the outer edge of the top.
-      const length = Math.hypot(b.u - a.u, b.v - a.v);
-      const stakes = Math.max(Math.round(length / 1.25), 1);
-      for (let s = 0; s < stakes; s++) {
-        const t0 = s / stakes;
-        const t1 = (s + 0.78) / stakes;
-        const tall = HEIGHT + 2.7 + rng() * 0.9;
-        const at = (t: number, up: number): P => plot.at(a.u + (b.u - a.u) * t + a.nu * 1.1, a.v + (b.v - a.v) * t + a.nv * 1.1, up);
-        const shade = 0.82 + rng() * 0.3;
-        shapes.quad(at(t0, HEIGHT - 0.2), at(t1, HEIGHT - 0.2), at(t1, tall - 0.6), at(t0, tall - 0.6), COLORS.stake, TIMBER, shade);
-        shapes.tri(at(t0, tall - 0.6), at(t1, tall - 0.6), at((t0 + t1) / 2, tall), COLORS.stake, TIMBER, shade);
-      }
-    }
-  }
-  // Gates: two timber towers and a beam across, in the middle of each side.
-  const gates: [number, number, number, number][] = [
-    [0, plot.hd - 4, 1, 0],
-    [plot.hw - 4, 0, 0, 1],
-    [0, -plot.hd + 4, 1, 0],
-    [-plot.hw + 4, 0, 0, 1],
-  ];
-  for (const [u, v, du, dv] of gates) {
-    const half = GATE / 2 + 1.5;
-    for (const side of [-1, 1]) tower(shapes, plot, u + du * half * side, v + dv * half * side, 5.5, 11, COLORS.timber, TIMBER);
-    const ground = plot.ground(u, v);
-    const beam = (s: number, up: number, out: number): P => plot.level(u + du * half * s + dv * out, v + dv * half * s + du * out, ground + up);
-    shapes.quad(beam(-1, 8.2, -0.8), beam(1, 8.2, -0.8), beam(1, 9.6, -0.8), beam(-1, 9.6, -0.8), COLORS.timber, TIMBER, 0.9);
-    shapes.quad(beam(-1, 8.2, 0.8), beam(1, 8.2, 0.8), beam(1, 9.6, 0.8), beam(-1, 9.6, 0.8), COLORS.timber, TIMBER, 0.8);
-    shapes.quad(beam(-1, 9.6, -0.8), beam(1, 9.6, -0.8), beam(1, 9.6, 0.8), beam(-1, 9.6, 0.8), COLORS.timber, TIMBER, 1.05);
-  }
-}
-
 /**
  * The tents of a camp. A Roman camp is laid out by rule: straight rows, a
  * broad street across and one down the middle, a clear space inside the
  * rampart. Nothing is known of a Carthaginian camp: its tents stand loosely.
  */
 function tents(chunks: Shapes[], plot: Plot, roman: boolean, occupied: (x: number, y: number) => boolean, rng: Rng): void {
-  /** Clear space between rampart and tents: 200 Roman feet. */
-  const CLEAR = 59;
+  /** The tents keep this far inside the edge of the camp's ground, metres. */
+  const CLEAR = 30;
   const hw = plot.hw - CLEAR;
   const hd = plot.hd - CLEAR;
   if (hw <= 20 || hd <= 20) return;
@@ -388,7 +380,7 @@ function tents(chunks: Shapes[], plot: Plot, roman: boolean, occupied: (x: numbe
         shapes = new Shapes();
         byChunk.set(key, shapes);
       }
-      tent(shapes, plot, u, v, 9.5, 7.5, 1.1, 4.4, angle, color, shade);
+      tent(shapes, plot, u, v, 9.5, 7.2, 1.3, 4.3, angle, color, shade);
     }
   }
   // The commander's tent: larger, in the square by the broad street.
@@ -591,17 +583,15 @@ export class Structures {
     const structures = battle.terrain.scenery?.structures ?? [];
     if (structures.length === 0) return;
     const occupied = occupancy(battle);
-    // One mesh for all the buildings (they are few triangles), one for the
-    // earthworks of each camp, and four for its tents.
+    // One mesh for all the buildings (they are few triangles) and four for
+    // the tents of each camp.
     const buildings = new Shapes();
     const chunks: Shapes[] = [buildings];
     for (const structure of structures) {
       const plot = new Plot(structure, heightAt);
       const rng = createRng(hashString(`${battle.id}/${structure.id}`));
       if (structure.kind === "camp") {
-        const works = new Shapes();
-        chunks.push(works);
-        earthworks(works, plot, rng);
+        // Tents only: no ditch, rampart or palisade is drawn (see docs/tasks/T-039).
         // A camp of the Roman kind is laid out by rule; any other loosely.
         tents(chunks, plot, structure.side === "rome", occupied, rng);
       } else if (structure.kind === "citadel") {
@@ -684,9 +674,12 @@ function structureMaterial(): MeshLambertMaterial {
             // Timber: grain running up the wood.
             tone = 0.86 + 0.24 * builtNoise(vec2(face.x * 3.1, face.y * 0.25)) * near + 0.08 * blotch;
           } else if (vKind < 2.5) {
-            // Hide and cloth: panels sewn together, weathered.
-            float seam = smoothstep(0.42, 0.5, abs(fract(face.x * 0.45) - 0.5));
-            tone = 0.9 + 0.16 * blotch - 0.14 * seam * near;
+            // Hide and cloth: panels sewn together, each of its own shade, weathered and creased.
+            vec2 panel = vec2(face.x * 0.62, face.y * 0.8);
+            float seam = max(smoothstep(0.44, 0.5, abs(fract(panel.x) - 0.5)), smoothstep(0.45, 0.5, abs(fract(panel.y) - 0.5)));
+            float hide = builtHash(floor(panel));
+            float crease = builtNoise(vec2(face.x * 2.2, face.y * 0.5));
+            tone = 0.92 + 0.1 * blotch + (0.1 * (hide - 0.5) + 0.08 * (crease - 0.5) - 0.12 * seam) * near;
           } else if (vKind < 3.5) {
             // Stone: courses of blocks, their joints staggered.
             float course = floor(face.y / 1.5);
