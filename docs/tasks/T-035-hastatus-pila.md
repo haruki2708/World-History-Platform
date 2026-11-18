@@ -3,7 +3,7 @@
 - **Ai làm:** phiên chính (người dùng chọn "làm ngay sau khi gộp" đợt G, 2026-11-18).
 - **Model:** Fable 5.2, effort `high`.
 - **Nhánh:** `batch-g/pila` (tạo từ `main` sau khi gộp chặng 3 của đợt G).
-- **Trạng thái:** xong 2026-11-18; chờ người dùng duyệt gộp.
+- **Trạng thái:** xong, **đã gộp vào `main` 2026-11-18**. Người dùng chọn gộp luôn; chưa có lane nào đọc lại phần này.
 - **Phạm vi file:** `src/components/battle/engine/figures/model.ts`, `figures/material.ts`, `engine/units.ts`, `docs/`. Không đổi file mô hình, không đổi hợp đồng `src/lib/battle.ts`.
 
 ## Vấn đề
