@@ -60,6 +60,7 @@ from mathutils.bvhtree import BVHTree
 import horse_lod
 import horse_rig
 import whp_clips
+import whp_far
 import whp_skeleton
 import whp_unit_lod as ul
 from whp_anim import FPS, Poser, action_fcurves, finish_action, new_action, smooth
@@ -1116,22 +1117,33 @@ def stage_lod(unit, limits):
     horse_specs = horse_lod.specs(horse_parts, sources)
     specs = list(unit.PARTS) + horse_specs
     sets = [[s.name for s in unit.PARTS], [s.name for s in horse_specs]]
-    with horse_lod.Unskinned(horse_objs):
-        parts, final, color_image, clean_up = ul.bake_atlas(model, specs, rider_parts + horse_parts,
-                                                            rider_detailed + horse_objs, ao_sets=sets,
-                                                            normal_size=ul.HI_NORMAL_SIZE if hi else ul.NORMAL_SIZE)
-    rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
-
     rest = {b.name: np.array(b.matrix_local) for b in armature.data.bones if b.name.startswith("horse_")}
     if hi:
+        with horse_lod.Unskinned(horse_objs):
+            parts, final, color_image, clean_up = ul.bake_atlas(model, specs, rider_parts + horse_parts,
+                                                                rider_detailed + horse_objs, ao_sets=sets,
+                                                                normal_size=ul.HI_NORMAL_SIZE)
+        rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
         levels = ul.figure_levels_hi(unit.PARTS, rider_parts, game, armature, color_image, unit.LOD2, ground=ground)
         horse_levels = horse_lod.levels_hi(horse_parts, rest, color_image)
     else:
-        levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground)
-        horse_levels = horse_lod.levels(horse_parts, rest, color_image)
+        # LOD1 with few seams and LOD2 a palette (whp_far), for the rider and the horse alike.
+        rider_lod1 = whp_far.lod1_pieces([p.name for p in unit.PARTS], rider_parts, [p.budget[1] for p in unit.PARTS])
+        horse_lod1 = horse_lod.lod1_pieces(horse_parts)
+        with horse_lod.Unskinned(horse_objs):
+            parts, final, color_image, clean_up, lod1 = ul.bake_atlas(model, specs, rider_parts + horse_parts,
+                                                                      rider_detailed + horse_objs, ao_sets=sets,
+                                                                      extra=rider_lod1 + horse_lod1)
+        rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
+        rider_lod1, horse_lod1 = lod1[:len(rider_lod1)], lod1[len(rider_lod1):]
+        levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground,
+                                  lod1=rider_lod1)
+        horse_levels = horse_lod.levels(horse_parts, rest, color_image, lod1=horse_lod1)
     for group, pieces in horse_levels.items():
         for i in range(len(levels)):
             levels[i] += pieces[i]
+    if not hi:
+        ul.finish_far(levels, final)
     lods = [ul.finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     for obj in rider_detailed + horse_objs:

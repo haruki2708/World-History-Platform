@@ -21,7 +21,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-from whp_common import deselect_all, duplicate_object, ensure_dir, join_objects, log, select_only, triangle_count  # noqa: F401
+from whp_common import deselect_all, duplicate_object, ensure_dir, join_objects, link_object, log, select_only, triangle_count  # noqa: F401
 
 UV_NAME = "atlas"
 UV_WEIGHT = "whp_uv_weight"
@@ -254,7 +254,30 @@ def _pack(joined, method, margin):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048):
+# Packing coverage of the UV square to expect when sizing the room
+# (unwrap_atlas): low, so that the room comes out no smaller than asked.
+ROOM_COVERAGE = 0.58
+ROOM = "whp-room"
+last_room = None        # the room's rectangle in texels after the last unwrap_atlas with `room`
+
+
+def _room_object(width, height, area, size):
+    """A rectangle island of about width x height texels once packed (the
+    packing scales everything by about sqrt(ROOM_COVERAGE / area)), far
+    from the figure."""
+    scale = math.sqrt(ROOM_COVERAGE / area)
+    w, h = width / size / scale, height / size / scale
+    mesh = bpy.data.meshes.new(ROOM)
+    mesh.from_pydata([(100.0, 100.0, -100.0), (101.0, 100.0, -100.0), (101.0, 101.0, -100.0), (100.0, 101.0, -100.0)],
+                     [], [(0, 1, 2), (0, 2, 3)])
+    mesh.uv_layers.new(name=UV_NAME)
+    mesh.uv_layers[UV_NAME].data.foreach_set("uv", [0, 0, w, 0, w, h, 0, 0, w, h, 0, h])
+    obj = bpy.data.objects.new(ROOM, mesh)
+    link_object(obj)
+    return obj
+
+
+def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048, room=None):
     """Pack the parts' UV islands into one atlas. Each part already has its
     islands (project_uvs). Returns the parts, separated again.
 
@@ -262,7 +285,11 @@ def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048):
     With `pixels`, every island instead gets that many texels of a
     `size` x `size` image clear on each side: packs much tighter when
     there are many small islands, and keeps a bake's margin from spilling
-    onto the next island (bake margins should be at most `pixels`)."""
+    onto the next island (bake margins should be at most `pixels`).
+    `room`: (width, height) texels to keep free, packed as one more island
+    and taken away again; its rectangle (x0, y0, x1, y1 in texels, origin at
+    the bottom left) is left in `last_room`."""
+    global last_room
     names = [p.name for p in parts]
     tags = []
     for part in parts:
@@ -271,6 +298,13 @@ def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048):
         tag = bpy.data.materials.new(f"part:{part.name}")
         single_material(part, tag)
         tags.append(tag)
+    if room is not None:
+        area = sum(_uv_and_face_areas(p.data)[0].sum() for p in parts)
+        keeper = _room_object(room[0], room[1], area, size)
+        tag = bpy.data.materials.new(f"part:{ROOM}")
+        single_material(keeper, tag)
+        tags.append(tag)
+        parts = list(parts) + [keeper]
     joined = join_objects(parts, "atlas-work")
 
     if pixels is None:
@@ -309,6 +343,14 @@ def unwrap_atlas(parts, margin=0.003, pixels=None, size=2048):
         out[name] = obj
     for tag in tags:
         bpy.data.materials.remove(tag)
+    if room is not None:
+        keeper = out.pop(ROOM)
+        uv = np.empty(len(keeper.data.loops) * 2)
+        keeper.data.uv_layers[UV_NAME].data.foreach_get("uv", uv)
+        uv = uv.reshape(-1, 2) * size
+        last_room = (*uv.min(axis=0).tolist(), *uv.max(axis=0).tolist())
+        bpy.data.objects.remove(keeper)
+        log(f"atlas: room kept free at {[round(v) for v in last_room]} texels")
     return [out[name] for name in names]
 
 

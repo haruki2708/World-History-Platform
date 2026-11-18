@@ -46,8 +46,8 @@ Các mô hình trong `public/battles/models/` được dựng bằng script tron
 4. **Đổi tư thế và tỉ lệ:** từ tư thế chữ T sang tư thế chữ A của khung xương Celt; co giãn từng đoạn cho khớp chiều dài xương (thân ngắn đi 9%, cánh tay trên ngắn 14%, cẳng tay dài thêm 12%); cả người cao 1,67 m.
 5. **Gắn khung xương:** trọng số chuyển từ mô hình Celt sang.
 6. **Giảm chi tiết** cho cảnh có hàng nghìn lính:
-   - LOD0 và LOD1: giảm số tam giác từ lưới gốc và bỏ các mặt bị che;
-   - LOD2: một hình người đơn giản dựng mới theo khung xương.
+   - LOD0 và LOD1: giảm số tam giác từ lưới gốc và bỏ các mặt bị che; LOD1 trải UV lại thành ít mảnh hơn, màu lấy từ ảnh của LOD0 (T-047);
+   - LOD2: một hình người đơn giản dựng mới theo khung xương; màu của nó gom thành một bảng màu nhỏ (T-047).
 7. **Ảnh vật liệu:** toàn bộ ảnh màu và ảnh pháp tuyến bake lại thành một ảnh màu 2048×2048 (đã nhân độ che khuất môi trường) và một ảnh pháp tuyến 1024×1024, xếp trên một atlas. Hai ảnh này có điểm ảnh lấy từ ảnh vật liệu gốc của mô hình nền. Thêm một ảnh độ nhám và kim loại 1024×1024 (T-019): đồng, sắt, giáp lưới và lưỡi kiếm là kim loại. T-021: màu gốc của kim loại sáng lên thành màu phản xạ của kim loại (đồng vàng đậm, sắt xám sáng).
 8. **Hoạt hình** `idle`, `walk`, `run`, `attack`, `die`: lấy từ thư viện của Quaternius (xem mục đầu), đã chỉnh. Ba clip tạm tự làm của T-014 đã bỏ.
 
@@ -210,7 +210,7 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
 3. **Hoạt hình:**
    - ngựa: `idle`, `walk`, `run` (phi), `die` của con ngựa; `jog` là nước kiệu (`trot`) của file gốc; `attack` là tư thế đứng của ngựa, thêm nhịp thở và gật đầu, tự làm;
    - người: tư thế ngồi, cầm cương, mang vũ khí, đâm giáo hay phóng lao tự dựng bằng IK; cú ngã dùng `Death01` của thư viện Quaternius (CC0), trộn từ tư thế ngồi khi bị văng khỏi ngựa.
-4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân.
+4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân. LOD1 và LOD2 ít đường nối UV như lính bộ binh (T-047).
 
 ### `roman-cavalry.glb`: kỵ binh La Mã và đồng minh
 
