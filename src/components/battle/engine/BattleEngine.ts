@@ -31,6 +31,7 @@ import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
+import { Vegetation } from "./vegetation";
 import { BattleClock, formationPoint, opposition, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
 
@@ -176,6 +177,7 @@ export class BattleEngine {
   private terrain: Terrain | null = null;
   private arrows: ArrowLayer | null = null;
   private structures: Structures | null = null;
+  private vegetation: Vegetation | null = null;
   private clock: BattleClock | null = null;
 
   private quality: Quality;
@@ -542,6 +544,7 @@ export class BattleEngine {
     this.models.clear();
     this.arrows?.dispose();
     this.structures?.dispose();
+    this.vegetation?.dispose();
     this.terrain?.dispose();
     this.sky.dispose();
     this.scene.clear();
@@ -645,6 +648,9 @@ export class BattleEngine {
 
     this.structures = new Structures(battle, terrain.heightAt);
     this.scene.add(this.structures.group);
+
+    this.vegetation = new Vegetation(battle, terrain.heightAt);
+    this.scene.add(this.vegetation.group);
 
     this.frameView();
     await this.compileShaders();
@@ -808,6 +814,7 @@ export class BattleEngine {
 
     this.shared.uTime.value = seconds;
     terrain.update(seconds, this.sky);
+    this.vegetation?.update(seconds);
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.footingAt);
     this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(

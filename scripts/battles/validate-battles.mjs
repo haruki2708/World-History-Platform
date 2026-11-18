@@ -222,6 +222,12 @@ function checkScenery(where, t, sides, inside) {
     }
   }
 
+  if (scenery.trees !== undefined) {
+    if (!isNumber(scenery.trees?.perSquareKm) || scenery.trees.perSquareKm < 0 || scenery.trees.perSquareKm > 400) {
+      fail(`${at}.trees`, "perSquareKm must be from 0 to 400");
+    }
+    checkEvidence(`${at}.trees.evidence`, scenery.trees?.evidence);
+  }
   if (scenery.wind !== undefined) {
     const wind = scenery.wind;
     if (!isNumber(wind?.from) || wind.from < 0 || wind.from >= 360) fail(`${at}.wind`, "from must be from 0 up to 360");

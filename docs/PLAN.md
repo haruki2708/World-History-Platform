@@ -82,6 +82,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Hộp thoại Giới thiệu: câu về cảnh vật viết lại, nói thêm về trại, thành, làng và nhà nông (người dùng đã duyệt câu chữ).
   - Hiệu năng (đo xen kẽ bốn vòng, hai bản production): bản đầu của nhánh chậm hơn rõ ở giai đoạn 4 vì hơn 100 lượt vẽ thêm; sau khi gom còn 16 lưới thì ngang `main` (giai đoạn 3: 57,3 so với 58,5; giai đoạn 4: 54,5 so với 54,1). Cả `main` lẫn nhánh hôm nay đều có lượt xuống 48–50, sát mục tiêu; xem mục "Việc cho trận đánh 3D".
   - Kiểm tra: lint, validate, build (worktree tạm) qua; hồi quy lõi 17/17. Chờ người dùng xem trong cảnh thật và duyệt gộp.
+- **2026-11-18:** Phiên chính xong chặng 3 của đợt H (T-040) trên nhánh `batch-h/stage3-vegetation`, xếp chồng lên nhánh chặng 2 (chưa gộp) và làm ở worktree riêng để người dùng vẫn xem được chặng 2. Cây có thân và tán nhiều tấm lá, đổ bóng, đung đưa theo gió: lau sậy, bụi, dương và liễu ven sông; ô liu và sồi đứng lẻ trên đồng (14 cây mỗi km²); ba khu rừng nhỏ; cây quanh nhà nông và làng; bụi trên sườn dốc. Không cây nào mọc ở chỗ quân đứng hay đi qua. Mọi cây đều mức minh hoạ; cây trên đồng trái với Polybius 3.110 và hộp thoại Giới thiệu nói rõ (câu chữ chờ người dùng duyệt). Số đo và kết quả kiểm tra ghi ở T-040.
 
 ## Việc để giai đoạn 5
 
@@ -149,7 +150,7 @@ Người dùng duyệt 2026-11-18. Mục tiêu: trận đánh trông chân thự
 | 0 | Tư liệu và hợp đồng: đọc lại nguồn; kiểu dữ liệu phong cảnh trong `src/lib/battle.ts`, mỗi thứ mang mức căn cứ; dữ liệu Cannae; kiểm tra trong `npm run validate` | `npm run validate` kiểm được dữ liệu mới | [T-037](tasks/T-037-scenery-stage0.md) | Xong, đã gộp 2026-11-18 |
 | 1 | Mặt đất và sông: mặt đất có chi tiết khi nhìn gần (rạ, đất, cỏ khô); nước sông cạn, phản chiếu trời, có bờ và bãi sỏi; đồi núi thật ở chân trời thay cho nền phẳng | Hạ camera sát đất không còn thấy mảng màu trơn | [T-038](tasks/T-038-ground-river.md) | Xong, đã gộp 2026-11-18 |
 | 2 | Công trình: ba trại (hào, luỹ, cọc rào, cổng, lều) và thành, làng Cannae, đặt theo dữ liệu; thêm nhà nông minh hoạ rải rác trên đồng. Dựng bằng code trong cảnh, không dùng Blender như đã trình (lý do ở T-039) | Bay tới trại thấy luỹ, cổng, lều | [T-039](tasks/T-039-structures.md) | Xong trên nhánh `batch-h/stage2-structures`, chờ người dùng xem và duyệt gộp |
-| 3 | Thực vật: bụi cỏ khô trên đồng, lau sậy và cây ven sông, bụi trên sườn đồi; thêm cây lẻ, vườn ô liu và hàng cây minh hoạ trên đồng | Bờ sông, sườn đồi và đồng bằng không còn trọc | Chưa viết | Chưa bắt đầu |
+| 3 | Thực vật: lau sậy, bụi và cây ven sông, bụi trên sườn dốc; thêm cây lẻ (ô liu, sồi) và ba khu rừng nhỏ minh hoạ trên đồng, cây quanh nhà nông và làng | Bờ sông, sườn đồi và đồng bằng không còn trọc | [T-040](tasks/T-040-vegetation.md) | Xong trên nhánh `batch-h/stage3-vegetation` (xếp chồng lên nhánh chặng 2), chờ người dùng xem và duyệt gộp |
 | 4 | Bụi và gió: bụi theo khối quân đang đi hay phi ngựa, trôi theo hướng gió Volturnus | Giai đoạn kỵ binh xung phong thấy bụi cuốn | Chưa viết | Chưa bắt đầu |
 
 Chặng 2, 3, 4 không phụ thuộc nhau; đổi thứ tự được sau chặng 1.

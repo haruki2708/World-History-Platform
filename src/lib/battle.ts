@@ -310,6 +310,8 @@ export interface BattleScenery {
   ground: { cover: GroundCover; evidence: SceneryEvidence };
   areas: SceneryArea[];
   structures: SceneryStructure[];
+  /** Lone trees on the open ground, so many to the square kilometre. */
+  trees?: { perSquareKm: number; evidence: SceneryEvidence };
   wind?: BattleWind;
   /**
    * Dust thrown up by feet and hooves and carried by the wind. `level` runs

@@ -522,8 +522,11 @@ function farm(shapes: Shapes, plot: Plot, rng: Rng): void {
   }
 }
 
-/** Where units stand or pass at any time of the battle, on a grid of `CELL` metres. */
-function occupancy(battle: Battle): (x: number, y: number) => boolean {
+/**
+ * Where units stand or pass at any time of the battle, on a grid of `CELL`
+ * metres, with `margin` metres to spare round every unit.
+ */
+export function occupancy(battle: Battle, margin = 8): (x: number, y: number) => boolean {
   const CELL = 12;
   const { minX, maxX, minY, maxY } = battle.terrain;
   const cols = Math.ceil((maxX - minX) / CELL);
@@ -531,8 +534,8 @@ function occupancy(battle: Battle): (x: number, y: number) => boolean {
   const taken = new Uint8Array(cols * rows);
   const mark = (f: Formation) => {
     const a = (f.facing * Math.PI) / 180;
-    const hw = f.frontage / 2 + 8;
-    const hd = f.depth / 2 + 8;
+    const hw = f.frontage / 2 + margin;
+    const hd = f.depth / 2 + margin;
     for (let u = -hw; u <= hw; u += CELL / 2) {
       for (let v = -hd; v <= hd; v += CELL / 2) {
         const col = Math.floor((f.center.x + Math.cos(a) * u + Math.sin(a) * v - minX) / CELL);

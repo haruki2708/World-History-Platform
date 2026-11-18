@@ -1403,7 +1403,65 @@
           ]
         }
       },
-      "areas": [],
+      "areas": [
+        {
+          "id": "wood-east",
+          "cover": "woodland",
+          "outline": [
+            { "x": 3435, "y": -3048 },
+            { "x": 3534, "y": -3120 },
+            { "x": 3716, "y": -3096 },
+            { "x": 3765, "y": -2976 },
+            { "x": 3650, "y": -2880 },
+            { "x": 3468, "y": -2916 }
+          ],
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "Polybius calls the country round Cannae treeless, and no source mentions a wood here. This one goes against him: it is drawn to make the scene livelier, and is no record of any real wood.",
+              "vi": "Polybius nói vùng quanh Cannae không có cây, và không nguồn nào nhắc tới một khu rừng ở đây. Khu rừng này trái với lời ông: nó được vẽ để cảnh sinh động hơn, không phải ghi chép về khu rừng nào có thật."
+            }
+          }
+        },
+        {
+          "id": "wood-south",
+          "cover": "woodland",
+          "outline": [
+            { "x": -850, "y": -3544 },
+            { "x": -760, "y": -3610 },
+            { "x": -595, "y": -3588 },
+            { "x": -550, "y": -3478 },
+            { "x": -655, "y": -3390 },
+            { "x": -820, "y": -3423 }
+          ],
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "Polybius calls the country round Cannae treeless, and no source mentions a wood here. This one goes against him: it is drawn to make the scene livelier, and is no record of any real wood.",
+              "vi": "Polybius nói vùng quanh Cannae không có cây, và không nguồn nào nhắc tới một khu rừng ở đây. Khu rừng này trái với lời ông: nó được vẽ để cảnh sinh động hơn, không phải ghi chép về khu rừng nào có thật."
+            }
+          }
+        },
+        {
+          "id": "wood-west",
+          "cover": "woodland",
+          "outline": [
+            { "x": -4440, "y": 2358 },
+            { "x": -4356, "y": 2295 },
+            { "x": -4202, "y": 2316 },
+            { "x": -4160, "y": 2421 },
+            { "x": -4258, "y": 2505 },
+            { "x": -4412, "y": 2474 }
+          ],
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "Polybius calls the country round Cannae treeless, and no source mentions a wood here. This one goes against him: it is drawn to make the scene livelier, and is no record of any real wood.",
+              "vi": "Polybius nói vùng quanh Cannae không có cây, và không nguồn nào nhắc tới một khu rừng ở đây. Khu rừng này trái với lời ông: nó được vẽ để cảnh sinh động hơn, không phải ghi chép về khu rừng nào có thật."
+            }
+          }
+        }
+      ],
       "structures": [
         {
           "id": "roman-large-camp",
@@ -1686,6 +1744,16 @@
           }
         }
       ],
+      "trees": {
+        "perSquareKm": 14,
+        "evidence": {
+          "basis": "illustrative",
+          "note": {
+            "en": "Polybius calls the country round Cannae flat and treeless. The lone olives and oaks on the plain go against him: they are drawn to make the scene livelier, and none stands where the armies fight.",
+            "vi": "Polybius nói vùng quanh Cannae bằng phẳng và không có cây. Những cây ô liu và sồi đứng lẻ trên đồng trái với lời ông: chúng được vẽ để cảnh sinh động hơn, và không cây nào đứng ở chỗ hai đạo quân giao chiến."
+          }
+        }
+      },
       "wind": {
         "from": 135,
         "speed": 8,

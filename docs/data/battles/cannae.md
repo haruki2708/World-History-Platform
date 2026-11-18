@@ -514,3 +514,19 @@ Lều không được dựng ở nơi một khối quân đứng hay đi qua. V�
   | `gauls-left` | −2260, −650 | −2260, −600 |
 
   Bộ binh La Mã giờ bắt đầu ở bờ tây, ngay trước chỗ lội, và vượt sông trong giai đoạn 1 (Polybius 3.113: Varro dẫn quân từ trại lớn vượt sông). Các khối của Hannibal chỉ nhích khỏi đoạn sông chảy về bắc.
+
+## 15. Cây cối (T-040, đợt H chặng 3)
+
+**Mọi cây trong cảnh Cannae đều là minh hoạ.** Polybius 3.110 nói vùng quanh Cannae "bằng phẳng và không có cây"; không nguồn nào tả cây ven sông hay cây trên đồng. Người dùng đã chọn cho cảnh có nhiều cây hơn tư liệu (`docs/PLAN.md`, mục "Đợt H"), và hộp thoại Giới thiệu nói rõ điều này.
+
+| Thứ | Dữ liệu | Ghi chú |
+|---|---|---|
+| Lau sậy, bụi, dương và liễu ven sông | `rivers[0].banks` (có từ chặng 0), dải 25 m mỗi bờ | Ngày nay dọc sông Ofanto có lau sậy, liễu, dương |
+| Cây lẻ trên đồng | `scenery.trees.perSquareKm: 14` | Ô liu và sồi. Trái với Polybius 3.110 |
+| Ba khu rừng nhỏ | `areas`: `wood-east` quanh (3600, −3000), `wood-south` quanh (−700, −3500), `wood-west` quanh (−4300, 2400), mỗi khu khoảng 300 × 220 m | Trái với Polybius 3.110. Đặt xa chỗ hai đạo quân dàn trận |
+| Cây quanh nhà nông và làng | Không có dữ liệu riêng: cảnh tự trồng 5 cây quanh mỗi nhà nông, 9 cây quanh làng | Đi theo các nhà nông minh hoạ của mục 14 |
+| Bụi trên sườn dốc | Không có dữ liệu riêng: cảnh tự trồng ở chỗ dốc từ 13% trở lên | Sườn gò Cannae và bậc đất phía nam |
+
+Loại cây (ô liu, sồi, dương, liễu) là cây quen thuộc của vùng Địa Trung Hải, chọn theo hiểu biết chung; chưa đối chiếu với nghiên cứu nào về thảm thực vật Apulia thời đó.
+
+Không cây nào đứng ở chỗ quân đứng hay đi qua (cây lùi 55 m so với mọi khối quân ở mọi thời điểm), nên vùng hai đạo quân dàn trận và giao chiến vẫn trống như lời Polybius.
