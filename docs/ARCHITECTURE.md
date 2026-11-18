@@ -292,7 +292,8 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - Lý do người Numidia không đỡ được: gọi d là khoảng từ lúc đòn của họ chạm tới lúc đòn của đối thủ chạm; họ cần d từ 1,38 tới 1,50 giây, kỵ binh đối diện cần 0,83 tới 1,28 giây. Hai khoảng không giao nhau, nên chỉnh độ lệch nhịp không sửa được.
 - **Vẽ** (`engine/units.ts`):
   - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối.
-  - Thuộc tính `iStrike` của từng hình cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).
+  - **Cất đồ cầm thêm** (T-035): mô hình nào thu nhỏ một xương trong các clip đánh (hai cây *pilum* của hastatus) thì cảnh nhận ra lúc nạp (`UnitModel.stow`). Người đầu hàng dọc của khối đang `fight` cất chúng trong 0,3 giây và giữ như vậy giữa các clip; hàng sau vẫn cầm. Shader co các đỉnh của xương đó về cổ tay theo số thứ hai của `iStrike`.
+  - Thuộc tính `iStrike` của từng hình có hai số. Số đầu cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).
   - Một nhát đã bắt đầu thì phát hết, dù đối thủ đã ngã; nhát mới chỉ bắt đầu ở đầu clip (`swingBeat` trong `melee.ts`). Ngoại lệ là nhát hạ gục đối thủ: nó được bắt đầu muộn, bất cứ lúc nào trước khi đòn chạm, và cắt ngang nhát đang dở. Sau khi tua, hình lính đứng ngay vào chỗ đấu và vào đúng khung của nhát đang diễn ra.
   - Người ngã nằm lại ở chỗ đang đấu, không bị kéo về chỗ trong đội hình. Sau khi tua, người đã ngã nằm ở chỗ trong đội hình, lệch vài mét so với lúc phát liên tục.
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.

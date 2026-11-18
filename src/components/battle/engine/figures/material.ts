@@ -10,7 +10,8 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
- *   iStrike  seconds into the clip for a figure fighting hand to hand
+ *   iStrike  x: seconds into the clip for a figure fighting hand to hand;
+ *            y: how far it has put away what its model stows to fight, 0..1
  *            (attack, block or hit; engine/melee.ts times the blows), or
  *            negative: attack then loops on the clock like idle
  *
@@ -33,6 +34,7 @@ import {
   MeshStandardMaterial,
   Vector2,
   Vector3,
+  Vector4,
 } from "three";
 import { UNIT_CLIPS } from "@/lib/battle";
 import { CLIP_INDEX, type UnitModel } from "./model";
@@ -60,7 +62,7 @@ const PARS = /* glsl */ `
 attribute vec4 iPosYaw;
 attribute vec4 iAnim;
 attribute float iSeed;
-attribute float iStrike;
+attribute vec2 iStrike;
 attribute vec4 aBoneIndex;
 attribute vec4 aBoneWeight;
 attribute float aTeam;
@@ -71,6 +73,8 @@ uniform vec3 uStride;
 uniform float uTime;
 uniform float uFigScale;
 uniform vec3 uTeam;
+// What the model puts away to fight (UnitModel.stow): the point it shrinks to, and its bone (-1: nothing).
+uniform vec4 uStow;
 float figSize;
 vec3 figPosition;
 vec3 figNormal;
@@ -90,9 +94,9 @@ float figFrame(float clip) {
     float stride =
       (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
-  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit}) && iStrike >= 0.0) {
+  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit}) && iStrike.x >= 0.0) {
     // A blow struck or taken, timed by the fight: played once, from the moment given.
-    frame = min(iStrike * info.z, info.y - 1.0);
+    frame = min(iStrike.x * info.z, info.y - 1.0);
   } else if (info.w > 0.5) {
     float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
     frame = mod(seconds * info.z, info.y);
@@ -136,6 +140,14 @@ void figureTransform(vec3 p, vec3 n) {
     figR0 = mix(figR0, s0, iAnim.z);
     figR1 = mix(figR1, s1, iAnim.z);
     figR2 = mix(figR2, s2, iAnim.z);
+  }
+  if (uStow.w >= 0.0 && iStrike.y > 0.0) {
+    // Put away: the vertices of that bone shrink into the hand that held them.
+    float held = 0.0;
+    for (int k = 0; k < 4; k++) {
+      if (abs(aBoneIndex[k] - uStow.w) < 0.5) held += aBoneWeight[k];
+    }
+    if (held > 0.5) p = mix(p, uStow.xyz, iStrike.y);
   }
   vec4 p4 = vec4(p, 1.0);
   vec3 sp = vec3(dot(figR0, p4), dot(figR1, p4), dot(figR2, p4)) * figSize;
@@ -197,12 +209,14 @@ export function createFigureMaterials(
     uClips: { value: model.clipTable },
     uStride: { value: new Vector3(model.gait.walk.metres, model.gait.run.metres, model.gait.jog.metres) },
     uTeam: { value: new Color(team) },
+    uStow: { value: model.stow ? new Vector4(...model.stow.pivot, model.stow.bone) : new Vector4(0, 0, 0, -1) },
   };
   const bind = (shader: { uniforms: Record<string, IUniform> }) => {
     shader.uniforms.uBoneTex = uniforms.uBoneTex;
     shader.uniforms.uClips = uniforms.uClips;
     shader.uniforms.uStride = uniforms.uStride;
     shader.uniforms.uTeam = uniforms.uTeam;
+    shader.uniforms.uStow = uniforms.uStow;
     shader.uniforms.uTime = shared.uTime;
     shader.uniforms.uFigScale = shared.uFigScale;
   };
