@@ -86,7 +86,7 @@ Làm 2026-11-18. Ba commit trên nhánh: mặt đất và sông; vùng xa và bi
   | nhánh | 96,1 / 87,7 / 101,7 | 50,5 / 57,9 / 66,7 | 54,9 / 64,5 / 57,3 |
 
   Trung bình nhánh thấp hơn 4–6%, nhỏ hơn dao động giữa các lượt (10–20%). Mọi lượt đều từ 50 trở lên; lượt thấp nhất của nhánh là 50,5, sát mục tiêu. Số tam giác tăng khoảng 173 nghìn (dải sông và vùng xa).
-- `npm run build` (worktree tạm, commit `18fa583`): qua. Hồi quy lõi (`main-tools/reg-core.js`) trên bản production đó: 17/17, console sạch. Dòng cuối mục này ghi lần build của commit cuối.
+- `npm run build` (worktree tạm): qua ở commit `18fa583` (trước câu Giới thiệu) và ở commit `0ce9342` (có câu Giới thiệu và tài liệu). Hồi quy lõi (`main-tools/reg-core.js`) trên cả hai bản production: 17/17, console sạch.
 
 ### Chưa làm, hoặc chưa ưng
 
