@@ -98,6 +98,7 @@ async function prefetchBattle(id: string): Promise<boolean> {
   const battle = await loadBattle(id).catch(() => undefined);
   if (!battle) return false;
   const terrain = prefetch(terrainUrl(battle.terrain.file));
+  if (battle.terrain.far) prefetch(terrainUrl(battle.terrain.far.file));
   const available = await readModelIndex();
   await Promise.all([terrain, ...modelsOf(battle, available).map((model) => prefetch(modelUrl(model)))]);
   return true;

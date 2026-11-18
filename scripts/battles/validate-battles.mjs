@@ -315,6 +315,28 @@ for (const file of battleFiles) {
     fail(terrainWhere, `file is ${statSync(gridPath).size} bytes, expected width × height × 2 = ${t.width * t.height * 2}`);
   }
   checkSources(`${terrainWhere}.sources`, t.sources);
+  if (t.far !== undefined) {
+    const far = t.far ?? {};
+    const farWhere = `${terrainWhere}.far`;
+    const numbers = ["width", "height", "minX", "maxX", "minY", "maxY"].every((key) => isNumber(far[key]));
+    if (!numbers) fail(farWhere, "width, height, minX, maxX, minY and maxY must be numbers");
+    else if (!(far.minX < far.maxX && far.minY < far.maxY)) fail(farWhere, "needs minX < maxX and minY < maxY");
+    else if (!(Number.isInteger(far.width) && far.width >= 2 && Number.isInteger(far.height) && far.height >= 2)) {
+      fail(farWhere, "width and height must be whole numbers >= 2");
+    } else {
+      const farPath = join(terrainDir, far.file ?? "");
+      if (!far.file || !existsSync(farPath)) fail(farWhere, `file ${far.file} not found in public/data/terrain/`);
+      else if (statSync(farPath).size !== far.width * far.height * 2) {
+        fail(farWhere, `file is ${statSync(farPath).size} bytes, expected width × height × 2 = ${far.width * far.height * 2}`);
+      }
+      // It must reach two of its own cells beyond the ground of the battle.
+      const cellX = (far.maxX - far.minX) / (far.width - 1);
+      const cellY = (far.maxY - far.minY) / (far.height - 1);
+      if (far.minX > t.minX - 2 * cellX || far.maxX < t.maxX + 2 * cellX || far.minY > t.minY - 2 * cellY || far.maxY < t.maxY + 2 * cellY) {
+        fail(farWhere, "must reach at least two of its cells beyond the terrain on every side");
+      }
+    }
+  }
   const inside = (p) => isNumber(p?.x) && isNumber(p?.y) && p.x >= t.minX && p.x <= t.maxX && p.y >= t.minY && p.y <= t.maxY;
   for (const [i, river] of (t.rivers ?? []).entries()) {
     const at = `${terrainWhere}.rivers[${i}]`;
@@ -331,6 +353,39 @@ for (const file of battleFiles) {
   }
   checkScenery(terrainWhere, t, sides, inside);
 
+  // Ground at or below sea level is drawn as sea: nothing stands or is built on it.
+  const gridOk = t.file && existsSync(gridPath) && statSync(gridPath).size === t.width * t.height * 2;
+  const grid = gridOk ? readFileSync(gridPath) : null;
+  const cellX = (t.maxX - t.minX) / (t.width - 1);
+  const cellY = (t.maxY - t.minY) / (t.height - 1);
+  /** True when the grid point nearest to p is sea; false outside the grid or without one. */
+  const atSea = (p) => {
+    if (!grid || !inside(p)) return false;
+    const col = Math.round((p.x - t.minX) / cellX);
+    const row = Math.round((t.maxY - p.y) / cellY);
+    return grid.readInt16LE((row * t.width + col) * 2) <= 0;
+  };
+  /** Share of a rectangle (from corners()) that is sea, sampled 9 × 5. */
+  const seaShare = (r) => {
+    let wet = 0;
+    let all = 0;
+    for (let u = -1; u <= 1; u += 0.25) {
+      for (let v = -1; v <= 1; v += 0.5) {
+        all++;
+        if (atSea({ x: r.c.x + r.along.x * u * r.hw + r.ahead.x * v * r.hd, y: r.c.y + r.along.y * u * r.hw + r.ahead.y * v * r.hd })) wet++;
+      }
+    }
+    return wet / all;
+  };
+  for (const [i, mark] of (t.landmarks ?? []).entries()) {
+    if (atSea(mark.point)) fail(`${terrainWhere}.landmarks[${i}]`, `${mark.name?.en} lies in the sea`);
+  }
+  for (const [i, structure] of (t.scenery?.structures ?? []).entries()) {
+    if (!isNumber(structure.width) || !isNumber(structure.depth) || !isNumber(structure.facing) || !inside(structure.center)) continue;
+    const share = seaShare(corners({ center: structure.center, frontage: structure.width, depth: structure.depth, facing: structure.facing }));
+    if (share > 0) fail(`${terrainWhere}.scenery.structures[${i}]`, `${Math.round(share * 100)}% of it lies in the sea`);
+  }
+
   // States: the start and the end of every phase list every unit once.
   const lastMen = new Map([...units].map(([id, u]) => [id, u.men]));
   const checkStates = (at, states) => {
@@ -343,6 +398,10 @@ for (const file of battleFiles) {
       seen.add(s.unit);
       const f = s.formation ?? {};
       if (!inside(f.center)) fail(sw, "formation.center must lie inside the terrain");
+      else if (isNumber(f.frontage) && isNumber(f.depth) && isNumber(f.facing)) {
+        const share = seaShare(corners(f));
+        if (share > 0.1) fail(sw, `${Math.round(share * 100)}% of the formation stands in the sea`);
+      }
       if (!(isNumber(f.frontage) && f.frontage > 0 && isNumber(f.depth) && f.depth > 0)) fail(sw, "frontage and depth must be positive");
       if (!(isNumber(f.facing) && f.facing >= 0 && f.facing < 360)) fail(sw, "facing must be in [0, 360)");
       if (f.bulge !== undefined && !isNumber(f.bulge)) fail(sw, "bulge must be a number");

@@ -29,7 +29,7 @@ import { createPlaceholderSource } from "./figures/placeholder";
 import { hidden, type Occluder, pick } from "./occlusion";
 import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
-import { loadHeights, Terrain } from "./terrain";
+import { loadFarHeights, loadHeights, Terrain } from "./terrain";
 import { BattleClock, formationPoint, opposition, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
 
@@ -597,13 +597,17 @@ export class BattleEngine {
         }),
       );
     };
-    const [heights] = await Promise.all([loadHeights(battle.terrain, signal), loadModels()]);
+    const [heights, farHeights] = await Promise.all([
+      loadHeights(battle.terrain, signal),
+      loadFarHeights(battle.terrain, signal),
+      loadModels(),
+    ]);
     if (this.disposed) return;
     this.modelNotes = [...modelByKey]
       .map(([key, model]) => `${key}: ${model.placeholder ? "placeholder" : "file"}`)
       .sort();
 
-    const terrain = new Terrain(battle.terrain, heights);
+    const terrain = new Terrain(battle.terrain, heights, farHeights);
     this.terrain = terrain;
     this.scene.add(terrain.group);
 
@@ -797,6 +801,7 @@ export class BattleEngine {
     this.fog.far = distance * 4 + 45000;
 
     this.shared.uTime.value = seconds;
+    terrain.update(seconds, this.sky);
     this.crowd.update(time, this.clock?.seconds(time) ?? 0, playing, seconds, terrain.heightAt);
     this.crowd.occluders(time, terrain.heightAt, this.occluders, this.occluderOwners);
     const counts = this.crowd.selectLods(

@@ -127,6 +127,7 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                   <li>{t("about.accuracy.battle.duels")}</li>
                   <li>{t("about.accuracy.battle.time")}</li>
                   <li>{t("about.accuracy.battle.pulses")}</li>
+                  <li>{t("about.accuracy.battle.scenery")}</li>
                   <li>{t("about.accuracy.battle.colours")}</li>
                 </ul>
               </li>

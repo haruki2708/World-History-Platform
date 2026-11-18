@@ -1161,7 +1161,7 @@
         },
         {
           "unit": "allied-cavalry",
-          "formation": { "center": { "x": 2300, "y": 1900 }, "frontage": 300, "depth": 80, "facing": 30 },
+          "formation": { "center": { "x": 1150, "y": 1780 }, "frontage": 300, "depth": 80, "facing": 325 },
           "action": "rout",
           "men": 300
         },
@@ -1239,7 +1239,7 @@
         },
         {
           "unit": "numidians",
-          "formation": { "center": { "x": 2100, "y": 1650 }, "frontage": 600, "depth": 80, "facing": 30 },
+          "formation": { "center": { "x": 1290, "y": 1540 }, "frontage": 400, "depth": 80, "facing": 325 },
           "action": "pursue",
           "men": 3960
         }
@@ -1260,6 +1260,7 @@
     "maxX": 4800,
     "minY": -4800,
     "maxY": 3300,
+    "far": { "file": "battle-of-cannae-far.bin", "width": 271, "height": 271, "minX": -54000, "maxX": 54000, "minY": -54000, "maxY": 54000 },
     "rivers": [
       {
         "name": { "en": "Aufidus (Ofanto), modern course", "vi": "Sông Aufidus (Ofanto), dòng chảy ngày nay" },
@@ -1531,14 +1532,14 @@
     },
     "sources": [
       {
-        "title": "Copernicus DEM GLO-30 (tile N41 E016), produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Resampled to 30 m; river course traced from the same data.",
+        "title": "Copernicus DEM GLO-30 (tile N41 E016), produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Resampled to 30 m, and to 400 m for the country around (tiles N41 E015, N40 E015 and N40 E016 as well); river course traced from the same data.",
         "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N41_00_E016_00_DEM/INFO/eula_F.pdf"
       }
     ]
   },
   "uncertainty": {
-    "en": "This is a reconstruction. Which bank of the Aufidus the battle was fought on is disputed; this scene follows the ancient statements that the Romans faced south with the river on their right, on the plain north-east of Cannae, but other reconstructions put the field on the opposite bank. The river has shifted since antiquity: the scene shows its modern course. The sources' numbers differ and may be inflated, and the split of each army into units is a modern estimate. The position of every unit, the camps and the fords, and the clock times, are reasoned guesses from the descriptions of Polybius and Livy.",
-    "vi": "Đây là phỏng dựng. Trận diễn ra ở bờ nào của sông Aufidus vẫn còn tranh cãi; cảnh này theo lời các sử gia cổ rằng quân La Mã quay mặt về nam, sông ở bên phải, trên đồng bằng phía đông bắc Cannae, nhưng có những phỏng dựng khác đặt chiến trường ở bờ bên kia. Dòng sông đã đổi chỗ từ thời cổ: cảnh vẽ dòng chảy ngày nay. Quân số giữa các nguồn khác nhau và có thể bị thổi phồng, còn cách chia mỗi đạo quân thành các đơn vị là ước lượng hiện đại. Vị trí của từng đơn vị, các trại, chỗ vượt sông và giờ trong ngày đều là phỏng đoán có căn cứ từ mô tả của Polybius và Livy."
+    "en": "This is a reconstruction. Which bank of the Aufidus the battle was fought on is disputed; this scene follows the ancient statements that the Romans faced south with the river on their right, on the plain north-east of Cannae, but other reconstructions put the field on the opposite bank. The river and the shore have shifted since antiquity: the scene shows them where they run today. The sources' numbers differ and may be inflated, and the split of each army into units is a modern estimate. The position of every unit, the camps and the fords, and the clock times, are reasoned guesses from the descriptions of Polybius and Livy.",
+    "vi": "Đây là phỏng dựng. Trận diễn ra ở bờ nào của sông Aufidus vẫn còn tranh cãi; cảnh này theo lời các sử gia cổ rằng quân La Mã quay mặt về nam, sông ở bên phải, trên đồng bằng phía đông bắc Cannae, nhưng có những phỏng dựng khác đặt chiến trường ở bờ bên kia. Dòng sông và bờ biển đã đổi chỗ từ thời cổ: cảnh vẽ chúng ở vị trí ngày nay. Quân số giữa các nguồn khác nhau và có thể bị thổi phồng, còn cách chia mỗi đạo quân thành các đơn vị là ước lượng hiện đại. Vị trí của từng đơn vị, các trại, chỗ vượt sông và giờ trong ngày đều là phỏng đoán có căn cứ từ mô tả của Polybius và Livy."
   },
   "sources": [
     { "title": "Polybius, Histories 3.107–118", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },

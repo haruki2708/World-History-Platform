@@ -173,7 +173,7 @@ GLO-30 là mô hình bề mặt (DSM): đo cả cây và nhà, không chỉ mặ
 - Ô gốc: `N41E016` (GeoTIFF Float32, nén deflate, predictor dấu phẩy động), lưu ngoài repo tại `E:\World_History_Platform_assets\terrain\copernicus-glo30\`. Ô SRTM dự phòng ở `...\srtm-gl1\`.
 - Vùng phủ: x từ −5400 tới 4800 m, y từ −4800 tới 3300 m (10,2 × 8,1 km), gồm chiến trường, ba trại, chỗ vượt sông và thành Cannae.
 - Lưới 341 × 271 điểm, cách nhau 30 m, nội suy song tuyến. Điểm lưới nằm ở mép vùng phủ: cột i ở x = minX + 30·i.
-- Độ cao từ −1,0 tới 71,2 m. Góc đông bắc chạm đồng bằng ven biển (0–1 m).
+- Độ cao từ −1,0 tới 71,2 m. Góc đông bắc là biển (độ cao 0): xem mục 13. (Trước T-038 dòng này ghi nhầm là "đồng bằng ven biển".)
 - Script không dùng thư viện npm: tự đọc GeoTIFF bằng `zlib` của Node.
 
 ### Sông Aufidus (Ofanto)
@@ -431,3 +431,38 @@ Lúc bắt đầu, vài khối quân còn đứng trong trại của mình: `cam
 - Chưa có khối quân Carthage nào giữ trại của Hannibal, dù Polybius 3.117 nói có: `camp-force` đang đánh vào một trại không người. Đề nghị thêm một khối giữ trại khi làm chặng công trình.
 - Sông vẫn là dòng chảy ngày nay (mục 7); vị trí các trại bám theo dòng đó.
 - Cách xếp lều, đường và cổng trong trại La Mã (Polybius 6.27–32) chưa đọc kỹ; chặng công trình cần đọc trước khi dựng. Kích thước hào và luỹ không có trong Polybius, phải lấy từ nguồn khác hoặc ghi là minh hoạ.
+
+## 13. Vùng xa và biển (T-038, đợt H chặng 1)
+
+### Lưới vùng xa
+
+- File `public/data/terrain/battle-of-cannae-far.bin`, khai báo ở `terrain.far`: 271 × 271 điểm, cách nhau 400 m, phủ 54 km về mỗi phía quanh `origin`. Cùng định dạng với lưới chính.
+- Dựng bằng `node scripts/battles/build-terrain.mjs` (lệnh này ghi cả hai lưới; lưới chính ra đúng từng byte như trước). Mỗi giá trị là trung bình của 25 mẫu trong ô 400 m quanh điểm lưới.
+- Cần thêm ba ô Copernicus GLO-30 ngoài `N41E016`: `N41E015`, `N40E015`, `N40E016`, tải từ cùng kho AWS công khai ngày 2026-11-18, lưu ở `E:\World_History_Platform_assets\terrain\copernicus-glo30\`. Cùng giấy phép và cùng câu ghi công (mục 7); `terrain.sources` đã ghi thêm ba ô này.
+- Độ cao tới 1 267 m (núi Vulture ở tây nam); 36,9% số điểm ở mực biển (biển Adriatic ở đông bắc). Phía bắc thấy mũi Gargano.
+
+### Biển nằm ngay trong vùng chiến trường
+
+- Trong lưới chính, 13 045 trên 92 411 điểm (14,1%) có độ cao từ 0,05 m trở xuống: cả góc đông bắc là **biển** trong dữ liệu ngày nay. Bờ biển chạy chéo từ khoảng (−600, 2700) tới (4200, −300); cửa sông Ofanto ở khoảng (−600, 2900). Mục 7 trước đây ghi nhầm chỗ này là "đồng bằng ven biển (0–1 m)", và cảnh vẽ nó thành đất.
+- Từ T-038, cảnh vẽ chỗ đó là biển. **Bờ biển là bờ ngày nay**, như dòng sông: châu thổ sông Ofanto đã bồi và lở nhiều lần, bờ biển năm 216 TCN nằm ở đâu thì không rõ. Câu `uncertainty` của file trận đã nói thêm điều này.
+- Vài vũng nhỏ sau bờ (độ cao từ 0 trở xuống) hiện thành bãi cát.
+
+### Hai khối kỵ binh dời vào bờ
+
+Ở mốc cuối giai đoạn 6, hai khối đứng đúng vào chỗ là biển:
+
+| Khối | Trước | Sau | Ghi chú |
+|---|---|---|---|
+| `allied-cavalry` (tháo chạy) | tâm 2300, 1900; hướng 30° | tâm 1150, 1780; hướng 325° | Chạy về đông bắc tới gần bờ biển rồi rẽ dọc bờ về tây bắc |
+| `numidians` (đuổi theo) | tâm 2100, 1650; bề ngang 600; hướng 30° | tâm 1290, 1540; bề ngang 400; hướng 325° | Đuổi theo sau |
+
+Hướng chạy của kỵ binh đồng minh không có trong nguồn (Varro thoát về Venusia với một nhóm kỵ binh, Polybius 3.116–117); cả vị trí cũ lẫn mới đều là giả định. `check-facing.mjs` thêm một dòng cho `allied-cavalry` ở giai đoạn 6 (lệch 32° vì khối vừa chạy vừa đổi hướng); `check-overlap.mjs --min 0.04` không đổi.
+
+### Kiểm tra
+
+`npm run validate` kiểm tra thêm: `terrain.far` (kích thước, file, vượt ra ngoài lưới chính ít nhất hai ô); không khối quân nào có quá 10% diện tích nằm trên biển ở bất kỳ mốc nào; không địa danh hay công trình nào nằm trên biển. Đã thử bằng cách đặt một khối quân, một địa danh và một công trình xuống biển: cả ba bị bắt.
+
+### Còn lại
+
+- Giữa hai mốc, cảnh nội suy thẳng: phép kiểm tra chỉ xét các mốc, chưa xét đường đi giữa chúng. Đường đi của hai khối kỵ binh ở giai đoạn 6 đã xem bằng mắt (trên bờ).
+- Bờ biển thời cổ: nếu tìm được nghiên cứu địa mạo về châu thổ Ofanto thì nên ghi vào đây và cân nhắc dời bờ.
