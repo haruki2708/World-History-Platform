@@ -356,8 +356,7 @@ function tents(chunks: Shapes[], plot: Plot, roman: boolean, occupied: (x: numbe
   const cols = Math.floor((hw * 2) / pitch);
   const rows = Math.floor((hd * 2) / pitch);
   const cross = hd * 0.3;
-  const CHUNK = 14;
-  const chunkCols = Math.ceil(cols / CHUNK) || 1;
+  // Four chunks to a camp, one per quarter: few draw calls, and a quarter out of view is not drawn.
   const byChunk = new Map<number, Shapes>();
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -383,7 +382,7 @@ function tents(chunks: Shapes[], plot: Plot, roman: boolean, occupied: (x: numbe
         if (Math.hypot(u, v) < 45) continue;
       }
       if (occupied(plot.fieldX(u, v), plot.fieldY(u, v))) continue;
-      const key = Math.floor(r / CHUNK) * chunkCols + Math.floor(c / CHUNK);
+      const key = (r * 2 < rows ? 0 : 2) + (c * 2 < cols ? 0 : 1);
       let shapes = byChunk.get(key);
       if (!shapes) {
         shapes = new Shapes();
@@ -592,30 +591,33 @@ export class Structures {
     const structures = battle.terrain.scenery?.structures ?? [];
     if (structures.length === 0) return;
     const occupied = occupancy(battle);
+    // One mesh for all the buildings (they are few triangles), one for the
+    // earthworks of each camp, and four for its tents.
+    const buildings = new Shapes();
+    const chunks: Shapes[] = [buildings];
     for (const structure of structures) {
       const plot = new Plot(structure, heightAt);
       const rng = createRng(hashString(`${battle.id}/${structure.id}`));
-      const chunks: Shapes[] = [];
-      const main = new Shapes();
-      chunks.push(main);
       if (structure.kind === "camp") {
-        earthworks(main, plot, rng);
+        const works = new Shapes();
+        chunks.push(works);
+        earthworks(works, plot, rng);
         // A camp of the Roman kind is laid out by rule; any other loosely.
         tents(chunks, plot, structure.side === "rome", occupied, rng);
       } else if (structure.kind === "citadel") {
-        citadel(main, plot, rng);
+        citadel(buildings, plot, rng);
       } else if (structure.kind === "farm") {
-        farm(main, plot, rng);
+        farm(buildings, plot, rng);
       } else {
-        houses(main, plot, structure.ruined === true, rng);
+        houses(buildings, plot, structure.ruined === true, rng);
       }
-      for (const shapes of chunks) {
-        if (shapes.empty) continue;
-        const mesh = new Mesh(shapes.geometry(), this.material);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        this.group.add(mesh);
-      }
+    }
+    for (const shapes of chunks) {
+      if (shapes.empty) continue;
+      const mesh = new Mesh(shapes.geometry(), this.material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.group.add(mesh);
     }
   }
 
