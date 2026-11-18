@@ -69,10 +69,6 @@ export interface MeleeFigures {
   beat: Float32Array;
   /** 1 when that enemy falls before another blow could land: the blow that fells him must not be missed. */
   kill: Uint8Array;
-  /** When the blows on the figure itself land: its own beat, seconds of playback (heads of files only). */
-  own: Float32Array;
-  /** How many enemies in reach strike at the figure. */
-  struck: Uint8Array;
   /** Its enemy, a number that differs for every figure on the field, or -1. */
   opponent: Int32Array;
   /** The unit had men at the head of a file at the last update: the arrays above hold their fight. */
@@ -159,8 +155,6 @@ export class Melee {
       bearing: new Float32Array(track.count),
       beat: new Float32Array(track.count).fill(-1),
       kill: new Uint8Array(track.count),
-      own: new Float32Array(track.count).fill(-1),
-      struck: new Uint8Array(track.count),
       opponent: new Int32Array(track.count).fill(-1),
       engaged: false,
     }));
@@ -210,8 +204,6 @@ export class Melee {
         out.offsetY.fill(0);
         out.beat.fill(-1);
         out.kill.fill(0);
-        out.own.fill(-1);
-        out.struck.fill(0);
         out.opponent.fill(-1);
         out.engaged = false;
       }
@@ -403,7 +395,6 @@ export class Melee {
       const u = unitOf[a];
       const i = indexOf[a];
       const out = figures[u];
-      out.own[i] = own[a];
       out.engaged = true;
       const b = target[a];
       if (b === -1) continue;
@@ -419,11 +410,6 @@ export class Melee {
       out.opponent[i] = (unitOf[b] << 16) | indexOf[b];
       out.beat[i] = reaches ? own[b] : -1;
       out.kill[i] = fallsSoon(b) ? 1 : 0;
-      if (reaches) {
-        const struck = figures[unitOf[b]].struck;
-        if (struck[indexOf[b]] < 255) struck[indexOf[b]]++;
-        figures[unitOf[b]].engaged = true;
-      }
     }
   }
 }

@@ -23,7 +23,7 @@ a horse: the figures further apart, the clips seen from the side.
 --jog renders the run and the jog of a foot model one above the other (what
 the scene played at a steady pace before the jog clip, and what it plays now).
 
---duel renders two foot models face to face, as far apart as the scene
+--duel renders two models (two on foot, or two horsemen) face to face, as far apart as the scene
 stands them when they fight hand to hand, around the moment a blow lands:
 MODEL strikes and OTHER takes it on the shield (block), then is struck
 (hit), then the other way round. Into art/renders/duel-<MODEL>-<OTHER>.jpg.
@@ -627,7 +627,10 @@ def duel_image(model, other):
     reset_scene()
     a = import_model(whp_build.glb_path(model))
     b = import_model(whp_build.glb_path(other))
-    scene = stage(560, 620, samples=32)
+    # Horsemen take a wider and higher picture than men on foot.
+    mounted = any(hasattr(whp_build.load_unit(m), "HORSE") for m in (model, other))
+    behind, top = (2.2, 3.05) if mounted else (1.15, 2.35)
+    scene = stage(1000 if mounted else 560, 440 if mounted else 620, samples=32)
     strike = {id(a): strike_frame(a), id(b): strike_frame(b)}
     reach = {id(t): forward_reach(t, "attack", strike[id(t)]) for t in (a, b)}
     front = {id(t): forward_reach(t, "idle", 0) for t in (a, b)}
@@ -648,7 +651,7 @@ def duel_image(model, other):
                 else:
                     play(f, clip, taken + offset)
             scene.frame_set(FRAME)
-            aim_camera(scene, Vector((-0.9, -apart / 2 - 1.15, -0.02)), Vector((0.9, apart / 2 + 1.15, 2.35)), "right",
+            aim_camera(scene, Vector((-0.9, -apart / 2 - behind, -0.02)), Vector((0.9, apart / 2 + behind, top)), "right",
                        ortho=True, margin=1.0)
             row.append(render_panel(scene))
             clear_figures([a.armature, *a.meshes.values(), b.armature, *b.meshes.values()])
