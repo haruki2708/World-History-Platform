@@ -7,6 +7,7 @@
 // https://github.com/nvkelso/natural-earth-vector/tree/master/geojson
 //   ne_10m_ocean.geojson
 //   ne_10m_lakes.geojson
+//   ne_10m_lakes_europe.geojson
 //   ne_10m_rivers_lake_centerlines.geojson
 //
 // Output: one FeatureCollection with `properties.kind` = "ocean" | "lake" |
@@ -28,6 +29,140 @@ const MAX_RIVER_RANK = 9;
 const MODERN_WATERWAY = /canal|csatorna|kanal|channel/i;
 /** Flooded by the Suez Canal; dry salt basins in antiquity. */
 const MODERN_LAKES = new Set(["Great Bitter Lake", "Little Bitter Lake"]);
+
+/**
+ * The lakes taken from Natural Earth's European supplement
+ * (ne_10m_lakes_europe), by its stable `ne_id`. The supplement holds the
+ * smaller lakes that ne_10m_lakes leaves out, Lake Trasimene among them. Its
+ * classes do not tell natural lakes from dam lakes (La Serena, Kremasta and
+ * Lake Assad are all "Lake") and half its lakes have no name, so it is not
+ * filtered but picked from: natural lakes and lagoons that already held water
+ * in antiquity, checked one by one between 11° W and 45° E, 30° N and 53° N
+ * (T-056). Lakes outside that window are not used. The build stops if an id
+ * goes missing, so a new Natural Earth release cannot drop a lake silently.
+ */
+const EUROPE_LAKES = new Map([
+  // Iberia and Gaul
+  [1159110139, "Albufera de València"],
+  [1159109319, "Lac de Grand-Lieu"],
+  [1159109491, "Étang de Biscarrosse et de Parentis"],
+  [1159109503, "Étang de Cazaux et de Sanguinet"],
+  [1159109561, "Lac d'Hourtin-Carcans"],
+  [1159109927, "Étang de Thau"],
+  [1159109843, "Étang de Vaccarès"],
+  [1159109573, "Lac du Bourget"],
+  [1159109391, "Lac d'Annecy"],
+  // The Alps
+  [1159109265, "Lake Neuchâtel"],
+  [1159109277, "Lake Murten"],
+  [1159109183, "Lake Biel"],
+  [1159109425, "Lake Thun"],
+  [1159109411, "Lake Brienz"],
+  [1159109311, "Lake Lucerne"],
+  [1159109167, "Lake Zug"],
+  [1159109215, "Lake Zurich"],
+  [1159109157, "Walensee"],
+  [1159109403, "Lake Lugano"],
+  [1159109333, "Lake Como"],
+  [1159109535, "Lake Iseo"],
+  [1159109071, "Starnberger See"],
+  [1159109123, "Ammersee"],
+  [1159109053, "Chiemsee"],
+  [1159109063, "Attersee"],
+  [1159109095, "Traunsee"],
+  [1159109357, "Wörthersee"],
+  // Italy and the Adriatic
+  [1159109725, "Lake Trasimene"],
+  [1159109787, "Lake Bracciano"],
+  [1159110217, "Lago di Lesina"],
+  [1159110185, "Lago di Varano"],
+  [1159110151, "Salpi lagoon (Salapia), now salt pans"],
+  [1159109521, "Vransko jezero"],
+  [1159109881, "Prokljansko jezero"],
+  // Pannonia and the lower Danube
+  [1159109133, "Lake Neusiedl"],
+  [1159109463, "Lacul Bistreț"],
+  [1159109545, "Lacul Oltina"],
+  [1159109297, "Lacul Brateș"],
+  [1159109243, "Lake Manta"],
+  [1159109255, "Lake Kagul"],
+  [1159109193, "Lakes Yalpug and Kugurlui"],
+  [1159109205, "Lake Katlabukh"],
+  [1159109227, "Lake Kytai"],
+  [1159109287, "Danube delta lake"],
+  [1159109363, "Lacul Dranov"],
+  [1159109443, "Lacul Isacov"],
+  [1159109339, "Lacul Babadag"],
+  [1159109381, "Lacul Tașaul"],
+  // Greece and Thrace
+  [1159109967, "Lake Pamvotis (Ioannina)"],
+  [1159110053, "Lake Orestiada (Kastoria)"],
+  [1159110327, "Lake Trichonida"],
+  [1159110285, "Lake Vegoritida"],
+  [1159110197, "Lake Dojran"],
+  [1159110175, "Lake Koroneia"],
+  [1159110165, "Lake Volvi"],
+  [1159110383, "Lake Yliki"],
+  [1159109761, "Lake Vistonida"],
+  [1159109869, "Lake Burgas (Vaya)"],
+  [1159109941, "Lake Mandra"],
+  // Anatolia
+  [1159109697, "Lake Terkos (Durusu)"],
+  [1159109805, "Lake İznik"],
+  [1159115637, "Lake Sapanca"],
+  [1159110271, "Lake Uluabat"],
+  [1159110241, "Lake Manyas (Kuş)"],
+  [1159109995, "Lake Marmara (the Gygaean lake)"],
+  // In antiquity the sea (the Gulf of Latmus): water there either way.
+  [1159110343, "Lake Bafa"],
+  [1159110367, "Lake Köyceğiz"],
+  [1159115871, "Lake Salda"],
+  [1159115845, "Lake Acıgöl"],
+  [1159115763, "Lake Işıklı"],
+  [1159115851, "Lake Burdur"],
+  [1159115815, "Lake Akşehir"],
+  [1159115743, "Lake Eber"],
+  [1159115797, "Salt lake of the Konya basin"],
+  [1159115705, "Lake Seyfe"],
+  [1159115929, "Lake Yay"],
+  [1159116017, "Lake Hazar"],
+  [1159115977, "Lake Nazik"],
+  [1159116107, "Lake Erçek"],
+  [1159115581, "Lake Balık"],
+  [1159115467, "Lake Çıldır"],
+  [1159115491, "Lake Aktaş"],
+  [1159115411, "Lake Paravani"],
+  // Syria
+  [1159116159, "Sabkhat al-Jabbul"],
+  [1159116245, "Sabkhat al-Jabbul (south basin)"],
+  // The north coast of the Black Sea and the Sea of Azov
+  [1159115191, "Kuchurhan liman"],
+  [1159115311, "Khadzhibey liman"],
+  [1159115331, "Kuyalnik liman"],
+  [1159112611, "Tiligul liman"],
+  [1159115451, "Lake Sasyk-Sivash"],
+  [1159115245, "Perekop lakes"],
+  [1159115297, "Perekop lakes"],
+  [1159115349, "Perekop lakes"],
+  [1159115371, "Perekop lakes"],
+  [1159114921, "Molochnyi liman"],
+  [1159115221, "Lake Aktash"],
+  [1159115127, "Lake Uzunlar"],
+  [1159115173, "Lake Tobechik"],
+  [1159115257, "Kiziltash liman"],
+  [1159115147, "Vityazevo liman"],
+  [1159115039, "Akhtanizovsky liman"],
+  [1159115111, "Kuban delta liman"],
+  [1159114965, "Kuban delta liman"],
+  [1159114947, "Akhtarsky liman"],
+  [1159114837, "Beysug liman"],
+  [1159114621, "Lake Manych-Gudilo"],
+  // North of the Roman world
+  [1159108593, "Lough Leane"],
+  [1159108757, "Steinhuder Meer"],
+  [1159108743, "Lake Gopło"],
+  [1159108777, "Lake Svitiaz"],
+]);
 
 const [west, south, east, north] = REGION;
 const inputDir = process.argv[2];
@@ -228,14 +363,30 @@ function buildOcean() {
 
 function buildLakes() {
   const polygons = [];
-  for (const feature of read("ne_10m_lakes.geojson").features) {
-    const { featurecla, name } = feature.properties;
-    if (featurecla === "Reservoir" || MODERN_LAKES.has(name)) continue;
+  const add = (feature) => {
     for (const rings of polygonsOf(feature.geometry)) {
       const outer = processRing(rings[0]);
       if (!outer) continue;
       polygons.push([outer, ...rings.slice(1).map(processRing).filter(Boolean)]);
     }
+  };
+  for (const feature of read("ne_10m_lakes.geojson").features) {
+    const { featurecla, name } = feature.properties;
+    if (featurecla === "Reservoir" || MODERN_LAKES.has(name)) continue;
+    add(feature);
+  }
+  // After the main lakes, so those come out exactly as before.
+  const found = new Set();
+  for (const feature of read("ne_10m_lakes_europe.geojson").features) {
+    const id = feature.properties.ne_id;
+    if (!EUROPE_LAKES.has(id)) continue;
+    found.add(id);
+    add(feature);
+  }
+  const missing = [...EUROPE_LAKES].filter(([id]) => !found.has(id));
+  if (missing.length > 0) {
+    const list = missing.map(([id, name]) => `${name} (${id})`).join(", ");
+    throw new Error(`Not in ne_10m_lakes_europe any more: ${list}`);
   }
   return polygons;
 }
