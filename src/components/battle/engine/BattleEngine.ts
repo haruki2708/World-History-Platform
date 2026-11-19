@@ -213,6 +213,13 @@ export class BattleEngine {
   private width = 1;
   private height = 1;
   private startedAt = 0;
+  /**
+   * How long each step of building the scene took, in milliseconds from the
+   * engine's creation, in order (T-055): read by the measuring scripts of
+   * docs/tasks, through the engine on the page.
+   */
+  readonly loadSteps: [step: string, ms: number][] = [];
+  readonly createdAt = performance.now();
   private lastFrame = 0;
   private lastTime = NaN;
   private lastTimeChange = -Infinity;
@@ -626,8 +633,7 @@ export class BattleEngine {
 
     // The model index first: only the models it lists are requested.
     const modelByKey = new Map<string, UnitModel>();
-    const loadModels = async () => {
-      const available = await loadModelIndex(signal);
+    const loadModels = async (available: Set<string>) => {
       await Promise.all(
         [...wanted].map(async ([key, want]) => {
           const file = want.file && available.has(want.file) ? want.file : null;
@@ -642,19 +648,42 @@ export class BattleEngine {
         }),
       );
     };
-    const [heights, farHeights] = await Promise.all([
-      loadHeights(battle.terrain, signal),
-      loadFarHeights(battle.terrain, signal),
-      loadModels(),
+    const [heights, farHeights, available] = await Promise.all([
+      loadHeights(battle.terrain, signal).then((heights) => (this.step("heights"), heights)),
+      loadFarHeights(battle.terrain, signal).then((heights) => (this.step("far heights"), heights)),
+      loadModelIndex(signal),
     ]);
     if (this.disposed) return;
-    this.modelNotes = [...modelByKey]
-      .map(([key, model]) => `${key}: ${model.placeholder ? "placeholder" : "file"}`)
-      .sort();
+    // The models take the longest to arrive. Their downloads start now; the
+    // ground, the buildings and the plants, which do not need them, are
+    // built while they are on their way (T-055: a wooded field takes a
+    // second or more to plant, and the downloads used to wait for it).
+    const modelsLoaded = loadModels(available).then(() => this.step("models"));
+    // Awaited below; until then a failure must not count as unhandled.
+    modelsLoaded.catch(() => {});
 
     const terrain = new Terrain(battle.terrain, heights, farHeights);
     this.terrain = terrain;
     this.scene.add(terrain.group);
+    this.step("terrain");
+
+    this.structures = new Structures(battle, terrain.heightAt);
+    this.scene.add(this.structures.group);
+    this.step("structures");
+
+    this.vegetation = new Vegetation(battle, terrain.heightAt, terrain.lake?.wet);
+    this.scene.add(this.vegetation.group);
+    this.step("vegetation");
+
+    this.grass = new Grass(terrain.grassGround(), battle.terrain.scenery?.wind?.from);
+    this.scene.add(this.grass.mesh);
+    this.step("grass");
+
+    await modelsLoaded;
+    if (this.disposed) return;
+    this.modelNotes = [...modelByKey]
+      .map(([key, model]) => `${key}: ${model.placeholder ? "placeholder" : "file"}`)
+      .sort();
 
     const colors = new Map<string, Color>();
     for (const side of battle.sides) {
@@ -681,18 +710,10 @@ export class BattleEngine {
       this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group, side));
     }
     this.crowd.engage();
+    this.step("units");
 
     this.arrows = new ArrowLayer(battle, colorOfSide, terrain.heightAt);
     this.scene.add(this.arrows.group);
-
-    this.structures = new Structures(battle, terrain.heightAt);
-    this.scene.add(this.structures.group);
-
-    this.vegetation = new Vegetation(battle, terrain.heightAt, terrain.lake?.wet);
-    this.scene.add(this.vegetation.group);
-
-    this.grass = new Grass(terrain.grassGround(), battle.terrain.scenery?.wind?.from);
-    this.scene.add(this.grass.mesh);
 
     this.dust = new Dust(
       battle,
@@ -705,6 +726,7 @@ export class BattleEngine {
       terrain.lake ? (x, y) => terrain.lake!.wet(x, y) : undefined,
     );
     this.scene.add(this.dust.mesh);
+    this.step("dust");
 
     // The mist lies thickest on the lake, or on the low ground of a battle without one.
     const lakes = battle.terrain.lakes ?? [];
@@ -725,8 +747,10 @@ export class BattleEngine {
       this.controls.update();
       this.intro = null;
     }
+    this.step("mist and view");
     await this.compileShaders();
     if (this.disposed) return;
+    this.step("shaders");
     this.startedAt = performance.now();
     this.startIntro(this.startedAt);
     this.lastFrame = this.startedAt;
@@ -839,6 +863,10 @@ export class BattleEngine {
    * that it is loading; the detailed material would otherwise compile, and
    * stall a frame, on the first zoom onto a block.
    */
+  private step(name: string): void {
+    this.loadSteps.push([name, Math.round(performance.now() - this.createdAt)]);
+  }
+
   private async compileShaders(): Promise<void> {
     const meshes = this.crowd.warmUpMeshes();
     if (meshes.length === 0) return;
@@ -859,6 +887,10 @@ export class BattleEngine {
     this.frameHandle = requestAnimationFrame(this.frame);
     const terrain = this.terrain;
     if (!terrain) return;
+    if (this.loadSteps.length > 0 && this.loadSteps[this.loadSteps.length - 1][0] === "shaders") {
+      // Measured once the first frame has been drawn, below.
+      queueMicrotask(() => this.step("first frame"));
+    }
     const elapsed = now - this.lastFrame;
     this.lastFrame = now;
     const seconds = (now - this.startedAt) / 1000;
