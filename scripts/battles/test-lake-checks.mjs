@@ -10,16 +10,13 @@
 // the lake with its three islands (Polvese, Maggiore, Minore).
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const battlePath = join(root, "src", "data", "battles", "battle-of-lake-trasimene.json");
-const terrain = existsSync(battlePath)
-  ? JSON.parse(readFileSync(battlePath, "utf8")).terrain
-  : JSON.parse(readFileSync(join(root, "docs", "data", "battles", "trasimene-terrain.json"), "utf8"));
+const terrain = JSON.parse(readFileSync(join(root, "src", "data", "battles", "battle-of-lake-trasimene.json"), "utf8")).terrain;
 if (!terrain.lakes?.length) throw new Error("the terrain has no lake to test against");
 // Isola Maggiore, the second island: 22.8 ha, 2.7–3.2 km east of the origin, 1.2 km out from the Tuoro shore.
 if (terrain.lakes[0].islands?.length !== 3) throw new Error("the lake should have three islands: Polvese, Maggiore, Minore");

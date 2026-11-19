@@ -59,6 +59,7 @@ export const unitTypes = unitTypesJson as UnitType[];
  */
 const battleLoaders = new Map<string, () => Promise<{ default: unknown }>>([
   ["battle-of-cannae", () => import("./battles/battle-of-cannae.json")],
+  ["battle-of-lake-trasimene", () => import("./battles/battle-of-lake-trasimene.json")],
 ]);
 
 /** True when the event has a 3D battle scene. */
