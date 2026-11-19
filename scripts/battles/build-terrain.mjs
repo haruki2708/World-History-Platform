@@ -80,6 +80,19 @@ const BATTLES = {
     // grid need not fall on its lines.
     far: { minX: -54000, maxX: 54000, minY: -54000, maxY: 54000, spacing: 400 },
   },
+  "battle-of-lake-trasimene": {
+    // Must equal Battle.origin in src/data/battles/battle-of-lake-trasimene.json.
+    origin: { lng: 12.055, lat: 43.2 },
+    minX: -4500,
+    maxX: 5100,
+    minY: -3000,
+    maxY: 5100,
+    spacing: 30,
+    source: "copernicus",
+    far: { minX: -54000, maxX: 54000, minY: -54000, maxY: 54000, spacing: 400 },
+    // Ground the lake tracing (--lake) samples: all of the lake, with a margin.
+    lake: { minX: -7500, maxX: 13500, minY: -16500, maxY: 1500, spacing: 15 },
+  },
 };
 
 // --- WGS84 local projection -------------------------------------------------
@@ -102,7 +115,8 @@ function projection(origin) {
 
 // --- Minimal GeoTIFF reader ------------------------------------------------
 // Enough for the two source products: tiled or stripped, deflate or none;
-// Int16 (SRTM) or Float32 with the floating-point predictor (Copernicus).
+// Int16 (SRTM) or Float32 with the floating-point predictor (Copernicus);
+// and the Copernicus water body mask (UInt8, horizontal predictor).
 
 function readGeoTiff(path) {
   const b = readFileSync(path);
@@ -133,9 +147,12 @@ function readGeoTiff(path) {
   const predictor = one(317, 1);
   const int16 = bits === 16 && format === 2;
   const float32 = bits === 32 && format === 3;
-  if (!int16 && !float32) throw new Error(`${path}: expected Int16 or Float32 samples`);
+  const uint8 = bits === 8 && format === 1;
+  if (!int16 && !float32 && !uint8) throw new Error(`${path}: expected Int16, Float32 or UInt8 samples`);
   if (compression !== 1 && compression !== 8 && compression !== 32946) throw new Error(`${path}: compression ${compression} not supported`);
-  if (!(predictor === 1 || (predictor === 3 && float32))) throw new Error(`${path}: predictor ${predictor} not supported`);
+  if (!(predictor === 1 || (predictor === 3 && float32) || (predictor === 2 && uint8))) {
+    throw new Error(`${path}: predictor ${predictor} not supported`);
+  }
 
   const data = new Float32Array(width * height);
   const tiled = tags.has(322);
@@ -163,6 +180,12 @@ function readGeoTiff(path) {
           for (let byte = 0; byte < 4; byte++) row[c * 4 + 3 - byte] = undiff[byte * blockW + c];
         }
         value = (c) => row.readFloatLE(c * 4);
+      } else if (uint8) {
+        // Horizontal predictor: each byte is the difference from the one before it in the row.
+        const src = raw.subarray(r * blockW, (r + 1) * blockW);
+        let acc = 0;
+        for (let c = 0; c < blockW; c++) row[c] = acc = predictor === 2 ? (acc + src[c]) & 0xff : src[c];
+        value = (c) => row[c];
       } else if (float32) {
         value = (c) => raw.readFloatLE((r * blockW + c) * 4);
       } else {
@@ -190,12 +213,18 @@ function readGeoTiff(path) {
   };
 }
 
-function sampler(origin, source) {
+/**
+ * Elevation in metres at field point (x, y), interpolated bilinearly. With
+ * `suffix` it reads the tiles' companion files instead (N43E012_WBM.tif for
+ * "_WBM"), and with `nearest` it returns the value of the nearest pixel, as a
+ * mask needs.
+ */
+function sampler(origin, source, { suffix = "", nearest = false } = {}) {
   const cache = new Map();
   const tileFor = (lng, lat) => {
     const la = Math.floor(lat);
     const lo = Math.floor(lng);
-    const name = `${la >= 0 ? "N" : "S"}${String(Math.abs(la)).padStart(2, "0")}${lo >= 0 ? "E" : "W"}${String(Math.abs(lo)).padStart(3, "0")}.tif`;
+    const name = `${la >= 0 ? "N" : "S"}${String(Math.abs(la)).padStart(2, "0")}${lo >= 0 ? "E" : "W"}${String(Math.abs(lo)).padStart(3, "0")}${suffix}.tif`;
     if (!cache.has(name)) {
       const path = join(assetsDir, SOURCES[source], name);
       if (!existsSync(path)) throw new Error(`missing source tile ${path}; see the header of this script`);
@@ -209,6 +238,11 @@ function sampler(origin, source) {
     const { lng, lat } = proj.toLngLat(x, y);
     const t = tileFor(lng, lat);
     const { px, py } = t.toPixel(lng, lat);
+    if (nearest) {
+      const c = Math.min(Math.max(Math.round(px), 0), t.width - 1);
+      const r = Math.min(Math.max(Math.round(py), 0), t.height - 1);
+      return t.data[r * t.width + c];
+    }
     const x0 = Math.min(Math.max(Math.floor(px), 0), t.width - 2);
     const y0 = Math.min(Math.max(Math.floor(py), 0), t.height - 2);
     const fx = px - x0;
@@ -402,6 +436,231 @@ function simplify(points, tolerance) {
   return points.filter((_, k) => keep[k]);
 }
 
+/**
+ * Douglas–Peucker on a closed outline: split at the point farthest from the
+ * first, simplify both halves. With `coarse` ({ tolerance, where(p) }), the
+ * stretches where `where` holds are simplified to the looser tolerance; the
+ * points where the two meet are kept.
+ */
+function simplifyClosed(points, tolerance, coarse = null) {
+  if (coarse) {
+    const n = points.length;
+    const loose = points.map((p) => coarse.where(p));
+    const start = loose.findIndex((flag, k) => flag !== loose[(k + n - 1) % n]);
+    if (start === -1) return simplifyClosed(points, loose[0] ? coarse.tolerance : tolerance);
+    const ring = [...points.slice(start), ...points.slice(0, start)];
+    const flags = [...loose.slice(start), ...loose.slice(0, start)];
+    const out = [];
+    for (let k = 0; k < n; ) {
+      let end = k;
+      while (end + 1 < n && flags[end + 1] === flags[k]) end++;
+      const run = [...ring.slice(k, end + 1), ring[(end + 1) % n]];
+      out.push(...simplify(run, flags[k] ? coarse.tolerance : tolerance).slice(0, -1));
+      k = end + 1;
+    }
+    return out;
+  }
+  let far = 0;
+  let farD = -1;
+  points.forEach((p, k) => {
+    const d = Math.hypot(p.x - points[0].x, p.y - points[0].y);
+    if (d > farD) {
+      farD = d;
+      far = k;
+    }
+  });
+  const a = simplify(points.slice(0, far + 1), tolerance);
+  const b = simplify([...points.slice(far), points[0]], tolerance);
+  return [...a, ...b.slice(1, -1)];
+}
+
+/** Twice the signed area of a closed outline: positive when it runs counter-clockwise. */
+function signedArea2(points) {
+  let sum = 0;
+  for (let k = 0; k < points.length; k++) {
+    const a = points[k];
+    const b = points[(k + 1) % points.length];
+    sum += a.x * b.y - b.x * a.y;
+  }
+  return sum;
+}
+
+function insideOutline(p, outline) {
+  let inside = false;
+  for (let k = 0, j = outline.length - 1; k < outline.length; j = k++) {
+    const a = outline[k];
+    const b = outline[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+// --- Lake shore from the water body mask -------------------------------------
+
+/** Values of the Copernicus water body mask (WBM): 0 land, 1 ocean, 2 lake, 3 river. */
+const WBM_LAKE = 2;
+
+/**
+ * Traces a lake (BattleLake) from the water body mask that comes with the
+ * Copernicus tiles: <tile>_WBM.tif, from the AUXFILES folder of each tile in
+ * the same bucket and under the same licence. Samples the mask over
+ * config.lake (which must hold the whole lake) and keeps its largest patch of
+ * lake. The shore runs through the middle of the sides of the shore cells and
+ * is simplified to within `tolerance` metres; the islands are the holes in it.
+ *
+ * Copernicus is a surface model: on the lake it gives the water surface, a
+ * flat level. The level is the median of the elevation over the lake cells
+ * inside the main grid, one cell or more from the shore.
+ */
+function traceLake(config, tolerance = 15) {
+  const { minX, maxX, minY, maxY, spacing } = config.lake;
+  const W = Math.round((maxX - minX) / spacing);
+  const H = Math.round((maxY - minY) / spacing);
+  const mask = sampler(config.origin, config.source, { suffix: "_WBM", nearest: true });
+  const elevation = sampler(config.origin, config.source);
+  const water = new Uint8Array(W * H);
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) water[r * W + c] = mask(minX + (c + 0.5) * spacing, maxY - (r + 0.5) * spacing) === WBM_LAKE ? 1 : 0;
+  }
+
+  // The largest 4-connected patch of lake.
+  const label = new Int32Array(W * H).fill(-1);
+  const stack = [];
+  let best = -1;
+  let bestSize = 0;
+  for (let i = 0, n = 0; i < W * H; i++) {
+    if (!water[i] || label[i] !== -1) continue;
+    let size = 0;
+    label[i] = n;
+    stack.push(i);
+    while (stack.length > 0) {
+      const k = stack.pop();
+      size++;
+      const r = Math.floor(k / W);
+      const c = k % W;
+      for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const rr = r + dr;
+        const cc = c + dc;
+        if (rr < 0 || cc < 0 || rr >= H || cc >= W) continue;
+        const j = rr * W + cc;
+        if (water[j] && label[j] === -1) {
+          label[j] = n;
+          stack.push(j);
+        }
+      }
+    }
+    if (size > bestSize) {
+      best = n;
+      bestSize = size;
+    }
+    n++;
+  }
+  if (best === -1) throw new Error("no lake in the water body mask over config.lake");
+  const inLake = (r, c) => r >= 0 && c >= 0 && r < H && c < W && label[r * W + c] === best;
+  for (let r = 0; r < H; r++) {
+    if (inLake(r, 0) || inLake(r, W - 1)) throw new Error("the lake reaches the edge of config.lake; widen it");
+  }
+  for (let c = 0; c < W; c++) {
+    if (inLake(0, c) || inLake(H - 1, c)) throw new Error("the lake reaches the edge of config.lake; widen it");
+  }
+
+  // Directed edges along every side of a lake cell that faces something else,
+  // with the lake on the left. Corner (i, j) is at x = minX + i·spacing,
+  // y = maxY − j·spacing.
+  const edges = [];
+  const starting = new Map();
+  const add = (i0, j0, i1, j1) => {
+    const edge = { i0, j0, i1, j1, used: false };
+    edges.push(edge);
+    const k = j0 * (W + 1) + i0;
+    if (!starting.has(k)) starting.set(k, []);
+    starting.get(k).push(edge);
+  };
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      if (!inLake(r, c)) continue;
+      if (!inLake(r + 1, c)) add(c, r + 1, c + 1, r + 1); // south side, walking east
+      if (!inLake(r, c + 1)) add(c + 1, r + 1, c + 1, r); // east side, walking north
+      if (!inLake(r - 1, c)) add(c + 1, r, c, r); // north side, walking west
+      if (!inLake(r, c - 1)) add(c, r, c, r + 1); // west side, walking south
+    }
+  }
+  // Chain them into loops. Where two cells of lake touch only at a corner, turn
+  // left: the patch is 4-connected, so the shore does not pass between them.
+  const loops = [];
+  for (const first of edges) {
+    if (first.used) continue;
+    const loop = [];
+    for (let edge = first; edge && !edge.used; ) {
+      edge.used = true;
+      loop.push({ x: minX + ((edge.i0 + edge.i1) / 2) * spacing, y: maxY - ((edge.j0 + edge.j1) / 2) * spacing });
+      const dx = edge.i1 - edge.i0;
+      const dy = edge.j0 - edge.j1;
+      const turn = (e) => dx * (e.j0 - e.j1) - dy * (e.i1 - e.i0);
+      const next = (starting.get(edge.j1 * (W + 1) + edge.i1) ?? []).filter((e) => !e.used).sort((a, b) => turn(b) - turn(a));
+      edge = next[0];
+    }
+    loops.push(loop);
+  }
+  const round = (points) => points.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+  loops.sort((a, b) => signedArea2(b) - signedArea2(a));
+  // Shore more than COARSE_MARGIN metres outside the main grid is seen only
+  // from afar: simplified four times as loosely.
+  const COARSE_MARGIN = 500;
+  const coarse = {
+    tolerance: 4 * tolerance,
+    where: (p) =>
+      p.x < config.minX - COARSE_MARGIN || p.x > config.maxX + COARSE_MARGIN || p.y < config.minY - COARSE_MARGIN || p.y > config.maxY + COARSE_MARGIN,
+  };
+  const outline = round(simplifyClosed(loops[0], tolerance, coarse));
+
+  // Islands of a hectare or more: the holes, with their highest ground.
+  const islands = loops
+    .filter((loop) => signedArea2(loop) < 0 && -signedArea2(loop) / 2 >= 10000)
+    .map((loop) => {
+      const shape = round(simplifyClosed(loop, tolerance));
+      let top = -Infinity;
+      const xs = loop.map((p) => p.x);
+      const ys = loop.map((p) => p.y);
+      for (let y = Math.min(...ys); y <= Math.max(...ys); y += spacing / 2) {
+        for (let x = Math.min(...xs); x <= Math.max(...xs); x += spacing / 2) {
+          if (insideOutline({ x, y }, loop)) top = Math.max(top, elevation(x, y));
+        }
+      }
+      return { outline: shape, hectares: Math.round(-signedArea2(loop) / 2 / 1000) / 10, top: Math.round(top * 10) / 10 };
+    })
+    .sort((a, b) => b.hectares - a.hectares);
+
+  // The water level, over the part of the lake inside the main grid.
+  const levels = [];
+  for (let r = 1; r < H - 1; r++) {
+    for (let c = 1; c < W - 1; c++) {
+      const x = minX + (c + 0.5) * spacing;
+      const y = maxY - (r + 0.5) * spacing;
+      if (x < config.minX || x > config.maxX || y < config.minY || y > config.maxY) continue;
+      let interior = true;
+      for (let dr = -1; dr <= 1 && interior; dr++) for (let dc = -1; dc <= 1 && interior; dc++) interior = inLake(r + dr, c + dc);
+      if (interior) levels.push(elevation(x, y));
+    }
+  }
+  levels.sort((a, b) => a - b);
+  const pct = (q) => levels[Math.min(levels.length - 1, Math.floor(q * levels.length))];
+  const level = Math.round(pct(0.5) * 100) / 100;
+  return {
+    level,
+    outline,
+    islands,
+    stats: {
+      cells: bestSize,
+      squareKm: Math.round((bestSize * spacing * spacing) / 1e4) / 100,
+      levelSamples: levels.length,
+      levelP05: Math.round(pct(0.05) * 100) / 100,
+      levelP95: Math.round(pct(0.95) * 100) / 100,
+      shorePoints: loops[0].length,
+    },
+  };
+}
+
 // --- Preview image (grayscale shaded relief with elevation tint) -----------
 
 function crc32(buf) {
@@ -437,7 +696,12 @@ function png(width, height, rgb) {
   ]);
 }
 
-function preview(grid, config, overlay = [], range) {
+/**
+ * Shaded relief: `contour` metres between contour lines; `lakes` (BattleLake
+ * outlines and levels) are tinted blue where the ground is no higher than the
+ * water.
+ */
+function preview(grid, config, overlay = [], range, { contour = 10, lakes = [] } = {}) {
   const { width, height, metres } = grid;
   let lo = Infinity;
   let hi = -Infinity;
@@ -459,13 +723,19 @@ function preview(grid, config, overlay = [], range) {
       rgb[i] = Math.round(255 * shade * (0.35 + 0.65 * t));
       rgb[i + 1] = Math.round(255 * shade * (0.55 + 0.35 * t));
       rgb[i + 2] = Math.round(255 * shade * (0.45 + 0.2 * t));
-      // 10 m contour lines.
-      if (Math.floor(at(r, c) / 10) !== Math.floor(at(r, c + 1) / 10) || Math.floor(at(r, c) / 10) !== Math.floor(at(r + 1, c) / 10)) {
+      const x = config.minX + c * config.spacing;
+      const y = config.maxY - r * config.spacing;
+      if (lakes.some((lake) => at(r, c) <= lake.level + 0.05 && insideOutline({ x, y }, lake.outline))) {
+        rgb[i] = 70;
+        rgb[i + 1] = 120;
+        rgb[i + 2] = 200;
+      }
+      // Contour lines.
+      const band = (v) => Math.floor(v / contour);
+      if (band(at(r, c)) !== band(at(r, c + 1)) || band(at(r, c)) !== band(at(r + 1, c))) {
         rgb[i] = rgb[i + 1] = rgb[i + 2] = 60;
       }
       // 1 km grid, thicker through the origin.
-      const x = config.minX + c * config.spacing;
-      const y = config.maxY - r * config.spacing;
       const onLine = (v) => Math.abs(v - Math.round(v / 1000) * 1000) < config.spacing / 2;
       if (onLine(x) || onLine(y)) {
         const origin = Math.abs(x) < config.spacing / 2 || Math.abs(y) < config.spacing / 2;
@@ -562,15 +832,39 @@ if (!exploring && config.far) {
 const traced = option("--trace") ? trace(grid, config, parsePoints(option("--trace"))) : null;
 if (traced) console.log(JSON.stringify(traced.map((p) => ({ x: p.x, y: p.y }))));
 
+// --lake out.json: the lake shore and water level from the water body mask.
+let lake = null;
+if (option("--lake")) {
+  if (!config.lake) throw new Error(`no lake settings for ${id}`);
+  lake = traceLake(config);
+  writeFileSync(option("--lake"), `${JSON.stringify({ level: lake.level, outline: lake.outline, islands: lake.islands, stats: lake.stats }, null, 1)}\n`);
+  console.log(
+    `lake: ${lake.stats.squareKm} km², level ${lake.level} m (5–95%: ${lake.stats.levelP05}–${lake.stats.levelP95} m over ${lake.stats.levelSamples} cells), shore ${lake.outline.length} points (from ${lake.stats.shorePoints}), ${lake.islands.length} islands: ${lake.islands.map((i) => `${i.hectares} ha up to ${i.top} m`).join(", ")}`,
+  );
+  console.log(`wrote ${option("--lake")}`);
+}
+
 const previewPath = option("--preview");
 if (previewPath) {
-  // Overlay the rivers, landmarks and starting positions from the battle file.
+  // Overlay the rivers, landmarks, lakes and starting positions from the
+  // battle file; before there is one, from a draft of its terrain (--terrain).
   const battlePath = join(root, "src", "data", "battles", `${id}.json`);
   const overlay = [];
+  const lakes = lake ? [lake] : [];
+  const draft = option("--terrain");
+  if (draft && !existsSync(battlePath)) {
+    const terrain = JSON.parse(readFileSync(draft, "utf8"));
+    for (const river of terrain.rivers ?? []) overlay.push({ points: river.points, color: [40, 90, 220], line: true });
+    overlay.push({ points: (terrain.landmarks ?? []).map((m) => m.point), color: [220, 40, 40] });
+    if (!lake) lakes.push(...(terrain.lakes ?? []));
+    for (const l of terrain.lakes ?? []) overlay.push({ points: [...l.outline, l.outline[0]], color: [20, 50, 140], line: true });
+  }
   if (existsSync(battlePath) && option("--origin") === undefined) {
     const battle = JSON.parse(readFileSync(battlePath, "utf8"));
     for (const river of battle.terrain?.rivers ?? []) overlay.push({ points: river.points, color: [40, 90, 220], line: true });
     overlay.push({ points: (battle.terrain?.landmarks ?? []).map((m) => m.point), color: [220, 40, 40] });
+    if (!lake) lakes.push(...(battle.terrain?.lakes ?? []));
+    for (const l of battle.terrain?.lakes ?? []) overlay.push({ points: [...l.outline, l.outline[0]], color: [20, 50, 140], line: true });
     // --phase n draws the unit blocks at the end of phase n (0: the start) and
     // that phase's arrows: the outline of the front and depth, a tick on the front.
     const phase = Number(option("--phase") ?? 0);
@@ -596,6 +890,9 @@ if (previewPath) {
     }
   }
   if (traced) overlay.push({ points: traced, color: [0, 200, 255], line: true });
-  writeFileSync(previewPath, preview(grid, config, overlay, option("--range")?.split(",").map(Number)).image);
+  if (lake) overlay.push({ points: [...lake.outline, lake.outline[0]], color: [20, 50, 140], line: true });
+  if (option("--points")) overlay.push({ points: parsePoints(option("--points")), color: [255, 0, 255] });
+  const look = { contour: Number(option("--contour") ?? 10), lakes };
+  writeFileSync(previewPath, preview(grid, config, overlay, option("--range")?.split(",").map(Number), look).image);
   console.log(`wrote ${previewPath}`);
 }
