@@ -735,8 +735,9 @@ function preview(grid, config, overlay = [], range, { contour = 10, lakes = [] }
       if (band(at(r, c)) !== band(at(r, c + 1)) || band(at(r, c)) !== band(at(r + 1, c))) {
         rgb[i] = rgb[i + 1] = rgb[i + 2] = 60;
       }
-      // 1 km grid, thicker through the origin.
-      const onLine = (v) => Math.abs(v - Math.round(v / 1000) * 1000) < config.spacing / 2;
+      // 1 km grid (10 km when a cell is 100 m or more), thicker through the origin.
+      const step = config.spacing >= 100 ? 10000 : 1000;
+      const onLine = (v) => Math.abs(v - Math.round(v / step) * step) < config.spacing / 2;
       if (onLine(x) || onLine(y)) {
         const origin = Math.abs(x) < config.spacing / 2 || Math.abs(y) < config.spacing / 2;
         rgb[i] = origin ? 255 : 200;
