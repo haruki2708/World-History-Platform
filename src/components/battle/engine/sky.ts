@@ -123,6 +123,12 @@ export class Sky {
    */
   readonly mistColor: Color;
   /**
+   * The fog's colour on screen (BattleEngine sets it every frame): below
+   * the horizon, where no ground covers the dome (past the far ground, up
+   * to the far plane), the dome shows land lost in the haze.
+   */
+  readonly belowColor: Color;
+  /**
    * The colours of the sky dome overhead, at the horizon and below it: what
    * shiny surfaces reflect, in place of an environment map. Updated in place.
    */
@@ -185,6 +191,7 @@ export class Sky {
         uMoon: { value: 0 },
         uStars: { value: 0 },
         uMistColor: { value: new Color() },
+        uBelow: { value: new Color() },
         // Shared with every material (mist.ts): read in place each frame.
         mistShape: { value: MIST_SHAPE },
       },
@@ -198,7 +205,6 @@ export class Sky {
       fragmentShader: /* glsl */ `
         uniform vec3 uZenith;
         uniform vec3 uHorizon;
-        uniform vec3 uGround;
         uniform vec3 uSunColor;
         uniform vec3 uSunDir;
         uniform vec3 uMoonDir;
@@ -206,6 +212,7 @@ export class Sky {
         uniform float uMoon;
         uniform float uStars;
         uniform vec3 uMistColor;
+        uniform vec3 uBelow;
         uniform vec4 mistShape;
         varying vec3 vDir;
         float starHash(vec3 p) {
@@ -216,7 +223,6 @@ export class Sky {
         void main() {
           vec3 d = normalize(vDir);
           vec3 color = mix(uHorizon, uZenith, pow(clamp(d.y, 0.0, 1.0), 0.5));
-          color = mix(color, uGround, smoothstep(0.0, -0.06, d.y));
           float sun = max(dot(d, uSunDir), 0.0);
           color += uSunColor * uSun * (pow(sun, 6.0) * 0.18 + pow(sun, 48.0) * 0.4);
           color += uSunColor * uSun * smoothstep(0.9997, 0.99985, sun) * 12.0;
@@ -231,6 +237,7 @@ export class Sky {
           gl_FragColor = vec4(color, 1.0);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, uBelow, smoothstep(0.0, -0.03, d.y));
           if (mistShape.x > 0.0) {
             // The mist from the camera up to the sky: the density falls off
             // with height (mist.ts), so the sum to infinity is in closed form.
@@ -245,6 +252,7 @@ export class Sky {
     this.envHorizon = this.material.uniforms.uHorizon.value;
     this.envGround = this.material.uniforms.uGround.value;
     this.mistColor = this.material.uniforms.uMistColor.value;
+    this.belowColor = this.material.uniforms.uBelow.value;
     this.dome = new Mesh(new SphereGeometry(100, 32, 16), this.material);
     this.dome.frustumCulled = false;
     this.dome.renderOrder = -10;

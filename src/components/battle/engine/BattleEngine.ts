@@ -886,6 +886,7 @@ export class BattleEngine {
       this.mist.update(time, this.clock?.seconds(time) ?? 0, this.sky, this.fog.color);
       this.sky.mistColor.copy(this.mist.screen);
     }
+    this.sky.belowColor.copy(this.fog.color).convertLinearToSRGB();
 
     this.shared.uTime.value = seconds;
     terrain.update(seconds, this.sky);

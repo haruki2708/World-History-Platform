@@ -42,6 +42,21 @@ export type HeightAt = (x: number, y: number) => number;
 
 /** How far the flat apron around the grid reaches, metres, when the battle has no far ground. */
 const APRON = 40000;
+/**
+ * How far the skirt of the far ground reaches beyond its grid, metres: with
+ * the far grid's 54 km, to just within the camera's far plane (120 km).
+ */
+const FAR_SKIRT = 60000;
+/**
+ * The skirt has a ring of vertices this far beyond the far grid, metres,
+ * then its outer edge (FAR_SKIRT). Each vertex of a ring is the mean of the
+ * far grid's edge over SKIRT_SPAN cells either way for the first ring, twice
+ * as many for the second.
+ */
+const SKIRT_RINGS = [4000, FAR_SKIRT];
+const SKIRT_SPAN = 6;
+/** The last so many cells of the near grid ease into the far ground (Terrain.easeEdges). */
+const EDGE_EASE = 12;
 /** The grid that says where grass grows has a cell every so many metres. */
 const MASK_CELL = 8;
 /** The wading grid has a cell every so many metres. */
@@ -78,9 +93,10 @@ const PALETTE = {
   forest: new Color("#566643"),
   sea: new Color("#1d3a4e"),
   strand: new Color("#d3c59c"),
-  // A shallow lake on a muddy bed, greener and murkier than the sea.
-  lakeDeep: new Color("#24404a"),
-  lakeShallow: new Color("#47584a"),
+  // A shallow lake on a muddy bed (Trasimene is 6 m at its deepest): murky
+  // grey-green, not the blue of the sea (the user's choice, T-053).
+  lakeDeep: new Color("#3c4f3d"),
+  lakeShallow: new Color("#5b6447"),
   lakeMud: new Color("#5d5243"),
 };
 
@@ -206,6 +222,8 @@ export class Terrain {
     this.sand = photo("/battles/textures/sand.jpg");
     this.cellX = (data.maxX - data.minX) / Math.max(data.width - 1, 1);
     this.cellY = (data.maxY - data.minY) / Math.max(data.height - 1, 1);
+    this.lake = LakeField.of(data);
+    this.easeEdges();
     let min = Infinity;
     let max = -Infinity;
     for (const h of heights) {
@@ -218,7 +236,6 @@ export class Terrain {
     for (let i = 0; i < heights.length; i += 7) sample.push(heights[i]);
     sample.sort((a, b) => a - b);
     this.lowGround = sample.length > 0 ? sample[Math.floor(sample.length * 0.05)] : 0;
-    this.lake = LakeField.of(data);
 
     this.group.add(this.buildGround());
     for (const river of data.rivers) {
@@ -227,6 +244,35 @@ export class Terrain {
       this.rivers.push(drawn);
       this.group.add(drawn.mesh);
       this.stampWading(river.points, river.width);
+    }
+  }
+
+  /**
+   * Eases the last EDGE_EASE cells of the grid into the far ground, so that
+   * the two meet without a step: the far grid is the mean of the ground
+   * round each of its points, 400 m apart, and on hills it lies tens of
+   * metres off the grid's own heights at its edge (T-053). The coast and the
+   * shore of a lake stay where the grid has them. Changes the heights
+   * themselves, so heightAt still matches the mesh; nothing of the battle
+   * stands that far out.
+   */
+  private easeEdges(): void {
+    if (!this.far || !this.data.far) return;
+    const { width, height, minX, maxY } = this.data;
+    const heights = this.heights;
+    for (let r = 0; r < height; r++) {
+      for (let c = 0; c < width; c++) {
+        const inward = Math.min(c, r, width - 1 - c, height - 1 - r);
+        if (inward >= EDGE_EASE) continue;
+        const k = r * width + c;
+        const x = minX + c * this.cellX;
+        const y = maxY - r * this.cellY;
+        const near = heights[k];
+        const far = this.farHeightAt(x, y);
+        const dry = smooth(1, 15, Math.min(near, far)) * (this.lake ? smooth(40, 200, -this.lake.distanceAt(x, y)) : 1);
+        if (dry <= 0) continue;
+        heights[k] = near + (far - near) * smooth(0, 1, 1 - inward / EDGE_EASE) * dry;
+      }
     }
   }
 
@@ -435,8 +481,15 @@ export class Terrain {
         };
         color.copy(PALETTE.scrub);
         if (hasRelief) mix(PALETTE.scrub, smooth(0.45, 0.95, (h - this.minHeight) / relief) * 0.6);
-        mix(PALETTE.rock, smooth(0.18, 0.4, slope));
-        mix(PALETTE.cliff, smooth(0.45, 0.8, slope));
+        // Hills well above the low ground of the battle are wooded, as the far
+        // ground draws them (buildFar), so that the two meet without a seam;
+        // there the steep sides show less bare rock than this fine grid's
+        // slopes alone would give, as the far grid's gentler slopes do.
+        const hill = smooth(60, 160, h - this.lowGround);
+        mix(PALETTE.scrub, hill * 0.6);
+        mix(PALETTE.forest, smooth(170, 480, h - this.lowGround) * 0.8);
+        mix(PALETTE.rock, smooth(0.18, 0.4, slope) * (1 - 0.6 * hill));
+        mix(PALETTE.cliff, smooth(0.45, 0.8, slope) * (1 - 0.6 * hill));
         let nearest = Infinity;
         for (const river of rivers) {
           for (let p = 1; p < river.points.length; p++) {
@@ -757,18 +810,22 @@ export class Terrain {
               // The edge wanders a few metres either way of the traced shore.
               float d = lakeDistance(vec2(g.x, -g.y)) + (mottle - 0.5) * 7.0 + (patches - 0.5) * 6.0;
               if (d > -20.0) {
-                float damp = smoothstep(-20.0, -2.5, d);
+                // The strip of damp ground and mud is a few metres wide: from
+                // afar, where a pixel covers more than that, it fades, or it
+                // would ring the lake and its islands with a brown line.
+                float footprint = max(length(fwidth(g)), 0.01);
+                float strip = 1.0 - 0.8 * smoothstep(3.0, 14.0, footprint);
+                float damp = smoothstep(-20.0, -2.5, d) * strip;
                 ground = mix(ground, mix(ground, uBank, 0.5) * 0.8, damp);
                 vec3 sandPhoto = mix(texture2D(uSand, g / 5.0).rgb, texture2D(uSand, g / 23.0 + 0.4).rgb, smoothstep(40.0, 200.0, distance));
                 vec3 mud = mix(uLakeMud, sandPhoto * 0.55, 0.35) * (0.85 + 0.3 * mottle);
-                float muddy = smoothstep(-6.0, -0.5, d);
+                float muddy = smoothstep(-6.0, -0.5, d) * strip;
                 ground = mix(ground, mud, muddy);
                 groundReliefShown *= 1.0 - muddy;
                 float wet = smoothstep(-0.5, 1.5, d);
                 if (wet > 0.0) {
-                  float deep = smoothstep(1.0, 70.0, d);
-                  vec3 water = mix(mix(mud, uLakeShallow, 0.6), uLakeDeep, deep);
-                  float footprint = max(length(fwidth(g)), 0.01);
+                  float deep = smoothstep(1.0, 120.0, d);
+                  vec3 water = mix(mix(mud, uLakeShallow, 0.4 + 0.6 * (1.0 - strip)), uLakeDeep, deep);
                   // Calmer than the sea: ripples running down the wind.
                   vec2 slope = waterSlope(g * 0.8, uWaterTime, uLakeHeading, 1.1, footprint, 0.8);
                   vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
@@ -823,6 +880,11 @@ export class Terrain {
    * The country around, from the far grid, with a hole where the ground of
    * the battle lies. It shares the material of that ground, so the two meet
    * without a seam in colour.
+   *
+   * A skirt runs on from its edges, FAR_SKIRT metres out and sinking with
+   * the curve of the earth, so that from high up the land goes on into the
+   * haze up to the far plane of the camera instead of ending in a line of
+   * hills against the sky dome (T-053).
    */
   private buildFar(material: MeshLambertMaterial, hole: { colMin: number; colMax: number; rowMin: number; rowMax: number }): Mesh {
     const far = this.data.far!;
@@ -830,15 +892,22 @@ export class Terrain {
     const { width, height } = far;
     const cellX = (far.maxX - far.minX) / (width - 1);
     const cellY = (far.maxY - far.minY) / (height - 1);
-    const positions = new Float32Array(width * height * 3);
-    const colors = new Float32Array(width * height * 3);
-    const overlay = new Float32Array(width * height);
-    const lie = new Float32Array(width * height * 2);
-    const sea = new Float32Array(width * height);
+    // The grid with the rings of the skirt round it: vertex (c, r) of the
+    // grid is (c + R, r + R) here.
+    const R = SKIRT_RINGS.length;
+    const cols = width + 2 * R;
+    const rows = height + 2 * R;
+    const positions = new Float32Array(cols * rows * 3);
+    const colors = new Float32Array(cols * rows * 3);
+    const overlay = new Float32Array(cols * rows);
+    const lie = new Float32Array(cols * rows * 2);
+    const sea = new Float32Array(cols * rows);
     const color = new Color();
     const at = (c: number, r: number) =>
       Math.max(heights[Math.min(Math.max(r, 0), height - 1) * width + Math.min(Math.max(c, 0), width - 1)], 0);
 
+    // The grid's own vertices first.
+    const gridH = new Float32Array(width * height);
     for (let r = 0; r < height; r++) {
       for (let c = 0; c < width; c++) {
         const x = far.minX + c * cellX;
@@ -846,14 +915,18 @@ export class Terrain {
         // The far grid is the mean of the ground round each point: on a lake
         // that is land and water together. The water lies level.
         const h = this.lake?.wet(x, y) ? this.lake.levelAt(x, y) : at(c, r);
-        const k = r * width + c;
+        const k = (r + R) * cols + c + R;
+        gridH[r * width + c] = h;
         positions[k * 3] = x;
         positions[k * 3 + 1] = h - drop(x, y);
         positions[k * 3 + 2] = -y;
-        sea[k] = heights[k] <= SEA_LEVEL ? 1 : 0;
+        sea[k] = heights[r * width + c] <= SEA_LEVEL ? 1 : 0;
         const slope = Math.hypot((at(c + 1, r) - at(c - 1, r)) / (2 * cellX), (at(c, r - 1) - at(c, r + 1)) / (2 * cellY));
         // Hills are wooded, and their steep sides bare; the coarse grid makes
-        // every slope gentler than it is, so the thresholds are low.
+        // every slope gentler than it is, so the thresholds are low. Height
+        // counts from the low ground of the battle, as on the near ground
+        // (buildGround): the plain round a lake 250 m up is no hill.
+        const above = h - this.lowGround;
         let weight = 0;
         const mix = (target: Color, amount: number) => {
           if (amount <= 0) return;
@@ -862,8 +935,8 @@ export class Terrain {
           weight = total;
         };
         color.copy(PALETTE.forest);
-        mix(PALETTE.scrub, smooth(60, 160, h) * 0.6);
-        mix(PALETTE.forest, smooth(170, 480, h) * 0.8);
+        mix(PALETTE.scrub, smooth(60, 160, above) * 0.6);
+        mix(PALETTE.forest, smooth(170, 480, above) * 0.8);
         mix(PALETTE.rock, smooth(0.16, 0.34, slope) * 0.7);
         overlay[k] = weight;
         colors[k * 3] = color.r;
@@ -873,14 +946,65 @@ export class Terrain {
         lie[k * 2 + 1] = 2000;
       }
     }
+    // Then the skirt: each of its vertices the mean of the edge of the grid
+    // along that side, so that no single hill or patch at the edge is drawn
+    // out into a long ridge or stripe.
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ringX = c < R ? R - c : c >= R + width ? c - (R + width - 1) : 0;
+        const ringY = r < R ? R - r : r >= R + height ? r - (R + height - 1) : 0;
+        const ring = Math.max(ringX, ringY);
+        if (ring === 0) continue;
+        const gc = Math.min(Math.max(c - R, 0), width - 1);
+        const gr = Math.min(Math.max(r - R, 0), height - 1);
+        const alongRows = ringX >= ringY;
+        const span = SKIRT_SPAN * ring;
+        let n = 0;
+        let h = 0;
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+        let weight = 0;
+        let wet = 0;
+        for (let i = -span; i <= span; i++) {
+          const ec = alongRows ? gc : gc + i;
+          const er = alongRows ? gr + i : gr;
+          if (ec < 0 || er < 0 || ec >= width || er >= height) continue;
+          const k = (er + R) * cols + ec + R;
+          h += gridH[er * width + ec];
+          red += colors[k * 3];
+          green += colors[k * 3 + 1];
+          blue += colors[k * 3 + 2];
+          weight += overlay[k];
+          wet += sea[k];
+          n++;
+        }
+        const x = ringX > 0 ? (c < R ? far.minX - SKIRT_RINGS[ringX - 1] : far.maxX + SKIRT_RINGS[ringX - 1]) : far.minX + gc * cellX;
+        const y = ringY > 0 ? (r < R ? far.maxY + SKIRT_RINGS[ringY - 1] : far.minY - SKIRT_RINGS[ringY - 1]) : far.maxY - gr * cellY;
+        const k = r * cols + c;
+        positions[k * 3] = x;
+        positions[k * 3 + 1] = h / n - drop(x, y);
+        positions[k * 3 + 2] = -y;
+        colors[k * 3] = red / n;
+        colors[k * 3 + 1] = green / n;
+        colors[k * 3 + 2] = blue / n;
+        overlay[k] = weight / n;
+        sea[k] = wet / n > 0.5 ? 1 : 0;
+        lie[k * 2] = 0;
+        lie[k * 2 + 1] = 2000;
+      }
+    }
 
     const cells: number[] = [];
-    for (let r = 0; r < height - 1; r++) {
-      for (let c = 0; c < width - 1; c++) {
-        if (c >= hole.colMin && c < hole.colMax && r >= hole.rowMin && r < hole.rowMax) continue;
-        const nw = r * width + c;
+    for (let r = 0; r < rows - 1; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        // Quad (c, r) here is quad (c - R, r - R) of the grid.
+        const gc = c - R;
+        const gr = r - R;
+        if (gc >= hole.colMin && gc < hole.colMax && gr >= hole.rowMin && gr < hole.rowMax) continue;
+        const nw = r * cols + c;
         const ne = nw + 1;
-        const sw = nw + width;
+        const sw = nw + cols;
         const se = sw + 1;
         cells.push(nw, se, ne, nw, sw, se);
       }
