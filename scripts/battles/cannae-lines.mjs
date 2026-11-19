@@ -82,6 +82,32 @@ function fromFront(frontX, frontY, frontage, depth, facing) {
   return formation(frontX - Math.sin(a) * (depth / 2), frontY - Math.cos(a) * (depth / 2), frontage, depth, facing);
 }
 
+// --- Hasdrubal's horse ----------------------------------------------------------
+//
+// Two units side by side, the Iberians by the river (to the west) and the
+// Gauls beside them, both facing the Roman cavalry (Polybius 3.115, Livy
+// 22.47.1: both peoples met it). Each takes a share of the front in
+// proportion to its men, so both stand equally dense (cannae.md, section 18).
+
+const IBERIAN_HORSE = 2000;
+const GALLIC_HORSE = 4000;
+const IBERIAN_SHARE = IBERIAN_HORSE / (IBERIAN_HORSE + GALLIC_HORSE);
+/** Metres between the Iberian and the Gallic horse when they stand side by side. */
+const HORSE_GAP = 4;
+
+/**
+ * The Iberian and Gallic horse side by side along a straight front from x1
+ * (west) to x2 (east) at y, both facing `facing` (0 north, 180 south). The
+ * Iberians take the west end.
+ */
+function horseSideBySide(x1, x2, y, depth, facing) {
+  const split = x1 + (x2 - x1) * IBERIAN_SHARE;
+  const iberian = [x1, split - HORSE_GAP / 2];
+  const gallic = [split + HORSE_GAP / 2, x2];
+  const unit = ([a, b]) => fromFront((a + b) / 2, y, b - a, depth, facing);
+  return { "iberian-cavalry": unit(iberian), "gallic-cavalry": unit(gallic) };
+}
+
 // --- The lines at each phase end ----------------------------------------------
 
 const LINE = {
@@ -185,13 +211,13 @@ for (const key of [5, 6]) {
   // every man of its covered half and none of the other.
   set(key, "libyans-left", { formation: fromFront(xWest - GAP, middle + box.north, box.libyan, 60, 90) });
   set(key, "libyans-right", { formation: fromFront(xEast + GAP, middle + box.north, box.libyan, 60, 270) });
-  // The rear: the triarii across the whole width, Hasdrubal's horse against them.
+  // The rear: the triarii across the whole width, Hasdrubal's horse against
+  // them, the Iberians to the west as they stood by the river.
   const rear = north + 10 + box.rear;
   const width = xEast - xWest;
   const centre = (xWest + xEast) / 2;
   set(key, "triarii", { formation: fromFront(centre, rear, width, box.rear, 0) });
-  set(key, "hasdrubal-cavalry-rear", { formation: fromFront(centre - width / 4, rear + GAP, width / 2 - 4, box.cavalry, 180) });
-  set(key, "hasdrubal-cavalry-front", { formation: fromFront(centre + width / 4, rear + GAP, width / 2 - 4, box.cavalry, 180) });
+  for (const [unit, f] of Object.entries(horseSideBySide(xWest + 2, xEast - 2, rear + GAP, box.cavalry, 180))) set(key, unit, { formation: f });
   // Inside: between the flanks, behind the front, before the rear.
   const inWest = xWest + box.west + 8;
   const inEast = xEast - box.east - 8;
@@ -204,16 +230,16 @@ for (const key of [5, 6]) {
 }
 
 // The cavalry by the river: in contact at the end of phase 2, the Romans
-// pushed back and cut down in phase 3, in flight in phase 4.
+// pushed back and cut down in phase 3, in flight in phase 4. Hasdrubal's
+// Iberians and Gauls stand side by side and both fight in phase 3.
 set(2, "roman-cavalry", { formation: fromFront(-1075, 40 + GAP / 2, 450, 70, 180), action: "advance", men: 2400 });
-set(2, "hasdrubal-cavalry-front", { formation: fromFront(-1100, 40 - GAP / 2, 400, 50, 0), action: "advance", men: 3000 });
-set(2, "hasdrubal-cavalry-rear", { formation: fromFront(-1100, -30, 400, 50, 0), action: "advance", men: 3000 });
+for (const [unit, f] of Object.entries(horseSideBySide(-1300, -900, 40 - GAP / 2, 100, 0))) set(2, unit, { formation: f });
 set(3, "roman-cavalry", { formation: fromFront(-1090, 120 + GAP / 2, 300, 80, 180), action: "fight", men: 900 });
-set(3, "hasdrubal-cavalry-front", { formation: fromFront(-1100, 120 - GAP / 2, 350, 60, 0), action: "fight", men: 2920 });
-set(3, "hasdrubal-cavalry-rear", { formation: fromFront(-1100, 40, 350, 60, 0), action: "advance", men: 3000 });
-// Phase 4: round behind the Roman army, towards the far wing.
-set(4, "hasdrubal-cavalry-front", { formation: formation(300, 420, 350, 60, 95), action: "advance", men: 2920 });
-set(4, "hasdrubal-cavalry-rear", { formation: formation(-50, 470, 350, 60, 95), action: "advance", men: 3000 });
+for (const [unit, f] of Object.entries(horseSideBySide(-1275, -925, 120 - GAP / 2, 100, 0))) set(3, unit, { formation: f });
+// Phase 4: round behind the Roman army, towards the far wing. The Gauls,
+// on the inner side, lead; the Iberians follow.
+set(4, "gallic-cavalry", { formation: formation(300, 420, 350, 80, 95) });
+set(4, "iberian-cavalry", { formation: formation(-50, 470, 240, 60, 95) });
 
 // --- The fight at the gate of Hannibal's camp (Polybius 3.117) -----------------
 //
@@ -266,8 +292,14 @@ const STATES = {
     "light-spearmen": ["skirmish"],
     "camp-force": ["advance", 10000],
     "camp-guard": ["stand", 8000],
+    "iberian-cavalry": ["advance", IBERIAN_HORSE],
+    "gallic-cavalry": ["advance", GALLIC_HORSE],
   },
   3: {
+    // The 80 horsemen lost by the river, by the length of front each has on
+    // the Roman cavalry (about 80 m and 225 m).
+    "iberian-cavalry": ["fight", 1980],
+    "gallic-cavalry": ["fight", 3940],
     hastati: ["advance", 11400],
     principes: ["advance", 11400],
     triarii: ["advance", 4200],
@@ -295,6 +327,8 @@ const STATES = {
     "gauls-right": ["fight", 4100],
     "allied-cavalry": ["stand", 3500],
     numidians: ["skirmish", 3980],
+    "iberian-cavalry": ["advance", 1980],
+    "gallic-cavalry": ["advance", 3940],
     "camp-force": ["fight", 9600],
     "camp-guard": ["fight", 7300],
   },
@@ -313,8 +347,8 @@ const STATES = {
     "gauls-right": ["advance", 4000],
     "libyans-left": ["charge", 4000],
     "libyans-right": ["charge", 4000],
-    "hasdrubal-cavalry-front": ["charge", 2920],
-    "hasdrubal-cavalry-rear": ["charge", 3000],
+    "iberian-cavalry": ["charge", 1980],
+    "gallic-cavalry": ["charge", 3940],
     "camp-force": ["fight", 9400],
     "camp-guard": ["fight", 6700],
   },
@@ -333,8 +367,9 @@ const STATES = {
     "gauls-right": ["advance", 4000],
     "libyans-left": ["fight", 3750],
     "libyans-right": ["fight", 3750],
-    "hasdrubal-cavalry-front": ["fight", 2900],
-    "hasdrubal-cavalry-rear": ["fight", 2940],
+    // 80 more against the triarii, by length of front (a third and two thirds).
+    "iberian-cavalry": ["fight", 1960],
+    "gallic-cavalry": ["fight", 3880],
     // Polybius 3.117: Hannibal kills two thousand of them.
     "camp-force": ["retreat", 7400],
     "camp-guard": ["pursue", 6700],

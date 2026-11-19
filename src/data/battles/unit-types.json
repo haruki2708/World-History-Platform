@@ -11,6 +11,7 @@
   { "id": "iberian-infantry", "name": { "en": "Iberian infantry", "vi": "Bộ binh Iberia" }, "model": "iberian-infantry" },
   { "id": "gallic-infantry", "name": { "en": "Gallic infantry", "vi": "Bộ binh Gaul" }, "model": "gallic-infantry" },
   { "id": "libyan-infantry", "name": { "en": "Libyan infantry", "vi": "Bộ binh Libya" }, "model": "libyan-infantry" },
-  { "id": "iberian-gallic-cavalry", "name": { "en": "Iberian and Gallic cavalry", "vi": "Kỵ binh Iberia và Gaul" }, "model": "iberian-gallic-cavalry", "mounted": true },
+  { "id": "iberian-cavalry", "name": { "en": "Iberian cavalry", "vi": "Kỵ binh Iberia" }, "model": "iberian-gallic-cavalry", "mounted": true },
+  { "id": "gallic-cavalry", "name": { "en": "Gallic cavalry", "vi": "Kỵ binh Gaul" }, "model": "gallic-cavalry", "mounted": true },
   { "id": "numidian-cavalry", "name": { "en": "Numidian cavalry", "vi": "Kỵ binh Numidia" }, "model": "numidian-cavalry", "mounted": true }
 ]
