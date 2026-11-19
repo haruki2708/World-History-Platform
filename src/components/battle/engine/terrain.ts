@@ -824,7 +824,11 @@ export class Terrain {
                 groundReliefShown *= 1.0 - muddy;
                 float wet = smoothstep(-0.5, 1.5, d);
                 if (wet > 0.0) {
-                  float deep = smoothstep(1.0, 120.0, d);
+                  // The shallows narrow from afar, as the strip of mud does:
+                  // seen from far off, a band of the lighter shallow colour
+                  // a hundred metres wide ringed the lake and its islands
+                  // with a yellowish glow (T-055).
+                  float deep = smoothstep(1.0, mix(120.0, 25.0, 1.0 - strip), d);
                   vec3 water = mix(mix(mud, uLakeShallow, 0.4 + 0.6 * (1.0 - strip)), uLakeDeep, deep);
                   // Calmer than the sea: ripples running down the wind.
                   vec2 slope = waterSlope(g * 0.8, uWaterTime, uLakeHeading, 1.1, footprint, 0.8);
@@ -832,9 +836,11 @@ export class Terrain {
                   vec3 toEye = normalize(cameraPosition - vGroundPos);
                   float fresnel;
                   vec3 thrown = waterLight(n, toEye, uSunDir, uSunLight, uSkyZenith, uSkyHorizon, fresnel);
-                  // Small waves lapping at the edge.
-                  float lap = (1.0 - smoothstep(0.0, 3.0, d)) * waterFoam(g * 0.9, uWaterTime) * 0.3
-                    * (1.0 - smoothstep(300.0, 1500.0, distance));
+                  // Small waves lapping at the edge: a faint, unbroken line,
+                  // the foam only varying it (at full strength it broke the
+                  // line into white dashes, T-055), gone a little way off.
+                  float lap = (1.0 - smoothstep(0.0, 3.0, d)) * mix(0.45, 1.0, waterFoam(g * 0.9, uWaterTime)) * 0.13
+                    * (1.0 - smoothstep(150.0, 700.0, distance));
                   water *= 1.0 - fresnel * 0.8;
                   water = mix(water, vec3(0.8, 0.82, 0.78), lap);
                   ground = mix(ground, water, wet);
