@@ -137,6 +137,11 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Phiên chính kiểm tra: kiểm kiểu, `lint`, `validate`, `tutor:check` qua; lane 1 báo `build` qua, và từ lúc tạo nhánh `main` chỉ đổi tài liệu. Lời mới khớp file trận. Người dùng duyệt câu chữ và cho gộp.
   - Sửa khi gộp: ARCHITECTURE mô tả bảng `BATTLE_NOTES`; README dẫn thêm `trasimene.md` ở dòng địa hình.
   - Để lại: khoảng chương của nguồn chưa theo một quy tắc (hộp thoại, sự kiện và file trận ghi khác nhau đôi chút); link Livy trỏ tới bản dịch Roberts, bản có lỗi đã ghi ở `trasimene.md`.
+- **2026-11-19:** Lane 3 hết hạn mức trước khi bắt đầu [T-055](tasks/T-055-trasimene-dawn-load.md); người dùng giao cho phiên chính làm.
+  - **Rạng đông:** trước khi mặt trời lên 8°, cảnh được phơi sáng mạnh hơn, như mắt quen bóng tối. Người dùng chọn mức sáng hơn trong hai mức. Độ sáng trung vị lúc 4:30 từ 0,15 lên 0,27; lúc 6:00 vẫn 0,40.
+  - **Thời gian tải:** nguyên nhân là cây, khoảng 7 triệu đỉnh, gấp gần chín lần Cannae. Cây giờ ghi vào mảng có kiểu, mỗi tấm lá là bốn đỉnh có chỉ số (ít hơn một phần ba số đỉnh, hình giống hệt), và mô hình lính tải trong lúc dựng mặt đất. Trasimene sẵn sàng sau 6,3 giây thay vì 8,2 (Cannae 5,7). Số khung hình/giây của Trasimene còn tăng.
+  - **Mép nước:** hết quầng vàng quanh đảo khi nhìn xa, hết vệt trắng đứt khúc khi nhìn gần.
+  - Kiểm tra: `lint`, `validate`, `build`, `tutor:check`, hồi quy lõi 17/17; Cannae không đổi khi so từng điểm ảnh với `main`. Người dùng duyệt gộp.
 
 ## Việc để giai đoạn 5
 

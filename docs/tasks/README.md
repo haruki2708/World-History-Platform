@@ -73,5 +73,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-052](T-052-trasimene-battle.md) | 2 | Trận hồ Trasimene (đợt K), chặng 1: file trận (khối quân, lời dẫn, cảnh vật, đảo, quân nấp); kiểm tra `islands` và `concealed` | Xong, đã gộp 2026-11-19 (cùng T-053) |
 | [T-053](T-053-trasimene-scene.md) | 3 | Trận hồ Trasimene (đợt K), chặng 2: mặt hồ và đảo, lính lội nước, sương mù, quân nấp; hiệu năng | Xong, đã gộp 2026-11-19 (cùng T-052) |
 | [T-054](T-054-about-two-battles.md) | 1 | Trận hồ Trasimene (đợt K), chặng 3: hộp thoại Giới thiệu nói đúng về cả hai trận (ý riêng từng trận, nguồn của Trasimene) | Xong, đã gộp 2026-11-19 |
-| [T-055](T-055-trasimene-dawn-load.md) | 3 | Trận hồ Trasimene: cảnh lúc mở trận (4:30) quá tối; cảnh tải chậm hơn Cannae 2,5–3 giây; hai chỗ nhỏ ở mép nước | Đã giao 2026-11-19 |
+| [T-055](T-055-trasimene-dawn-load.md) | 3 | Trận hồ Trasimene: cảnh lúc mở trận (4:30) quá tối; cảnh tải chậm hơn Cannae 2,5–3 giây; hai chỗ nhỏ ở mép nước | Xong, đã gộp 2026-11-19 (phiên chính làm thay lane 3) |
 | [T-056](T-056-map-lake-trasimene.md) | 2 | Bản đồ nền thiếu hồ Trasimene: thêm hồ, thấy được trong cú bay tới chiến trường | Đã giao 2026-11-19 |
