@@ -133,7 +133,11 @@ PARTS = [
          covers=["Cap"], reach=0.035, uv=1.8, extrusion=0.015, ray=0.035),
     Part("arms", ["New_arms"], ["New_arms"], (750, 120, 0), covers=["Tunic_1"], reach=0.03),
     Part("legs", ["New_legs"], ["New_legs", "Boots"], (800, 130, 0), extrusion=0.02, ray=0.04, sole=["Boots"]),
-    Part("tunic", ["Tunic_1"], ["Tunic_1"], (650, 110, 0), covers=["Belt"], reach=0.03, uv=1.0),
+    # T-050: the skirt's inside showed grey on the left, from the front: its inner faces are not drawn
+    # (inner_skirt), and the bake's rays start further out, past the outer cloth where the cut-down
+    # skirt lies inside it, so that they do not reach the inner cloth.
+    Part("tunic", ["Tunic_1"], ["Tunic_1"], (650, 110, 0), covers=["Belt"], reach=0.03, uv=1.0,
+         extrusion=0.03, ray=0.06, drop=whp_cavalry.inner_skirt),
     Part("belt", ["Belt"], ["Belt"], (80, 0, 0)),
     Part("scabbard", ["Scabbard"], ["Scabbard"], (120, 0, 0)),
     Part("sword", ["Sword2_1"], ["Sword2_1"], (60, 0, 0), covers=["Scabbard"], reach=0.02),

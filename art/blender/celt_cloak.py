@@ -50,7 +50,9 @@ CLOAK = dict(
     hem_power=0.8,              # how the hem rises from the back to the front edges (cos(angle) ** this)
     clear_top=0.010,            # off the skin on the shoulders
     clear=0.022,                # and lower down
-    flare=0.045,                # more round the hem
+    flare=0.025,                # more round the hem
+    drape=0.30,                 # below the shoulder blades it comes in towards the back, 0.3 m a metre
+                                # (lying on his back, a cloak hanging straight lifted him off the ground)
     arms_x=0.245,               # body points further out than this are the arms (A pose), not the trunk
     band=0.012,                 # half the height of a slice of the body
     bin=math.radians(7.0),      # half the width of a slice's sector

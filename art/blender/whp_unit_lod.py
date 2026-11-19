@@ -75,10 +75,13 @@ class Part:
               sandals: the figure then stands on their soles)
     hi:       (objects, triangles) for LOD0 of the "hi" ladder, when the
               default will not do (see hi_source)
+    drop:     None, or a function(low) that deletes faces of the low copy
+              that should not be drawn, before it is cut down, and returns
+              how many (T-050: the inside of a rider's skirt)
     """
 
     def __init__(self, name, low, bake, budget, covers=(), reach=0.03, uv=1.0,
-                 extrusion=0.012, ray=0.03, ao_alone=False, sole=(), hi=None):
+                 extrusion=0.012, ray=0.03, ao_alone=False, sole=(), hi=None, drop=None):
         self.name = name
         self.low = low
         self.bake = bake
@@ -91,6 +94,7 @@ class Part:
         self.ao_alone = ao_alone
         self.sole = sole
         self.hi = hi
+        self.drop = drop
 
 
 def _objects(names):
@@ -129,6 +133,8 @@ def build_low_parts(specs, ground=0.0, hi=False):
         if part.covers:
             gone = lod.remove_covered(low, _objects(part.covers), part.reach)
             log(f"{part.name}: removed {gone} hidden faces")
+        if part.drop is not None:
+            log(f"{part.name}: removed {part.drop(low)} faces ({part.drop.__name__})")
         if part.sole:
             moved = lod.wrap_over(low, _objects(part.sole), reach=0.03,
                                   where=lambda co, no: co.z < ground + 0.05 and no.z < -0.5)

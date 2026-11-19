@@ -618,7 +618,7 @@ LINEUP = ["roman-velites", "roman-hastatus", "roman-legionary", "roman-triarii",
           "libyan-infantry", "iberian-infantry", "gallic-infantry", "balearic-slinger"]
 
 
-CAVALRY_LINEUP = ["roman-cavalry", "iberian-gallic-cavalry", "numidian-cavalry"]
+CAVALRY_LINEUP = ["roman-cavalry", "iberian-gallic-cavalry", "gallic-cavalry", "numidian-cavalry"]
 
 
 def lineup(horse=False):

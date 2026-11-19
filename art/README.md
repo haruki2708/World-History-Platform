@@ -26,12 +26,13 @@ Mô hình đã có (bộ binh trận Cannae):
 | `balearic-slinger` | lính ném đá Baleares: ba dây ném đá | lính La Mã |
 | `gallic-infantry` | bộ binh Gaul: cởi trần, quần sọc, kiếm dài, khiên dài | Celt |
 
-Kỵ binh (T-022): người cưỡi và ngựa trong cùng một file (mục "Kỵ binh" ở cuối).
+Kỵ binh (T-022, T-050): người cưỡi và ngựa trong cùng một file (mục "Kỵ binh" ở cuối).
 
 | Mô hình | Lính | Người cưỡi | Ngựa |
 |---|---|---|---|
 | `roman-cavalry` | kỵ binh La Mã và đồng minh: giáp lưới, khiên tròn ở cẳng tay, giáo | lính La Mã | vải lót yên đỏ, dây cương |
-| `iberian-gallic-cavalry` | kỵ binh Iberia và Gaul: áo lanh trắng viền tía, mũ gân, khiên bầu dục nhỏ, giáo | lính La Mã | vải lót yên xanh đen, dây cương |
+| `iberian-gallic-cavalry` | kỵ binh Iberia (từ T-050; trước đó Iberia và Gaul): áo lanh trắng viền tía, mũ gân, khiên bầu dục nhỏ, giáo | lính La Mã | vải lót yên xanh đen, dây cương |
+| `gallic-cavalry` | kỵ binh Gaul (T-050): áo xanh lục viền vàng, áo choàng kẻ ô xanh chàm, quần sọc, tóc vàng dài, không mũ, khiên bầu dục xanh, kiếm dài | Celt | vải lót yên len mộc viền đỏ, dây cương |
 | `numidian-cavalry` | kỵ binh Numidia: áo len mộc không thắt lưng, khiên da tròn nhỏ, lao | lính La Mã | nhỏ hơn (0,95), không yên cương, dây quàng cổ |
 
 ## Cần có
@@ -93,7 +94,7 @@ Tham số của `build_model.py`, đặt sau dấu `--`:
 | `--preview` | Render ảnh xem thử sau mỗi giai đoạn vào `art/build/<id>/preview-*.png`: trước, nghiêng, sau; thêm ba tư thế thử sau `rig` và vài khung hình mỗi clip sau `anim`. |
 | `--check` | Chỉ đọc lại file `.glb` đã xuất và kiểm tra theo hợp đồng. |
 
-Tham số của `render_review.py`: `--model <id>`, `--only <ảnh> ...` (tên trong danh sách `REVIEW` của mô hình: `views`, `three-quarter`, `head`, `formation`, `lods`, `animations`, `metal`, `compare`, `closeups`, `beside`, `test-poses`), `--lineup`, `--attack-styles`.
+Tham số của `render_review.py`: `--model <id>`, `--only <ảnh> ...` (tên trong danh sách `REVIEW` của mô hình: `views`, `three-quarter`, `head`, `formation`, `lods`, `animations`, `metal`, `compare`, `closeups`, `beside`, `test-poses`; với kỵ binh còn `beside-cavalry`, `far-cavalry`, T-050), `--lineup`, `--attack-styles`.
 
 Đổi chỗ để file gốc:
 
@@ -296,7 +297,7 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `whp_far.py` | LOD1 ít đường nối UV (T-047): chia mảnh, trải UV theo góc, chép màu từ atlas LOD0; tìm chỗ trống trong atlas. |
 | `whp_palette.py` | Bảng màu nhỏ cho LOD2 (T-047): gom màu tam giác, làm mượt theo tam giác kề, ghi các ô màu vào atlas. |
 | `whp_export.py` | Xuất glTF và kiểm tra file `.glb` theo hợp đồng. |
-| `unit_<id>.py` | Phần riêng của từng mô hình (mười một file: tám bộ binh, ba kỵ binh). |
+| `unit_<id>.py` | Phần riêng của từng mô hình (mười hai file: tám bộ binh, bốn kỵ binh). |
 | `whp_cavalry.py` | Kỵ binh: ghép ngựa vào file, nối hai khung xương, tư thế và các clip của người cưỡi, giai đoạn `lod` chung cho người và ngựa. |
 | `roman_kit.py` | Phần chung của các mô hình dựng trên lính La Mã: chuẩn bị thân (kiếm trong tay, trong bao hay bỏ), mũ, khiên, vật liệu, luật gắn xương, dữ liệu cho clip. |
 | `roman_weapons.py` | Giáo *hasta*, lao nhẹ, lao Iberia; cất kiếm vào bao. |
@@ -306,6 +307,9 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `celt_source.py` | Nhập mô hình Celt cho người Gaul; xoá hình vẽ trên da, nhuộm lại quần. |
 | `celt_hands.py` | Khép hai bàn tay mở của mô hình Celt thành nắm tay (bẻ xương ngón, lưới lấy hình đó làm tư thế gốc); tìm lòng nắm tay. |
 | `celt_kit.py` | Kiếm dài và khiên của người Gaul, đặt vào lòng nắm tay. |
+| `celt_tunic.py` | Áo nhuộm của kỵ binh Gaul (T-050): ống quanh thân và hai tay áo dựng theo hình người Celt, đai da. |
+| `celt_cloak.py` | Áo choàng của kỵ binh Gaul (T-050): tấm vải rủ từ vai theo hình người (`surface`, dùng chung cho tóc), lớp vỏ hai mặt, khuy đồng, vân kẻ ô, trọng số theo cột sống. |
+| `celt_hair.py` | Tóc dài của kỵ binh Gaul (T-050): lớp vỏ từ những mặt có tóc của lưới đầu (chọn theo màu ảnh vật liệu), mảng tóc rủ xuống gáy. |
 | `roman_source.py` | Nhập mô hình 07, bỏ trang bị thời Đế chế, chuyển bao kiếm; nhuộm áo, viền áo, màu da. |
 | `roman_hands.py` | Nắm bàn tay, đặt kiếm vào tay. |
 | `roman_helmet.py` | Mũ Montefortino, má che, lông mũ; da sói phủ mũ (velites); mũ gân (Iberia). |
@@ -591,9 +595,9 @@ Render từ `horse.blend` (lưới game, vật liệu đã bake), không phải 
 | `horse_lod.py` | LOD0..2 theo nhóm, atlas, bake (dùng `whp_lod`, `whp_unit_lod`, `whp_proxy`), hình thay thế cho LOD2. |
 | `horse_render.py` | Ảnh duyệt. |
 
-## Kỵ binh (T-022)
+## Kỵ binh (T-022, T-050)
 
-Ba mô hình, mỗi mô hình là một người cưỡi trên một con ngựa, trong cùng một file `.glb`: `roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`. Người cưỡi dựng như lính bộ binh (giai đoạn `source`, `kit`, `rig` trong `unit_<id>.py`); ngựa là con ngựa của lane 2 (mục "Ngựa" ở trên). Phần ghép và các clip nằm ở `whp_cavalry.py`.
+Bốn mô hình, mỗi mô hình là một người cưỡi trên một con ngựa, trong cùng một file `.glb`: `roman-cavalry`, `iberian-gallic-cavalry` (kỵ binh Iberia), `numidian-cavalry` (T-022) và `gallic-cavalry` (T-050, người cưỡi dựng trên người Celt của `gallic-infantry`; mục "Kỵ binh Gaul" ở cuối). Người cưỡi dựng như lính bộ binh (giai đoạn `source`, `kit`, `rig` trong `unit_<id>.py`); ngựa là con ngựa của lane 2 (mục "Ngựa" ở trên). Phần ghép và các clip nằm ở `whp_cavalry.py`.
 
 ### Cách dựng
 
@@ -612,7 +616,8 @@ Một unit module kỵ binh có thêm (ngoài những gì của lính bộ binh)
 - `RIDER` (`whp_cavalry.Rider`): kiểu tấn công, có cầm cương không, khiên ở đâu, cách mang vũ khí;
 - `KIT`: dùng để dựng cú ngã của người, như lính bộ binh;
 - `BONES` (107), `GROUND_CHECKS`, `SEAT_MESHES` (lưới người chạm lưng ngựa);
-- với khiên đeo cẳng tay: `SHIELD_MESH`, `SHIELD_HANG`.
+- với khiên đeo cẳng tay: `SHIELD_MESH`, `SHIELD_HANG`;
+- tuỳ chọn (T-050): `SEAT_MEASURE = "seated"` (đo chỗ ngồi khi người đã ngồi, xem "Tư thế ngồi"); `SKIRTS`, `LEGS_MESH` (vạt áo nào kéo theo đùi, theo lưới chân nào; mặc định `Tunic_1`, `Mail` theo `New_legs` của lính La Mã).
 
 Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cavalry`.
 
@@ -631,6 +636,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 ### Tư thế ngồi
 
 - **Hông:** chậu hông ngả ra sau 8° (ngồi trên xương ngồi), thân dựng thẳng lại. Độ cao đo từ chính lưới: các đỉnh của lưới chân (`SEAT_MESHES`) gần đường giữa, trên chỗ ngồi, đặt cao hơn điểm ngồi của lane 2 (mặt vải lót yên) 4 mm. Ngựa Numidia không có vải lót nên điểm ngồi thấp hơn 1,4 cm.
+  - Ba mô hình của T-022 đo các đỉnh này ở tư thế đứng. Với quần ống rộng của người Celt, mặt trong đùi rơi vào vùng đo và nhấc người lên cao hơn lưng ngựa khoảng 10 cm; vì vậy `gallic-cavalry` đo khi người đã ngồi (`SEAT_MEASURE = "seated"`, `RiderPoser._find_seated_height`): điểm thấp nhất của lưới chân gần đường giữa, từ hông xuống 0,30 m, đặt lên điểm ngồi. Hông của người Gaul ở 1,629 m, của kỵ binh La Mã 1,649 m.
 - **Chân:** IK hai đoạn theo hướng đùi và cẳng chân cố định trong khung yên (`Rider.thigh`, `Rider.calf`):
   - đùi chĩa ra trước, xuống và ra ngoài, ôm thân ngựa (thân rộng 0,27 m mỗi bên ở độ cao 1,04–1,09 m);
   - cẳng chân buông gần thẳng đứng;
@@ -660,8 +666,8 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 | `idle` | `idle` của ngựa | ngồi, thở, quay đầu nhìn sang trái rồi trở lại | 4,967 s (149 khung) |
 | `walk` | `walk` | ngồi, đung đưa theo ngựa | 1,667 s (50 khung) |
 | `jog` | `trot` (nước kiệu) | ngồi nước kiệu, thân đỡ nhịp | 0,833 s (25 khung) |
-| `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo chĩa ra trước | 0,433 s (13 khung) |
-| `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, hoặc phóng lao | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
+| `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo (kiếm) chĩa ra trước | 0,433 s (13 khung) |
+| `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, phóng lao, hoặc chém kiếm (Gaul) | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
 | `die` | `die` của ngựa | ngã theo ngựa, rồi văng khỏi lưng, nằm yên | 1,967 s (59 khung), không lặp |
 | `block` | đứng bốn chân như `attack`, hất đầu nhẹ lúc đòn chạm | đưa khiên ra trước người đỡ đòn, khiên bị dội lại, rồi ngồi lại như cũ | 1,0 s (30 khung), không lặp |
 | `hit` | đứng bốn chân như `attack`, hất đầu lúc đòn chạm | bật ngửa và xoay người trên lưng ngựa, đầu gục tới, rồi ngồi lại | 1,0 s (30 khung), không lặp |
@@ -671,6 +677,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - thân xoay theo (vai phải lùi 18° rồi tiến 16°) và ngả tới 10° lúc đâm;
   - đường tay tự dựng bằng IK theo các khung khoá (`THRUST`), không dùng clip của thư viện.
 - **Phóng lao** (Numidia): lao kéo về sau qua vai phải, phóng ra trước và lên, tay vung theo, rồi về tư thế mang lao (`THROW`). Thân xoay 24° ra sau rồi 16° ra trước.
+- **Chém kiếm** (Gaul, T-050, `SLASH`, kiểu `sword-slash`, 1,333 s): từ tư thế cầm kiếm dựng chếch ra ngoài bên phải (`SWORD_UP`), giơ kiếm qua vai phải, lưỡi chĩa lên và ra sau (khung 7–10); chém tới qua bên phải đầu ngựa, vươn xa nhất khi lưỡi kiếm gần nằm ngang (khung 15, 0,500 s: cảnh lấy lúc này làm lúc đòn chạm); bổ xuống bên phải cổ ngựa (khung 18–23), rồi về. Thân xoay 22° ra sau rồi 18° ra trước, ngả tới 15° lúc chém. Khi phi, kiếm chĩa lên và ra trước, lệch sang phải để không chạm tai ngựa (`SWORD_FORWARD`).
 - **Ngã:**
   - ngựa khuỵu gối rồi lăn sang sườn phải (−X);
   - từ khung 12 tới khung 40, người được trộn dần từ tư thế ngồi trên yên sang cú ngã ngửa `Death01` của thư viện (từng xương: góc quay theo xương cha; xương gốc theo vị trí trong không gian);
@@ -704,6 +711,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 - **Ngân sách:** ngựa đủ yên cương chiếm 3 344 tam giác ở LOD0 (thân 2 738, bờm, đuôi, vải lót yên, dây cương), ngựa Numidia 3 036; người lấy phần còn lại (3 873–4 248). Số tam giác của từng mô hình ở mục "Kết quả" của T-022.
 - **LOD2 của người** là hình đơn giản theo khung xương như lính bộ binh, nhưng không có bàn tay, bàn chân và váy (`LOD2["feet"] = False`, `"skirt": None`): 150 tam giác; thêm khiên và giáo hay lao.
 - **LOD1 và LOD2 ít đường nối** (T-047) như lính bộ binh, cho cả người và ngựa: các mảnh LOD1 của ngựa (`horse_lod.lod1_pieces`: thân, đuôi, vải lót yên, dây cổ) chia vùng và lấy màu như của người; một bảng màu chung cho LOD2 của người và ngựa.
+- **Mặt trong của vạt áo** (T-050, `iberian-gallic-cavalry`): áo của mô hình nền La Mã (`Tunic_1`) có hai lớp vải; lớp trong bake ra màu xám. Khi vạt áo kéo theo đùi, lớp trong lộ thành mảng xám ở sườn trái, nhìn từ trước. `Part(drop=whp_cavalry.inner_skirt)` xoá khỏi bản ít tam giác của áo những mặt dưới hông quay vào giữa người (2 573 mặt), trước khi giảm tam giác; tia bake của áo cũng xuất phát xa hơn (3 cm). Clip không đổi. `roman-cavalry`, `numidian-cavalry` không đổi (không thấy lỗi này ở hai mô hình đó, nên không áp).
 
 ### Kích thước
 
@@ -725,7 +733,7 @@ Chỉ `horse_lod.py`; kết quả của con ngựa không đổi:
 
 ### Ảnh duyệt
 
-`art/renders/<model>/` cho ba mô hình, render từ file `.glb`:
+`art/renders/<model>/` cho bốn mô hình, render từ file `.glb`:
 
 | Ảnh | Nội dung |
 |---|---|
@@ -734,8 +742,20 @@ Chỉ `horse_lod.py`; kết quả của con ngựa không đổi:
 | `03-lods.jpg` | LOD0, LOD1, LOD2. |
 | `04-anim-idle.jpg` … `09-anim-die.jpg` | Ba khung mỗi clip (`idle`, `walk`, `jog`, `run`, `attack`, `die`), nhìn từ bên phải ngựa. |
 | `10-beside-roman-legionary.jpg` | Cạnh `roman-legionary`: nhìn trước, rồi nhìn nghiêng (người đứng trước đầu ngựa). |
+| `11-beside-cavalry.jpg` | Chỉ `gallic-cavalry` (T-050): kỵ binh Iberia, Gaul, La Mã cạnh nhau (`HORSEMEN`); trước, bên trái, sau. |
+| `12-far-cavalry.jpg` | Chỉ `gallic-cavalry`: ba kỵ binh đó nhỏ như cảnh vẽ ở LOD1 (khoảng 40 điểm ảnh, cột trái) và LOD2 (khoảng 13 điểm ảnh, cột phải), phóng to không làm mượt; hàng trên nhìn trước, giữa bên trái, dưới sau. |
 
-`block` và `hit` của kỵ binh xem ở ảnh hai kỵ binh đối mặt quanh lúc đòn chạm (`render_review.py -- --model A --duel B`): `art/renders/duel-roman-cavalry-iberian-gallic-cavalry.jpg`, `art/renders/duel-roman-cavalry-numidian-cavalry.jpg`.
+`block` và `hit` của kỵ binh xem ở ảnh hai kỵ binh đối mặt quanh lúc đòn chạm (`render_review.py -- --model A --duel B`): `art/renders/duel-roman-cavalry-iberian-gallic-cavalry.jpg`, `art/renders/duel-roman-cavalry-numidian-cavalry.jpg`, `art/renders/duel-roman-cavalry-gallic-cavalry.jpg`.
 
-- `art/renders/cavalry-lineup.jpg`: ba mô hình kỵ binh nhìn nghiêng (bên phải).
+- `art/renders/cavalry-lineup.jpg`: bốn mô hình kỵ binh nhìn nghiêng (bên phải): La Mã, Iberia, Gaul, Numidia.
 - `art/renders/roman-legionary/17-jog-before-after.jpg`: hàng trên là `run` (trước T-022, cảnh phát clip này chậm lại khi khối quân đi vừa phải), hàng dưới là `jog`; sáu khung mỗi clip.
+
+### Kỵ binh Gaul (`gallic-cavalry`, T-050)
+
+Người cưỡi là người Celt của `gallic-infantry` (`celt_source`, nắm tay đã khép), không phải lính La Mã như ba mô hình kia. Nguồn và lựa chọn của từng món: docstring của `unit_gallic_cavalry.py` và `art/CREDITS.md`.
+
+- **Áo** (`celt_tunic.py`): một ống vải quanh thân, từ cổ áo (1,35 m phía trước, dưới vòng *torc*; 1,405 m phía sau) tới gấu 0,76 m, cách da 9 mm. Dưới ngực, vải thu vào chậm hơn thân người (0,35 m mỗi mét); ở thắt lưng (0,945–1,000 m) bó sát; xuống hông xoè thêm tới 2,2 cm. Hai tay áo là hai ống quanh cánh tay trên, từ trong vai tới trên khuỷu, đo theo chính bề mặt cánh tay. Một lớp vải; viền vàng 3,5 cm ở cổ, tay và gấu là ô vật liệu riêng. Đai da ở eo bám theo áo. Trọng số lấy mẫu từ thân như mọi đồ mặc; vạt áo kéo theo đùi khi ngồi (`SKIRTS = ("Tunic.low",)`, `LEGS_MESH = "Celt_legs"`). Đai lưng to của mô hình nền nằm dưới áo nên không có trong LOD; phần thân người dưới áo bị bỏ ở LOD0 (`covers`).
+- **Áo choàng** (`celt_cloak.py`): mỗi cột của lưới đi quanh trục thẳng đứng sau lưng, từ giữa lưng ra hai bên tới 96°; mỗi hàng ở một độ cao. Mỗi điểm cách thân (và áo) 1–2,2 cm, rủ từ chỗ rộng nhất phía trên, thu vào lưng chậm (0,3 m mỗi mét), xoè 2,5 cm ở gấu. Gấu sau ở 0,79 m (ngồi: trên yên khoảng 12 cm), gấu hai bên 0,985 m (trên đùi khi ngồi). Lớp vỏ dày 9 mm, kín (mặt ngoài, mặt trong, viền). Vân kẻ ô là ảnh 96 × 96 điểm ảnh lặp mỗi 9 cm theo UV `cloth` (mét dọc theo vải). Trọng số chỉ theo cột sống, hông và một phần xương đòn (`weights`), không theo tay hay chân. Trước khi cho áo choàng thu vào lưng, áo choàng rủ thẳng lơ lửng sau lưng, nên khi người nằm ngửa (`die`) gấu áo cắm xuống đất 5,7 cm (độ nâng lúc nằm của `whp_clips` tối đa 12 cm).
+- **Tóc** (`celt_hair.py`): tóc của mô hình nền là ảnh vật liệu trên đầu, ngắn. Lớp tóc mới lấy những mặt của lưới đầu có màu tóc vàng trong ảnh vật liệu (bỏ vòng *torc*, lông mày và ria), đẩy ra 1,4–2 cm, dày hơn về phía sau, lổn nhổn theo nhiễu; thêm một mảng tóc rủ từ sau đầu xuống gáy, dựng như áo choàng (thu vào gáy 0,75 m mỗi mét). Trọng số: đầu, xuống gáy là cổ rồi `spine_03`.
+- **Chỗ ngồi:** `SEAT_MEASURE = "seated"` (mục "Tư thế ngồi"). Đùi choãi hơn và cẳng chân hơi ra ngoài (`Rider(thigh=(0.49, -0.61, -0.62), calf=(0.07, 0.16, -0.985))`) vì quần ống rộng.
+- **Đánh:** chém kiếm (mục "Clip").

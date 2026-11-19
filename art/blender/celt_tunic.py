@@ -4,9 +4,10 @@ Diodorus 5.30.1: the Gauls wear striking clothing, shirts dyed and
 embroidered in varied colours, and breeches; Strabo 4.4.3: instead of
 tunics, slit tunics with sleeves, reaching to the private parts and the
 buttocks; 4.4.5: their men of rank wear garments dyed in colours. Diodorus
-5.30.3 (Oldfather): the shirts are gathered in by belts. So: a tunic with
-sleeves to the elbow and a skirt to the top of the thighs, over the
-trousers, belted at the waist with a leather belt; green, with a yellow
+5.30.3 (Oldfather): "some of them gather up their shirts with belts plated
+with gold or silver". So: a tunic with sleeves to the elbow and a skirt to
+the top of the thighs, over the trousers, belted at the waist (a plain
+leather belt: the plating is left out); green, with a yellow
 border at the neck, the sleeves and the hem. Green is a choice: the
 sources say only "varied colours". It is what the cloak's two dyes, woad
 and weld, give together, and it is neither the Iberians' white nor the

@@ -148,8 +148,8 @@ JAVELIN_UP = dict(wrist=(-0.26, -0.24, -0.34), elbow=(-0.6, 0.7, -0.3),
 # horse's shoulder, the edge forwards; forwards at the gallop.
 SWORD_UP = dict(wrist=(-0.28, -0.22, -0.33), elbow=(-0.6, 0.7, -0.3),
                 aim=(-0.38, -0.30, 0.87), up=(-0.9, 0.1, -0.4), follow=0.6)
-SWORD_FORWARD = dict(wrist=(-0.27, -0.28, -0.30), elbow=(-0.6, 0.7, -0.3),
-                     aim=(-0.10, -0.78, 0.62), up=(-1.0, 0.1, 0.0), follow=0.6)
+SWORD_FORWARD = dict(wrist=(-0.28, -0.28, -0.30), elbow=(-0.6, 0.7, -0.3),
+                     aim=(-0.30, -0.62, 0.73), up=(-0.9, 0.1, -0.3), follow=0.6)
 # A shield in the left fist (shield="hand"), in front of the left hip.
 RIDE_SHIELD = dict(wrist=(0.25, -0.30, -0.28), down=(0.05, -0.30, -1.0), out=(0.55, -0.83, 0.0),
                    elbow=(1.0, 0.35, -0.4), follow=0.5)
@@ -782,13 +782,13 @@ THROW_LEAN = [(0.0, 0.0), (0.32, -4.0), (0.44, -5.0), (0.54, 9.0), (0.66, 8.0), 
 SLASH = {
     "carry": {k: v for k, v in SWORD_UP.items() if k != "follow"},
     "raised": dict(wrist=(-0.22, 0.06, 0.30), elbow=(-1.0, 0.2, 0.5), aim=(-0.20, 0.55, 0.81), up=(-1.0, 0.0, 0.1)),
-    "level": dict(wrist=(-0.22, -0.52, 0.22), elbow=(-1.0, 0.25, 0.0), aim=(-0.25, -0.93, 0.27), up=(-0.9, 0.0, 0.4)),
-    "down": dict(wrist=(-0.20, -0.40, -0.18), elbow=(-1.0, 0.4, -0.5), aim=(-0.32, -0.66, -0.68), up=(-0.9, 0.0, 0.3)),
+    "level": dict(wrist=(-0.24, -0.54, 0.12), elbow=(-1.0, 0.25, -0.1), aim=(-0.28, -0.94, 0.10), up=(-0.9, 0.0, 0.4)),
+    "down": dict(wrist=(-0.24, -0.42, -0.22), elbow=(-1.0, 0.4, -0.5), aim=(-0.38, -0.60, -0.70), up=(-0.9, 0.0, 0.3)),
 }
-SLASH_KEYS = [(0.0, "carry"), (0.22, "raised"), (0.30, "raised"), (0.40, "level"), (0.50, "down"),
-              (0.62, "down"), (1.0, "carry")]
-SLASH_TWIST = [(0.0, -4.0), (0.22, -20.0), (0.30, -22.0), (0.40, 14.0), (0.50, 18.0), (0.62, 14.0), (1.0, -4.0)]
-SLASH_LEAN = [(0.0, 0.0), (0.22, -4.0), (0.30, -5.0), (0.40, 9.0), (0.50, 11.0), (0.62, 8.0), (1.0, 0.0)]
+SLASH_KEYS = [(0.0, "carry"), (0.18, "raised"), (0.26, "raised"), (0.36, "level"), (0.46, "down"),
+              (0.58, "down"), (1.0, "carry")]
+SLASH_TWIST = [(0.0, -4.0), (0.18, -20.0), (0.26, -22.0), (0.36, 14.0), (0.46, 18.0), (0.58, 14.0), (1.0, -4.0)]
+SLASH_LEAN = [(0.0, 0.0), (0.18, -4.0), (0.26, -5.0), (0.36, 14.0), (0.46, 15.0), (0.58, 10.0), (1.0, 0.0)]
 
 
 def _stroke(table, keys, twist, lean, frames):
@@ -1234,6 +1234,42 @@ def drape_skirts(armature, skirts=SKIRTS, legs="New_legs"):
     for b in armature.pose.bones:
         b.matrix_basis = held[b.name]
     scene.frame_set(0)
+
+
+# The inside of a skirt (T-050). The source tunic (Tunic_1) is cloth with
+# two faces, the outer one and the inner one; the inner one is baked grey
+# (the inside of the cloth, in shadow). Drawn in to the seated thighs, the
+# skirt shows patches of it from the front (iberian-gallic-cavalry, T-047).
+# inner_skirt deletes, from the low copy of the tunic, the faces below the
+# hips that face in, towards the rider's middle: from the inside the skirt
+# is then not drawn at all, and the thighs show through, as under any
+# one-sided cloth.
+INNER_BELOW = 0.05          # metres above the hip joints: the skirt is below this
+INNER_DOT = -0.3            # a face looks in when its normal and the way out from the middle meet below this
+
+
+def inner_skirt(low):
+    """Part.drop for a rider's tunic: delete the skirt's inner faces (see
+    INNER_BELOW). Returns how many."""
+    import bmesh
+
+    pelvis = np.array(bpy.data.objects[whp_skeleton.RIG_NAME].data.bones["pelvis"].head_local)
+    bm = bmesh.new()
+    bm.from_mesh(low.data)
+    gone = []
+    for face in bm.faces:
+        c = np.array(face.calc_center_median())
+        if c[2] > pelvis[2] + INNER_BELOW:
+            continue
+        out = np.array((c[0] - pelvis[0], c[1] - pelvis[1], 0.0))
+        length = np.linalg.norm(out)
+        if length > 1e-6 and float(np.dot(np.array(face.normal), out / length)) < INNER_DOT:
+            gone.append(face)
+    bmesh.ops.delete(bm, geom=gone, context="FACES")
+    bm.to_mesh(low.data)
+    bm.free()
+    low.data.update()
+    return len(gone)
 
 
 def apply_drape(objs):
