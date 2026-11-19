@@ -115,6 +115,14 @@ export interface UnitModel {
   strike: Strike;
   /** Length of the clips block and hit, seconds; 0 for a clip the model does not have. */
   reaction: { block: number; hit: number };
+  /** Length of the clip knockdown (bowled over by a horse, then up again), seconds; 0 for a model without. */
+  knockdown: number;
+  /**
+   * How many cycles of run the clip ridedown is (a rider striking down as his
+   * horse gallops): the scene plays it by the ground covered, in step with
+   * run. 0 for a model without the clip.
+   */
+  rideCycles: number;
   /**
    * What the figure carries besides its weapon and its shield and puts away
    * to fight hand to hand (the spare javelins of a hastatus), or null: the
@@ -393,6 +401,11 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
     strike,
     reaction: { block: chosen.block?.duration ?? 0, hit: chosen.hit?.duration ?? 0 },
+    knockdown: chosen.knockdown?.duration ?? 0,
+    rideCycles:
+      chosen.ridedown && chosen.run && chosen.ridedown !== chosen.run && chosen.run.duration > 0
+        ? Math.max(Math.round(chosen.ridedown.duration / chosen.run.duration), 1)
+        : 0,
     stow,
     height,
     map: source.map,

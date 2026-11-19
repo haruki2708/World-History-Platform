@@ -18,6 +18,7 @@ import {
   type Battle,
   type BattleUnit,
   type Formation,
+  KNOCKDOWN_SECONDS,
   MEN_PER_FIGURE,
   type UnitAction,
   type UnitState,
@@ -209,6 +210,42 @@ export function opposition(battle: Battle, unit: BattleUnit): Opposed {
   };
 }
 
+/** A horse runs into a man on foot (overrun.ts). */
+export interface Knock {
+  /** The man: his number in his unit. */
+  figure: number;
+  /** When, seconds of playback. */
+  seconds: number;
+  /** The way the horse is going, radians clockwise from north. */
+  bearing: number;
+}
+
+/**
+ * Tells where the men of a unit on foot stand at a moment of a phase, for
+ * finding which of them the horses run into: fills x and y (field metres)
+ * and marks the men who stand there with 1 in `standing`.
+ */
+export type Placing = (seconds: number, x: Float32Array, y: Float32Array, standing: Uint8Array) => void;
+
+/**
+ * The enemy horsemen who ride through a unit on foot (UnitAction "overrun";
+ * overrun.ts makes it). The track of the unit asks it which of its men the
+ * horses run into, and when.
+ */
+export interface Trampling {
+  /** Whether enemy horsemen ride through, or close by, in phase `phase` (0 for the first). */
+  active(phase: number): boolean;
+  /**
+   * Every time a horse runs into a man of the unit in the phase, in order of
+   * time. `count` is the figures of the unit; `place` says where they stand.
+   * A man run into is left alone for `rest` seconds after.
+   */
+  contacts(phase: number, count: number, place: Placing, rest: number): Knock[];
+}
+
+/** A man bowled over by a horse is left alone this long, seconds of playback: he is up again before the next. */
+const KNOCK_REST = KNOCKDOWN_SECONDS + 1;
+
 /** Battle time (in phases) to seconds of playback at normal speed. */
 export class BattleClock {
   private readonly cumulative: number[];
@@ -311,6 +348,16 @@ export class UnitTrack {
   private readonly concealed: readonly boolean[];
   /** A fixed random number in [0, 1) per figure. */
   readonly seed: Float32Array;
+  /**
+   * The times enemy horses bowl each figure over (UnitAction "overrun") and
+   * he gets up again: figure i has the entries knockStart[i] to
+   * knockStart[i + 1] of `knockSeconds` (seconds of playback, in order) and
+   * `knockBearing` (the way the horse was going, radians clockwise from
+   * north). Empty for a unit no horseman rides through.
+   */
+  readonly knockStart: Int32Array;
+  knockSeconds: Float32Array = new Float32Array(0);
+  knockBearing: Float32Array = new Float32Array(0);
 
   /** Per keyframe: u (across, -0.5..0.5) and v (front 0 to rear 1) per figure. */
   private readonly slots: Float32Array[];
@@ -342,8 +389,11 @@ export class UnitTrack {
   /**
    * `opposed` (see `opposition`) says where the enemy stands ready to
    * fight the unit hand to hand; without it men fall along the whole front.
+   * `trampling` says where enemy horsemen ride through the unit: the men
+   * who fall in such a phase, unless the unit fights hand to hand, are men a
+   * horse runs into, at the moment it does.
    */
-  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock, opposed?: Opposed) {
+  constructor(battle: Battle, unit: BattleUnit, clock: BattleClock, opposed?: Opposed, trampling?: Trampling) {
     this.unit = unit;
     this.clock = clock;
 
@@ -376,6 +426,8 @@ export class UnitTrack {
     this.deathHeading = new Float32Array(n);
     this.shift = new Float32Array(n);
     this.before = new Float32Array(n);
+    this.knockStart = new Int32Array(n + 1);
+    const knocks: Knock[] = [];
 
     const random = createRng(hashString(`${battle.id}/${unit.id}`));
     const jitterU = new Float32Array(n);
@@ -453,6 +505,10 @@ export class UnitTrack {
         return (lost > 0 ? Math.min(Math.max((from.men - threshold) / lost, 0), 1) : 1) * span;
       };
       const fallen: number[] = [];
+      /** For a man who falls at a moment of his own (under a horse): when in the phase, 0 to 1. */
+      const fallsAt = new Map<number, number>();
+      const ridden = trampling?.active(k) ?? false;
+      const begins = clock.seconds(k);
       if (falls > 0 && fighting) {
         // Hand to hand: the head of a file falls, then the man who stepped
         // up behind him, and so on. The file is drawn at random, a longer
@@ -512,15 +568,74 @@ export class UnitTrack {
           lastFall[file] = j;
         }
       } else if (falls > 0) {
-        for (const i of fallOrder) {
-          if (fallen.length === falls) break;
-          if (this.deathPhase[i] === -1) fallen.push(i);
+        // Under the horses (overrun.ts): the man a horse runs into nearest
+        // the moment a man is due to fall, falls there and then. A man who
+        // falls keeps his place in the formation of the start of the phase,
+        // so that is where the horses are tried against.
+        const taken = new Uint8Array(n);
+        let hits: Knock[] = [];
+        if (ridden && trampling) {
+          const turned = about ? reversed(to) : null;
+          const spot = { x: 0, y: 0 };
+          hits = trampling.contacts(
+            k,
+            n,
+            (moment, x, y, up) => {
+              const formation = this.interpolate(k, Math.min(Math.max((moment - begins) / seconds, 0), 1), turned);
+              up.fill(0);
+              for (const i of standing) {
+                formationPoint(formation, slots[i * 2], slots[i * 2 + 1], spot);
+                x[i] = spot.x;
+                y[i] = spot.y;
+                up[i] = 1;
+              }
+            },
+            0,
+          );
+        }
+        let next = 0;
+        for (let j = 0; j < falls; j++) {
+          const due = begins + fallAt(j) * seconds;
+          // The hit nearest in time whose man still stands: look both ways from the first hit not before `due`.
+          let lo = 0;
+          let hi = hits.length;
+          while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (hits[mid].seconds < due) lo = mid + 1;
+            else hi = mid;
+          }
+          let after = lo;
+          let before = lo - 1;
+          let hit: Knock | null = null;
+          while (after < hits.length || before >= 0) {
+            const a = after < hits.length ? hits[after] : null;
+            const b = before >= 0 ? hits[before] : null;
+            const pick = a !== null && (b === null || a.seconds - due <= due - b.seconds) ? a : b;
+            if (pick === a) after++;
+            else before--;
+            if (pick !== null && taken[pick.figure] === 0) {
+              hit = pick;
+              break;
+            }
+          }
+          if (hit !== null) {
+            taken[hit.figure] = 1;
+            fallen.push(hit.figure);
+            fallsAt.set(hit.figure, Math.min(Math.max((hit.seconds - begins) / seconds, 0), 1));
+            continue;
+          }
+          // No horse comes by any more: as outside a fight.
+          while (next < fallOrder.length && (this.deathPhase[fallOrder[next]] !== -1 || taken[fallOrder[next]] === 1)) next++;
+          if (next === fallOrder.length) break;
+          taken[fallOrder[next]] = 1;
+          fallen.push(fallOrder[next]);
         }
       }
       fallen.forEach((i, j) => {
+        const share = fallsAt.get(i) ?? fallAt(j);
         this.deathPhase[i] = k;
-        this.deathTime[i] = k + fallAt(j);
-        this.deathSeconds[i] = clock.seconds(k + fallAt(j));
+        this.deathTime[i] = k + share;
+        this.deathSeconds[i] = clock.seconds(k + share);
       });
 
       // Where the queue of its file leaves each survivor at the end of the
@@ -590,6 +705,42 @@ export class UnitTrack {
       } else {
         this.fights.push(null);
       }
+
+      // The men the horses bowl over who get up again: tried against where
+      // the men really stand, now that the phase is laid out. A man who falls
+      // in the phase is not bowled over just before: he would be on the
+      // ground when he is to fall.
+      if (ridden && trampling) {
+        const last = clock.seconds(k + 1) - 0.001;
+        const hits = trampling.contacts(
+          k,
+          n,
+          (moment, x, y, up) => {
+            this.sample(clock.time(Math.min(moment, last)), Infinity);
+            x.set(this.x);
+            y.set(this.y);
+            for (let i = 0; i < n; i++) up[i] = this.status[i] === ALIVE ? 1 : 0;
+          },
+          KNOCK_REST,
+        );
+        for (const hit of hits) {
+          if (this.deathPhase[hit.figure] === k && hit.seconds > this.deathSeconds[hit.figure] - KNOCK_REST) continue;
+          knocks.push(hit);
+        }
+      }
+    }
+
+    // The knocks, figure by figure.
+    if (knocks.length > 0) {
+      knocks.sort((a, b) => a.figure - b.figure || a.seconds - b.seconds);
+      this.knockSeconds = new Float32Array(knocks.length);
+      this.knockBearing = new Float32Array(knocks.length);
+      knocks.forEach((knock, q) => {
+        this.knockStart[knock.figure + 1]++;
+        this.knockSeconds[q] = knock.seconds;
+        this.knockBearing[q] = knock.bearing;
+      });
+      for (let i = 0; i < n; i++) this.knockStart[i + 1] += this.knockStart[i];
     }
 
     // Where each fallen figure lies, and the beat of the blows on every figure.

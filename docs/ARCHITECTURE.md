@@ -268,8 +268,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `?battle=<id>`: chọn trận;
   - `?stats=1`: hiện số khung hình/giây và số hình lính;
   - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng;
-  - `?duel=1`: trận nhỏ để xem giáp lá cà (`src/app/battle-lab/duelBattle.ts`): bảy cặp khối trên địa hình của trận đang chọn, tiến lại, chạm nhau, đánh tại chỗ, rồi một bên bị đẩy lùi; cặp thứ năm đánh từ xa, cặp thứ sáu là kỵ binh Numidia, cặp thứ bảy là kỵ binh Gaul (T-050);
-  - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt.
+  - `?duel=1`: trận nhỏ để xem giáp lá cà (`src/app/battle-lab/duelBattle.ts`): tám cặp khối trên địa hình của trận đang chọn, tiến lại, chạm nhau, đánh tại chỗ, rồi một bên bị đẩy lùi; cặp thứ năm đánh từ xa, cặp thứ sáu là kỵ binh Numidia, cặp thứ bảy là kỵ binh Gaul (T-050), cặp thứ tám là kỵ binh Gaul xông qua một khối bộ binh đứng yên (đợt L);
+  - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt;
+  - `?pair=<số>` (cùng `duel=1`): chỉ dựng một cặp; cặp 8 là kỵ binh xông qua bộ binh (đợt L);
+  - `?overrun=1`: trận đang chọn, với kỵ binh xông qua bộ binh mà nó đang đấu (xem mục "Kỵ binh xông qua").
 
 ### Giáp lá cà (đợt G)
 
@@ -331,7 +333,21 @@ Người dùng chọn 2026-11-20: kỵ binh gặp bộ binh thì không dừng l
 - **Ai ngã, ai dậy** (người dùng chọn):
   - Ai nằm trên đường ngựa chạy đều bị xô ngã (`knockdown`), rồi gượng dậy.
   - Số người chết mỗi giai đoạn vẫn lấy từ `men` của hai mốc. Trong khối bị xông qua mà không `fight` với ai, người chết là người bị ngựa xô: anh ta ngã đúng lúc ngựa tới và nằm lại (`die`). Trong khối đang `fight` với một khối khác, người chết vẫn là người đầu hàng dọc như mọi trận giáp lá cà; ngựa chỉ xô ngã người rồi họ dậy.
-- **Cảnh** (chặng A1, đang làm; phần này sẽ được viết lại khi xong): mỗi người cưỡi rời chỗ, phi xuyên khối bộ binh, vòng lại, nhiều lượt trong giai đoạn; đầu và cuối giai đoạn anh ta đứng ở chỗ của mình trong đội hình. Đường đi của từng con ngựa và lúc từng người bị xô ngã đều là hàm của thời gian trong trận, nên tua tới đâu cũng ra cùng một cảnh.
+- **Đường chạy của người cưỡi** (`engine/overrun.ts`, dữ liệu thuần, lớp `Ride`):
+  - Trong giai đoạn `overrun`, mỗi người cưỡi chạy một vòng dài neo ở chỗ của mình trong đội hình: phi thẳng ra theo hướng khối, xuyên qua bộ binh, vòng lại (bán kính khoảng 12 m), phi về lệch sang một bên, vòng lần nữa sau chỗ xuất phát. Anh ta chạy một số nguyên vòng, nên đầu và cuối giai đoạn đứng đúng chỗ trong đội hình.
+  - Phi sâu tới đâu: tới hết khối bộ binh ở phía trước (và khối kế tiếp nếu cách không quá 12 m) rồi thêm khoảng 14 m; tối đa 90 m. Khối sâu hơn thế, và một phần tư số người cưỡi, thì vòng lại ngay trong lòng khối. Chỗ nào của mép trước không có bộ binh phía trước thì người cưỡi ở đó đứng yên.
+  - Mỗi người một khác: độ sâu, bên vòng, lúc xuất phát (trong 3 giây đầu), số vòng, đường lượn trên đoạn thẳng. Tốc độ khoảng 0,7 lần tốc độ tự nhiên của clip `run` (không quá 1,15 lần); lấy đà và ghìm cương trong 1,2 giây.
+  - Vị trí là hàm đóng của thời gian trong trận (`Ride.sample`), nên tua tới đâu cũng ra cùng một cảnh. Người cưỡi ngã giữa vòng thì nằm ở đúng chỗ đó.
+  - Giai đoạn mà khối quay đầu (đổi hướng từ 135°) thì không xông qua.
+- **Ngựa xô vào ai** (`trampling` trong `overrun.ts`, tính một lần lúc nạp trận): cho các con ngựa đi dọc đường chạy theo bước 0,1 giây, so với chỗ đứng của từng người trong mọi khối bộ binh địch ở gần. Ngựa đi qua cách một người không quá 2 m là xô vào người đó. Kết quả nằm trong `UnitTrack` của khối bộ binh (`knockStart`, `knockSeconds`, `knockBearing`).
+  - Người vừa bị xô được yên 5 giây (`KNOCKDOWN_SECONDS` + 1), để kịp đứng dậy.
+  - **Người chết:** trong giai đoạn bị xông qua mà khối không `fight`, mỗi người đến lượt chết (theo `men`) là người bị ngựa xô gần thời điểm đó nhất, và chết đúng lúc ngựa tới. Hết lượt ngựa xô thì chọn như ngoài giáp lá cà. `UnitTrack` nhận việc này qua tham số `trampling`, như `opposed` của giáp lá cà.
+  - Thứ tự dựng: `BattleEngine` dựng `UnitTrack` của các khối kỵ binh có `overrun` trước, rồi `Ride` của chúng, rồi mới tới các khối bộ binh.
+- **Vẽ** (`engine/units.ts`, `figures/material.ts`):
+  - Người cưỡi đang trên vòng được đặt thẳng vào chỗ đồng hồ trận cho, mặt theo hướng chạy, không qua bước làm mượt. Chân ngựa theo quãng đường nó đi: từ đứng yên lên 30% tốc độ phi thì chuyển mờ từ `idle` sang `run`. Giữa đám bộ binh, `ridedown` chuyển mờ đè lên `run` (shader phát `ridedown` theo quãng đường, cùng pha với `run`).
+  - Bộ binh bị xô phát `knockdown` đè lên việc đang làm, bắt đầu `REACTION_IMPACT` trước khi ngựa tới, và xoay nhanh (14 rad/giây) về phía con ngựa. Mô hình chưa có clip thì phát `hit`.
+- **Trang thử:** `/battle-lab?duel=1&pair=8` (kỵ binh Gaul xông qua một khối hastati); `/battle-lab?battle=<id>&overrun=1` xem một trận thật với kỵ binh xông qua, khi dữ liệu trận chưa ghi `overrun` (`src/app/battle-lab/overrunPreview.ts`: khối kỵ binh nào đang `fight` mà có bộ binh địch trước mặt thì đổi thành `overrun`).
+- **Kiểm bằng Node:** `main-tools/overrun/check.mjs` (số vòng, tốc độ, số lần xô, ai chết dưới vó ngựa), `same.mjs` (trận không có `overrun` ra đúng như trước).
 - **Clip:** `knockdown` và `ridedown`, xem mục "Mô hình lính", phần hoạt hình.
 
 ### Phong cảnh (đợt H)

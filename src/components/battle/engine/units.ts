@@ -29,6 +29,7 @@ import { type BlowFigures, Blows } from "./blows";
 import { Melee, type MeleeFigures, swingInto } from "./melee";
 import { type MissileKind, Missiles } from "./missiles";
 import type { Occluder } from "./occlusion";
+import type { Ride, Riding } from "./overrun";
 import type { HeightAt } from "./terrain";
 import { DYING, GONE, type UnitTrack } from "./timeline";
 import { REACTION_IMPACT } from "@/lib/battle";
@@ -197,6 +198,29 @@ const STEP_FULL = 0.45;
 const STOW_SECONDS = 0.3;
 const BLOCK = CLIP_INDEX.block;
 const HIT = CLIP_INDEX.hit;
+
+/**
+ * Horsemen riding through foot (overrun.ts, and "Kỵ binh xông qua" in
+ * docs/ARCHITECTURE.md).
+ *
+ * - A rider on his loop is drawn where overrun.ts has him, facing the way
+ *   he rides: a function of the battle clock, with no easing, so nothing is
+ *   left to catch up after a jump. His horse gallops by the ground he
+ *   covers; from standing to RIDE_GALLOP of the natural speed of the gallop
+ *   the legs fade in from idle. Among the enemy foot the clip ridedown (the
+ *   same gallop, the rider striking down) fades in over run, on a model
+ *   that has it.
+ * - A rider who falls on his loop lies where he was on it.
+ * - A man on foot a horse runs into is bowled over: the clip knockdown, on
+ *   top of whatever he was doing, begun REACTION_IMPACT before the horse
+ *   reaches him. He turns to face the horse as it comes (KNOCK_TURN, radians
+ *   a second: quicker than a man turns at leisure), since the clip throws
+ *   him on his back. A model without the clip flinches (hit) instead.
+ */
+const RIDE_GALLOP = 0.3;
+const KNOCK_TURN = 14;
+const KNOCKDOWN = CLIP_INDEX.knockdown;
+const RIDEDOWN = CLIP_INDEX.ridedown;
 
 /**
  * The press behind the front rank ("Hỗn chiến" in docs/ARCHITECTURE.md). In
@@ -548,6 +572,12 @@ export class UnitBlock {
   private readonly lobs: boolean;
   /** How far its missiles fly when it fights at a distance, metres; set by Crowd.aim. */
   range = RANGE_DEFAULT;
+  /** The loops of its riders when it rides through the enemy (overrun.ts), or null: foot, and horse that never does. */
+  ride: Ride | null = null;
+  /** Scratch: where a rider is on his loop. */
+  private readonly riding: Riding = { forward: 0, right: 0, turn: 0, speed: 0, inside: 0 };
+  /** Per figure that fell on its loop: 1 once where it lies has been worked out. */
+  private readonly fell: Uint8Array;
 
   constructor(
     readonly track: UnitTrack,
@@ -564,6 +594,7 @@ export class UnitBlock {
     this.offX = new Float32Array(track.count);
     this.offY = new Float32Array(track.count);
     this.stowed = new Float32Array(track.count);
+    this.fell = new Uint8Array(track.count);
     this.lastX = new Float32Array(track.count);
     this.lastY = new Float32Array(track.count);
     this.walked = new Float32Array(track.count);
@@ -736,6 +767,25 @@ export class UnitBlock {
     const strikeImpact = Math.min(model.strike.impact, strikeSeconds);
     const handHeight = figureHeight * HAND_HEIGHT;
     const landDrop = figureHeight * (LAND_HEIGHT - HAND_HEIGHT);
+    // Riding through the enemy (see RIDE_GALLOP): the way the block faces, for the loops of its riders.
+    const { ride, riding, fell } = this;
+    let faceSin = 0;
+    let faceCos = 1;
+    let facing = 0;
+    if (ride !== null) {
+      facing = track.formationAt(time).facing;
+      faceSin = Math.sin(facing);
+      faceCos = Math.cos(facing);
+      if (snap) fell.fill(0);
+    }
+    const gallop = (this.gaits.find((g) => g.clip === RUN) ?? this.gaits[this.gaits.length - 1]).speed;
+    const rideClip = model.rideCycles > 0 ? RIDEDOWN : RUN;
+    // Bowled over by a horse (see KNOCK_TURN): the clip, and how long it is.
+    const { knockStart, knockSeconds, knockBearing } = track;
+    const knocked = knockSeconds.length > 0;
+    const knockClip = model.knockdown > 0 ? KNOCKDOWN : HIT;
+    const knockLength = model.knockdown > 0 ? model.knockdown : model.reaction.hit;
+    const knockStep = KNOCK_TURN * tick;
 
     for (const chunk of this.chunks) {
       const posYaw = chunk.posYaw.array as Float32Array;
@@ -779,8 +829,32 @@ export class UnitBlock {
         }
         let ox = offX[i];
         let oy = offY[i];
+        // On his loop through the enemy: where the clock has him, at once.
+        let rides = false;
+        if (ride !== null) {
+          if (status === DYING) {
+            // He lies where he was on his loop when he fell.
+            if (fell[i] === 0 && ride.sample(i, track.deathSeconds[i], riding)) {
+              fell[i] = 1;
+              const there = track.formationAt(track.deathTime[i]).facing;
+              ox = Math.sin(there) * riding.forward + Math.cos(there) * riding.right;
+              oy = Math.cos(there) * riding.forward - Math.sin(there) * riding.right;
+              offX[i] = ox;
+              offY[i] = oy;
+              turn[i] = angleDelta(track.heading[i], there + riding.turn);
+            }
+          } else if (ride.sample(i, clock, riding)) {
+            rides = true;
+            ox = faceSin * riding.forward + faceCos * riding.right;
+            oy = faceCos * riding.forward - faceSin * riding.right;
+            offX[i] = ox;
+            offY[i] = oy;
+            wantX = ox;
+            wantY = oy;
+          }
+        }
         // The fallen lie where they fought; after a jump, in their files.
-        if ((ox !== wantX || oy !== wantY) && (status !== DYING || snap)) {
+        if ((ox !== wantX || oy !== wantY) && (status !== DYING || snap) && fell[i] === 0) {
           const dx = wantX - ox;
           const dy = wantY - oy;
           const d = Math.sqrt(dx * dx + dy * dy);
@@ -851,7 +925,32 @@ export class UnitBlock {
           let t = turn[i];
           // The men who throw face the way of the block; so does a man turning about.
           const limit = (fighting && acts) || track.turningAbout[i] ? 0 : turnLimit;
-          if (opponent !== -1 && figures !== null) {
+          // Bowled over by a horse: seconds into the clip, or -1.
+          let down = -1;
+          if (knocked && knockLength > 0) {
+            for (let q = knockStart[i]; q < knockStart[i + 1]; q++) {
+              const begun = clock - knockSeconds[q] + REACTION_IMPACT;
+              if (begun < 0) break;
+              if (begun < knockLength) {
+                down = begun;
+                // He faces the horse: the clip throws him on his back.
+                target = angleDelta(heading, knockBearing[q] + Math.PI);
+              }
+            }
+          }
+          if (rides) {
+            // On his loop: the way he rides.
+            t = angleDelta(heading, facing + riding.turn);
+            target = t;
+            turn[i] = t;
+            back[i] = 0;
+          } else if (down >= 0) {
+            back[i] = 0;
+            if (snap) t = target;
+            else t += Math.min(Math.max(angleDelta(t, target), -knockStep), knockStep);
+            turn[i] = t;
+            target = t;
+          } else if (opponent !== -1 && figures !== null) {
             // Hand to hand: facing his enemy.
             target = Math.min(Math.max(angleDelta(heading, figures.bearing[i]), -FIGHT_TURN), FIGHT_TURN);
             back[i] = 0;
@@ -912,7 +1011,8 @@ export class UnitBlock {
               const facing = heading + t;
               forward = dx * Math.sin(facing) + dy * Math.cos(facing);
             }
-            const stride = step * reach;
+            // A rider on his loop covers the ground at his own pace, not that of the block.
+            const stride = rides ? step : step * reach;
             walked[i] += forward < -0.5 * step ? -stride : stride;
             moved += step;
           }
@@ -920,10 +1020,22 @@ export class UnitBlock {
           lastY[i] = north;
           // What the legs do: as the block, or the figure's own steps in a
           // block that stands (see STEP_FROM).
-          const from = acts ? fromActing : fromRest;
+          let from = acts ? fromActing : fromRest;
           let to = acts ? this.toActing : this.toRest;
           let mix = weight;
-          if (ownLegs) {
+          if (rides) {
+            // The gallop, from a standing start; among the enemy foot, striking down.
+            const pace = riding.speed / (gallop * RIDE_GALLOP);
+            if (pace < 1) {
+              from = IDLE;
+              to = RUN;
+              mix = pace;
+            } else {
+              from = RUN;
+              to = rideClip;
+              mix = rideClip === RUN ? 0 : riding.inside;
+            }
+          } else if (ownLegs) {
             const vx = velocityX[i];
             const vy = velocityY[i];
             const speedSquared = vx * vx + vy * vy;
@@ -938,7 +1050,12 @@ export class UnitBlock {
           // Seconds since the clip on top began, and until it ends: it fades in and out.
           let since = 0;
           let left = 0;
-          if (blows !== null) {
+          if (down >= 0) {
+            into = down;
+            since = down;
+            left = knockLength - down;
+            overlay = knockClip;
+          } else if (blows !== null) {
             const struck = blows.swing[i];
             const taken = blows.react[i];
             if (struck >= 0) {

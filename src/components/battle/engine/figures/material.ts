@@ -10,10 +10,11 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
- *   iStrike  x: seconds into the clip for a figure fighting hand to hand;
+ *   iStrike  x: seconds into the clip for a figure fighting hand to hand
+ *            (attack, block or hit; engine/melee.ts times the blows) or bowled
+ *            over by a horse (knockdown; engine/overrun.ts), or negative:
+ *            attack then loops on the clock like idle;
  *            y: how far it has put away what its model stows to fight, 0..1
- *            (attack, block or hit; engine/melee.ts times the blows), or
- *            negative: attack then loops on the clock like idle
  *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
@@ -81,6 +82,8 @@ uniform highp sampler2D uBoneTex;
 uniform vec4 uClips[${UNIT_CLIPS.length}];
 // Ground covered by one cycle of walk, run and jog, metres.
 uniform vec3 uStride;
+// How many cycles of run the clip ridedown is.
+uniform float uRideCycles;
 uniform float uTime;
 uniform float uFigScale;
 uniform vec3 uTeam;
@@ -105,7 +108,10 @@ float figFrame(float clip) {
     float stride =
       (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
-  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit}) && iStrike.x >= 0.0) {
+  } else if (index == ${CLIP_INDEX.ridedown}) {
+    // Several cycles of run, in step with it: the horse's legs are where run has them.
+    frame = fract((iAnim.w / (uStride.y * figSize) + iSeed * 23.0) / uRideCycles) * info.y;
+  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit} || index == ${CLIP_INDEX.knockdown}) && iStrike.x >= 0.0) {
     // A blow struck or taken, timed by the fight: played once, from the moment given.
     frame = min(iStrike.x * info.z, info.y - 1.0);
   } else if (info.w > 0.5) {
@@ -242,6 +248,7 @@ export function createFigureMaterials(
     uBoneTex: { value: model.boneTexture },
     uClips: { value: model.clipTable },
     uStride: { value: new Vector3(model.gait.walk.metres, model.gait.run.metres, model.gait.jog.metres) },
+    uRideCycles: { value: Math.max(model.rideCycles, 1) },
     uTeam: { value: new Color(team) },
     uStow: { value: model.stow ? new Vector4(...model.stow.pivot, model.stow.bone) : new Vector4(0, 0, 0, -1) },
   };
@@ -249,6 +256,7 @@ export function createFigureMaterials(
     shader.uniforms.uBoneTex = uniforms.uBoneTex;
     shader.uniforms.uClips = uniforms.uClips;
     shader.uniforms.uStride = uniforms.uStride;
+    shader.uniforms.uRideCycles = uniforms.uRideCycles;
     shader.uniforms.uTeam = uniforms.uTeam;
     shader.uniforms.uStow = uniforms.uStow;
     shader.uniforms.uTime = shared.uTime;

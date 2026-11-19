@@ -19,9 +19,11 @@ interface Block {
   men: number;
   /** One side stays back and throws: the fronts never meet. */
   apart?: number;
+  /** The southern side is horse and rides through the northern foot, which stands (UnitAction "overrun"). */
+  overrun?: boolean;
 }
 
-const BLOCKS: Block[] = [
+const ALL_BLOCKS: Block[] = [
   // The first pair is the one the clips block and hit were tried on first (a thrust against a slash).
   { north: ["roman-principes", "socii-infantry"], south: ["gallic-infantry"], northFront: 130, southFront: 130, depth: 36, men: 3200 },
   { north: ["roman-hastati"], south: ["iberian-infantry"], northFront: 150, southFront: 105, depth: 36, men: 3000 },
@@ -32,6 +34,8 @@ const BLOCKS: Block[] = [
   { north: ["allied-cavalry", "roman-cavalry"], south: ["numidian-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
   // The Gallic horse (T-050): a long sword that cuts, where the other riders thrust.
   { north: ["roman-cavalry", "allied-cavalry"], south: ["gallic-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
+  // Horse riding through foot (batch L): the riders leave their block and gallop through the men, who are bowled over.
+  { north: ["roman-hastati"], south: ["gallic-cavalry"], northFront: 160, southFront: 150, depth: 40, men: 3000, overrun: true },
 ];
 
 const GAP = 40;
@@ -46,9 +50,11 @@ const PHASES: { id: string; en: string; vi: string; seconds: number; hours: numb
   { id: "duel-break", en: "The last ranks", vi: "Những hàng cuối", seconds: 20, hours: 0.5 },
 ];
 
-export function makeDuelBattle(battle: Battle, unitTypes: UnitType[]): Battle {
+/** `only`: a single pair of BLOCKS, counted from 1, in place of them all. */
+export function makeDuelBattle(battle: Battle, unitTypes: UnitType[], only?: number): Battle {
   const [north, south] = battle.sides;
   if (!north || !south) return battle;
+  const BLOCKS = only !== undefined && ALL_BLOCKS[only - 1] ? [ALL_BLOCKS[only - 1]] : ALL_BLOCKS;
   const known = new Set(unitTypes.map((type) => type.id));
   const pick = (ids: string[]) => ids.find((id) => known.has(id)) ?? unitTypes[0]?.id ?? ids[0];
 
@@ -86,6 +92,23 @@ export function makeDuelBattle(battle: Battle, unitTypes: UnitType[]): Battle {
     const distance = block.apart === undefined ? apart : Math.max(apart, block.apart);
     // A pair that keeps its distance throws; the others fight hand to hand.
     const doing: UnitAction = block.apart !== undefined && action === "fight" ? "skirmish" : action;
+    if (block.overrun) {
+      // The foot holds its ground and loses the men the other pairs' losing side loses; the horse loses few.
+      return [
+        {
+          unit: `duel-n${b}`,
+          formation: { center: { x, y: LINE_Y + distance / 2 + block.depth / 2 }, frontage: block.northFront, depth: block.depth, facing: 180 },
+          action: action === "fight" ? "stand" : action,
+          men: Math.round(block.men * southLeft),
+        },
+        {
+          unit: `duel-s${b}`,
+          formation: { center: { x, y: LINE_Y - distance / 2 - block.depth / 2 }, frontage: block.southFront, depth: block.depth, facing: 0 },
+          action: action === "fight" ? "overrun" : action === "advance" ? "charge" : action,
+          men: Math.round(block.men * (1 - (1 - northLeft) * 0.3)),
+        },
+      ];
+    }
     const y = LINE_Y - pushed;
     return [
       {
