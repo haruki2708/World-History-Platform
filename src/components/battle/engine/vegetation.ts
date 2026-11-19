@@ -140,29 +140,80 @@ const KINDS = {
   },
 } satisfies Record<string, Kind>;
 
-/** Triangles with normals, texture coordinates, colours and how far each vertex sways. */
+/**
+ * Quads with normals, texture coordinates, colours and how far each vertex
+ * sways: four vertices and two triangles each (0 1 2, 0 2 3), written
+ * straight into typed arrays that double as they fill. A wooded field such
+ * as Lake Trasimene has millions of vertices (T-055): plain arrays of
+ * numbers, and three loose vertices to a triangle, made the scene slow to
+ * open.
+ */
 class Leaves {
-  readonly positions: number[] = [];
-  readonly normals: number[] = [];
-  readonly uvs: number[] = [];
-  readonly colors: number[] = [];
-  readonly sways: number[] = [];
+  /** Vertices written. */
+  count = 0;
+  private capacity = 0;
+  private positions = new Float32Array(0);
+  private normals = new Float32Array(0);
+  private uvs = new Float32Array(0);
+  private colors = new Float32Array(0);
+  private sways = new Float32Array(0);
+
+  /** Starts a quad: call `vertex` four times after it, in order round the quad. */
+  quad(): void {
+    const needed = this.count + 4;
+    if (needed <= this.capacity) return;
+    const capacity = Math.max(needed, this.capacity * 2, 4096);
+    const grow = (array: Float32Array, size: number) => {
+      const next = new Float32Array(capacity * size);
+      next.set(array.subarray(0, this.count * size));
+      return next;
+    };
+    this.positions = grow(this.positions, 3);
+    this.normals = grow(this.normals, 3);
+    this.uvs = grow(this.uvs, 2);
+    this.colors = grow(this.colors, 3);
+    this.sways = grow(this.sways, 1);
+    this.capacity = capacity;
+  }
 
   vertex(x: number, y: number, z: number, nx: number, ny: number, nz: number, u: number, v: number, color: Color, shade: number, sway: number): void {
-    this.positions.push(x, y, z);
-    this.normals.push(nx, ny, nz);
-    this.uvs.push(u, v);
-    this.colors.push(color.r * shade, color.g * shade, color.b * shade);
-    this.sways.push(sway);
+    const i = this.count++;
+    const p = this.positions;
+    p[i * 3] = x;
+    p[i * 3 + 1] = y;
+    p[i * 3 + 2] = z;
+    const n = this.normals;
+    n[i * 3] = nx;
+    n[i * 3 + 1] = ny;
+    n[i * 3 + 2] = nz;
+    this.uvs[i * 2] = u;
+    this.uvs[i * 2 + 1] = v;
+    const c = this.colors;
+    c[i * 3] = color.r * shade;
+    c[i * 3 + 1] = color.g * shade;
+    c[i * 3 + 2] = color.b * shade;
+    this.sways[i] = sway;
   }
 
   geometry(): BufferGeometry {
+    const vertices = this.count;
+    const quads = vertices / 4;
+    const index = vertices > 65535 ? new Uint32Array(quads * 6) : new Uint16Array(quads * 6);
+    for (let q = 0, v = 0, k = 0; q < quads; q++, v += 4, k += 6) {
+      index[k] = v;
+      index[k + 1] = v + 1;
+      index[k + 2] = v + 2;
+      index[k + 3] = v;
+      index[k + 4] = v + 2;
+      index[k + 5] = v + 3;
+    }
     const geometry = new BufferGeometry();
-    geometry.setAttribute("position", new BufferAttribute(new Float32Array(this.positions), 3));
-    geometry.setAttribute("normal", new BufferAttribute(new Float32Array(this.normals), 3));
-    geometry.setAttribute("uv", new BufferAttribute(new Float32Array(this.uvs), 2));
-    geometry.setAttribute("color", new BufferAttribute(new Float32Array(this.colors), 3));
-    geometry.setAttribute("aSway", new BufferAttribute(new Float32Array(this.sways), 1));
+    geometry.setIndex(new BufferAttribute(index, 1));
+    geometry.setAttribute("position", new BufferAttribute(this.positions.slice(0, vertices * 3), 3));
+    geometry.setAttribute("normal", new BufferAttribute(this.normals.slice(0, vertices * 3), 3));
+    geometry.setAttribute("uv", new BufferAttribute(this.uvs.slice(0, vertices * 2), 2));
+    geometry.setAttribute("color", new BufferAttribute(this.colors.slice(0, vertices * 3), 3));
+    geometry.setAttribute("aSway", new BufferAttribute(this.sways.slice(0, vertices), 1));
     geometry.computeBoundingSphere();
     return geometry;
   }
@@ -197,24 +248,38 @@ function card(
   const ax = -fz;
   const az = fx;
   const h = size / 2;
-  const corners: [number, number, number, number, number][] = [
-    [-h, -height / 2, 0, 0, swayLow],
-    [h, -height / 2, 1, 0, swayLow],
-    [h, height / 2, 1, 1, swayHigh],
-    [-h, height / 2, 0, 1, swayHigh],
-  ];
-  const points = corners.map(([a, up, u, v, sway]) => ({
-    x: cx + ax * a + fx * up * lean,
-    y: cy + up,
-    z: cz + az * a + fz * up * lean,
-    u: u0 + u * side,
-    v: v0 + v * side,
-    sway,
-  }));
-  for (const i of [0, 1, 2, 0, 2, 3]) {
-    const p = points[i];
-    out.vertex(p.x, p.y, p.z, normal[0], normal[1], normal[2], p.u, p.v, color, shade, p.sway);
+  const up = height / 2;
+  const [nx, ny, nz] = normal;
+  out.quad();
+  // Round the card from its lower left corner.
+  out.vertex(cx - ax * h - fx * up * lean, cy - up, cz - az * h - fz * up * lean, nx, ny, nz, u0, v0, color, shade, swayLow);
+  out.vertex(cx + ax * h - fx * up * lean, cy - up, cz + az * h - fz * up * lean, nx, ny, nz, u0 + side, v0, color, shade, swayLow);
+  out.vertex(cx + ax * h + fx * up * lean, cy + up, cz + az * h + fz * up * lean, nx, ny, nz, u0 + side, v0 + side, color, shade, swayHigh);
+  out.vertex(cx - ax * h + fx * up * lean, cy + up, cz - az * h + fz * up * lean, nx, ny, nz, u0, v0 + side, color, shade, swayHigh);
+}
+
+/**
+ * Round a tube of `sides` sides: for each side, the cosine, the sine and the
+ * texture's "there and back" share at its first edge and just short of its
+ * second (see limb), six numbers to a side. Worked out once for each number
+ * of sides: a wood has thousands of trunks.
+ */
+const RINGS = new Map<number, Float64Array>();
+
+function ringTable(sides: number): Float64Array {
+  let table = RINGS.get(sides);
+  if (table) return table;
+  table = new Float64Array(sides * 6);
+  for (let s = 0; s < sides; s++) {
+    for (const [k, at] of [[0, s], [3, s + 1 - 1e-4]] as const) {
+      const a = (at / sides) * Math.PI * 2;
+      table[s * 6 + k] = Math.cos(a);
+      table[s * 6 + k + 1] = Math.sin(a);
+      table[s * 6 + k + 2] = 1 - Math.abs(1 - ((at / sides) * 2) % 2);
+    }
   }
+  RINGS.set(sides, table);
+  return table;
 }
 
 /**
@@ -253,30 +318,42 @@ function limb(
   const qx = (ay * pz) / length;
   const qy = (az * px - ax * pz) / length;
   const qz = (-ay * px) / length;
-  const ring = (t: number, s: number): [number, number, number, number, number, number, number, number, number] => {
-    const a = (s / sides) * Math.PI * 2;
-    const c = Math.cos(a);
-    const d = Math.sin(a);
+  const table = ringTable(sides);
+  // `i`: where in the table the edge's cosine, sine and share round are.
+  const ring = (t: number, i: number): void => {
+    const c = table[i];
+    const d = table[i + 1];
     const r = radiusFrom + (radiusTo - radiusFrom) * t;
     const nx = px * c + qx * d;
     const ny = qy * d;
     const nz = pz * c + qz * d;
     // There and back, round and along.
-    const round = 1 - Math.abs(1 - ((s / sides) * 2) % 2);
+    const round = table[i + 2];
     const along = 1 - Math.abs(1 - ((t * spans) % 2));
-    return [from[0] + ax * t + nx * r, from[1] + ay * t + ny * r, from[2] + az * t + nz * r, nx, ny, nz, u0 + round * side, v0 + along * side, swayFrom + (swayTo - swayFrom) * t];
+    out.vertex(
+      from[0] + ax * t + nx * r,
+      from[1] + ay * t + ny * r,
+      from[2] + az * t + nz * r,
+      nx,
+      ny,
+      nz,
+      u0 + round * side,
+      v0 + along * side,
+      color,
+      1,
+      swayFrom + (swayTo - swayFrom) * t,
+    );
   };
   for (let k = 0; k < spans; k++) {
     const t0 = k / spans;
     // Just short of the next repeat, so that it is not read as the start of one.
     const t1 = (k + 1) / spans - 1e-4;
     for (let s = 0; s < sides; s++) {
-      const s1 = s + 1 - 1e-4;
-      const quad = [ring(t0, s), ring(t0, s1), ring(t1, s1), ring(t1, s)];
-      for (const i of [0, 1, 2, 0, 2, 3]) {
-        const p = quad[i];
-        out.vertex(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], color, 1, p[8]);
-      }
+      out.quad();
+      ring(t0, s * 6);
+      ring(t0, s * 6 + 3);
+      ring(t1, s * 6 + 3);
+      ring(t1, s * 6);
     }
   }
 }
@@ -566,7 +643,7 @@ export class Vegetation {
     }
 
     for (const [key, leaves] of chunks) {
-      if (leaves.positions.length === 0) continue;
+      if (leaves.count === 0) continue;
       const mesh = new Mesh(leaves.geometry(), this.material);
       mesh.customDepthMaterial = this.depthMaterial;
       mesh.castShadow = key.startsWith("t");

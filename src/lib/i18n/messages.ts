@@ -48,21 +48,32 @@ const en = {
   "about.accuracy.battle": "Battles in 3D are reconstructions:",
   "about.accuracy.battle.positions":
     "where the units stood and how they moved follow Polybius and Livy, and much of it is disputed; the “{tab}” tab of the battle view says what is uncertain;",
-  "about.accuracy.battle.campGuard":
-    "Polybius says Hannibal left a guard in his camp, which the Romans left in their large camp attacked during the battle, but he gives no number: the 8,000 Gauls follow a modern estimate, and the fight at the camp gate is reconstructed;",
   "about.accuracy.battle.figures":
     "each figure stands for {men} men, and the figures are drawn larger than life;",
   "about.accuracy.battle.duels":
     "the men who fight in pairs, the press of the ranks behind them and the javelins thrown over the front rank show what hand-to-hand fighting was like; they are not a record of who fought whom, or of what the rear ranks did;",
-  "about.accuracy.battle.time": "Cannae, a battle of about 11 hours, plays in a few minutes;",
+  "about.accuracy.battle.time": "each battle lasted many hours, but plays in a few minutes;",
   "about.accuracy.battle.pulses":
     "the fighting is shown without a pause; in a real battle the lines probably fought in short bursts and drew apart to rest in between;",
-  "about.accuracy.battle.scenery":
-    "the country around the armies is part evidence and part illustration: the hills, the river and the shore follow today’s elevation data, though river and shore have both moved since antiquity; the three camps, the citadel and the village of Cannae are in the ancient sources, but their size, their place and all that stands in them are reconstructed; the ground is drawn green, as in spring, though the battle was fought in high summer, when the plain was harvested and parched; the trees and the small woods on the plain go against Polybius, who calls this country treeless, and are there to make the scene livelier; the farms only show that this was farmed country, and are no record of any real house;",
-  "about.accuracy.battle.dust":
-    "the dust is in Livy, who says the wind the locals call Volturnus blew it into the faces of the Romans; how thick it was, and how much each unit raises in the scene, are guesses;",
   "about.accuracy.battle.colours":
     "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
+  "about.accuracy.battleName": "{battle}:",
+  "about.accuracy.cannae.campGuard":
+    "Polybius says Hannibal left a guard in his camp, which the Romans left in their large camp attacked during the battle, but he gives no number: the 8,000 Gauls follow a modern estimate, and the fight at the camp gate is reconstructed;",
+  "about.accuracy.cannae.scenery":
+    "the country around the armies is part evidence and part illustration: the hills, the river and the shore follow today’s elevation data, though river and shore have both moved since antiquity; the three camps, the citadel and the village of Cannae are in the ancient sources, but their size, their place and all that stands in them are reconstructed; the ground is drawn green, as in spring, though the battle was fought in high summer, when the plain was harvested and parched; the trees and the small woods on the plain go against Polybius, who calls this country treeless, and are there to make the scene livelier; the farms only show that this was farmed country, and are no record of any real house;",
+  "about.accuracy.cannae.dust":
+    "the dust is in Livy, who says the wind the locals call Volturnus blew it into the faces of the Romans; how thick it was, and how much each unit raises in the scene, are guesses.",
+  "about.accuracy.trasimene.site":
+    "Polybius and Livy describe the ground but do not say exactly where it was, and the site is disputed, with proposals up to 20 km apart; the scene follows the reading that puts the battle in the plain between the narrows at Malpasso and Tuoro hill, on the north shore;",
+  "about.accuracy.trasimene.lake":
+    "the shore is today’s, traced from satellite data; the lake often stood lower in antiquity, so the level strip along it was probably a little wider; Polybius and Livy tell of men wading in up to their necks and shoulders, but how steeply the bed falls, and so how deep they stand in the scene, is assumed;",
+  "about.accuracy.trasimene.mist":
+    "the mist is in Polybius and Livy, and Livy says it lay thicker on the plain than on the hills, as the scene draws it; how thick it is drawn and how fast it lifts are assumed, and some modern historians think the mist was made more of to excuse the Romans;",
+  "about.accuracy.trasimene.ambush":
+    "the units lying in ambush are drawn, so you can see where they wait, but without their names or the colour of their side until they charge; Polybius and Livy say roughly where each part of Hannibal’s army lay, but the spot of each party is reconstructed;",
+  "about.accuracy.trasimene.scenery":
+    "the country around the armies is part evidence and part illustration: the camps of Hannibal and Flaminius and the Etruscan village are in the ancient sources, but their size and place are reconstructed; the farms are illustration, though most are drawn burned, as the sources say Hannibal laid the country waste; the woods and the lone trees are illustration too; unlike at Cannae, the green ground agrees with the sources: the battle was fought in late spring, while the grain and grass were still green.",
   "about.credits.heading": "Sources and credits",
   "about.credits.borders":
     "Borders are redrawn by hand, with these references:",
@@ -85,7 +96,8 @@ const en = {
     'Horses based on "{horse}" by Tarnyloo (Blend Swap, {ccBy3}), with the rig and gaits of "{rigged}" by fdoss001 (Blend Swap, CC0). Modified.',
   "about.credits.animations": "Animations from the {library} by Quaternius (CC0).",
   "about.credits.battleSources":
-    "Sources of the battle of Cannae: {polybius} and {livy}. Each battle lists its own sources in the “{tab}” tab of the battle view.",
+    "Each battle lists its own sources in the “{tab}” tab of the battle view. The main ones:",
+  "about.credits.battleSource": "{battle}: {sources}.",
   "about.tutor.heading": "About the AI tutor",
   "about.tutor.model": "The tutor uses Claude, an AI model made by Anthropic.",
   "about.tutor.context":
@@ -320,21 +332,32 @@ const vi: Record<MessageKey, string> = {
   "about.accuracy.battle": "Trận đánh 3D là phỏng dựng:",
   "about.accuracy.battle.positions":
     "vị trí và đường đi của các khối quân dựa theo Polybius và Livy, nhiều chỗ còn tranh cãi; tab “{tab}” trong khung xem trận ghi rõ những gì chưa chắc chắn;",
-  "about.accuracy.battle.campGuard":
-    "Polybius kể Hannibal để lại một toán quân giữ trại, bị toán quân La Mã ở lại trại lớn đánh vào trong lúc diễn ra trận, nhưng không cho quân số: 8.000 lính Gaul là theo một ước lượng hiện đại, còn cuộc đánh ở cổng trại là phỏng dựng;",
   "about.accuracy.battle.figures":
     "mỗi hình lính tượng trưng cho {men} người, và hình lính được vẽ to hơn thật;",
   "about.accuracy.battle.duels":
     "các cặp lính đấu với nhau, cảnh chen lấn ở các hàng sau và những cây lao ném qua đầu hàng trước là minh hoạ cho cảnh giáp lá cà, không phải ghi chép ai đánh với ai hay hàng sau đã làm gì;",
-  "about.accuracy.battle.time": "trận Cannae kéo dài khoảng 11 giờ được phát trong vài phút;",
+  "about.accuracy.battle.time": "mỗi trận thật kéo dài nhiều giờ, nhưng chỉ được phát trong vài phút;",
   "about.accuracy.battle.pulses":
     "cảnh vẽ hai bên đánh liên tục; trong trận thật, nhiều khả năng hai tuyến đánh theo từng đợt ngắn, giữa các đợt thì lùi ra nghỉ;",
-  "about.accuracy.battle.scenery":
-    "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: đồi núi, sông và bờ biển theo dữ liệu độ cao ngày nay, dù sông và bờ biển đều đã đổi chỗ từ thời cổ; ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; mặt đất được vẽ xanh tươi như mùa xuân, dù trận đánh diễn ra giữa hè, khi đồng bằng đã gặt xong và khô nẻ; cây và các khu rừng nhỏ trên đồng trái với lời Polybius rằng vùng này không có cây, được vẽ để cảnh sinh động hơn; nhà nông chỉ cho thấy đây là vùng có canh tác, không phải ghi chép về ngôi nhà nào có thật;",
-  "about.accuracy.battle.dust":
-    "bụi có trong Livy: ông kể ngọn gió dân vùng ấy gọi là Volturnus thổi bụi vào mặt quân La Mã; bụi dày tới đâu, và mỗi khối quân trong cảnh bốc lên bao nhiêu bụi, là phỏng đoán;",
   "about.accuracy.battle.colours":
     "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
+  "about.accuracy.battleName": "{battle}:",
+  "about.accuracy.cannae.campGuard":
+    "Polybius kể Hannibal để lại một toán quân giữ trại, bị toán quân La Mã ở lại trại lớn đánh vào trong lúc diễn ra trận, nhưng không cho quân số: 8.000 lính Gaul là theo một ước lượng hiện đại, còn cuộc đánh ở cổng trại là phỏng dựng;",
+  "about.accuracy.cannae.scenery":
+    "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: đồi núi, sông và bờ biển theo dữ liệu độ cao ngày nay, dù sông và bờ biển đều đã đổi chỗ từ thời cổ; ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; mặt đất được vẽ xanh tươi như mùa xuân, dù trận đánh diễn ra giữa hè, khi đồng bằng đã gặt xong và khô nẻ; cây và các khu rừng nhỏ trên đồng trái với lời Polybius rằng vùng này không có cây, được vẽ để cảnh sinh động hơn; nhà nông chỉ cho thấy đây là vùng có canh tác, không phải ghi chép về ngôi nhà nào có thật;",
+  "about.accuracy.cannae.dust":
+    "bụi có trong Livy: ông kể ngọn gió dân vùng ấy gọi là Volturnus thổi bụi vào mặt quân La Mã; bụi dày tới đâu, và mỗi khối quân trong cảnh bốc lên bao nhiêu bụi, là phỏng đoán.",
+  "about.accuracy.trasimene.site":
+    "Polybius và Livy tả địa thế nhưng không nói chính xác là ở đâu, nên vị trí trận đánh vẫn còn tranh cãi, các giả thuyết cách nhau tới 20 km; cảnh theo cách đọc đặt trận ở đồng bằng giữa lối hẹp Malpasso và đồi Tuoro, bên bờ bắc hồ;",
+  "about.accuracy.trasimene.lake":
+    "bờ hồ là bờ ngày nay, vạch theo dữ liệu vệ tinh; thời cổ nước hồ nhiều lúc thấp hơn, nên dải đất bằng ven hồ có lẽ rộng hơn một chút; Polybius và Livy kể có người lội ra tới khi nước ngập tới cổ, tới vai, nhưng đáy hồ dốc tới đâu, tức người trong cảnh đứng sâu bao nhiêu, là giả định;",
+  "about.accuracy.trasimene.mist":
+    "sương mù có trong Polybius và Livy, và Livy kể sương ở đồng bằng dày hơn trên đồi, như cảnh vẽ; sương dày bao nhiêu và tan nhanh hay chậm là giả định, và một số sử gia hiện đại cho rằng chuyện sương mù đã bị nói quá lên để biện hộ cho quân La Mã;",
+  "about.accuracy.trasimene.ambush":
+    "các khối phục kích vẫn được vẽ để bạn thấy chỗ họ chờ, nhưng không có tên và màu phe cho tới lúc lao xuống; Polybius và Livy kể đại thể từng cánh quân của Hannibal nấp ở đâu, còn chỗ nấp cụ thể của từng toán là phỏng dựng;",
+  "about.accuracy.trasimene.scenery":
+    "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: trại của Hannibal, trại của Flaminius và ngôi làng ở Etruria có trong sử liệu, nhưng kích thước và vị trí là phỏng dựng; các trang trại là minh hoạ, nhưng phần lớn được vẽ đã bị đốt, vì sử liệu kể Hannibal đốt phá vùng quê dọc đường; rừng và cây đứng lẻ cũng là minh hoạ; khác với Cannae, mặt đất xanh ở đây không trái nguồn: trận diễn ra vào cuối xuân, khi lúa và cỏ còn xanh.",
   "about.credits.heading": "Nguồn và ghi công",
   "about.credits.borders": "Biên giới được vẽ tay, tham chiếu:",
   "about.credits.shepherd":
@@ -356,7 +379,8 @@ const vi: Record<MessageKey, string> = {
     'Ngựa dựa trên "{horse}" của Tarnyloo (Blend Swap, {ccBy3}), khung xương và dáng đi từ "{rigged}" của fdoss001 (Blend Swap, CC0). Đã sửa đổi.',
   "about.credits.animations": "Hoạt hình từ {library} của Quaternius (CC0).",
   "about.credits.battleSources":
-    "Nguồn của trận Cannae: {polybius} và {livy}. Mỗi trận ghi nguồn riêng ở tab “{tab}” trong khung xem trận.",
+    "Mỗi trận ghi nguồn riêng ở tab “{tab}” trong khung xem trận. Các nguồn chính:",
+  "about.credits.battleSource": "{battle}: {sources}.",
   "about.tutor.heading": "Về gia sư AI",
   "about.tutor.model": "Gia sư dùng Claude, mô hình AI của Anthropic.",
   "about.tutor.context":

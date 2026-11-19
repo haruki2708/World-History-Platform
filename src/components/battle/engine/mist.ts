@@ -54,6 +54,7 @@ const MIN_DRIFT = 1.5;
  */
 const MIST_ALBEDO = 0.9;
 const MIST_SUN = 0.45;
+/** The exposure of the colour curve by day (BattleEngine); before sunrise the sky raises it (Sky.exposure). */
 const EXPOSURE = 0.8;
 
 /** Density at the base (per metre), base height (metres), 1 / scale height, patchiness. */
@@ -151,8 +152,8 @@ function smooth(edge0: number, edge1: number, x: number): number {
 }
 
 /** The scene's colour curve (grade.ts), from linear light to a colour on screen, one channel. */
-function graded(linear: number): number {
-  const c = linear * EXPOSURE;
+function graded(linear: number, exposure: number): number {
+  const c = linear * exposure;
   const curved = Math.min(Math.max((c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14), 0), 1);
   return curved;
 }
@@ -224,7 +225,8 @@ export class Mist {
       .multiplyScalar(sky.ambient.intensity)
       .add(sun)
       .multiplyScalar(MIST_ALBEDO / Math.PI);
-    light.setRGB(graded(light.r), graded(light.g), graded(light.b));
+    const exposure = EXPOSURE * sky.exposure;
+    light.setRGB(graded(light.r, exposure), graded(light.g, exposure), graded(light.b, exposure));
     // The fog is mixed in after the curve and the conversion to the screen;
     // three.js converts the fog's colour, so it is given in linear light.
     fog.lerp(light, smooth(0, 0.25, amount));
