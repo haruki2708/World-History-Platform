@@ -99,6 +99,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 - **2026-11-19:** Người dùng hỏi lane 1 và lane 3 có đang nghỉ không, rồi giao thêm: T-047 cho lane 1 (LOD ít đường nối UV, sửa kỵ binh, nhát chém Gaul), T-048 cho lane 3 (bụi và gió, chặng 4 của đợt H). Ba lane chạy song song.
 - **2026-11-19:** Người dùng chuyển T-048 (bụi và gió) cho phiên chính; lane 3 để dành cho việc khác.
 - **2026-11-19:** Phiên chính xong [T-048](tasks/T-048-dust-wind.md), chặng 4 của đợt H: khối quân đi nhanh và kỵ binh phi bốc bụi, bụi trôi theo gió Volturnus vào mặt quân La Mã, suy ra từ đồng hồ trận (tua và phát ra đúng từng con số), tắt ở mức chất lượng thấp. Bản đầu làm giai đoạn 1 chậm khoảng 25%; sau khi nhớ lại từng đợt bốc và cho bụi bộ binh thưa đi, đo khi máy rảnh chỉ còn khoảng 3% ở giai đoạn 1, ngang `main` ở giai đoạn 3–4 (từ 57 khung hình/giây trở lên). Hộp thoại Giới thiệu thêm một câu về bụi. Kiểm tra: validate, lint, build qua; hồi quy lõi 17/17. Người dùng duyệt ảnh, câu chữ và cho gộp; đợt H xong cả năm chặng.
+- **2026-11-19:** Lane 2 xong [T-045](tasks/T-045-camp-guard.md): khối `camp-guard` (8 000 lính Gaul, giả định theo một ước lượng hiện đại; Polybius 3.117 không cho số, ngoài tổng 50 000) đánh `camp-force` ở cổng đông trại Hannibal ở giai đoạn 3–5; `camp-force` và `roman-cavalry` ra và về trại lớn qua cổng, ba khối đồng minh ra trại nhỏ qua cổng; phần trại không được dựng lều: trại lớn 34,6% → 6,1%, trại nhỏ 29,8% → 14,4%. Lane 1 xong [T-047](tasks/T-047-lod-cavalry.md): LOD1, LOD2 ít đường nối UV ở cả 11 mô hình (GPU ở góc nhìn mở −19%), vạt áo kỵ binh rủ theo đùi, tóc người Numidia và Baleares xoăn, nhát chém Gaul chạm mép khiên đúng lúc; các clip khác giống hệt từng byte. Ý 9 (người Gaul trong kỵ binh Iberia/Gaul): lane 1 dựng thử quần sọc và vòng cổ, chỉ thấy khi xem cận; người dùng chọn **tách thành hai loại lính, làm sau**.
+  - Phiên chính kiểm tra trên bản gộp thử: validate, lint, `tutor:check`, build qua; hồi quy lõi 17/17; xen kẽ ba vòng với `main` (đã có bụi): không giai đoạn nào chậm hơn, góc nhìn mở nhanh hơn khoảng 13%.
+  - Sửa khi gộp: ghi chú `strength` của Carthage không nêu tên Daly nữa (câu "8 000 người ở lại trại" có trên Wikipedia nhưng không xác nhận được trong sách Daly); hộp thoại Giới thiệu thêm câu về toán giữ trại (người dùng duyệt câu chữ); ARCHITECTURE ghi cách dựng LOD mới và nhát chém Gaul.
+  - Người dùng duyệt gộp. Đợt J xong.
 
 ## Việc để giai đoạn 5
 
@@ -212,12 +216,16 @@ Ngày 2026-11-19, sau khi gộp đợt I, người dùng chọn làm nốt các 
 
 | Việc | Nội dung | Ai | Task | Trạng thái |
 |---|---|---|---|---|
-| Quân giữ trại, đường ra trại | Thêm khối Carthage giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó thay vì đánh từ xa vào trại không người; `camp-force` và `roman-cavalry` ra (và về) trại lớn qua cổng để trại không trống một mảng lều (hiện 34,6% diện tích trại lớn không được dựng lều) | Lane 2 | [T-045](tasks/T-045-camp-guard.md) | Đã giao 2026-11-19 |
+| Quân giữ trại, đường ra trại | Thêm khối Carthage giữ trại của Hannibal (Polybius 3.117), `camp-force` giáp lá cà với nó thay vì đánh từ xa vào trại không người; `camp-force` và `roman-cavalry` ra (và về) trại lớn qua cổng để trại không trống một mảng lều (hiện 34,6% diện tích trại lớn không được dựng lều) | Lane 2 | [T-045](tasks/T-045-camp-guard.md) | Xong, đã gộp 2026-11-19 |
 | Mảng màu phe khi nhìn gần | Giữ mảng màu dưới chân khối quân khi nhìn xa, mờ hẳn khi nhìn gần (hiện còn độ đục 0,1, trông như đất trống dưới chân lính) | Phiên chính | [T-046](tasks/T-046-footprint-fade.md) | Xong, đã gộp 2026-11-19 (người dùng duyệt ảnh trước/sau) |
-| LOD nhẹ hơn, sửa kỵ binh | Xuất lại LOD1, LOD2 của 11 mô hình với ít đường nối UV (lane 3 đo ở T-031: GPU vẽ một khung ở góc nhìn mở 7,4 → 4,6 ms nếu gộp được đỉnh); vạt áo người cưỡi, tóc người Numidia, người Gaul trong kỵ binh Iberia/Gaul; nhát chém của lính Gaul chạm mép khiên sớm 2–3 khung | Lane 1 | [T-047](tasks/T-047-lod-cavalry.md) | Đã giao 2026-11-19 |
+| LOD nhẹ hơn, sửa kỵ binh | Xuất lại LOD1, LOD2 của 11 mô hình với ít đường nối UV (lane 3 đo ở T-031: GPU vẽ một khung ở góc nhìn mở 7,4 → 4,6 ms nếu gộp được đỉnh); vạt áo người cưỡi, tóc người Numidia, người Gaul trong kỵ binh Iberia/Gaul; nhát chém của lính Gaul chạm mép khiên sớm 2–3 khung | Lane 1 | [T-047](tasks/T-047-lod-cavalry.md) | Xong, đã gộp 2026-11-19 (trừ ý 9: người dùng chọn tách hai loại lính, làm sau) |
 | Bụi và gió | Chặng 4 của đợt H: bụi theo khối quân đi nhanh và kỵ binh phi, trôi theo gió Volturnus (Livy 22.43, 22.46); tắt ở mức chất lượng thấp; giữ từ 50 khung hình/giây | Phiên chính (người dùng chuyển từ lane 3) | [T-048](tasks/T-048-dust-wind.md) | Xong, đã gộp 2026-11-19 (người dùng duyệt ảnh và câu Giới thiệu) |
 
 Không ai đụng file của người khác: lane 1 trong `art/` và `public/battles/models/`, lane 2 trong dữ liệu trận, phiên chính trong `src/components/battle/`. Lane 1 chạy Blender nhiều, nên mọi số đo hiệu năng của đợt này phải ghi điều kiện máy và đo xen kẽ với `main`.
+
+**Việc tiếp theo đã chọn, chưa giao:** tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (Polybius 3.114, Livy 22.46): lane 2 tách dữ liệu, lane 1 dựng mô hình kỵ binh Gaul riêng (quần, áo choàng sọc hay kẻ ô, torc, tóc dài và ria, khiên Celt) từ người Celt của `gallic-infantry`. Bản vá quần và torc lane 1 dựng thử ở `E:\World_History_Platform_assets\T-047\patch\`.
+
+**Còn thấy được sau đợt J:** một mảng xám nhỏ (mặt trong của vải) ở sườn trái vạt áo kỵ binh Iberia/Gaul nhìn từ trước; LOD1 của `gallic-infantry` còn 2,16 lần số vị trí; trại Carthage không có lối từ cổng vào giữa trại (đề nghị của lane 2 cho `structures.ts`); trại nhỏ còn 14,4% không có lều vì ba khối giãn đội hình lúc ra cổng.
 
 **Đã nêu, người dùng chưa chọn:** hình nhà và làng; đám đông dày hơn ở chỗ giáp mặt; biển lúc bình minh; móng ngựa trượt khi đi bước (phải xuất lại ba mô hình kỵ binh, nên làm sau T-047).
 

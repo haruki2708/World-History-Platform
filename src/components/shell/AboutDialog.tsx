@@ -123,6 +123,7 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                 {t("about.accuracy.battle")}
                 <ul className="mt-1.5 list-[circle] space-y-1.5 pl-5 marker:text-muted">
                   <li>{fill(t("about.accuracy.battle.positions"), { tab: infoTab })}</li>
+                  <li>{t("about.accuracy.battle.campGuard")}</li>
                   <li>{fill(t("about.accuracy.battle.figures"), { men: MEN_PER_FIGURE })}</li>
                   <li>{t("about.accuracy.battle.duels")}</li>
                   <li>{t("about.accuracy.battle.time")}</li>

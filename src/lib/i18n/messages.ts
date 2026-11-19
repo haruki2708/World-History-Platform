@@ -48,6 +48,8 @@ const en = {
   "about.accuracy.battle": "Battles in 3D are reconstructions:",
   "about.accuracy.battle.positions":
     "where the units stood and how they moved follow Polybius and Livy, and much of it is disputed; the “{tab}” tab of the battle view says what is uncertain;",
+  "about.accuracy.battle.campGuard":
+    "Polybius says Hannibal left a guard in his camp, which the Romans left in their large camp attacked during the battle, but he gives no number: the 8,000 Gauls follow a modern estimate, and the fight at the camp gate is reconstructed;",
   "about.accuracy.battle.figures":
     "each figure stands for {men} men, and the figures are drawn larger than life;",
   "about.accuracy.battle.duels":
@@ -316,6 +318,8 @@ const vi: Record<MessageKey, string> = {
   "about.accuracy.battle": "Trận đánh 3D là phỏng dựng:",
   "about.accuracy.battle.positions":
     "vị trí và đường đi của các khối quân dựa theo Polybius và Livy, nhiều chỗ còn tranh cãi; tab “{tab}” trong khung xem trận ghi rõ những gì chưa chắc chắn;",
+  "about.accuracy.battle.campGuard":
+    "Polybius kể Hannibal để lại một toán quân giữ trại, bị toán quân La Mã ở lại trại lớn đánh vào trong lúc diễn ra trận, nhưng không cho quân số: 8.000 lính Gaul là theo một ước lượng hiện đại, còn cuộc đánh ở cổng trại là phỏng dựng;",
   "about.accuracy.battle.figures":
     "mỗi hình lính tượng trưng cho {men} người, và hình lính được vẽ to hơn thật;",
   "about.accuracy.battle.duels":

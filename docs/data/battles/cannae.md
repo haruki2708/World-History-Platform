@@ -652,6 +652,6 @@ Hàng đầu hai bên ở cổng trại Hannibal đấu từng cặp; có ngư�
 
 ### Còn lại
 
-- Con số 8 000 của Daly mới đọc qua Wikipedia, chưa đối chiếu với sách. Nếu đọc được sách thì nên xem lại cả câu "8 000 người ở trại nằm trong hay ngoài 16 000 Gaul" (ở trên) lẫn bảng chia quân ở mục 5.
+- Con số 8 000 của Daly mới đọc qua Wikipedia, chưa đối chiếu với sách. Phiên chính tìm thêm khi gộp (2026-11-19): câu "8 000 người ở lại trại" có trong bài Wikipedia, nhưng không xác nhận được nó nằm trong sách của Daly; có thể đến từ một sách khác cùng năm (Healy, *Cannae 216 BC*, Osprey 2002). Ghi chú `strength` của Carthage vì thế nói "ước lượng hiện đại do Wikipedia nêu", không nêu tên Daly. Nếu đọc được sách thì nên xem lại cả câu "8 000 người ở trại nằm trong hay ngoài 16 000 Gaul" (ở trên) lẫn bảng chia quân ở mục 5.
 - Trại không vẽ luỹ và cổng: chỗ đánh nhau chỉ đọc ra là cổng trại nhờ khoảng trống trong lều.
 - Hộp thoại Giới thiệu chưa nói toán giữ trại là phỏng dựng; đề nghị câu chữ ở mục "Kết quả" của `docs/tasks/T-045-camp-guard.md`.
