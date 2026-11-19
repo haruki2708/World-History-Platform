@@ -309,7 +309,7 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
 
 ### Phong cảnh (đợt H)
 
-Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Chặng 2 (T-039) dựng công trình. Chặng 3 (T-040) trồng cây, kể cả trong các mảng đất riêng (`areas`). Bụi **chưa được vẽ**; gió mới chỉ làm cây nghiêng.
+Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Chặng 2 (T-039) dựng công trình. Chặng 3 (T-040) trồng cây, kể cả trong các mảng đất riêng (`areas`). Chặng 4 (T-048, làm ở đợt J) vẽ bụi; gió làm cây và bụi cỏ nghiêng, và mang bụi đi.
 
 - **Nguyên tắc:** vẽ cho giống thật, nhưng mỗi thứ phải nói rõ nó dựa vào đâu. Mọi phần của phong cảnh mang một `evidence` (kiểu `SceneryEvidence`):
   - `basis`: `attested` (nguồn cổ nói có; bắt buộc kèm `sources`), `inferred` (suy từ nguồn hoặc từ địa hình), hoặc `illustrative` (không có căn cứ, chỉ hợp với vùng và thời ấy).
@@ -326,6 +326,12 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - Khối quân có thể đứng trong trại của mình (lúc ra quân, lúc rút về). Cảnh để trống chỗ đó: lều không được dựng ở nơi một khối quân đứng hay đi qua.
   - **Trong cảnh** (T-039, `engine/structures.ts`): mọi công trình được sinh bằng code lúc mở trận, bám theo mặt đất, có hạt giống ngẫu nhiên là id trận và id công trình (cùng một trận luôn ra cùng một cảnh). Không có file mô hình nào. Trại chỉ vẽ lều: hào, luỹ và cọc rào không được vẽ (người dùng chọn, 2026-11-18). Trại của bên có id `rome` xếp lều theo quy tắc (đường lớn, lối đi); trại của bên khác xếp lỏng. Một lều cho chừng `MEN_PER_FIGURE` người. Chi tiết ở `docs/tasks/T-039-structures.md`.
 - **Gió** (`scenery.wind`): `from` là hướng gió thổi **tới từ đâu**, độ theo chiều kim đồng hồ từ hướng bắc; `speed` tính bằng mét mỗi giây. **Bụi** (`scenery.dust`): `level` từ 0 (đất ẩm, không bụi) tới 1 (đất khô nẻ, bụi dày).
+- **Bụi trong cảnh** (T-048, `engine/dust.ts`):
+  - **Ai bốc bụi:** khối quân đi nhanh, theo tốc độ trên sân, tính bằng mét mỗi giây phát. Bộ binh bắt đầu từ 6 m/s, nhiều nhất từ 45; kỵ binh từ 5 và 32. Trận chạy trên đồng hồ nén: bộ binh dàn quân đi 30–70 m/s, kỵ binh vòng sau lưng quân La Mã 45–60. Mép trước của khối đang `fight` cũng bốc một ít.
+  - **Mỗi đám bụi:** cứ 0,25 giây phát, mỗi khối có thể bốc vài đám ở phần sau đội hình của nó lúc đó và ngay sau đó (kỵ binh nhiều hơn, mỗi 200 người một đám; bộ binh mỗi 1 000 người; tối đa 12). Đám bụi nằm lại chỗ bốc lên, trôi theo gió (90% tốc độ `wind.speed`, ít nhất 1,5 m/s), nở ra, bay lên chậm và tan sau 3,6–5,5 giây (bộ binh ngắn hơn). Độ đậm nhân với `level`.
+  - **Suy ra từ đồng hồ trận**, như vật bay: mỗi khung tính lại mọi đám còn sống từ thời gian trận và `UnitTrack.formationAt`. Một đợt bốc được nhớ lại trong một vòng đệm cho các khung sau; bỏ vòng đệm đi vẫn ra đúng từng con số. Tua tới đâu cũng ra cùng cảnh như khi phát tới đó; dừng phát thì bụi đứng yên. `BattleClock.time` đổi giây phát ra thời gian trận.
+  - **Vẽ:** một `InstancedBufferGeometry` các tấm vuông luôn quay về camera, ảnh mây sinh bằng code (bốn mẫu). Ánh sáng lấy từ `Sky` như một mặt mờ, sáng lên khi nhìn ngược nắng; đi qua sương mù và đường cong màu như cả cảnh. Đám bụi mờ dần khi chạm đất, và khi ở gần camera.
+  - **Mức chất lượng thấp không có bụi.** Hiệu năng (2026-11-19, máy rảnh, bản production): lúc phát giai đoạn 1 (cả hai đạo quân dàn trận, khoảng 2 300 đám) chậm hơn `main` khoảng 3%; giai đoạn 3 và 4 ngang `main`.
 - **Trận không có `scenery`** vẫn hợp lệ: mặt đất vẽ như trước đợt H (không có ô ruộng), sông đầy nước và không có dải bờ.
 - **Vùng xa** (`terrain.far`, kiểu `BattleFarTerrain`, T-038): một lưới độ cao thưa của cả vùng quanh chiến trường, cùng định dạng với lưới chính, để chân trời có đồi núi và biển thật.
   - Phải vượt ra ngoài lưới chính ít nhất hai ô của nó ở mọi phía. Không có thì mặt đất kéo phẳng từ mép lưới chính ra 40 km như trước.
@@ -374,4 +380,5 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
 - **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
-- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Còn lại: bụi và gió.
+- **Đợt J:** làm nốt trận Cannae: quân giữ trại của Hannibal, ra trại qua cổng (T-045, lane 2); mảng màu phe mờ khi nhìn gần (T-046); LOD ít đường nối UV, sửa kỵ binh (T-047, lane 1); bụi và gió (T-048).
+- **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Chặng 4 (T-048, đợt J): bụi.

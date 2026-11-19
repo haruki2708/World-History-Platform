@@ -57,6 +57,8 @@ const en = {
     "the fighting is shown without a pause; in a real battle the lines probably fought in short bursts and drew apart to rest in between;",
   "about.accuracy.battle.scenery":
     "the country around the armies is part evidence and part illustration: the hills, the river and the shore follow today’s elevation data, though river and shore have both moved since antiquity; the three camps, the citadel and the village of Cannae are in the ancient sources, but their size, their place and all that stands in them are reconstructed; the ground is drawn green, as in spring, though the battle was fought in high summer, when the plain was harvested and parched; the trees and the small woods on the plain go against Polybius, who calls this country treeless, and are there to make the scene livelier; the farms only show that this was farmed country, and are no record of any real house;",
+  "about.accuracy.battle.dust":
+    "the dust is in Livy, who says the wind the locals call Volturnus blew it into the faces of the Romans; how thick it was, and how much each unit raises in the scene, are guesses;",
   "about.accuracy.battle.colours":
     "equipment and colours follow the ancient sources and surviving objects, but some colours were chosen only to tell the armies apart.",
   "about.credits.heading": "Sources and credits",
@@ -323,6 +325,8 @@ const vi: Record<MessageKey, string> = {
     "cảnh vẽ hai bên đánh liên tục; trong trận thật, nhiều khả năng hai tuyến đánh theo từng đợt ngắn, giữa các đợt thì lùi ra nghỉ;",
   "about.accuracy.battle.scenery":
     "cảnh vật quanh hai đạo quân có phần theo tư liệu, có phần minh hoạ: đồi núi, sông và bờ biển theo dữ liệu độ cao ngày nay, dù sông và bờ biển đều đã đổi chỗ từ thời cổ; ba trại, thành và làng Cannae có trong sử liệu, nhưng kích thước, vị trí và mọi thứ bên trong là phỏng dựng; mặt đất được vẽ xanh tươi như mùa xuân, dù trận đánh diễn ra giữa hè, khi đồng bằng đã gặt xong và khô nẻ; cây và các khu rừng nhỏ trên đồng trái với lời Polybius rằng vùng này không có cây, được vẽ để cảnh sinh động hơn; nhà nông chỉ cho thấy đây là vùng có canh tác, không phải ghi chép về ngôi nhà nào có thật;",
+  "about.accuracy.battle.dust":
+    "bụi có trong Livy: ông kể ngọn gió dân vùng ấy gọi là Volturnus thổi bụi vào mặt quân La Mã; bụi dày tới đâu, và mỗi khối quân trong cảnh bốc lên bao nhiêu bụi, là phỏng đoán;",
   "about.accuracy.battle.colours":
     "trang bị và màu sắc dựa theo sử liệu và hiện vật, nhưng một số màu chỉ là lựa chọn để phân biệt các đạo quân.",
   "about.credits.heading": "Nguồn và ghi công",

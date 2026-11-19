@@ -98,4 +98,51 @@ Cây và bụi cỏ đã nghiêng theo hướng gió. Nếu rẻ thì thêm cơn
 
 ## Kết quả
 
-(Phiên chính điền khi xong.)
+Xong 2026-11-19 trên nhánh `batch-j/dust-wind` (worktree `E:\World_History_Platform_assets\wt-dust`). Người dùng xem ảnh bản cắt đầu và chọn "Đạt, hoàn thiện để gộp".
+
+### Đã làm
+
+- **`engine/dust.ts`** (mới), lớp `Dust`; `BattleEngine` tạo nó sau cỏ, gọi `update` mỗi khung khi mức chất lượng là cao, và tắt hẳn ở mức thấp. Cách làm ghi ở `docs/ARCHITECTURE.md`, mục "Phong cảnh", đoạn "Bụi trong cảnh".
+  - Khối đi nhanh bốc bụi theo tốc độ trên sân. Kỵ binh nhiều hơn bộ binh; mép trước của khối đang `fight` bốc một ít.
+  - Đám bụi nằm lại chỗ bốc lên, trôi theo gió (Cannae: từ đông nam, nên về phía tây bắc, vào mặt quân La Mã), nở, bay lên, tan.
+  - Màu đất khô, ánh sáng từ `Sky`, sáng lên khi nhìn ngược nắng, qua sương mù và đường cong màu.
+- **`BattleClock.time`** (`timeline.ts`): đổi giây phát ra thời gian trận, ngược với `seconds`.
+- **Hộp thoại Giới thiệu:** dòng mới `about.accuracy.battle.dust` sau dòng cảnh vật, cả `en` lẫn `vi` (câu chữ chờ người dùng duyệt khi gộp).
+- **Gió:** không thêm cơn gió (không bắt buộc). Cây và bụi cỏ đã nghiêng theo hướng gió từ trước.
+
+### Hiệu năng
+
+Bản đầu tốn nhiều: giai đoạn 1 mất khoảng 25% khung hình, vì mỗi khung tính lại hơn 4 000 đám từ đầu (1,9 ms) và các đám bụi lớn chồng lên nhau. Đã sửa:
+- mỗi đợt bốc chỉ tính một lần rồi nhớ lại trong vòng đệm: phần tính còn 0,35 ms mỗi khung ở giai đoạn 1;
+- đám bụi nở chậm hơn, sống ngắn hơn;
+- bụi bộ binh thưa đi khoảng 40% và tan sớm hơn.
+
+Đo lần cuối khi máy rảnh (không có Blender), hai bản production, xen kẽ ba vòng với `main`. `main-tools/drive/s-perfdust.mjs` in số khung hình mỗi giây lúc dừng ở góc nhìn mở và lúc phát giai đoạn 1, 3, 4:
+
+| Vòng | `main`: mở / gđ 1 / gđ 3 / gđ 4 | Nhánh: mở / gđ 1 / gđ 3 / gđ 4 |
+|---|---|---|
+| 1 | 81,8 / 57,8 / 60,8 / 45,5 | 78,6 / 43,7 / 49,0 / 53,5 |
+| 2 | 89,2 / 60,1 / 62,9 / 60,9 | 90,1 / 60,3 / 64,9 / 61,1 |
+| 3 | 92,7 / 62,4 / 63,1 / 60,5 | 89,9 / 57,7 / 60,4 / 59,9 |
+
+- Vòng 1 nhiễu ở cả hai phía (máy vừa khởi động).
+- Bật và tắt bụi xen kẽ trên cùng trang, bốn lần mỗi giai đoạn (`s-dustab.mjs`): giai đoạn 1 +0,9%, giai đoạn 3 +0,8%, giai đoạn 4 −1,0%, tức trong độ nhiễu.
+- Kết luận: giai đoạn 1 chậm hơn `main` khoảng 3% (khoảng 2 300 đám bụi); giai đoạn 3 và 4 ngang `main`. Vẫn trên 57 khung hình/giây.
+
+### Kiểm tra
+
+- Tua bằng phát (`s-dustcheck.mjs`): ở 5 thời điểm (7, 33, 56, 82, 128 giây phát; 417 tới 2 374 đám), phát từng khung 1/60 giây tới đó và tua thẳng tới đó cho ra đúng từng con số.
+- Mức chất lượng thấp: mesh bụi ẩn, 0 đám.
+- Ảnh trước (tắt bụi) và sau (bật bụi), cùng bản, cùng góc: `E:\World_History_Platform_assets\duyet\T-048\` (dàn quân lúc 6:15, kỵ binh xung phong 8:51, kỵ binh phi vòng 10:23, giáp lá cà 10:30, buổi chiều 15:10).
+- Kịch bản mới ở `main-tools/drive/`: `s-dust.mjs`, `s-dustshots.mjs`, `s-perfdust.mjs`, `s-dustcost.mjs`, `s-dustab.mjs`, `s-dustcheck.mjs`.
+
+### Bẫy gặp khi làm
+
+- Lane 1 (T-047) cũng dùng driver ở `main-tools/drive` với cổng mặc định 9343, nên hai bên tranh một Chrome và kịch bản treo (`unsettled top-level await`). Phiên chính chạy với `PORT=9361`.
+- Ảnh đầu tiên của `s-dustshots.mjs` khi không đặt camera ra màu đen, dù cảnh vẫn vẽ (kiểm bằng số khung và ảnh chụp riêng). Luôn đặt camera tường minh.
+
+### Còn lại
+
+- Bụi chỉ theo khối, không theo từng hình lính. Ở cận cảnh, chân ngựa và người ngay trước camera không có bụi riêng, vì đám bụi gần camera mờ đi.
+- Không có lớp bụi chung trôi trên cả đồng; bụi chỉ có ở chỗ có quân đi hay đánh.
+- Tấm bụi phẳng cắt qua hình lính thành một đường mờ khi nhìn gần; với độ đậm hiện nay khó thấy.
