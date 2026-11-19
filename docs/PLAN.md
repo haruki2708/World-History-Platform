@@ -11,7 +11,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
 | 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Đang làm. Xong: T-007 (giới hạn, trần chi phí), T-008 (link chia sẻ, nhớ ngôn ngữ, phím tắt), T-013 (giới thiệu, ghi công) |
 | 6. Mở rộng | Gia sư dẫn đường trên bản đồ; sau đó quiz, thời kỳ mới | Lane 1 (T-010), Lane 2 (T-011) | Câu trả lời có nút đưa tới đúng sự kiện và năm | Gia sư dẫn đường xong ở chế độ giả lập và với máy chủ Claude giả (T-010, T-011, đã gộp 2026-11-16); chưa thử với model thật |
-| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H"; đợt I (đồ hoạ theo ảnh mẫu) gộp 2026-11-19; đợt J (làm nốt Cannae) xong 2026-11-19; đợt K (trận thứ hai, hồ Trasimene) xong 2026-11-19 |
+| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H"; đợt I (đồ hoạ theo ảnh mẫu) gộp 2026-11-19; đợt J (làm nốt Cannae) xong 2026-11-19; đợt K (trận thứ hai, hồ Trasimene) xong 2026-11-19; đợt L (kỵ binh xông qua bộ binh, làm đẹp lính) bắt đầu 2026-11-20 |
 
 ## Nhật ký
 
@@ -147,6 +147,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Phiên chính kiểm bằng script riêng: độ lệch đúng như lane báo; trong 210 vị trí khối quân, bờ cũ đặt 103 vị trí trên cạn xuống nước, bờ mới không đặt vị trí nào. Dựng lại `basemap.json` từ script ra đúng từng byte; biển, sông và 413 hồ khác không đổi. `lint`, `validate`, `build`, `tutor:check` qua. Người dùng duyệt gộp.
   - Sửa khi gộp: ghi công Copernicus cho bờ hồ ở README, `docs/data/SOURCES.md` và dòng bản đồ nền trong hộp thoại Giới thiệu; ARCHITECTURE nói script dựng bản đồ nền đọc bờ hồ từ file trận.
   - **Đợt K xong.** Để lại, theo đề nghị của lane 2: hồ đã mất từ thời cổ (Fucinus, Copais) cần nguồn tái dựng và ghi công riêng; hồ ngoài vùng đã xét (Scandinavia, Nga, bờ bắc biển Caspi) xét tiếp khi bản đồ cần tới.
+- **2026-11-20:** Người dùng xem app và hai trận trên bản production của `main`. Trận 3D giật: Chrome của người dùng tắt tăng tốc phần cứng (vẽ bằng CPU) và Windows để Chrome dùng card tích hợp. Mọi số đo khung hình/giây của phiên chính trước đó đều ép dùng RTX 3050 (`GPU=1`), nên không lộ ra. Người dùng bật lại, trận chạy mượt. Người dùng chọn hướng tiếp: kỵ binh xông qua bộ binh và làm đẹp lính 3D (mục "Đợt L"); phiên chính làm hợp đồng và logic cảnh.
 
 ## Việc để giai đoạn 5
 
@@ -296,6 +297,41 @@ Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng vi�
 - Sự kiện mới do phiên chính thêm vào `events.json` (file của lane 3), vì lane 3 đang để cho việc khác.
 
 **Rủi ro thấy trước:** vị trí trận và bờ hồ thời cổ đều không chắc (cảnh theo bờ hồ ngày nay, nói rõ); khối quân là hình chữ nhật nên cột hành quân phải chia thành nhiều khối ngắn; sương mù che chính cảnh cần xem, phải vừa đủ.
+
+## Đợt L: kỵ binh xông qua bộ binh, làm đẹp lính 3D
+
+Người dùng chọn 2026-11-20, sau khi xem cả app và hai trận trên bản production. (Trước đó trận 3D giật trên máy người dùng vì Chrome tắt tăng tốc phần cứng và Windows để Chrome dùng card tích hợp; bật lại thì chạy mượt trên RTX 3050.)
+
+**Yêu cầu của người dùng:** kỵ binh lao vào bộ binh thì bộ binh ngã mỗi khi các hàng kỵ binh đi xuyên qua; kỵ binh đi xuyên qua hỗn loạn để đạp bộ binh, thay vì đi từng hàng rồi đứng đó đánh. Kèm theo: làm đẹp lính 3D.
+
+**Hiện trạng:** kỵ binh đánh như bộ binh (đợt G): hai khối áp mép trước vào nhau, người đầu hàng đấu từng cặp, ngựa đứng yên chạm mũi nhau.
+
+**Người dùng chọn:**
+- Bộ binh trên đường ngựa chạy đều bị xô ngã. Người đến lượt chết theo tư liệu thì nằm lại, người khác gượng dậy sau vài giây. Số người chết mỗi giai đoạn vẫn theo dữ liệu trận.
+- Làm đẹp lính, cả bốn việc: mỗi lính một vẻ; sửa chân trượt khi chạy; sửa ngựa và người cưỡi; lính nhìn gần chi tiết hơn.
+- Phiên chính làm hợp đồng và logic cảnh, như đợt G. Lane làm clip, mô hình và dữ liệu.
+
+**Phần A: kỵ binh xông qua**
+
+| Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
+|---|---|---|---|---|---|
+| A0 | Hợp đồng: hành động mới cho kỵ binh (xông qua khối địch) và kiểm tra trong `npm run validate`; hai clip mới trong `UNIT_CLIPS` (bộ binh bị xô ngã rồi gượng dậy; kỵ binh đánh trong lúc ngựa phi), kèm độ dài và mốc thời gian | Phiên chính | `battle.ts`, ARCHITECTURE và script kiểm tra đã có; task cho lane 1 đã viết | | Chờ duyệt kế hoạch |
+| A1 | Cảnh, dùng clip sẵn có trước: khi xông, mỗi con ngựa chạy một đường riêng xuyên qua khối bộ binh, ra phía sau, vòng lại; bộ binh trên đường ngựa ngã đúng lúc ngựa tới; người chết theo dữ liệu nằm lại. Mọi thứ là hàm của thời gian, tua tới đâu cũng ra cùng một cảnh. Bản thử trong `/battle-lab?duel=1` | Phiên chính | Người dùng xem bản thử và duyệt | | |
+| A2 | Hai clip mới: ngã rồi dậy cho 8 mô hình bộ binh, đánh lúc ngựa phi cho 4 mô hình kỵ binh. Làm một mô hình mỗi loại trước, người dùng xem rồi mới làm hết | Lane 1 | Clip chạy trong bản thử | | |
+| A3 | Dữ liệu hai trận: Cannae giai đoạn 6 (kỵ binh Iberia và Gaul đánh vào lưng quân La Mã; Polybius 3.116), hồ Trasimene (kỵ binh của Hannibal đánh vào đoàn quân). Kỵ binh đấu kỵ binh giữ như cũ. Một câu về độ chính xác trong hộp thoại Giới thiệu | Lane 2; lane 1 phần hộp thoại | Xem được trong app; hồi quy qua; đo khung hình/giây không giảm | | |
+
+**Phần B: làm đẹp lính** (chạy song song với phần A ở các lane; mỗi việc có ảnh trước và sau cho người dùng duyệt)
+
+| Việc | Nội dung | Ai | Task | Trạng thái |
+|---|---|---|---|---|
+| B1 | Mỗi lính một vẻ: vài kiểu mặt, tóc, râu, màu áo, hoạ tiết khiên cho mỗi loại lính; cảnh chọn cố định cho từng người. Phiên chính chốt cách làm trong hợp đồng trước (vẫn một vật liệu, vẽ theo lô) | Phiên chính (hợp đồng, cảnh), lane 1 (mô hình) | | |
+| B2 | Chân trượt khi chạy: đo xem khối nào, giai đoạn nào vượt trần của clip, rồi đưa người dùng chọn cách sửa (dữ liệu, trần phát clip, hay cả hai) | Phiên chính đo; sửa tuỳ lựa chọn | | |
+| B3 | Ngựa và người cưỡi: móng trượt khi đi bước (file ngựa của lane 2); vạt áo xoè, chân người cưỡi cứng, cú ngã của kỵ binh (lane 1) | Lane 2, lane 1 | | |
+| B4 | Nhìn gần chi tiết hơn: dùng mức chi tiết cao từ xa hơn, làm lại mức thấp cho bớt giống hình khối; đo khung hình/giây trên máy người dùng (RTX 3050), giữ từ 50 trở lên | Lane 3 nếu còn hạn mức, không thì phiên chính; lane 1 phần mô hình | | |
+
+**Thứ tự:** A0 trước (một buổi), để lane 1 bắt đầu clip trong lúc phiên chính làm A1. Lane 2 làm B3 (ngựa đi bước) trong lúc chờ hợp đồng, rồi A3. B1 và B4 bắt đầu sau khi A2 xong, vì cùng đụng các file mô hình.
+
+**Rủi ro thấy trước:** ngựa chạy xuyên khối phải là hàm của thời gian mà vẫn trông hỗn loạn; người ngã rồi dậy không được đè lên nhịp đấu từng cặp đang có ở mép khối; thêm clip làm ảnh hoạt hình của mỗi mô hình lớn hơn (giới hạn 4 MB mỗi file); số khung hình/giây khi hàng trăm ngựa và người ngã cùng lúc.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 
