@@ -142,6 +142,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - **Thời gian tải:** nguyên nhân là cây, khoảng 7 triệu đỉnh, gấp gần chín lần Cannae. Cây giờ ghi vào mảng có kiểu, mỗi tấm lá là bốn đỉnh có chỉ số (ít hơn một phần ba số đỉnh, hình giống hệt), và mô hình lính tải trong lúc dựng mặt đất. Trasimene sẵn sàng sau 6,3 giây thay vì 8,2 (Cannae 5,7). Số khung hình/giây của Trasimene còn tăng.
   - **Mép nước:** hết quầng vàng quanh đảo khi nhìn xa, hết vệt trắng đứt khúc khi nhìn gần.
   - Kiểm tra: `lint`, `validate`, `build`, `tutor:check`, hồi quy lõi 17/17; Cannae không đổi khi so từng điểm ảnh với `main`. Người dùng duyệt gộp.
+- **2026-11-19:** Lane 2 xong phần đầu [T-056](tasks/T-056-map-lake-trasimene.md). Hồ Trasimene không có trong `ne_10m_lakes`; lane 2 lấy từ file bổ sung `ne_10m_lakes_europe`, chọn theo danh sách 110 hồ tự nhiên có từ thời cổ, vì phân loại của file không tách được hồ đập. Phiên chính kiểm: biển, sông và 304 hồ cũ không đổi; `lint`, `validate` qua. Bờ bắc hồ Trasimene của Natural Earth lệch lên phía bắc khoảng 0,8 km, nên lúc bay tới, đoàn quân La Mã nằm trên nước. Người dùng chọn dùng đường bờ trong file trận (Copernicus) và ghi thêm nguồn; lane 2 làm tiếp trên cùng nhánh (mục 5 của task), rồi gộp một lượt.
 
 ## Việc để giai đoạn 5
 

@@ -39,6 +39,26 @@ Commit sau mỗi phần việc lớn.
 - Ảnh ở `E:\World_History_Platform_assets\duyet\T-056\`: bản đồ quanh miền trung Ý năm 217 TCN trước và sau (nền sáng và nền tối), và một ảnh lúc bay tới chiến trường. Driver chụp của phiên chính (`E:\World_History_Platform_assets\main-tools\drive`; kịch bản bay có sẵn: `s-transition-k.mjs`): đặt `PORT=9362`.
 - Bản đồ ở các năm khác và các vùng khác không đổi ngoài các hồ mới.
 
+### 5. Bờ hồ Trasimene theo file trận (người dùng chọn 2026-11-19, sau review)
+
+Phiên chính đã review phần 1–4: đạt. Người dùng chọn cách (b) trong đề nghị 1 của bạn: hồ Trasimene trên bản đồ nền lấy đường bờ trong file trận, không lấy của Natural Earth. Làm tiếp trên cùng nhánh, rồi T-056 gộp một lượt.
+
+- **Script** (`build-basemap.mjs`): thay hồ `ne_id` 1159109725 của Natural Earth bằng `terrain.lakes[0].outline` trong `src/data/battles/battle-of-lake-trasimene.json`.
+  - Đọc thẳng file trận, không chép toạ độ vào script: file trận đổi bờ hồ thì dựng lại là xong.
+  - Đổi mét ra kinh độ và vĩ độ bằng đúng phép đổi mà dự án đang dùng cho file trận (`origin`; x về phía đông, y về phía bắc), như `build-terrain.mjs`.
+- **Đảo:** theo cùng quy tắc với phần còn lại của bản đồ nền (bỏ đảo dưới khoảng 1 km²). Ghi vào "Kết quả" đảo nào giữ, đảo nào bỏ.
+- **Đơn giản hoá:** không dùng sai số chung 0,006° cho hồ này. Sai số đó khoảng 500 m, sẽ làm mất cái vừa sửa được. Bờ sau khi đơn giản hoá phải nằm trong khoảng 50 m so với đường bao của file trận. Ghi số điểm và kích thước `basemap.json` sau khi sửa.
+- **Ghi công Copernicus:** bờ này lấy từ mặt nạ nước của Copernicus DEM, nên phải ghi nguồn.
+  - Sửa khoá `map.legend.basemap` (cả `en` lẫn `vi`): nói thêm hồ, và nói hồ Trasimene theo Copernicus. Ví dụ: "Đường bờ biển, sông và hồ ngày nay (Natural Earth; hồ Trasimene theo Copernicus DEM, xem phần Giới thiệu)". Giữ ngắn như dòng hiện có.
+  - `public/map/README.md`: ghi nguồn mới và cách dựng.
+  - Phiên chính sửa README gốc, `docs/data/SOURCES.md` và dòng bản đồ nền trong hộp thoại Giới thiệu khi gộp.
+- **Kiểm tra:**
+  - Làm lại ảnh 13 với bờ mới: đoàn quân La Mã lúc đầu trận không còn nằm trên nước.
+  - Chụp lại ảnh bay tới, và miền trung Ý ở hai mức phóng (sau khi sửa), cả hai nền.
+  - Biển, sông và các hồ khác giống hệt từng byte so với bản phần 1–4.
+  - `npm run validate`, `npm run lint`, `npm run build` qua.
+- Điền thêm vào "Kết quả", commit, rồi báo.
+
 ## Ràng buộc
 
 - Chỉ sửa file trong phạm vi. Không sửa file trận và cảnh 3D.
