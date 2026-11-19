@@ -365,7 +365,7 @@ Từ đó:
 
 - **Khối nào ở phía tây lối hẹp ở một mốc thì mốc kế tiếp vẫn nằm trên con đường ven hồ** (kéo dài sang đồng bằng). Đoàn quân rẽ về phía đồi Tuoro ở điểm K = (563, −745), giữa đồng bằng, rồi đi thẳng tới chân đồi H = (1 250, 690), hướng 25,6°.
 - Vì vậy **lúc 4:30 đầu đoàn đã qua lối hẹp** (khối đi đầu ở (974, 113)), cuối đoàn ở ngoài cửa tây lối hẹp (−1 734, −1 720), cách bờ hơn 100 m; trong giai đoạn 1 mỗi khối tiến khoảng 1,1–1,3 km. Khớp với Livy 22.4.4 (qua lối hẹp khi trời còn chưa sáng rõ), nhưng khác đề nghị của T-051 (đầu đoàn vừa ra khỏi trại). Muốn giữ đề nghị cũ thì cần thêm một giai đoạn, hoặc một đường gấp khúc cho khối (`UnitState.path`, mục 10 ý 4).
-- Kiểm bằng một script tạm: lấy mẫu mỗi 10 m dọc đường đi của tâm và hai đầu mặt trận của mọi khối La Mã, ở mọi giai đoạn. Trong lối hẹp (x < 0), chỗ cao nhất là 18 m trên mặt hồ (yên ngựa 16,7 m). Không đường đi nào của bất kỳ khối nào xuống hồ quá 51 m.
+- Kiểm bằng một script tạm: lấy mẫu mỗi 10 m dọc đường đi của tâm và hai đầu mặt trận của mọi khối La Mã, ở mọi giai đoạn. Trong lối hẹp (x < 0), chỗ cao nhất là 18 m trên mặt hồ (yên ngựa 16,7 m). Đường đi giữa hai mốc của mọi khối (cả hai bên) xuống hồ xa nhất 92 m, lúc quân La Mã chạy ra hồ ở giai đoạn 5; trong lúc hành quân qua lối hẹp thì không xuống nước.
 
 ### Đoàn quân và thứ tự hành quân
 
