@@ -139,8 +139,8 @@ export function BattleLab() {
           aria-label="Battle time"
         />
         <span className="w-14 tabular-nums">{formatHour(hourAt(battle, time))}</span>
-        <span className="w-64 truncate" title={phase.title.en}>
-          {phaseAt(battle, time)}/{end} · {phase.title.en}
+        <span className="w-64 truncate" title={phase.title[locale]}>
+          {phaseAt(battle, time)}/{end} · {phase.title[locale]}
         </span>
       </div>
     </div>

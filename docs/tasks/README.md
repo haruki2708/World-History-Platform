@@ -70,5 +70,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-049](T-049-cavalry-split.md) | 2 | Trận đánh 3D: tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (loại lính, khối quân, lời dẫn) | Xong, đã gộp 2026-11-19 (cùng T-050) |
 | [T-050](T-050-gallic-cavalry.md) | 1 | Trận đánh 3D: mô hình kỵ binh Gaul (`gallic-cavalry`), người dùng xem ảnh render trước | Xong, đã gộp 2026-11-19 (cùng T-049) |
 | [T-051](T-051-trasimene-stage0.md) | 2 | Trận hồ Trasimene (đợt K), chặng 0: tư liệu, vị trí, bảng đơn vị, lưới độ cao, kiểm tra hồ và sương mù | Xong, đã gộp 2026-11-19 |
-| [T-052](T-052-trasimene-battle.md) | 2 | Trận hồ Trasimene (đợt K), chặng 1: file trận (khối quân, lời dẫn, cảnh vật, đảo, quân nấp); kiểm tra `islands` và `concealed` | Xong, đã review 2026-11-19; chờ gộp cùng T-053 (người dùng chọn) |
-| [T-053](T-053-trasimene-scene.md) | 3 | Trận hồ Trasimene (đợt K), chặng 2: mặt hồ và đảo, lính lội nước, sương mù, quân nấp; hiệu năng | Đã giao 2026-11-19 (song song với T-052) |
+| [T-052](T-052-trasimene-battle.md) | 2 | Trận hồ Trasimene (đợt K), chặng 1: file trận (khối quân, lời dẫn, cảnh vật, đảo, quân nấp); kiểm tra `islands` và `concealed` | Xong, đã gộp 2026-11-19 (cùng T-053) |
+| [T-053](T-053-trasimene-scene.md) | 3 | Trận hồ Trasimene (đợt K), chặng 2: mặt hồ và đảo, lính lội nước, sương mù, quân nấp; hiệu năng | Xong, đã gộp 2026-11-19 (cùng T-052) |

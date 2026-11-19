@@ -123,6 +123,14 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng chọn **chưa gộp**: T-052 và T-053 vào `main` cùng một lượt khi T-053 xong. Lane 3 revert commit `TEMP:` và gộp thẳng nhánh của lane 2 (mục 9 của T-053).
   - Khi gộp, phiên chính sẽ ghi vào ARCHITECTURE các kiểm tra mới (45 ca) và kiểm tra vì sao `/battle-lab?lang=vi` hiện tên giai đoạn bằng tiếng Anh.
   - Sự cố phía phiên chính: lần dọn bản thử T-051, `git worktree remove` đã xoá xuyên qua liên kết thư mục, mất 14 mục trong `node_modules` của repo chính. Đã cài bù bằng `npm install`.
+- **2026-11-19:** Lane 3 xong [T-053](tasks/T-053-trasimene-scene.md).
+  - **Cảnh mới:** mặt hồ và ba đảo, ở cả vùng xa; nước đục xám lục, dải bùn nhạt dần khi nhìn xa; lính lội nước, đáy hồ nhân `FIGURE_SCALE`; sương mù theo độ cao, tan dần theo giờ, hết lúc 9:45; khối phục kích ẩn rồi lộ ra.
+  - **Sửa thêm theo mục 8:** màu đồi tính từ đất thấp của trận, nên lưới chính khớp vùng xa; nắn mép lưới chính; nối dải đất ra ngoài vùng xa, nên hết vệt nâu ở chân trời, ở cả Cannae.
+  - **Số đo của lane 3**, trên file trận thật, lúc máy đang chạy Godot: 56–76 khung hình/giây. Cannae đo xen kẽ năm lượt với `main`, hai bên ngang nhau.
+  - **Phiên chính kiểm tra** trên bản gộp `main` + T-052 + T-053: `validate`, bộ thử 45/45, `lint`, `tutor:check`, `build`, hồi quy lõi 17/17 đều qua. Đo trên bản production, máy rảnh: Trasimene 106–108 ở góc mở, 71–77 lúc phát; Cannae 147–149 và 79–84.
+  - Người dùng duyệt gộp T-052 và T-053 cùng lượt. Commit trận thử `TEMP:` của lane 3 không được revert trên nhánh: khi gộp, chỗ vướng file trận lấy bản của lane 2.
+  - **Sửa khi gộp:** `/battle-lab` hiện tên giai đoạn theo `?lang=` (trước đó luôn là tiếng Anh); ARCHITECTURE ghi cách cảnh vẽ hồ, sương mù, quân nấp, các thay đổi ở vùng xa và các kiểm tra mới.
+  - **Từ lúc này, trận Trasimene có nút xem trong app chính.** Còn chặng 3: hộp thoại Giới thiệu và ghi công vẫn viết riêng cho Cannae (bốn khoá); cú bay bản đồ tới hồ chưa kiểm.
 
 ## Việc để giai đoạn 5
 
@@ -262,8 +270,8 @@ Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng vi�
 | Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Xong, đã gộp 2026-11-19. Vị trí: lối hẹp Malpasso và đồng bằng Tuoro (người dùng duyệt) |
-| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | [T-052](tasks/T-052-trasimene-battle.md) | Xong, đã review 2026-11-19; chờ gộp cùng T-053 (người dùng chọn) |
-| 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | [T-053](tasks/T-053-trasimene-scene.md) | Giao 2026-11-19, chạy song song với chặng 1 (người dùng chọn) |
+| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | [T-052](tasks/T-052-trasimene-battle.md) | Xong, đã gộp 2026-11-19 (cùng T-053) |
+| 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | [T-053](tasks/T-053-trasimene-scene.md) | Xong, đã gộp 2026-11-19 (cùng T-052) |
 | 3 | Ghép vào app: đăng ký trận, nút xem trận ở sự kiện mới, bản đồ bay tới hồ; hộp thoại Giới thiệu và ghi công hết viết riêng cho Cannae (bốn khoá) | Phiên chính; lane 1 phần hộp thoại | Mở được cả hai trận từ app; hồi quy qua | Chưa viết | Chưa bắt đầu |
 
 **Giả định phiên chính đã nêu, người dùng không sửa:**
