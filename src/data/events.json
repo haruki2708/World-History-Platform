@@ -663,6 +663,43 @@
     ]
   },
   {
+    "id": "battle-of-lake-trasimene",
+    "year": -217,
+    "title": {
+      "en": "Battle of Lake Trasimene",
+      "vi": "Trận hồ Trasimene"
+    },
+    "summary": {
+      "en": "On a misty morning Hannibal ambushed the army of the consul Gaius Flaminius in the narrow passage between the hills and Lake Trasimene. Attacked from the heights before they could form a line, about 15,000 Romans were killed, Flaminius among them, and many were driven into the lake; some 6,000 who broke out at the head of the column surrendered the next day. Polybius puts Hannibal's losses at about 1,500, Livy at 2,500. Where on the shore the battle was fought is still debated.",
+      "vi": "Vào một buổi sáng mù sương, Hannibal phục kích đạo quân của chấp chính quan Gaius Flaminius trong lối đi hẹp giữa đồi và hồ Trasimene. Bị đánh từ trên cao xuống khi chưa kịp dàn trận, khoảng 15.000 lính La Mã tử trận, trong đó có Flaminius, và nhiều người bị dồn xuống hồ; chừng 6.000 người ở đầu đoàn quân phá được vòng vây, hôm sau phải đầu hàng. Polybius ghi Hannibal mất khoảng 1.500 người, Livy ghi 2.500. Trận đánh diễn ra ở đoạn bờ hồ nào đến nay vẫn còn tranh cãi."
+    },
+    "location": {
+      "name": {
+        "en": "Lake Trasimene, north shore (site debated)",
+        "vi": "Bờ bắc hồ Trasimene (vị trí còn tranh cãi)"
+      },
+      "lng": 12.07,
+      "lat": 43.2,
+      "approximate": true
+    },
+    "polityIds": [
+      "rome",
+      "carthage"
+    ],
+    "category": "military",
+    "importance": 2,
+    "sources": [
+      {
+        "title": "Polybius, Histories 3.80–85",
+        "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+      },
+      {
+        "title": "Livy, Ab Urbe Condita 22.3–7",
+        "url": "https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22"
+      }
+    ]
+  },
+  {
     "id": "battle-of-cannae",
     "year": -216,
     "title": {

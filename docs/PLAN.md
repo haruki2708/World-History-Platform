@@ -11,7 +11,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
 | 4. AI tutor | Khung chat, streaming, gửi ngữ cảnh | Lane 2 (T-005, route API), Lane 1 (T-006, khung chat) | Hỏi "chuyện gì đang xảy ra ở đây?" được trả lời đúng năm và vùng | Xong ở chế độ giả lập, đã gộp 2026-11-15. Chưa chạy với Claude API thật (chờ nạp tiền vào tài khoản API) |
 | 5. Hoàn thiện | Chuyển cảnh mượt, giới hạn lượt gọi API, deploy | Phiên chính + lane | Có link công khai | Đang làm. Xong: T-007 (giới hạn, trần chi phí), T-008 (link chia sẻ, nhớ ngôn ngữ, phím tắt), T-013 (giới thiệu, ghi công) |
 | 6. Mở rộng | Gia sư dẫn đường trên bản đồ; sau đó quiz, thời kỳ mới | Lane 1 (T-010), Lane 2 (T-011) | Câu trả lời có nút đưa tới đúng sự kiện và năm | Gia sư dẫn đường xong ở chế độ giả lập và với máy chủ Claude giả (T-010, T-011, đã gộp 2026-11-16); chưa thử với model thật |
-| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H"; đợt I (đồ hoạ theo ảnh mẫu) gộp 2026-11-19; đợt J (làm nốt Cannae) bắt đầu 2026-11-19 |
+| 7. Trận đánh 3D | Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Bản thử: Cannae | Lane 1 (mô hình Blender), Lane 3 (cảnh 3D), Lane 2 (dữ liệu trận, địa hình) | Xem được trận Cannae từ panel sự kiện | Xong, người dùng duyệt 2026-11-18. Đợt A xong, đã gộp 2026-11-16 (T-014 mô hình lính La Mã, T-015 cảnh 3D, T-016 dữ liệu Cannae). Đợt B: T-018 (sửa cảnh) và T-019 (hoạt hình thật, hastatus) đã gộp 2026-11-16; T-021 (6 loại bộ binh, đủ 8 mô hình bộ binh) đã gộp 2026-11-17. T-020 (ngựa, dữ liệu Cannae chỉnh trong cảnh thật) đã gộp 2026-11-17. T-026 (sửa cảnh, chuẩn bị cho kỵ binh) đã gộp 2026-11-17. T-024 (sửa mô hình bộ binh) và T-025 (bản đồ bay tới chiến trường) đã gộp 2026-11-17. Đợt E: T-022 (3 loại kỵ binh, clip `jog` cho bộ binh), T-027 (tải sẵn cảnh trong lúc bay, chỉnh dữ liệu Cannae), T-028 (tên khối quân, thẻ thông tin, khối đi xiên) đã gộp 2026-11-17. Đợt F: T-029 (trận đánh 3D trong hộp thoại Giới thiệu), T-030 (clip phi nước đại mới cho ngựa), T-031 (lấy lại hiệu năng của cảnh) đã gộp 2026-11-17. Đợt C: T-023 (khung xem trận trong app chính, mở từ panel sự kiện) đã gộp 2026-11-17. Đợt H (phong cảnh) bắt đầu 2026-11-18, xem mục "Đợt H"; đợt I (đồ hoạ theo ảnh mẫu) gộp 2026-11-19; đợt J (làm nốt Cannae) xong 2026-11-19; đợt K (trận thứ hai, hồ Trasimene) bắt đầu 2026-11-19 |
 
 ## Nhật ký
 
@@ -104,6 +104,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Sửa khi gộp: ghi chú `strength` của Carthage không nêu tên Daly nữa (câu "8 000 người ở lại trại" có trên Wikipedia nhưng không xác nhận được trong sách Daly); hộp thoại Giới thiệu thêm câu về toán giữ trại (người dùng duyệt câu chữ); ARCHITECTURE ghi cách dựng LOD mới và nhát chém Gaul.
   - Người dùng duyệt gộp. Đợt J xong.
 - **2026-11-19:** Người dùng chọn việc kế tiếp: tách kỵ binh Iberia và Gaul, đồng thời phiên chính soạn đề xuất cho hướng lớn sau Cannae; phần gia sư chưa làm. Giao [T-049](tasks/T-049-cavalry-split.md) cho lane 2 và [T-050](tasks/T-050-gallic-cavalry.md) cho lane 1.
+- **2026-11-19:** Người dùng chọn hướng lớn: **trận 3D thứ hai, hồ Trasimene** (mục "Đợt K"), duyệt kế hoạch bốn chặng và giao chặng cảnh cho lane 3. Phiên chính làm phần của mình ở chặng 0: đọc Polybius 3.80–85 và Livy 22.3–7; thêm sự kiện `battle-of-lake-trasimene` (dữ liệu giờ có 60 sự kiện); thêm `BattleLake` (`terrain.lakes`) và `scenery.mist` vào hợp đồng; viết sẵn [T-051](tasks/T-051-trasimene-stage0.md) cho lane 2.
 
 ## Việc để giai đoạn 5
 
@@ -231,6 +232,28 @@ Không ai đụng file của người khác: lane 1 trong `art/` và `public/bat
 **Đã nêu, người dùng chưa chọn:** hình nhà và làng; đám đông dày hơn ở chỗ giáp mặt; biển lúc bình minh; móng ngựa trượt khi đi bước (phải xuất lại ba mô hình kỵ binh, nên làm sau T-047).
 
 **Không cần làm:** hành động ở giai đoạn 1 của Cannae đã đúng (21 khối `advance`); kỵ binh Numidia không đỡ đòn chỉ thấy ở trận thử `?duel=1`, vì ở Cannae họ chỉ đánh từ xa.
+
+## Đợt K: trận 3D thứ hai, hồ Trasimene (217 TCN)
+
+Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng viên (hồ Trasimene, Zama, Pharsalus); người dùng chọn hồ Trasimene.
+
+**Vì sao trận này:** cùng hai đạo quân với Cannae một năm trước đó, nên không dựng mô hình mới. Việc mới là dữ liệu, địa hình có hồ và đồi, sương mù. Đợt này thử điều kiến trúc đã hứa: trận sau chỉ thêm dữ liệu. Zama (cần voi chiến, vị trí chiến trường không chắc) để một đợt sau.
+
+**Trận đánh theo nguồn** (Polybius 3.80–85, Livy 22.3–7; phiên chính đọc 2026-11-19, bảng đối chiếu ở T-051): Hannibal giấu quân trên các đồi quanh một lối hẹp giữa đồi và hồ; quân của chấp chính quan Flaminius đi vào lúc rạng sáng có sương, bị đánh từ trên cao xuống; khoảng 15 000 người chết, nhiều người bị dồn xuống hồ; 6 000 người ở đầu đoàn quân phá vây, hôm sau đầu hàng.
+
+| Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
+|---|---|---|---|---|---|
+| 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Phần của phiên chính xong 2026-11-19 (sự kiện `battle-of-lake-trasimene`, `BattleLake`, `scenery.mist`). T-051 viết sẵn, giao lane 2 sau T-049 |
+| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | Chưa viết | Chưa bắt đầu |
+| 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | Chưa viết | Chưa bắt đầu |
+| 3 | Ghép vào app: đăng ký trận, nút xem trận ở sự kiện mới, bản đồ bay tới hồ; hộp thoại Giới thiệu và ghi công hết viết riêng cho Cannae (bốn khoá) | Phiên chính; lane 1 phần hộp thoại | Mở được cả hai trận từ app; hồi quy qua | Chưa viết | Chưa bắt đầu |
+
+**Giả định phiên chính đã nêu, người dùng không sửa:**
+- Cảnh vật theo lựa chọn của người dùng cho Cannae: mặt đất xanh, có cây và nhà minh hoạ, thứ nào trái nguồn thì nói rõ trong Giới thiệu.
+- Không dựng mô hình mới. Nếu chặng 0 thấy cần loại lính chưa có thì hỏi người dùng trước.
+- Sự kiện mới do phiên chính thêm vào `events.json` (file của lane 3), vì lane 3 đang để cho việc khác.
+
+**Rủi ro thấy trước:** vị trí trận và bờ hồ thời cổ đều không chắc (cảnh theo bờ hồ ngày nay, nói rõ); khối quân là hình chữ nhật nên cột hành quân phải chia thành nhiều khối ngắn; sương mù che chính cảnh cần xem, phải vừa đủ.
 
 ## Không làm (điện thoại chỉ cần dùng được)
 

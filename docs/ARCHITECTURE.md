@@ -333,6 +333,8 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - **Suy ra từ đồng hồ trận**, như vật bay: mỗi khung tính lại mọi đám còn sống từ thời gian trận và `UnitTrack.formationAt`. Một đợt bốc được nhớ lại trong một vòng đệm cho các khung sau; bỏ vòng đệm đi vẫn ra đúng từng con số. Tua tới đâu cũng ra cùng cảnh như khi phát tới đó; dừng phát thì bụi đứng yên. `BattleClock.time` đổi giây phát ra thời gian trận.
   - **Vẽ:** một `InstancedBufferGeometry` các tấm vuông luôn quay về camera, ảnh mây sinh bằng code (bốn mẫu). Ánh sáng lấy từ `Sky` như một mặt mờ, sáng lên khi nhìn ngược nắng; đi qua sương mù và đường cong màu như cả cảnh. Đám bụi mờ dần khi chạm đất, và khi ở gần camera.
   - **Mức chất lượng thấp không có bụi.** Hiệu năng (2026-11-19, máy rảnh, bản production): lúc phát giai đoạn 1 (cả hai đạo quân dàn trận, khoảng 2 300 đám) chậm hơn `main` khoảng 3%; giai đoạn 3 và 4 ngang `main`.
+- **Hồ** (`terrain.lakes`, kiểu `BattleLake`, thêm ở đợt K cho trận hồ Trasimene): nước đứng ở trên mực biển. `outline` là bờ hồ (ít nhất ba điểm, có thể chạy ra ngoài lưới độ cao), `level` là cao độ mặt nước, `evidence` nói đó là bờ của thời nào. Khác với biển, khối quân được đứng trong hồ; cảnh cho lính lội nước, càng xa bờ càng sâu. **Cảnh chưa vẽ hồ** (chặng 2 của đợt K).
+- **Sương mù** (`scenery.mist`, thêm ở đợt K): `level` từ 0 tới 1 lúc đầu trận; cảnh vẽ dày hơn ở chỗ thấp, mỏng dần theo trận và hết vào giờ `clearsAt`. **Cảnh chưa vẽ sương mù** (chặng 2 của đợt K).
 - **Trận không có `scenery`** vẫn hợp lệ: mặt đất vẽ như trước đợt H (không có ô ruộng), sông đầy nước và không có dải bờ.
 - **Vùng xa** (`terrain.far`, kiểu `BattleFarTerrain`, T-038): một lưới độ cao thưa của cả vùng quanh chiến trường, cùng định dạng với lưới chính, để chân trời có đồi núi và biển thật.
   - Phải vượt ra ngoài lưới chính ít nhất hai ô của nó ở mọi phía. Không có thì mặt đất kéo phẳng từ mép lưới chính ra 40 km như trước.
@@ -381,5 +383,6 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
 - **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
+- **Đợt K:** trận 3D thứ hai, hồ Trasimene (217 TCN), không dựng mô hình mới: tư liệu, hợp đồng có hồ và sương mù (T-051), dữ liệu trận, cảnh, ghép vào app. Chi tiết ở `docs/PLAN.md`.
 - **Đợt J:** làm nốt trận Cannae: quân giữ trại của Hannibal, ra trại qua cổng (T-045, lane 2); mảng màu phe mờ khi nhìn gần (T-046); LOD ít đường nối UV, sửa kỵ binh (T-047, lane 1); bụi và gió (T-048).
 - **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Chặng 4 (T-048, đợt J): bụi.
