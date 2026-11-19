@@ -1,4 +1,4 @@
-"""A light cloak for the Gallic horseman (T-050), over the Celt's bare back.
+"""A light cloak for the Gallic horseman (T-050), over his tunic (celt_tunic).
 
 Polybius 2.28.7: the Insubres and the Boii (the Cisalpine Gauls who fought
 for Hannibal) stood at Telamon in their trousers and light cloaks.
@@ -10,9 +10,10 @@ yellow, a bronze brooch at the front of the right shoulder. How it is
 draped and its colours are choices: no source describes the cloak of a
 horseman at Cannae.
 
-Built standing, in the rig's rest pose, from the body's own shape: the
-cloth lies on the shoulders (a little off the skin) and hangs from them,
-straight down from the widest point above, a little flared towards the hem.
+Built standing, in the rig's rest pose, from the body's own shape (with
+the tunic, if it is built first: BODY): the cloth lies on the shoulders
+(a little off them) and hangs from them, straight down from the widest
+point above, a little flared towards the hem.
 It is short enough to clear the horse: the hem at the back stops above the
 seat, at the sides above the hips, where the seated thighs come up. The
 skin weights (weights) follow the spine and the pelvis only, a little of
@@ -32,7 +33,7 @@ from whp_common import log
 from whp_mesh import Builder, get_coords, recalc_normals, smoothstep
 from whp_skeleton import CELT_SOLE_Z, RIG_SCALE
 
-BODY = ("Celt_body", "Celt_belt", "Celt_legs")
+BODY = ("Celt_body", "Celt_belt", "Celt_legs", "Tunic")       # the tunic (celt_tunic) too, if built
 
 # Finished metres, the Celt at rest (whp_skeleton: the bones' heads).
 PELVIS_Z = 0.906
@@ -86,7 +87,7 @@ def body_points(names=BODY):
     return np.concatenate([to_finished(get_coords(bpy.data.objects[n])) for n in names if n in bpy.data.objects])
 
 
-def _profile(points, phi, z, c):
+def profile(points, phi, z, c):
     """How far the body reaches from the axis towards angle `phi` at height z."""
     band = points[np.abs(points[:, 2] - z) < c["band"]]
     band = band[np.abs(band[:, 0]) < c["arms_x"]]
@@ -121,7 +122,7 @@ def surface(columns, rows, c, points):
         for i, t in enumerate(ts):
             z = top + (hem - top) * t
             clear = c["clear_top"] + (c["clear"] - c["clear_top"]) * float(smoothstep(0.0, 0.35, t))
-            widest = max(widest - drape * (last - z), _profile(points, phi, z, c) + clear)
+            widest = max(widest - drape * (last - z), profile(points, phi, z, c) + clear)
             last = z
             r = widest + c["flare"] * float(smoothstep(0.3, 1.0, t))
             grid[i, j] = (r * math.sin(phi), c["centre_y"] + r * math.cos(phi), z)

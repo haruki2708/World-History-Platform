@@ -1139,14 +1139,17 @@ def _out_of(tree, points, where, least):
     return push
 
 
-def drape_skirts(armature):
+def drape_skirts(armature, skirts=SKIRTS, legs="New_legs"):
     """Draw the rider's skirts in to his thighs as he sits (see SKIRTS). Run
-    after the clips are built: they do not depend on it."""
+    after the clips are built: they do not depend on it. A unit may name
+    its own (unit.SKIRTS, unit.LEGS_MESH: the Gaul's tunic over the Celt's
+    legs, T-050); copies of one garment ("Tunic", "Tunic.low") lie in the
+    same layer."""
     import whp_skin
     from whp_anim import set_action
     from whp_mesh import smoothstep
 
-    legs = bpy.data.objects.get("New_legs")
+    legs = bpy.data.objects.get(legs)
     if legs is None:
         return
     scene = bpy.context.scene
@@ -1166,7 +1169,9 @@ def drape_skirts(armature):
     mesh = seated.to_mesh()
     tree = BVHTree.FromPolygons([v.co.copy() for v in mesh.vertices], [tuple(p.vertices) for p in mesh.polygons])
     seated.to_mesh_clear()
-    for layer, name in enumerate(SKIRTS):
+    garments = list(dict.fromkeys(n.split(".")[0] for n in skirts))
+    for name in skirts:
+        layer = garments.index(name.split(".")[0])
         obj = bpy.data.objects.get(name)
         if obj is None:
             continue
@@ -1288,7 +1293,7 @@ def stage_anim(unit):
     rider.animation_data.action = None
     scene.frame_set(0)
     # Last: the clips (the fallen rider's place among them) are built from the meshes as they were.
-    drape_skirts(rider)
+    drape_skirts(rider, getattr(unit, "SKIRTS", SKIRTS), getattr(unit, "LEGS_MESH", "New_legs"))
 
 
 def _report_seat(rp):

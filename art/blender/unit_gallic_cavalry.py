@@ -12,10 +12,16 @@ item; where nothing is said of horsemen, it says so.
     225 BCE: "their trousers and light cloaks"); Diodorus 5.30.1; Strabo
     4.4.3 (tight breeches). The Celt's own trousers, dyed as gallic-
     infantry's (celt_source).
-  - Bare above the waist, under the cloak: Polybius 3.114.4 and Livy 22.46.6
-    say the Gauls at Cannae fought naked above the waist; that is said of
-    the foot. Diodorus 5.30.1 and Strabo 4.4.3 give the Gauls shirts or
-    sleeved tunics as well. A choice: the rider as the Gauls of Cannae.
+  - A dyed tunic under the cloak (celt_tunic): Diodorus 5.30.1, shirts
+    dyed and embroidered in varied colours; Strabo 4.4.3, slit tunics with
+    sleeves to the buttocks, 4.4.5, the men of rank in dyed garments;
+    Diodorus 5.30.3, girt with belts. Sleeves to the elbow, the skirt to
+    the top of the thighs, a leather belt. Green with a yellow border is a
+    choice (the sources give no colour): the cloak's two dyes, woad and
+    weld, together; not the Iberians' white, not the Romans' red. Polybius
+    3.114.4 and Livy 22.46.6 have the Gauls at Cannae naked above the waist,
+    but that is said of the foot; a horseman of rank in a tunic is the
+    user's choice (T-050), and gives the rider a colour from the front.
   - A light cloak (celt_cloak): Polybius 2.28.7; Diodorus 5.30.1, striped
     cloaks fastened by a brooch on the shoulder, light in summer, set with
     close checks of many colours; Strabo 4.4.3, the sagus. Its cut (a short
@@ -45,8 +51,9 @@ item; where nothing is said of horsemen, it says so.
   - Saddle cloth of undyed wool with a madder border: a choice, to tell it
     from the Romans' red and the Iberians' blue-black.
 
-Built on the Celt of gallic-infantry (celt_source), fists closed: bare
-torso, trousers, belt, torc and arm rings, moustache. His seat is measured
+Built on the Celt of gallic-infantry (celt_source), fists closed: his
+trousers, torc and arm rings, moustache (his waistband is under the
+tunic). His seat is measured
 seated (SEAT_MEASURE): measured standing, the inner thighs of the baggy
 trousers lifted him off the horse. whp_cavalry puts him on the horse.
 """
@@ -58,6 +65,7 @@ import celt_cloak
 import celt_hair
 import celt_kit
 import celt_source
+import celt_tunic
 import roman_kit
 import roman_shield
 import whp_build
@@ -77,7 +85,7 @@ EXTRA_MATERIALS = [
     ("shield", lambda: whp_materials.shield_paint(*SHIELD)),
     ("cloak", celt_cloak.material),
     ("hair", celt_hair.material),
-]
+] + celt_tunic.materials()
 
 
 # -- stages "source" and "kit" ---------------------------------------------
@@ -98,9 +106,13 @@ def _shield(detail, mats, name):
 
 def _kit(detail, suffix=""):
     mats = roman_kit.materials(detail, EXTRA_MATERIALS)
-    return [_shield(detail, mats, "Shield" + suffix),
+    made = [_shield(detail, mats, "Shield" + suffix),
             celt_kit.build_sword(detail, mats, "Sword_long" + suffix),
-            celt_cloak.build(detail, mats, "Cloak" + suffix)]
+            celt_tunic.build(detail, mats, "Tunic" + suffix)]
+    # The belt round the detailed tunic; the cloak over it (the detailed tunic is in its profile).
+    made.append(celt_tunic.build_girdle(detail, mats, "Girdle" + suffix))
+    made.append(celt_cloak.build(detail, mats, "Cloak" + suffix))
+    return made
 
 
 def build_kit():
@@ -115,7 +127,7 @@ def build_kit():
 fit = celt_source.build
 RIGID = {"Shield": ("hand_l", whp_clips.SPARE_BONE), "Sword_long": "hand_r"}
 SHARED = {}
-SMOOTHING = {"Celt_belt": 6}
+SMOOTHING = {"Celt_belt": 6, "Tunic": 8, "Girdle": 6}
 DEFAULT_SMOOTHING = 1
 MERGE_FINGERS = True
 
@@ -147,6 +159,8 @@ HORSE = whp_cavalry.Horse(tack=("cloth", "bridle"), cloth=((0.42, 0.37, 0.27), (
 BONES = whp_cavalry.BONES
 GROUND_CHECKS = whp_cavalry.GROUND_CHECKS
 SEAT_MESHES = ("Celt_legs",)
+SKIRTS = ("Tunic.low",)                 # drawn in to the seated thighs (whp_cavalry.drape_skirts)
+LEGS_MESH = "Celt_legs"
 SHIELD_MESH = "Shield"
 SHIELD_HANG = dict(along=0.35, offset=(0.17, 0.0, -0.06), out=(1.0, -0.2, -0.12), down=(0.0, -0.18, -1.0),
                    lying=0.03)
@@ -158,10 +172,11 @@ PARTS = [
     Part("head", ["Celt_head"], ["Celt_head"], (800, 120, 0), covers=["Hair"], reach=0.03, uv=1.8,
          extrusion=0.015, ray=0.035),
     Part("hair", ["Hair"], ["Hair"], (300, 50, 0), uv=1.0, extrusion=0.010, ray=0.020),
-    Part("torso", ["Celt_body"], ["Celt_body"], (520, 90, 0), uv=1.1),
+    Part("torso", ["Celt_body"], ["Celt_body"], (260, 40, 0), covers=["Tunic"], reach=0.03, uv=1.1),
+    Part("tunic", ["Tunic.low"], ["Tunic"], (None, 110, 0), uv=1.0, extrusion=0.010, ray=0.020),
+    Part("girdle", ["Girdle.low"], ["Girdle"], (None, 14, 0), uv=0.8, extrusion=0.006, ray=0.012),
     Part("arms", ["Celt_arms"], ["Celt_arms"], (800, 120, 0)),
     Part("legs", ["Celt_legs"], ["Celt_legs"], (850, 130, 0), extrusion=0.02, ray=0.04),
-    Part("belt", ["Celt_belt"], ["Celt_belt"], (150, 20, 0)),
     Part("cloak", ["Cloak.low"], ["Cloak"], (None, 90, 0), uv=1.0, extrusion=0.008, ray=0.016),
     Part("shield", ["Shield.low"], ["Shield"], (260, 70, 12), uv=lambda slot: 0.45 if slot == 2 else 1.0,
          extrusion=0.02, ray=0.045, ao_alone=True),
@@ -171,8 +186,8 @@ PARTS = [
 
 LOD2 = dict(
     own=("shield", "sword"),
-    body=("head", "hair", "torso", "arms", "legs", "belt", "cloak"),
-    trunk="belt",
+    body=("head", "hair", "torso", "tunic", "arms", "legs", "girdle", "cloak"),
+    trunk="tunic",
     skirt=None,
     head="head",
     feet=False,
