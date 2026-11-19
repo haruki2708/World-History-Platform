@@ -30,6 +30,7 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
+import whp_far
 import whp_lod as lod
 import whp_proxy
 import whp_skeleton
@@ -340,6 +341,32 @@ def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0):
     return proxy
 
 
+# The LOD2 palette (whp_palette): a room of the atlas kept free for it
+# (whp_lod.unwrap_atlas), in texels: two rows of 16 entries, PALETTE_PAD
+# clear of every island, and slack to align the cells.
+PALETTE_PAD = 16
+PALETTE_ENTRIES = 32
+PALETTE_ROOM = (16 * 32 + 2 * PALETTE_PAD + 32, 2 * 32 + 2 * PALETTE_PAD + 32)
+PALETTE_ROOM_KEY = "whp_palette_room"   # custom property of the final material: the room, texels (not exported)
+
+
+def finish_far(levels, material):
+    """The game ladder's far levels, once the atlas is baked (whp_far): colour
+    LOD1's islands from LOD0's, then give LOD2 its palette in cells no island
+    uses. `levels`: the three lists of pieces; a LOD1 piece <part>.lod1
+    takes its colours from the LOD0 part <part>."""
+    import whp_palette
+    color, normal, surface = whp_palette.material_images(material)
+    lod0 = {o.name: o for o in levels[0]}
+    whp_far.transfer(levels[1], [lod0[o.name[:-len(".lod1")]] for o in levels[1]], color, normal, surface)
+    used = whp_far.coverage(levels[0] + levels[1], COLOR_SIZE, PALETTE_PAD)
+    x0, y0, x1, y1 = material[PALETTE_ROOM_KEY]
+    room = np.ones_like(used)
+    room[int(math.ceil(y0)) + PALETTE_PAD:int(y1) - PALETTE_PAD, int(math.ceil(x0)) + PALETTE_PAD:int(x1) - PALETTE_PAD] = False
+    cells = whp_far.free_cells(used | room, whp_palette.CELL, PALETTE_ENTRIES)
+    whp_palette.apply(levels[2], color, normal, surface, whp_palette.PaletteCells(cells, COLOR_SIZE))
+
+
 def finish_lod(objs, name, limit, armature, material):
     """Join the pieces of one level into the mesh `name`: at most `limit`
     triangles, at most four bones a vertex, the one material, no colour or
@@ -371,15 +398,19 @@ def finish_lod(objs, name, limit, armature, material):
 _finish_lod = finish_lod            # the old name (horse_lod used it)
 
 
-def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_SIZE):
+def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_SIZE, extra=None):
     """Pack the low parts into one atlas and bake it from the detailed
     objects: normals, colour, the metallicRoughness map, ambient occlusion
     (in `ao_sets`, see bake_ao). Each spec needs `name`, `bake` (names of
     the detailed objects it bakes from), `extrusion`, `ray` and `ao_alone`.
     Returns the parts (unwrapped), the final material, its colour image
-    and a function that removes the raw images and the bake material."""
+    and a function that removes the raw images and the bake material.
+    `extra`: pieces packed into the same atlas but not baked (the game
+    ladder's LOD1, whp_far); then the packed pieces come back fifth."""
     scene = bpy.context.scene
-    parts = lod.unwrap_atlas(parts, pixels=ATLAS_MARGIN, size=COLOR_SIZE)
+    room = PALETTE_ROOM if extra is not None else None
+    packed = lod.unwrap_atlas(list(parts) + list(extra or []), pixels=ATLAS_MARGIN, size=COLOR_SIZE, room=room)
+    parts, extra_out = packed[:len(parts)], packed[len(parts):]
     material = lod.bake_material()
     for low in parts:
         lod.single_material(low, material)
@@ -407,19 +438,27 @@ def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_S
             bpy.data.images.remove(image)
         bpy.data.materials.remove(material)
 
+    if extra is not None:
+        final[PALETTE_ROOM_KEY] = list(lod.last_room)
+        return parts, final, color_image, clean_up, extra_out
     return parts, final, color_image, clean_up
 
 
-def figure_levels(specs, parts, armature, color_image, spec, ground=0.0):
+def figure_levels(specs, parts, armature, color_image, spec, ground=0.0, lod1=None):
     """The pieces of LOD0, LOD1 and LOD2 of a figure from its baked LOD0
-    parts: LOD1 decimated from them, LOD2 the stand-in (build_lod2_proxy)
-    with the parts in spec["own"]. Returns three lists of objects."""
+    parts: LOD1 decimated from them (or `lod1`, made beforehand by
+    whp_far.lod1_pieces), LOD2 the stand-in (build_lod2_proxy) with the
+    parts in spec["own"]. Returns three lists of objects."""
     levels = [[], [], []]
     levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground))
+    if lod1 is not None:
+        levels[1] = list(lod1)
     for part, low in zip(specs, parts):
         for level in (1, 2):
             budget = part.budget[level]
             if level == 2 and part.name not in spec["own"]:
+                continue
+            if level == 1 and lod1 is not None:
                 continue
             if budget:
                 copy = lod.duplicate_object(low, f"{part.name}.lod{level}")
@@ -470,14 +509,15 @@ def build(unit, limits):
     log(f"LOD0 total: {sum(triangle_count(p) for p in parts)} triangles")
     delete_objects(generated_low)
 
-    parts, final, color_image, clean_up = bake_atlas(model, specs, parts, detailed,
-                                                     normal_size=HI_NORMAL_SIZE if hi else NORMAL_SIZE)
-
     # The lower levels from the baked LOD0 parts; the last from a segmented stand-in.
     if hi:
+        parts, final, color_image, clean_up = bake_atlas(model, specs, parts, detailed, normal_size=HI_NORMAL_SIZE)
         levels = figure_levels_hi(specs, parts, game, armature, color_image, unit.LOD2)
     else:
-        levels = figure_levels(specs, parts, armature, color_image, unit.LOD2)
+        lod1 = whp_far.lod1_pieces([p.name for p in specs], parts, [p.budget[1] for p in specs])
+        parts, final, color_image, clean_up, lod1 = bake_atlas(model, specs, parts, detailed, extra=lod1)
+        levels = figure_levels(specs, parts, armature, color_image, unit.LOD2, lod1=lod1)
+        finish_far(levels, final)
     lods = [finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.

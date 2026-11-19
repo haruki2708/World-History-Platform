@@ -60,6 +60,7 @@ from mathutils.bvhtree import BVHTree
 import horse_lod
 import horse_rig
 import whp_clips
+import whp_far
 import whp_skeleton
 import whp_unit_lod as ul
 from whp_anim import FPS, Poser, action_fcurves, finish_action, new_action, smooth
@@ -1032,6 +1033,174 @@ def _spare_falls(rp, f, seated, w):
     p.matrix[bone] = _slerp_matrix(follow, flat, late)
 
 
+# The skirt of a rider's tunic (and mail shirt), T-047. At rest the man
+# stands, and the skirt flares out from the hips; seated, the thighs it is
+# weighted to lift it, and the flare stands out sideways. So it is drawn in
+# to the thighs where they are when he sits (idle, frame 0): below the hip,
+# what lies beyond SKIRT_CLEAR of the legs is kept to SKIRT_KEEP of it; the
+# shift is smoothed over the mesh, so the cloth does not fold; then nothing
+# is left inside the legs (smoothing carries some of it in), SKIRT_OUTSIDE;
+# each skirt lies SKIRT_LAYER further out than the one under it. The new
+# places go back to the standing man through each vertex's own blend of
+# bone matrices. Behind the rider the skirt is left as it hangs and follows
+# the pelvis instead, down over the horse's back.
+#
+# The shift is kept as an attribute (DRAPE) and the cloth moved only once
+# the atlas is baked (apply_drape): taken back to the standing man the
+# draped cloth is no longer smooth where its vertices blend the thigh and
+# the pelvis, and the bake's rays went through it to the inside of the
+# cloth (grey triangles on the skirt).
+SKIRTS = ("Tunic_1", "Mail")        # from the inside out
+SKIRT_CLEAR = 0.012         # metres off the legs
+SKIRT_KEEP = 0.05
+SKIRT_OUTSIDE = 0.008       # metres: the least the cloth below the hip stays off the legs
+SKIRT_LAYER = 0.012         # metres: each skirt further out than the one under it
+SKIRT_DROP = (0.01, 0.15)   # below the hip joints: from no change to all of it
+SKIRT_SMOOTH = 30           # passes of smoothing the shift over the mesh's edges
+SKIRT_PUSH_SMOOTH = 10      # and of the push out of the legs,
+SKIRT_PUSH_ROUNDS = 4       # this many times over
+DRAPE = "whp_drape"         # point attribute: the shift of each vertex at rest
+
+
+def _smooth_over(values, edges, passes):
+    """Each pass: half a vertex's own value, half its neighbours' mean."""
+    count = np.zeros(len(values))
+    np.add.at(count, edges.ravel(), 1)
+    count = np.maximum(count, 1)[:, None]
+    for _ in range(passes):
+        total = np.zeros_like(values)
+        np.add.at(total, edges[:, 0], values[edges[:, 1]])
+        np.add.at(total, edges[:, 1], values[edges[:, 0]])
+        values = 0.5 * values + 0.5 * total / count
+    return values
+
+
+def _out_of(tree, points, where, least):
+    """How far to move each point (where `where`) to stand `least` out of the
+    surface in `tree`, along the surface's normal; zero elsewhere."""
+    push = np.zeros_like(points)
+    for i in np.nonzero(where)[0]:
+        q = Vector(points[i])
+        hit, normal, _face, _distance = tree.find_nearest(q)
+        if hit is None:
+            continue
+        off = (q - hit).dot(normal)
+        if off < least:
+            push[i] = np.array(normal * (least - off))
+    return push
+
+
+def drape_skirts(armature):
+    """Draw the rider's skirts in to his thighs as he sits (see SKIRTS). Run
+    after the clips are built: they do not depend on it."""
+    import whp_skin
+    from whp_anim import set_action
+    from whp_mesh import smoothstep
+
+    legs = bpy.data.objects.get("New_legs")
+    if legs is None:
+        return
+    scene = bpy.context.scene
+    bones = armature.data.bones
+    hip = (bones["thigh_l"].head_local.z + bones["thigh_r"].head_local.z) / 2
+    pelvis = bones["pelvis"].head_local
+    names = [b.name for b in bones]
+    index = {n: i for i, n in enumerate(names)}
+    leg_bones = [index[n] for n in names if n.startswith(("thigh", "calf", "foot", "ball"))]
+    # Seated: the bones' matrices (armature space, rest to pose) and the legs.
+    action = armature.animation_data.action if armature.animation_data else None
+    held = {b.name: b.matrix_basis.copy() for b in armature.pose.bones}
+    set_action(armature, "idle")
+    scene.frame_set(0)
+    deform = np.array([np.array(armature.pose.bones[n].matrix @ bones[n].matrix_local.inverted()) for n in names])
+    seated = legs.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    mesh = seated.to_mesh()
+    tree = BVHTree.FromPolygons([v.co.copy() for v in mesh.vertices], [tuple(p.vertices) for p in mesh.polygons])
+    seated.to_mesh_clear()
+    for layer, name in enumerate(SKIRTS):
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            continue
+        mesh = obj.data
+        co = np.array([v.co for v in mesh.vertices])
+        below = smoothstep(hip - SKIRT_DROP[0], hip - SKIRT_DROP[1], co[:, 2])
+        dx, dy = co[:, 0] - pelvis.x, co[:, 1] - pelvis.y
+        behind = np.clip(dy / np.maximum(np.hypot(dx, dy), 1e-6), 0.0, 1.0)
+        weights = whp_skin.read_groups(obj, names)
+        move = below * behind
+        taken = weights[:, leg_bones].sum(axis=1) * move
+        weights[:, leg_bones] *= (1.0 - move)[:, None]
+        weights[:, index["pelvis"]] += taken
+        weights = whp_skin.prune(weights)
+        whp_skin.write_groups(obj, weights, names)
+        share = weights / np.maximum(weights.sum(axis=1, keepdims=True), 1e-9)
+        blend = np.einsum("vb,bij->vij", share, deform)
+        posed = np.einsum("vij,vj->vi", blend[:, :3, :3], co) + blend[:, :3, 3]
+        # How far each vertex would move, then smoothed over the mesh's edges:
+        # neighbours drawn to different points of the legs would fold the cloth.
+        clear = SKIRT_CLEAR + layer * SKIRT_LAYER
+        shift = np.zeros_like(co)
+        for i, b in enumerate(below * (1.0 - behind)):
+            if b <= 0.0:
+                continue
+            p = Vector(posed[i])
+            hit, _normal, _face, distance = tree.find_nearest(p)
+            if hit is None or distance <= clear:
+                continue
+            target = hit + (p - hit).normalized() * (clear + (distance - clear) * SKIRT_KEEP)
+            shift[i] = (np.array(target) - posed[i]) * b
+        edges = np.array([e.vertices for e in mesh.edges])
+        shift = _smooth_over(shift, edges, SKIRT_SMOOTH)
+        shift *= np.minimum(below * 4.0, 1.0)[:, None]          # nothing above the hip
+        target = posed + shift
+        outside = SKIRT_OUTSIDE + layer * SKIRT_LAYER
+        # Out of the legs: the push spread over the neighbours (pushed one by
+        # one the cloth comes out lumpy, and the bake's rays go through the
+        # lumps to the inside of the cloth), a few times over, then what is
+        # still in pushed out.
+        pushed = int((np.linalg.norm(_out_of(tree, target, below > 0.0, outside), axis=1) > 0.0).sum())
+        for _ in range(SKIRT_PUSH_ROUNDS):
+            target += _smooth_over(_out_of(tree, target, below > 0.0, outside), edges, SKIRT_PUSH_SMOOTH)
+        target += _out_of(tree, target, below > 0.0, outside)
+        back = np.linalg.inv(blend)
+        rest = np.einsum("vij,vj->vi", back[:, :3, :3], target) + back[:, :3, 3]
+        before = np.array([p.normal.copy() for p in mesh.polygons])
+        mesh.vertices.foreach_set("co", rest.ravel())
+        mesh.update()
+        after = np.array([p.normal.copy() for p in mesh.polygons])
+        mesh.vertices.foreach_set("co", co.ravel())
+        mesh.update()
+        attr = mesh.attributes.new(DRAPE, "FLOAT_VECTOR", "POINT")
+        attr.data.foreach_set("vector", (rest - co).astype(np.float32).ravel())
+        flipped = int(((before * after).sum(axis=1) < 0.0).sum())
+        moved = int((np.linalg.norm(target - posed, axis=1) > 1e-4).sum())
+        log(f"{name}: skirt drawn in to the seated legs ({moved} vertices, {pushed} pushed out of them, "
+            f"{flipped} faces turned over at rest; moved after the bake), behind the rider on the pelvis")
+    armature.animation_data.action = action
+    for b in armature.pose.bones:
+        b.matrix_basis = held[b.name]
+    scene.frame_set(0)
+
+
+def apply_drape(objs):
+    """Move the vertices of `objs` by the DRAPE attribute they carry from
+    the skirts (see SKIRTS), and remove it."""
+    for obj in objs:
+        attr = obj.data.attributes.get(DRAPE)
+        if attr is None:
+            continue
+        shift = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
+        attr.data.foreach_get("vector", shift)
+        co = np.empty(len(obj.data.vertices) * 3)
+        obj.data.vertices.foreach_get("co", co)
+        obj.data.vertices.foreach_set("co", co + shift)
+        obj.data.attributes.remove(obj.data.attributes[DRAPE])
+        obj.data.update()
+        moved = int((np.abs(shift.reshape(-1, 3)).max(axis=1) > 1e-5).sum())
+        if moved:
+            log(f"{obj.name}: {moved} vertices of the skirt draped")
+
+
 def stage_anim(unit):
     """Stage "anim" of a cavalry model (see the module's docstring)."""
     scene = bpy.context.scene
@@ -1067,6 +1236,8 @@ def stage_anim(unit):
         log(f"clip {action.name}: {int(action.frame_end)} frames at {FPS} fps")
     rider.animation_data.action = None
     scene.frame_set(0)
+    # Last: the clips (the fallen rider's place among them) are built from the meshes as they were.
+    drape_skirts(rider)
 
 
 def _report_seat(rp):
@@ -1116,22 +1287,35 @@ def stage_lod(unit, limits):
     horse_specs = horse_lod.specs(horse_parts, sources)
     specs = list(unit.PARTS) + horse_specs
     sets = [[s.name for s in unit.PARTS], [s.name for s in horse_specs]]
-    with horse_lod.Unskinned(horse_objs):
-        parts, final, color_image, clean_up = ul.bake_atlas(model, specs, rider_parts + horse_parts,
-                                                            rider_detailed + horse_objs, ao_sets=sets,
-                                                            normal_size=ul.HI_NORMAL_SIZE if hi else ul.NORMAL_SIZE)
-    rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
-
     rest = {b.name: np.array(b.matrix_local) for b in armature.data.bones if b.name.startswith("horse_")}
     if hi:
+        with horse_lod.Unskinned(horse_objs):
+            parts, final, color_image, clean_up = ul.bake_atlas(model, specs, rider_parts + horse_parts,
+                                                                rider_detailed + horse_objs, ao_sets=sets,
+                                                                normal_size=ul.HI_NORMAL_SIZE)
+        rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
+        apply_drape(rider_parts)
         levels = ul.figure_levels_hi(unit.PARTS, rider_parts, game, armature, color_image, unit.LOD2, ground=ground)
         horse_levels = horse_lod.levels_hi(horse_parts, rest, color_image)
     else:
-        levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground)
-        horse_levels = horse_lod.levels(horse_parts, rest, color_image)
+        # LOD1 with few seams and LOD2 a palette (whp_far), for the rider and the horse alike.
+        rider_lod1 = whp_far.lod1_pieces([p.name for p in unit.PARTS], rider_parts, [p.budget[1] for p in unit.PARTS])
+        horse_lod1 = horse_lod.lod1_pieces(horse_parts)
+        with horse_lod.Unskinned(horse_objs):
+            parts, final, color_image, clean_up, lod1 = ul.bake_atlas(model, specs, rider_parts + horse_parts,
+                                                                      rider_detailed + horse_objs, ao_sets=sets,
+                                                                      extra=rider_lod1 + horse_lod1)
+        rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
+        rider_lod1, horse_lod1 = lod1[:len(rider_lod1)], lod1[len(rider_lod1):]
+        apply_drape(rider_parts + rider_lod1)
+        levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground,
+                                  lod1=rider_lod1)
+        horse_levels = horse_lod.levels(horse_parts, rest, color_image, lod1=horse_lod1)
     for group, pieces in horse_levels.items():
         for i in range(len(levels)):
             levels[i] += pieces[i]
+    if not hi:
+        ul.finish_far(levels, final)
     lods = [ul.finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     for obj in rider_detailed + horse_objs:

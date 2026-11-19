@@ -99,4 +99,93 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-(Lane 1 điền khi xong.)
+**Trạng thái: xong, trừ ý 9 đang chờ người dùng xem ảnh** (2026-11-19). Lane 1 làm. Số liệu thô, kịch bản đo, log: `E:\World_History_Platform_assets\T-047\`. Ảnh duyệt: `E:\World_History_Platform_assets\duyet\T-047\` (26 cặp `A-truoc` / `B-sau`).
+
+Commit: `2328712` (LOD1, LOD2), `651a178` (nhát chém Gaul), `aa79a32` (vạt áo bản đầu, tóc), `f266814` (bỏ mảnh vụn LOD1 để dựng lại ra đúng từng byte), `72ef734` (ảnh duyệt Baleares, Gaul), `50934ce` (vạt áo kéo theo tư thế ngồi), và commit điền mục này.
+
+### 1. LOD1, LOD2 ít đường nối
+
+Cách làm ở `art/README.md`, mục "Giai đoạn `lod`" (`whp_far.py`, `whp_palette.py`). Tóm tắt:
+
+- **LOD2:** mỗi tam giác một màu phẳng như cũ, nhưng màu gom thành bảng màu nhỏ (12–20 màu, khoảng cách OKLab), mỗi màu một ô 32×32 điểm ảnh trong atlas; tam giác cùng màu dùng chung đỉnh. Ảnh pháp tuyến và độ nhám/kim loại mang giá trị của màu ở ô tương ứng.
+- **LOD1:** mỗi mảnh chia thành ít vùng lớn (vùng lớn dần trong nón 90°, giữ là một đĩa), trải UV theo góc, xếp chung atlas với LOD0 ở mật độ 0,25; màu, độ nhám lấy từ điểm gần nhất của LOD0 (không bake lại).
+- Cảnh không phải sửa: vẫn một vật liệu, một ảnh màu 2048×2048, cùng ba mức LOD.
+
+**Số đỉnh / số vị trí khác nhau** (`glbverts.mjs`, khớp `s-lod2.mjs` đọc trong trang):
+
+| Mô hình | LOD1 trước → sau | LOD2 trước → sau | Tam giác LOD1 / LOD2 | File |
+|---|---|---|---|---|
+| balearic-slinger | 2,89 → 1,76 | 3,61 → 1,39 | 1 127 / 230 | 1,68 → 1,64 MB |
+| gallic-infantry | 3,42 → 2,16 | 3,48 → 1,24 | 1 080 / 235 | 1,89 → 1,83 MB |
+| iberian-gallic-cavalry | 2,74 → 1,63 | 3,45 → 1,20 | 1 304 / 289 | 2,15 → 2,07 MB |
+| iberian-infantry | 2,67 → 1,70 | 3,25 → 1,40 | 1 160 / 271 | 1,79 → 1,74 MB |
+| libyan-infantry | 2,33 → 1,55 | 3,33 → 1,34 | 1 348 / 277 | 2,25 → 2,17 MB |
+| numidian-cavalry | 2,89 → 1,71 | 3,54 → 1,30 | 1 354 / 276 | 2,10 → 2,04 MB |
+| roman-cavalry | 2,54 → 1,62 | 3,43 → 1,32 | 1 353 / 288 | 2,43 → 2,35 MB |
+| roman-hastatus | 2,48 → 1,68 | 3,14 → 1,30 | 1 282 / 294 | 1,95 → 1,90 MB |
+| roman-legionary | 2,37 → 1,57 | 3,27 → 1,46 | 1 346 / 296 | 2,25 → 2,17 MB |
+| roman-triarii | 2,36 → 1,56 | 3,26 → 1,44 | 1 346 / 288 | 2,25 → 2,17 MB |
+| roman-velites | 2,55 → 1,59 | 3,15 → 1,29 | 1 233 / 264 | 1,77 → 1,71 MB |
+
+- LOD2 đạt yêu cầu (không quá khoảng 1,5 lần) ở cả 11 mô hình. `gallic-infantry` LOD1 còn 2,16 lần: lưới Celt khép kín, pháp tuyến lổn nhổn sau khi giảm tam giác nên vùng nhỏ.
+- Giới hạn tam giác (LOD1 tối đa 1 500, LOD2 tối đa 300) và cỡ file (tối đa 4 MB) vẫn giữ.
+
+**Thời gian GPU vẽ một khung** (`s-gputime.mjs`, góc nhìn mở của Cannae, 1280×800):
+
+- Điều kiện: bản production (`next build` + `next start`) của `main` trước task (cây `T-047\before`, cổng 3181) và của nhánh (cổng 3182); không có Blender chạy; xen kẽ trước/sau trong cùng lượt; RTX 3050 Laptop; khoảng 3–4 GB RAM trống; dev server của các phiên khác vẫn chạy.
+- Góc nhìn mở: **6,73–6,77 → 5,45–5,48 ms (−19%)**, 8 lượt mỗi bên qua ba lần đo trong ngày (lần cuối 07:48, bản cuối của nhánh).
+- Giai đoạn 4 (t = 3,55, hai cánh ép vào): 6,91–6,93 → 5,55–5,56 ms (−20%), đo trước khi bỏ mảnh vụn và làm lại vạt áo (hai sửa này đổi số đỉnh dưới 1%).
+
+**Nhìn như cũ:** cặp ảnh `goc-mo-*`, `tam-xa-LOD2-*` (450 m, 700 m) và `tam-trung-LOD1-*` (120 m, 190 m), cùng góc, hai giai đoạn. Màu phần và màu phe đọc ra như trước; không thấy đường nối hay vệt màu sai ở LOD1. Các ảnh này chụp với mô hình ở `aa79a32`; về sau LOD chỉ đổi ở chỗ bỏ mảnh vụn và vạt áo kỵ binh.
+
+**Cảnh đo `UnitModel.strike` trên LOD2:** đọc lại trong trang cho 11 mô hình, bản cuối: không đổi ở 10 mô hình, chỉ Gaul đổi (xem 3). Chiều cao `balearic-slinger` 1,648 → 1,657 m (tóc mới).
+
+### 2. Kỵ binh
+
+- **Ý 4, vạt áo** (`whp_cavalry.drape_skirts`, `apply_drape`):
+  - Bản đầu (`aa79a32`) kéo vạt áo vào chân ở tư thế đứng; khi ngồi gần như không đổi gì, nên đã làm lại.
+  - Bản cuối kéo ở đúng chỗ đùi nằm khi ngồi (clip `idle`, khung 0): dưới hông, phần cách chân quá 1,2 cm chỉ giữ 5%; làm mượt; đẩy ra ngoài da tối thiểu 8 mm; lớp giáp lưới của kỵ binh La Mã nằm ngoài lớp áo thêm 1,2 cm. Độ dời đổi ngược về tư thế đứng qua ma trận skin của từng đỉnh, nên mọi clip (người đều ngồi) thấy vạt áo rủ theo đùi.
+  - Độ dời chỉ áp vào LOD0, LOD1 sau khi bake atlas. Nếu dời trước, mặt vải ở tư thế đứng không trơn và bake để lại tam giác xám trên vạt áo (đã gặp và đã sửa).
+  - Đo ở Iberia/Gaul: 400 đỉnh chìa xa nhất sang hai bên cách chân trung vị 4,6 → 1,7 cm. Ảnh: `ky-binh-*-trong-canh-truoc-mat`, `-ben`, `*-truoc-ben-sau`. Rõ nhất ở Iberia/Gaul (hết dáng váy xoè) và mép nâu của Numidia.
+  - Còn lại: vạt sau vẫn theo hông, rủ thành hình chuông trên lưng ngựa (cố ý, để không xuyên vào ngựa); một mảng xám nhỏ (mặt trong của vải) ở sườn trái vạt áo Iberia/Gaul, nhìn từ trước.
+- **Ý 8, tóc Numidia** (cả lính Baleares, cùng lỗi): thay lớp tóc ôm sọ bằng tóc xoăn dày (`roman_faces.build_hair`: vỏ tóc chia nhỏ, lọn xoăn bằng nhiễu, chân tóc lởm chởm) với chất liệu mờ, có vệt sợi (`whp_materials.hair`). Ảnh: `toc-baleares-dau`, `numidia-truoc-ben-sau`, `ky-binh-numidia-trong-canh-*`.
+- **Ý 9, người Gaul trong `iberian-gallic-cavalry`: chưa xuất vào cảnh, chờ người dùng xem ảnh** (theo đề bài). Xem mục "Ý 9" ngay dưới.
+
+### Ý 9: phương án và đề nghị
+
+**Phương án đã dựng thử, không xuất vào cảnh:** thêm hai dấu hiệu Gaul không trái với trang phục người Iberia.
+
+- Quần (*bracae*) cùng màu nhuộm với bộ binh Gaul (`gallic-infantry`), có sọc. Nguồn: Polybius 2.28.7 (người Insubres và Boii mặc quần và áo choàng nhẹ); Diodorus 5.30.1 (quần, áo choàng sọc hay kẻ ô); Strabo 4.4.3 (quần bó).
+- Vòng cổ *torc* bằng đồng, hở ở họng, bám theo cổ và cổ áo. Nguồn: Polybius 2.29.8, 2.31.5 (vòng cổ, vòng tay vàng của người Gaul). Kỵ binh Gaul thuộc tầng lớp quý tộc, là những người đeo torc.
+- Ảnh: `y9-ky-binh-iberia-gaul-de-xuat-*` (trước-bên-sau, ba phần tư, cạnh legionary, cổ và đùi phóng to). `A-truoc` là mô hình hiện tại, `B-sau` là phương án.
+- Bản vá và mô hình: `T-047\patch\gaul.py`, `patch\apply_gaul.py` (áp vào `roman_source.py`, `unit_iberian_gallic_cavalry.py`), `T-047\gaul\iberian-gallic-cavalry.proposal.glb`. Bản dựng thử qua bước kiểm tra; repo đã trả về bản không có phương án.
+- **Hạn chế:** quần chỉ lộ ở đùi, giữa vạt áo và xà cạp (nền vàng đất gần màu xà cạp); torc rất nhỏ. Ở tầm LOD1, LOD2 (gần như mọi lúc trong trận) hai dấu hiệu này không đọc ra; chỉ thấy khi xem cận.
+
+**Đề nghị (cách đúng hơn): tách thành hai loại lính**, việc dữ liệu của lane 2.
+
+- Polybius 3.114.1 và Livy 22.46.1 kể kỵ binh Iberia và kỵ binh Gaul của Hasdrubal ở cánh trái là hai khối người khác nhau.
+- Mỗi khối một mô hình: Iberia giữ mô hình hiện tại; Gaul một mô hình riêng (quần, áo choàng sọc hay kẻ ô thay cho áo trắng viền tía, torc, tóc dài và ria, khiên Celt), dựng từ người Celt của `gallic-infantry`. Phần mô hình là việc của lane 1 sau khi lane 2 tách dữ liệu.
+- Nếu người dùng chọn phương án quần và torc: áp bản vá, dựng lại, thêm nguồn vào `art/CREDITS.md`.
+
+### 3. Nhát chém Gaul (`gallic-infantry`, `attack`)
+
+- Clip dựng lại (`whp_clips._cut`, `sword_slash`): lúc vươn xa nhất về trước, lưỡi kiếm nằm ngang ở cao 1,27–1,42 m (mép trên khiên legionary 1,38 m, 1,58 m khi giơ đỡ). Độ dài 1,333 s giữ nguyên.
+- Cảnh đo: lúc đòn chạm 0,500 → 0,467 s; tầm 0,976 → 1,536 m.
+- Khoảng đấu lấy theo người tầm ngắn hơn, nên cặp Gaul–legionary đứng xa hơn khoảng 10% (1,27 → 1,40, đơn vị mô hình).
+- Ảnh: `chem-gaul-trong-canh` (`/battle-lab?duel=1` ở khung đòn chạm), `chem-gaul-blender`.
+
+### 4. Xuất và kiểm tra
+
+- **Clip** (`glbdiff.mjs`, so với `main` trước task): mọi clip, nút và skin của 11 mô hình giống hệt, trừ `attack` của `gallic-infantry` (59 trên 201 kênh). `block`, `hit` không đổi.
+- **Dựng lại ra đúng từng byte:**
+  - lần dựng lại thứ hai đầu tiên lệch ở `gallic-infantry` (pháp tuyến, tangent của ba đỉnh LOD1 thuộc một mảnh vụn một tam giác); đã sửa bằng cách bỏ mảnh rời dưới 3 mặt (`f266814`);
+  - sau đó 11 mô hình dựng hai lần giống nhau và giống bản commit;
+  - ba kỵ binh dựng thêm hai lần sau khi làm lại vạt áo, giống nhau và giống bản commit.
+- **Ảnh duyệt trong repo** đã render lại: `balearic-slinger`, `iberian-gallic-cavalry`, `numidian-cavalry`, `roman-cavalry` (đủ bộ), `gallic-infantry` (`06-lods`, cùng ảnh trận thử `art/renders/duel-*`).
+- `npm run lint`, `npm run validate`, `npm run build`: qua.
+- `--hi` (thang LOD cũ): đường dựng không đổi, chỉ thêm `apply_drape` sau bake. Chưa chạy thử lại.
+
+### Đề nghị cho phiên chính
+
+- Không có nguồn hay chất liệu mới cần ghi công trong app: tóc, vạt áo, bảng màu LOD đều dựng bằng script. Nếu dùng phương án ý 9 thì thêm các nguồn cổ ở trên vào `art/CREDITS.md`.
+- Ý 9: chọn giữa phương án quần và torc và việc tách loại lính (lane 2, rồi lane 1).

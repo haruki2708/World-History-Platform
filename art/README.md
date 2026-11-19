@@ -188,7 +188,7 @@ Số đo trên LOD0 của file `.glb` (`gait_check.py`): 2,07–2,10 m mỗi vò
 | `spear-thrust` | `Punch_Cross` (UAL 1) | 1,0 s | Đâm giáo tầm hông, cán giáo chạy qua mép phải khiên, khiên giữ yên. `roman-triarii`. |
 | `javelin-throw` | `OverhandThrow` (UAL 2) | 1,333 s | Phóng lao qua vai. Thân giữ một nửa biên độ của nguồn (lính trong hàng không lao cả người), chân một phần tư (T-024: với nửa biên độ, đùi bước ra trước chọc qua vạt áo). `roman-velites`. |
 | `sling` | `OverhandThrow` (UAL 2) | 1,333 s | Một vòng rưỡi dây trên đầu, hòn đá chạy sau bàn tay; rồi vung lên sau vai, ném ra trước và lên; dây rũ xuống. Đường tay tự dựng (không có clip nguồn cho dây ném). Chân giữ một phần tư biên độ, như `javelin-throw`. `balearic-slinger`. |
-| `sword-slash` | `OverhandThrow` (UAL 2) | 1,333 s | Giơ kiếm qua vai phải, lưỡi chĩa lên sau, rồi bổ xuống trước và chéo sang trái; khiên giữ yên. Thân giữ nửa biên độ. `gallic-infantry`. |
+| `sword-slash` | `OverhandThrow` (UAL 2) | 1,333 s | Giơ kiếm qua vai phải, lưỡi chĩa lên sau, rồi đưa qua đầu ra trước; vươn xa nhất khi lưỡi kiếm nằm ngang ở tầm mép trên khiên đối thủ (cảnh lấy lúc này làm lúc đòn chạm), rồi mới bổ xuống và chéo sang trái (`whp_clips._cut`, T-047); khiên giữ yên. Thân giữ nửa biên độ. `gallic-infantry`. |
 
 **Giáo dài** (`SPEAR_CARRY`): khi không đánh, cánh tay phải giải bằng IK, cẳng tay đưa ra trước, giáo dựng đứng cạnh đùi, đế giáo cách đất vài cm, mũi giáo cao khoảng 2,44 m. Hướng giáo đặt trong khung ngực, mà ngực nghiêng ra trước khoảng 9° khi đứng và đi, nên trong khung đó giáo ngả về sau bằng chừng ấy (T-024): nhìn nghiêng, giáo lệch khỏi phương thẳng đứng dưới 3° khi đứng và đi, ngả ra trước khoảng 18° khi chạy (trước là 14°, 15° và 30°).
 
@@ -207,8 +207,19 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
   - ảnh pháp tuyến: bake ở 2048, lấy trung bình xuống 1024;
   - **ảnh độ nhám và kim loại** (`metallicRoughnessTexture`: kênh G độ nhám, kênh B kim loại): bake ở 2048 từ giá trị Roughness và Metallic của từng vật liệu (`whp_lod.SurfaceSwap`), lấy trung bình xuống 1024. Đồng, sắt, giáp lưới là kim loại. Lưỡi kiếm của mô hình gốc lấy độ kim loại theo độ bão hoà màu: chỗ xám là thép, chỗ nâu (chuôi gỗ, xương) thì không;
   - độ che khuất môi trường (AO) bake ở 1024 từ chính các phần LOD0, viền 1 điểm ảnh, rồi nhân vào ảnh màu; khiên, kiếm, *pilum* bake riêng để không in bóng lên người.
-- **LOD1.** Giảm tam giác từ các phần của LOD0, nên dùng lại UV và trọng số; bao kiếm bỏ ở mức này.
-- **LOD2.** Thân người dựng lại bằng các ống và elip đặt theo khung xương, mỗi tam giác một màu phẳng lấy từ atlas (`whp_proxy.py`). Mũ, lông, khiên, kiếm, *pilum* vẫn giảm từ phần của chúng.
+- **LOD1** (T-047, `whp_far.py`). Giảm tam giác từ các phần của LOD0 như trước (hình giữ nguyên, dùng lại trọng số; bao kiếm bỏ ở mức này), nhưng UV làm lại để ít đường nối:
+  - mỗi mảnh chia thành vài vùng (`chart_unwrap`): vùng lớn dần từ mặt lớn nhất, luôn lấy mặt có pháp tuyến gần pháp tuyến trung bình của vùng nhất, trong nón 90°, và giữ vùng là một đĩa (không thủng); đường nối nằm ở ranh giới các vùng; trải UV theo góc (`ANGLE_BASED`);
+  - các mảnh LOD1 xếp chung atlas với LOD0, mật độ điểm ảnh bằng 0,25 lần LOD0 (`LOD1_DENSITY`): ở tầm LOD1 (17–58 điểm ảnh) vẫn hơn độ phân giải màn hình;
+  - không bake: mỗi điểm ảnh của mảnh LOD1 lấy màu (đã nhân AO), độ nhám và kim loại của điểm gần nhất trên phần LOD0 của nó trong atlas đã ghép (`transfer`); ảnh pháp tuyến phẳng ở đó (ở tầm LOD1, ảnh pháp tuyến của LOD0 cũng đã mờ hết);
+  - mảnh rời dưới 3 mặt (vụn của phép giảm tam giác, trong đầu, dưới tóc) bị bỏ: một vùng một tam giác trải UV thành điểm, và pháp tuyến, tangent của nó ra khác nhau giữa các lần dựng;
+  - kết quả: số đỉnh còn 1,55–1,76 lần số vị trí (trước là 2,3–3,4 lần); riêng `gallic-infantry` 2,16 lần (trước 3,42): lưới Celt khép kín, pháp tuyến lổn nhổn sau khi giảm, vùng nhỏ.
+- **LOD2.** Thân người dựng lại bằng các ống và elip đặt theo khung xương (`whp_proxy.py`). Mũ, lông, khiên, kiếm, *pilum* vẫn giảm từ phần của chúng. Mỗi tam giác một màu phẳng (`whp_lod.flat_colour_uvs`), rồi (T-047, `whp_palette.py`):
+  - màu các tam giác gom thành một bảng màu nhỏ (thường 12–20 màu): gộp hai màu gần nhau dưới 0,04 (khoảng cách OKLab, trung bình theo diện tích);
+  - một tam giác được lấy màu của tam giác kề nếu đổi màu không quá 0,12 và bớt được đỉnh tách (mỗi góc chung đáng 0,03);
+  - mỗi màu là một ô 32×32 điểm ảnh một màu trong atlas, thẳng hàng với khối 16×16 của JPEG; ảnh pháp tuyến phẳng và ảnh độ nhám/kim loại mang giá trị của màu đó ở ô tương ứng. Mọi góc của tam giác trỏ vào giữa ô, nên UV không đổi trên tam giác và GPU đọc ảnh ở độ phân giải đủ;
+  - chỗ cho các ô: một hình chữ nhật xếp chung với các mảnh của atlas rồi bỏ đi (`whp_lod.unwrap_atlas`, tham số `room`);
+  - kết quả: số đỉnh còn 1,19–1,46 lần số vị trí (trước là 3,1–3,6 lần). Tam giác cùng màu dùng chung đỉnh.
+- **Cảnh đo tầm đánh trên LOD2** (`UnitModel.strike` lấy mức cuối): đỉnh của LOD2 gộp lại không làm đổi số đo nào (kiểm bằng cách đọc lại trong trang cho cả 11 mô hình).
 - **Trọng số.** Tối đa 4 xương mỗi đỉnh.
 - **Thuộc tính phụ.** Thuộc tính màu (dùng để đánh dấu viền áo cho bake) và các thuộc tính `whp_*` bị xoá khỏi LOD trước khi xuất; bước kiểm tra báo lỗi nếu file có `COLOR_n` (three.js sẽ nhân màu đỉnh vào vật liệu).
 - **Không có váy.** Mô hình mặc quần (người Gaul) đặt `LOD2["skirt"] = None`.
@@ -238,7 +249,7 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | LOD2 | 1,2 lần LOD1 thường, có chất liệu | 1 800 / 2 400 |
 | LOD3 | Hình ống màu phẳng (LOD2 thường) | 300 / 330 |
 
-Ảnh pháp tuyến 2048; file tối đa 8 MB. Ngựa `hi` có bờm và đuôi bằng lọn lông ở LOD0 và LOD1; LOD2 dùng bờm và đuôi kiểu thường (`horse-mane-far`, `horse-tail-far`), vì lọn lông rời không giảm tam giác được.
+Ảnh pháp tuyến 2048; file tối đa 8 MB. LOD1 và LOD2 của thang này vẫn dựng như trước T-047 (UV của LOD0, mỗi tam giác của mức cuối một điểm của atlas). Ngựa `hi` có bờm và đuôi bằng lọn lông ở LOD0 và LOD1; LOD2 dùng bờm và đuôi kiểu thường (`horse-mane-far`, `horse-tail-far`), vì lọn lông rời không giảm tam giác được.
 
 ```powershell
 # Ngựa hi (ra art/build/horse/horse-hi.blend), rồi một mô hình trên thang hi
@@ -282,13 +293,15 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `whp_lod.py` | Phần ít tam giác, atlas UV, bake, xử lý ảnh, vật liệu cuối. |
 | `whp_unit_lod.py` | Giai đoạn `lod` chung: các phần, bake, ghép ảnh, LOD0..2. |
 | `whp_proxy.py` | Hình người đơn giản theo khung xương cho LOD2. |
+| `whp_far.py` | LOD1 ít đường nối UV (T-047): chia mảnh, trải UV theo góc, chép màu từ atlas LOD0; tìm chỗ trống trong atlas. |
+| `whp_palette.py` | Bảng màu nhỏ cho LOD2 (T-047): gom màu tam giác, làm mượt theo tam giác kề, ghi các ô màu vào atlas. |
 | `whp_export.py` | Xuất glTF và kiểm tra file `.glb` theo hợp đồng. |
 | `unit_<id>.py` | Phần riêng của từng mô hình (mười một file: tám bộ binh, ba kỵ binh). |
 | `whp_cavalry.py` | Kỵ binh: ghép ngựa vào file, nối hai khung xương, tư thế và các clip của người cưỡi, giai đoạn `lod` chung cho người và ngựa. |
 | `roman_kit.py` | Phần chung của các mô hình dựng trên lính La Mã: chuẩn bị thân (kiếm trong tay, trong bao hay bỏ), mũ, khiên, vật liệu, luật gắn xương, dữ liệu cho clip. |
 | `roman_weapons.py` | Giáo *hasta*, lao nhẹ, lao Iberia; cất kiếm vào bao. |
 | `roman_parma.py` | Khiên tròn của velites. |
-| `roman_faces.py` | Màu da, râu và tóc dựng từ lưới đầu của mô hình nền. |
+| `roman_faces.py` | Màu da, râu và tóc dựng từ lưới đầu của mô hình nền; tóc xoăn dày, chân tóc không đều (`build_hair`, T-047). |
 | `balearic_kit.py` | Ba dây ném đá (dây cầm tay co giãn), túi đá. |
 | `celt_source.py` | Nhập mô hình Celt cho người Gaul; xoá hình vẽ trên da, nhuộm lại quần. |
 | `celt_hands.py` | Khép hai bàn tay mở của mô hình Celt thành nắm tay (bẻ xương ngón, lưới lấy hình đó làm tư thế gốc); tìm lòng nắm tay. |
@@ -625,7 +638,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - không có bàn đạp (chưa có vào năm 216 TCN).
 
   Log ghi bao nhiêu đỉnh của chân lọt vào trong thân ngựa ở `idle` khung 0: 12 trên 6 722 đỉnh, sâu nhất 1 mm.
-- **Áo:** vạt sau của áo và giáp lưới thõng xuống lọt vào lưng ngựa, khuất trong thân ngựa; nhìn ngoài như áo phủ lên lưng ngựa.
+- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo vào đùi ở đúng chỗ đùi nằm khi người ngồi (clip `idle`, khung 0): dưới hông, phần cách chân quá 1,2 cm chỉ giữ lại 5%; độ dời làm mượt dọc các cạnh của lưới để vải không gấp; sau đó không đỉnh nào nằm trong chân (cách da tối thiểu 8 mm, vì làm mượt kéo một ít vào trong); lớp giáp lưới nằm ngoài lớp áo thêm 1,2 cm. Vị trí mới đổi ngược về tư thế đứng qua ma trận skin của từng đỉnh, nên các clip khác (người vẫn ngồi) cũng thấy vạt áo rủ theo đùi. Độ dời được giữ thành thuộc tính `whp_drape` và chỉ áp vào LOD0, LOD1 của người cưỡi sau khi bake atlas (`apply_drape`): đổi ngược về tư thế đứng, mặt vải không còn trơn ở chỗ đỉnh pha trộn giữa đùi và hông, tia bake xuyên qua tới mặt trong và để lại các tam giác xám trên vạt áo. Đẩy vải ra khỏi chân cũng được làm mượt qua các đỉnh kề (4 lượt), vì đẩy từng đỉnh thì mặt vải lổn nhổn. Kéo ở tư thế đứng (bản đầu của T-047) gần như không đổi gì khi ngồi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi.
 - **Thân theo nhịp ngựa** (`LEAN`):
   - mỗi clip một độ ngả ra trước: `walk` 2°, `jog` 4°, `run` 13°;
   - thân lấy lại một phần độ xoay của xương yên để giữ gần thẳng đứng: `walk` 50%, `jog` 70%, `run` 60%;
@@ -690,6 +703,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 - Lưới chi tiết của ngựa bake ở tư thế nghỉ, tắt armature (như lane 2).
 - **Ngân sách:** ngựa đủ yên cương chiếm 3 344 tam giác ở LOD0 (thân 2 738, bờm, đuôi, vải lót yên, dây cương), ngựa Numidia 3 036; người lấy phần còn lại (3 873–4 248). Số tam giác của từng mô hình ở mục "Kết quả" của T-022.
 - **LOD2 của người** là hình đơn giản theo khung xương như lính bộ binh, nhưng không có bàn tay, bàn chân và váy (`LOD2["feet"] = False`, `"skirt": None`): 150 tam giác; thêm khiên và giáo hay lao.
+- **LOD1 và LOD2 ít đường nối** (T-047) như lính bộ binh, cho cả người và ngựa: các mảnh LOD1 của ngựa (`horse_lod.lod1_pieces`: thân, đuôi, vải lót yên, dây cổ) chia vùng và lấy màu như của người; một bảng màu chung cho LOD2 của người và ngựa.
 
 ### Kích thước
 

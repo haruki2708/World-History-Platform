@@ -50,7 +50,7 @@ JAVELIN = dict(roman_weapons.JAVELIN, length=1.50, grip=0.62, shaft_r=(0.0100, 0
                socket_r=0.0110, blade=0.15, blade_w=0.022, blade_t=0.0045, widest=0.40)
 EXTRA_MATERIALS = [
     ("shield", lambda: whp_materials.plain("shield-paint", *RAWHIDE, roughness=0.75, scale=30.0, bump=0.3)),
-    ("hair", lambda: whp_materials.plain("hair", *roman_faces.HAIR_DARK, roughness=0.6, scale=400.0, bump=0.5)),
+    ("hair", whp_materials.hair),                    # T-047: curls, matte
 ]
 
 
@@ -87,7 +87,7 @@ def _kit(detail, suffix=""):
             roman_weapons.build_spares(JAVELIN, detail, mats, "Javelins" + suffix, count=2)]
     if detail == 2:
         head = objs["New_head"]
-        made += [roman_faces.build_shell(head, "scalp", 0.007, mats, "Hair"),
+        made += [roman_faces.build_hair(head, mats, "Hair"),
                  roman_faces.build_shell(head, "beard", 0.004, mats, "Beard")]
     return made
 

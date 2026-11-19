@@ -243,10 +243,27 @@ def _push_out(obj, distance):
     mesh.update()
 
 
-def levels(parts, rest, color_image):
+def lod1_pieces(parts):
+    """LOD1 of the horse in a rider model, made before the atlas is packed
+    (whp_far.lod1_pieces): the parts with a LOD1 budget, decimated as in
+    `levels`, then charted and unwrapped afresh."""
+    import whp_far
+
+    def push(name, piece):
+        if name == "cloth":
+            _push_out(piece, 0.012)
+
+    keys = [p.name for p in parts]
+    return whp_far.lod1_pieces(keys, parts, [BUDGET[k][1] for k in keys], after=push)
+
+
+def levels(parts, rest, color_image, lod1=None):
     """The pieces of each group's LOD0, LOD1 and LOD2 from the baked LOD0
-    parts: {group: [[LOD0 objects], [LOD1], [LOD2]]}, for the parts there are."""
+    parts: {group: [[LOD0 objects], [LOD1], [LOD2]]}, for the parts there are.
+    `lod1`: the LOD1 pieces made beforehand (lod1_pieces), instead of
+    decimating them here."""
     by_name = {p.name: p for p in parts}
+    made = {p.name: p for p in lod1 or []}
     levels = {g: [[], [], []] for g in GROUPS}
     for key, budget in BUDGET.items():
         if key not in by_name:
@@ -254,7 +271,9 @@ def levels(parts, rest, color_image):
         group = GROUP_OF[key]
         low = by_name[key]
         levels[group][0].append(low)
-        if budget[1]:
+        if budget[1] and lod1 is not None:
+            levels[group][1].append(made[f"{key}.lod1"])
+        elif budget[1]:
             copy = duplicate_object(low, f"{key}.lod1")
             lod.decimate(copy, budget[1])
             if key == "cloth":

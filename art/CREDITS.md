@@ -8,7 +8,7 @@ Các mô hình trong `public/battles/models/` được dựng bằng script tron
 - Link: https://quaternius.com/packs/universalanimationlibrary.html, https://quaternius.com/packs/universalanimationlibrary2.html (tải từ https://quaternius.itch.io/universal-animation-library và https://quaternius.itch.io/universal-animation-library-2, ngày 2026-11-16).
 - Giấy phép: [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (đọc trên hai trang và trong `License.txt` của mỗi file zip). CC0 không bắt ghi công; ghi ở đây cho minh bạch.
 - Phần dùng: chuyển động của các clip `Idle_Loop`, `Walk_Loop`, `Jog_Fwd_Loop`, `Death01`, `Punch_Cross`, `Hit_Chest` (bản 1) và `OverhandThrow` (bản 2: phóng lao của velites, ném đá của lính Baleares, chém kiếm của người Gaul). Hình nộm và khung xương của thư viện không có trong file xuất.
-- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK, chân trụ của `walk` và `run` được khoá theo mặt đất; `jog` (T-022) trộn `Walk_Loop` và `Jog_Fwd_Loop` theo pha, kéo giãn pha chạm đất của clip chạy; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân (chân của phóng lao và ném đá còn một phần tư); túi đá của dây ném đi theo một xương riêng; `block` và `hit` (đợt G) ghép thế đứng của `Idle_Loop` với cú giật của `Hit_Chest` (`block` chỉ lấy 35%), tay khiên tự dựng: đưa khiên ra đỡ rồi bị dội lại, hay bị bật ra khi trúng đòn (`block` và `hit` của người cưỡi ngựa thì tự dựng hoàn toàn, không dùng clip của thư viện). Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
+- Đã thay đổi: đổi đích sang khung xương Celt (tư thế chữ A, tỉ lệ khác); chân giải lại bằng IK, chân trụ của `walk` và `run` được khoá theo mặt đất; `jog` (T-022) trộn `Walk_Loop` và `Jog_Fwd_Loop` theo pha, kéo giãn pha chạm đất của clip chạy; tay trái giải lại để giữ khiên; tay phải đi theo đường đâm, đường chém hay vòng quay dây tự dựng trong `attack`; cổ tay xoay cho vũ khí chĩa đúng hướng; giáo dài cầm dựng đứng khi không đánh; `die` được nâng lên và cúi đầu cho người mặc giáp nằm trên mặt đất; ba kiểu dùng `OverhandThrow` giảm nửa biên độ thân (chân của phóng lao và ném đá còn một phần tư); nhát chém của người Gaul (T-047) vươn xa nhất khi lưỡi kiếm nằm ngang ở tầm mép trên khiên, rồi mới bổ xuống; túi đá của dây ném đi theo một xương riêng; `block` và `hit` (đợt G) ghép thế đứng của `Idle_Loop` với cú giật của `Hit_Chest` (`block` chỉ lấy 35%), tay khiên tự dựng: đưa khiên ra đỡ rồi bị dội lại, hay bị bật ra khi trúng đòn (`block` và `hit` của người cưỡi ngựa thì tự dựng hoàn toàn, không dùng clip của thư viện). Chi tiết: `art/README.md`, mục "Thư viện hoạt hình".
 
 ## `roman-legionary.glb`: lính bộ binh La Mã thời Cộng hoà
 
@@ -46,8 +46,8 @@ Các mô hình trong `public/battles/models/` được dựng bằng script tron
 4. **Đổi tư thế và tỉ lệ:** từ tư thế chữ T sang tư thế chữ A của khung xương Celt; co giãn từng đoạn cho khớp chiều dài xương (thân ngắn đi 9%, cánh tay trên ngắn 14%, cẳng tay dài thêm 12%); cả người cao 1,67 m.
 5. **Gắn khung xương:** trọng số chuyển từ mô hình Celt sang.
 6. **Giảm chi tiết** cho cảnh có hàng nghìn lính:
-   - LOD0 và LOD1: giảm số tam giác từ lưới gốc và bỏ các mặt bị che;
-   - LOD2: một hình người đơn giản dựng mới theo khung xương.
+   - LOD0 và LOD1: giảm số tam giác từ lưới gốc và bỏ các mặt bị che; LOD1 trải UV lại thành ít mảnh hơn, màu lấy từ ảnh của LOD0 (T-047);
+   - LOD2: một hình người đơn giản dựng mới theo khung xương; màu của nó gom thành một bảng màu nhỏ (T-047).
 7. **Ảnh vật liệu:** toàn bộ ảnh màu và ảnh pháp tuyến bake lại thành một ảnh màu 2048×2048 (đã nhân độ che khuất môi trường) và một ảnh pháp tuyến 1024×1024, xếp trên một atlas. Hai ảnh này có điểm ảnh lấy từ ảnh vật liệu gốc của mô hình nền. Thêm một ảnh độ nhám và kim loại 1024×1024 (T-019): đồng, sắt, giáp lưới và lưỡi kiếm là kim loại. T-021: màu gốc của kim loại sáng lên thành màu phản xạ của kim loại (đồng vàng đậm, sắt xám sáng).
 8. **Hoạt hình** `idle`, `walk`, `run`, `attack`, `die`: lấy từ thư viện của Quaternius (xem mục đầu), đã chỉnh. Ba clip tạm tự làm của T-014 đã bỏ.
 
@@ -115,7 +115,7 @@ Năm mô hình đầu dựng trên cùng mô hình nền và khung xương như 
 
 - **Bỏ thêm:** không giáp, không mũ, không khiên; bỏ cả kiếm và bao kiếm.
 - **Sửa:** áo nhuộm màu len mộc, viền rộng 10 cm màu tía sẫm ở gấu; da màu ô liu.
-- **Thêm:** ba dây ném đá (một quấn hai vòng quanh đầu, một quấn quanh bụng thay đai, một cầm tay có túi và hòn đá); túi đá bằng da ở hông trái; tóc và râu sẫm (vỏ dựng từ lưới đầu).
+- **Thêm:** ba dây ném đá (một quấn hai vòng quanh đầu, một quấn quanh bụng thay đai, một cầm tay có túi và hòn đá); túi đá bằng da ở hông trái; tóc và râu sẫm (vỏ dựng từ lưới đầu; từ T-047 tóc dày hơn, xoăn, chân tóc không đều, vật liệu mờ).
 - **Hoạt hình:** `attack` là quay dây trên đầu rồi ném qua vai; dây cầm tay co giãn theo hòn đá.
 
 ### `gallic-infantry.glb`: bộ binh Gaul
@@ -210,7 +210,8 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
 3. **Hoạt hình:**
    - ngựa: `idle`, `walk`, `run` (phi), `die` của con ngựa; `jog` là nước kiệu (`trot`) của file gốc; `attack` là tư thế đứng của ngựa, thêm nhịp thở và gật đầu, tự làm;
    - người: tư thế ngồi, cầm cương, mang vũ khí, đâm giáo hay phóng lao tự dựng bằng IK; cú ngã dùng `Death01` của thư viện Quaternius (CC0), trộn từ tư thế ngồi khi bị văng khỏi ngựa.
-4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân.
+4. **Giảm chi tiết và ảnh vật liệu:** người và ngựa xếp chung một atlas, bake lại một lượt (màu, pháp tuyến, độ nhám/kim loại, AO), một vật liệu. LOD2 của người là hình đơn giản theo khung xương, không có bàn tay, bàn chân. LOD1 và LOD2 ít đường nối UV như lính bộ binh (T-047).
+5. **Vạt áo người cưỡi** (T-047): dưới hông, vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo sát vào đùi để rủ theo đùi khi ngồi; vạt sau đi theo hông, rủ xuống lưng ngựa.
 
 ### `roman-cavalry.glb`: kỵ binh La Mã và đồng minh
 
@@ -232,7 +233,7 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
 
 - **Bỏ thêm:** không giáp, không mũ; bỏ kiếm và bao kiếm; không đai (áo không thắt lưng).
 - **Sửa:** áo nhuộm màu len mộc, viền rộng 10 cm màu nâu đỏ sẫm ở gấu; da sẫm như người Libya.
-- **Thêm:** tóc và râu sẫm (vỏ dựng từ lưới đầu); khiên tròn nhỏ bằng da sống, đường kính 0,52 m, cầm trong tay trái; ba cây lao 1,5 m mũi rộng (một trong tay phải, hai sau khiên).
+- **Thêm:** tóc và râu sẫm (vỏ dựng từ lưới đầu; từ T-047 tóc dày hơn, xoăn, chân tóc không đều, vật liệu mờ); khiên tròn nhỏ bằng da sống, đường kính 0,52 m, cầm trong tay trái; ba cây lao 1,5 m mũi rộng (một trong tay phải, hai sau khiên).
 - **Ngựa:** thu nhỏ còn 0,95 lần (cao 1,33 m tới vai); không yên, không cương, chỉ dây quàng cổ.
 - **Hoạt hình:** `attack` là phóng lao.
 

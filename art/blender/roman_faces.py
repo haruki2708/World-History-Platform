@@ -104,3 +104,50 @@ def build_shell(head, region, offset, materials, name):
     canonicalise(obj)
     log(f"{name}: {len(mesh.polygons)} faces from the {region} of {head.name}")
     return obj
+
+
+# Hair of the head (build_hair): thickness, how far the curls stand out
+# (a share of the thickness), how big a curl is, how ragged the hairline,
+# all in source units (T-047).
+HAIR = dict(offset=0.013, lump=0.6, curl=0.022, ragged=0.012)
+
+
+def build_hair(head, materials, name, offset=HAIR["offset"], lump=HAIR["lump"], curl=HAIR["curl"],
+               ragged=HAIR["ragged"]):
+    """A head of short curly hair (T-047): the scalp's faces of `head`, as
+    build_shell does, but thicker, in curls (each point pushed out by a
+    fixed noise of about `curl` across, up to `lump` of the thickness more
+    or less) and with a ragged hairline. The thin even shell read as a
+    leather cap. Material: "hair"."""
+    from mathutils import Vector, noise
+
+    bm = bmesh.new()
+    bm.from_mesh(head.data)
+    bm.faces.ensure_lookup_table()
+    centres = np.array([f.calc_center_median() for f in bm.faces])
+    jitter = np.array([noise.noise(Vector(c) / 0.012) for c in centres]) * ragged
+    keep = _scalp(centres) & _scalp(centres + np.stack([np.zeros_like(jitter), -jitter, jitter], axis=1))
+    bmesh.ops.delete(bm, geom=[f for f, k in zip(bm.faces, keep) if not k], context="FACES")
+    _drop_specks(bm, MIN_ISLAND)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=1, use_grid_fill=True)
+    bm.normal_update()
+    # Full thickness inside, tapering to the skin over the last rings of vertices.
+    edge = {v for v in bm.verts if v.is_boundary}
+    ring1 = {n for v in edge for e in v.link_edges for n in e.verts} - edge
+    ring2 = {n for v in ring1 for e in v.link_edges for n in e.verts} - edge - ring1
+    for v in bm.verts:
+        taper = 0.12 if v in edge else 0.45 if v in ring1 else 0.8 if v in ring2 else 1.0
+        v.co += v.normal * offset * taper * (1.0 + lump * noise.noise(Vector(v.co) / curl))
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new(name, mesh)
+    link_object(obj)
+    obj.matrix_world = head.matrix_world
+    mesh.materials.clear()
+    mesh.materials.append(materials["hair"])
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    canonicalise(obj)
+    log(f"{name}: {len(mesh.polygons)} faces of curly hair from the scalp of {head.name}")
+    return obj
