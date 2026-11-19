@@ -210,8 +210,8 @@
       "side": "carthage",
       "type": "gallic-infantry",
       "name": {
-        "en": "Gallic infantry, at the head of the Sanguineto valley",
-        "vi": "Bộ binh Gaul, ở đầu thung lũng Sanguineto"
+        "en": "Gallic infantry, at the mouth of the Sanguineto valley",
+        "vi": "Bộ binh Gaul, ở cửa thung lũng Sanguineto"
       },
       "men": 3200
     },
@@ -402,7 +402,7 @@
     },
     {
       "unit": "gauls-1",
-      "formation": { "center": { "x": 850, "y": 1130 }, "frontage": 220, "depth": 30, "facing": 170 },
+      "formation": { "center": { "x": 800, "y": 1250 }, "frontage": 220, "depth": 30, "facing": 170 },
       "action": "stand",
       "men": 3200,
       "concealed": true
@@ -465,7 +465,7 @@
     },
     {
       "unit": "balearic-slingers",
-      "formation": { "center": { "x": 1900, "y": 900 }, "frontage": 120, "depth": 34, "facing": 210 },
+      "formation": { "center": { "x": 1850, "y": 1400 }, "frontage": 120, "depth": 34, "facing": 200 },
       "action": "stand",
       "men": 2000,
       "concealed": true
@@ -604,7 +604,7 @@
         },
         {
           "unit": "gauls-1",
-          "formation": { "center": { "x": 850, "y": 1130 }, "frontage": 220, "depth": 30, "facing": 170 },
+          "formation": { "center": { "x": 800, "y": 1250 }, "frontage": 220, "depth": 30, "facing": 170 },
           "action": "stand",
           "men": 3200,
           "concealed": true
@@ -667,7 +667,7 @@
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 1900, "y": 900 }, "frontage": 120, "depth": 34, "facing": 210 },
+          "formation": { "center": { "x": 1850, "y": 1400 }, "frontage": 120, "depth": 34, "facing": 200 },
           "action": "stand",
           "men": 2000,
           "concealed": true
@@ -871,7 +871,7 @@
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 1500, "y": -330 }, "frontage": 160, "depth": 25, "facing": 280 },
+          "formation": { "center": { "x": 1680, "y": 120 }, "frontage": 160, "depth": 25, "facing": 250 },
           "action": "charge",
           "men": 2000
         }
@@ -1064,13 +1064,13 @@
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 1110, "y": -40 }, "frontage": 240, "depth": 50, "facing": 295.6 },
+          "formation": { "center": { "x": 960, "y": -420 }, "frontage": 240, "depth": 50, "facing": 295.6 },
           "action": "advance",
           "men": 5990
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 960, "y": -420 }, "frontage": 160, "depth": 25, "facing": 295.6 },
+          "formation": { "center": { "x": 1110, "y": -40 }, "frontage": 160, "depth": 25, "facing": 295.6 },
           "action": "advance",
           "men": 2000
         }
@@ -1257,13 +1257,13 @@
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 1110, "y": -40 }, "frontage": 240, "depth": 50, "facing": 295.6 },
+          "formation": { "center": { "x": 960, "y": -420 }, "frontage": 240, "depth": 50, "facing": 295.6 },
           "action": "skirmish",
           "men": 5970
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 960, "y": -420 }, "frontage": 160, "depth": 25, "facing": 295.6 },
+          "formation": { "center": { "x": 1110, "y": -40 }, "frontage": 160, "depth": 25, "facing": 295.6 },
           "action": "skirmish",
           "men": 2000
         }
@@ -1452,13 +1452,13 @@
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 1500, "y": -550 }, "frontage": 200, "depth": 60, "facing": 250 },
+          "formation": { "center": { "x": 1350, "y": -950 }, "frontage": 200, "depth": 60, "facing": 250 },
           "action": "pursue",
           "men": 5970
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 1350, "y": -950 }, "frontage": 160, "depth": 25, "facing": 240 },
+          "formation": { "center": { "x": 1500, "y": -550 }, "frontage": 160, "depth": 25, "facing": 240 },
           "action": "pursue",
           "men": 2000
         }
@@ -1649,13 +1649,13 @@
         },
         {
           "unit": "light-spearmen",
-          "formation": { "center": { "x": 1500, "y": -550 }, "frontage": 200, "depth": 60, "facing": 250 },
+          "formation": { "center": { "x": 1350, "y": -950 }, "frontage": 200, "depth": 60, "facing": 250 },
           "action": "stand",
           "men": 5970
         },
         {
           "unit": "balearic-slingers",
-          "formation": { "center": { "x": 1350, "y": -950 }, "frontage": 160, "depth": 25, "facing": 240 },
+          "formation": { "center": { "x": 1500, "y": -550 }, "frontage": 160, "depth": 25, "facing": 240 },
           "action": "stand",
           "men": 2000
         }
