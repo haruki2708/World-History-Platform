@@ -144,6 +144,12 @@ SPEAR_FORWARD = dict(wrist=(-0.27, -0.26, -0.33), elbow=(-0.6, 0.7, -0.3),
                      aim=(-0.06, -0.80, 0.60), up=(-1.0, 0.1, 0.0), follow=0.6)
 JAVELIN_UP = dict(wrist=(-0.26, -0.24, -0.34), elbow=(-0.6, 0.7, -0.3),
                   aim=(-0.05, -0.55, 0.83), up=(-1.0, 0.1, 0.0), follow=0.6)
+# A long sword drawn (T-050): held up and a little forwards beside the
+# horse's shoulder, the edge forwards; forwards at the gallop.
+SWORD_UP = dict(wrist=(-0.28, -0.22, -0.33), elbow=(-0.6, 0.7, -0.3),
+                aim=(-0.38, -0.30, 0.87), up=(-0.9, 0.1, -0.4), follow=0.6)
+SWORD_FORWARD = dict(wrist=(-0.27, -0.28, -0.30), elbow=(-0.6, 0.7, -0.3),
+                     aim=(-0.10, -0.78, 0.62), up=(-1.0, 0.1, 0.0), follow=0.6)
 # A shield in the left fist (shield="hand"), in front of the left hip.
 RIDE_SHIELD = dict(wrist=(0.25, -0.30, -0.28), down=(0.05, -0.30, -1.0), out=(0.55, -0.83, 0.0),
                    elbow=(1.0, 0.35, -0.4), follow=0.5)
@@ -163,8 +169,9 @@ LEAN = {
 }
 PELVIS_TILT = 8.0           # degrees the pelvis tips back from upright (seated on the seat bones)
 SEAT_CLEAR = 0.004          # the seat of the breeches this far above the seat point
+SEATED_DEPTH = 0.30         # metres below the hips at rest: the seat, measured seated (RiderPoser._find_seated_height)
 
-ATTACK_FRAMES = {"spear-thrust": 30, "javelin-throw": 40}       # as the foot soldiers' (whp_clips.ATTACKS)
+ATTACK_FRAMES = {"spear-thrust": 30, "javelin-throw": 40, "sword-slash": 40}   # as the foot soldiers' (whp_clips.ATTACKS)
 
 
 # --------------------------------------------------------------------------
@@ -485,7 +492,10 @@ class RiderPoser:
         r = self.rider
         seat = Vector(self.m.seat)
         if self.seat_z is None:
-            self.seat_z = self._find_seat_height()
+            if getattr(self.unit, "SEAT_MEASURE", "rest") == "seated":
+                self.seat_z = self._find_seated_height()
+            else:
+                self.seat_z = self._find_seat_height()
         p.rotate("pelvis", "X", -PELVIS_TILT)
         p.place("pelvis", Vector((0.0, seat.y, self.seat_z)))
         for side in ("l", "r"):
@@ -517,6 +527,29 @@ class RiderPoser:
         low = float(pts[:, 2].min())
         z = start + (seat[2] + SEAT_CLEAR - low)
         log(f"seat: {len(skin)} vertices of the seat; pelvis bone at {z:.3f} m (seat point {seat[2]:.3f} m)")
+        p.reset()
+        return z
+
+    def _find_seated_height(self):
+        """As _find_seat_height, but measured with the man seated (unit
+        SEAT_MEASURE = "seated", T-050): the lowest point of his seat, the
+        legs' mesh near the middle line from just above the hips to
+        SEATED_DEPTH below them, comes to rest on the seat point. Measured
+        standing, the inner thighs of baggy trousers (the Celt's) hang into
+        that window and lift him a hand's breadth off the horse."""
+        p = self.p
+        seat = self.m.seat
+        legs = [o for o in bpy.data.objects if o.type == "MESH" and o.name in self.unit.SEAT_MESHES]
+        p.reset()
+        start = p.head("pelvis").z
+        self.seat_z = start
+        self.seat()
+        skin = Skin(legs, lambda co: (np.abs(co[:, 0]) < 0.08) & (co[:, 2] < start + 0.02)
+                    & (co[:, 2] > start - SEATED_DEPTH))
+        pts = skin.at(poser_skin(p))
+        low = float(pts[:, 2].min())
+        z = start + (seat[2] + SEAT_CLEAR - low)
+        log(f"seat (seated): {len(skin)} vertices of the seat; pelvis bone at {z:.3f} m (seat point {seat[2]:.3f} m)")
         p.reset()
         return z
 
@@ -740,6 +773,22 @@ THROW = {
 THROW_KEYS = [(0.0, "carry"), (0.32, "cocked"), (0.44, "cocked"), (0.54, "release"), (0.66, "follow"), (1.0, "carry")]
 THROW_TWIST = [(0.0, 0.0), (0.32, -22.0), (0.44, -24.0), (0.54, 16.0), (0.66, 14.0), (1.0, 0.0)]
 THROW_LEAN = [(0.0, 0.0), (0.32, -4.0), (0.44, -5.0), (0.54, 9.0), (0.66, 8.0), (1.0, 0.0)]
+
+# Downward cut with a long sword (T-050, gallic-cavalry): the blade raised
+# over the right shoulder, pointing up and back; brought over and forwards
+# past the right of the horse's head, furthest forwards with the blade
+# about level (the moment the scene takes for the blow landing); then on
+# down past the horse's right shoulder, and back up to the carry.
+SLASH = {
+    "carry": {k: v for k, v in SWORD_UP.items() if k != "follow"},
+    "raised": dict(wrist=(-0.22, 0.06, 0.30), elbow=(-1.0, 0.2, 0.5), aim=(-0.20, 0.55, 0.81), up=(-1.0, 0.0, 0.1)),
+    "level": dict(wrist=(-0.22, -0.52, 0.22), elbow=(-1.0, 0.25, 0.0), aim=(-0.25, -0.93, 0.27), up=(-0.9, 0.0, 0.4)),
+    "down": dict(wrist=(-0.20, -0.40, -0.18), elbow=(-1.0, 0.4, -0.5), aim=(-0.32, -0.66, -0.68), up=(-0.9, 0.0, 0.3)),
+}
+SLASH_KEYS = [(0.0, "carry"), (0.22, "raised"), (0.30, "raised"), (0.40, "level"), (0.50, "down"),
+              (0.62, "down"), (1.0, "carry")]
+SLASH_TWIST = [(0.0, -4.0), (0.22, -20.0), (0.30, -22.0), (0.40, 14.0), (0.50, 18.0), (0.62, 14.0), (1.0, -4.0)]
+SLASH_LEAN = [(0.0, 0.0), (0.22, -4.0), (0.30, -5.0), (0.40, 9.0), (0.50, 11.0), (0.62, 8.0), (1.0, 0.0)]
 
 
 def _stroke(table, keys, twist, lean, frames):
@@ -1222,6 +1271,8 @@ def stage_anim(unit):
     stance = _stance(m, frames)
     if unit.RIDER.attack == "spear-thrust":
         extra, right = _stroke(THRUST, THRUST_KEYS, THRUST_TWIST, THRUST_LEAN, frames)
+    elif unit.RIDER.attack == "sword-slash":
+        extra, right = _stroke(SLASH, SLASH_KEYS, SLASH_TWIST, SLASH_LEAN, frames)
     else:
         extra, right = _stroke(THROW, THROW_KEYS, THROW_TWIST, THROW_LEAN, frames)
     actions.append(rp.clip("attack", stance, extra=extra, right=right, frames=frames))

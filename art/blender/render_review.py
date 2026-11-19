@@ -494,7 +494,69 @@ def beside_horse(template, unit, shoot):
     shoot.panels(scene, [panels], f"beside-{unit.BESIDE}")
 
 
+def _horsemen(template, unit):
+    """This horseman and the others of unit.HORSEMEN, imported: list of
+    (name, template)."""
+    out = []
+    for name in unit.HORSEMEN:
+        out.append((name, template if name == unit.MODEL else import_model(whp_build.glb_path(name))))
+    return out
+
+
+def _row(scene, models, turn, lod, direction):
+    """One panel: the horsemen side by side, standing (idle, frame 0),
+    turned `turn`, showing `lod`, seen from `direction`."""
+    spots = {0.0: (2.2, 0.0), 180.0: (2.2, 0.0), -90.0: (3.2, 0.0), 90.0: (3.2, 0.0)}[turn]
+    figures = []
+    for i, (_name, model) in enumerate(models):
+        f = place(model, (spots[0] * i, spots[1] * i, 0.0), turn, lod=lod)
+        play(f, "idle", 0)
+        figures.append(f)
+    lo, hi = bounds_of(figures)
+    aim_camera(scene, *pad(lo, hi, 0.05), direction, ortho=True, margin=1.03)
+    pixels = render_panel(scene)
+    clear_figures([m for _n, t in models for m in (t.armature, *t.meshes.values())])
+    return pixels
+
+
+def beside_cavalry(template, unit, shoot):
+    """The horsemen of unit.HORSEMEN side by side (T-050): from the front,
+    from their left (the shield side) and from behind."""
+    models = _horsemen(template, unit)
+    scene = stage(1500, 760)
+    rows = [[_row(scene, models, turn, "LOD0", "front")] for turn in (0.0, -90.0, 180.0)]
+    shoot.panels(scene, rows, "beside-cavalry")
+
+
+FAR_HEIGHTS = {"LOD1": 40, "LOD2": 13}      # pixels a horseman stands on screen at each level (the scene's bands)
+FAR_ZOOM = {"LOD1": 4, "LOD2": 10}
+
+
+def far_cavalry(template, unit, shoot):
+    """The horsemen of unit.HORSEMEN as small as the scene shows them at
+    LOD1 (some 40 pixels high) and LOD2 (some 13), from the front, the left
+    and behind, each panel enlarged without smoothing (T-050)."""
+    models = _horsemen(template, unit)
+    rows = []
+    for turn in (0.0, -90.0, 180.0):
+        row = []
+        for lod in ("LOD1", "LOD2"):
+            # A panel whose height holds a horseman (2.4 m with his sword up) at the wanted size.
+            h = int(round(FAR_HEIGHTS[lod] * 1.12))
+            scene = stage(h * 4, h, samples=32)
+            pixels = _row(scene, models, turn, lod, "front")
+            zoom = FAR_ZOOM[lod]
+            row.append(np.repeat(np.repeat(pixels, zoom, axis=0), zoom, axis=1))
+        height = max(p.shape[0] for p in row)
+        # Pixels run bottom-up: pad at the top, with a white margin between the levels.
+        row = [np.pad(p, ((0, height - p.shape[0]), (0, 12), (0, 0)), constant_values=1.0) for p in row]
+        rows.append(row)
+    shoot.panels(bpy.context.scene, rows, "far-cavalry")
+
+
 IMAGES = {
+    "beside-cavalry": beside_cavalry,
+    "far-cavalry": far_cavalry,
     "views": views,
     "three-quarter": three_quarter,
     "head": head,
