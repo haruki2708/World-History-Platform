@@ -26,10 +26,12 @@ const BLOCKS: Block[] = [
   { north: ["roman-principes", "socii-infantry"], south: ["gallic-infantry"], northFront: 130, southFront: 130, depth: 36, men: 3200 },
   { north: ["roman-hastati"], south: ["iberian-infantry"], northFront: 150, southFront: 105, depth: 36, men: 3000 },
   { north: ["roman-triarii"], south: ["libyan-infantry"], northFront: 100, southFront: 130, depth: 30, men: 2400 },
-  { north: ["roman-cavalry", "allied-cavalry"], south: ["iberian-gallic-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
+  { north: ["roman-cavalry", "allied-cavalry"], south: ["iberian-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
   { north: ["roman-velites"], south: ["balearic-slingers"], northFront: 140, southFront: 140, depth: 16, men: 1600, apart: 45 },
   // The Numidians hand to hand, as no battle has them yet: to see their block and hit.
   { north: ["allied-cavalry", "roman-cavalry"], south: ["numidian-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
+  // The Gallic horse (T-050): a long sword that cuts, where the other riders thrust.
+  { north: ["roman-cavalry", "allied-cavalry"], south: ["gallic-cavalry"], northFront: 150, southFront: 150, depth: 40, men: 1400 },
 ];
 
 const GAP = 40;

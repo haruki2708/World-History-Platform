@@ -204,7 +204,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - **`block`, `hit`** (thêm 2026-11-18, đợt G): phản ứng của người bị đánh trong giáp lá cà. `block`: đưa khiên ra đỡ, khiên bị dội lại. `hit`: đòn lọt qua, người giật lại.
     - Cả hai bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài 1,0 giây. Đòn của địch chạm ở giây thứ `REACTION_IMPACT` (0,3) của clip; cảnh canh giờ theo số này, nên đổi nó là đổi hợp đồng.
     - Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi. Mô hình chưa có hai clip này thì nhận đòn mà không phản ứng.
-    - Có ở chín mô hình: sáu mô hình bộ binh đánh gần (`roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`) và ba mô hình kỵ binh. Hai mô hình bộ binh đánh từ xa (`roman-velites`, `balearic-slinger`) không có.
+    - Có ở mười mô hình: sáu mô hình bộ binh đánh gần (`roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`) và bốn mô hình kỵ binh. Hai mô hình bộ binh đánh từ xa (`roman-velites`, `balearic-slinger`) không có.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
@@ -212,14 +212,15 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
     - `jog` của bộ binh (T-022): trộn `Walk_Loop` và `Jog_Fwd_Loop` theo pha, kéo giãn để chân chạm đất 65% mỗi bước, rồi khoá chân trụ. Một vòng 0,733 s, đi được 2,07–2,10 m (2,8–2,9 m/s ở cỡ người thật).
     - Chân trụ đã được khoá trong clip (`whp_clips.Builder.lock_feet`): trượt dưới 3% khi đi, khoảng 1% khi chạy.
   - `idle`, `walk`, `jog`, `run`, `attack` lặp liền mạch. `die` không lặp: cảnh phát một lần rồi giữ khung cuối, và lính ngã nằm lại đến hết trận.
-  - Độ dài `attack` khác nhau theo kiểu tấn công: 1,0 s (`sword-thrust`, `spear-thrust`), 1,333 s (`javelin-throw`, `sling`, `sword-slash`). Nhát chém `sword-slash` của lính Gaul dựng lại ở T-047: lúc vươn xa nhất (cảnh đo được 0,467 s), lưỡi kiếm nằm ngang ở tầm mép trên khiên đối thủ.
+  - Độ dài `attack` khác nhau theo kiểu tấn công: 1,0 s (`sword-thrust`, `spear-thrust`), 1,333 s (`javelin-throw`, `sling`, `sword-slash`; `sword-slash` có ở bộ binh Gaul và kỵ binh Gaul). Nhát chém `sword-slash` của lính Gaul dựng lại ở T-047: lúc vươn xa nhất (cảnh đo được 0,467 s), lưỡi kiếm nằm ngang ở tầm mép trên khiên đối thủ.
   - Clip có thể làm chuyển động mọi xương của khung, không chỉ xương có lưới da người: lính Baleares (`balearic-slinger`) dùng xương `ik_hand_gun` cho túi đá và dây ném; hastatus (`roman-hastatus`) dùng xương `ik_hand_l` cho hai cây *pilum*, có cả tỉ lệ trong clip (thu nhỏ còn 1% trong `attack` và `die`: coi như đã phóng). Cảnh phải nướng chuyển động của mọi xương mà lưới có dùng, gồm vị trí, góc quay và tỉ lệ.
 - **Chiều cao:** hình lính cao dưới 2,25 m tính cả ngù mũ; riêng mũi giáo của triarii (`roman-triarii`) lên tới khoảng 2,44 m. Kỵ binh (T-022): khung bao ở tư thế gốc cao 2,24–2,67 m; mũi giáo dựng lên tới 3,04 m (`roman-cavalry`) và 2,95 m (`iberian-gallic-cavalry`). Khung bao dùng để cắt hình phải tính phần này.
   - Tư thế gốc là tư thế chữ A của khung xương, có thể trông lạ (khiên nằm dọc cánh tay). Cảnh luôn phát ít nhất `idle`.
 - **Ảnh duyệt:** `art/renders/<model>/`, JPEG, mỗi ảnh tối đa 400 KB, render từ chính file `.glb` đã xuất.
 - **Kỵ binh:** người và ngựa nằm trong cùng một file.
   - Ngựa (T-020, lane 2): `art/build/horse/horse.blend`, dựng bằng `art/blender/horse_build.py`. Cao 1,40 m tới vai, 40 xương tên `horse_*`; người cưỡi gắn vào xương `horse_saddle`, yên cao 1,35 m. Chi tiết ở `art/README.md`, mục "Ngựa" và "Gắn người cưỡi".
-  - Ba mô hình kỵ binh (T-022, lane 1): `roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`. Tư thế gốc của người được nhấc lên lưng ngựa; hai khung xương nối thành một (107 xương); `pelvis`, `ik_foot_root`, `ik_hand_root` treo vào `horse_saddle`. Người và ngựa chung một atlas, một vật liệu. Tay trái người cưỡi giữ dây cương; xương `ik_hand_l` mang khiên của kỵ binh La Mã và Iberia/Gaul. Người Numidia cưỡi ngựa trần, ngựa thu còn 0,95 lần.
+  - Mô hình thứ tư, `gallic-cavalry` (T-050, lane 1): người Celt của `gallic-infantry` trên cùng con ngựa, mặc áo nhuộm xanh lục, áo choàng kẻ ô, quần sọc, tóc vàng không mũ, khiên bầu dục, kiếm dài. `attack` là nhát chém 1,333 s, đòn chạm ở 0,500 s, tầm 1,49 m. Khung bao ở tư thế gốc cao 2,26 m; kiếm giơ lên trong `attack` tới 3,02 m. Từ T-049, loại lính `iberian-cavalry` dùng mô hình `iberian-gallic-cavalry` (tên file giữ nguyên, nay chỉ là kỵ binh Iberia), loại lính `gallic-cavalry` dùng mô hình này.
+  - Ba mô hình kỵ binh đầu (T-022, lane 1): `roman-cavalry`, `iberian-gallic-cavalry`, `numidian-cavalry`. Tư thế gốc của người được nhấc lên lưng ngựa; hai khung xương nối thành một (107 xương); `pelvis`, `ik_foot_root`, `ik_hand_root` treo vào `horse_saddle`. Người và ngựa chung một atlas, một vật liệu. Tay trái người cưỡi giữ dây cương; xương `ik_hand_l` mang khiên của kỵ binh La Mã và Iberia/Gaul. Người Numidia cưỡi ngựa trần, ngựa thu còn 0,95 lần.
   - Clip: `jog` là nước kiệu; `attack` là ngựa đứng, người đâm giáo (người Numidia phóng lao); `die` là ngựa ngã, người văng xuống nằm cạnh.
   - Sải móng đo như cảnh: `walk` 1,08 m / 1,667 s (dáng đi gốc, móng trượt vài khung); `jog` 1,82 m / 0,833 s, móng trụ khoá ở T-030 (trượt 1%); `run` (phi nước đại bốn nhịp, dựng lại ở T-030, `art/blender/horse_gallop.py`) 5,51 m / 0,433 s, trượt 1%. Ngựa Numidia ngắn hơn 5%.
   - Trần phi khoảng 57 m/s trên sân (Numidia 54). Kỵ binh Cannae vượt trần khoảng 20% thời gian di chuyển (Hasdrubal, Numidia, 62–70 m/s), lúc đó móng trượt 8–22%. Người dùng chọn để nguyên (2026-11-17).
@@ -258,7 +259,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `?battle=<id>`: chọn trận;
   - `?stats=1`: hiện số khung hình/giây và số hình lính;
   - `?stress=<số hình>`: thay quân của trận bằng một đám đông tổng hợp để đo hiệu năng;
-  - `?duel=1`: trận nhỏ để xem giáp lá cà (`src/app/battle-lab/duelBattle.ts`): năm cặp khối trên địa hình của trận đang chọn, tiến lại, chạm nhau, đánh tại chỗ, rồi một bên bị đẩy lùi; cặp thứ năm đánh từ xa;
+  - `?duel=1`: trận nhỏ để xem giáp lá cà (`src/app/battle-lab/duelBattle.ts`): bảy cặp khối trên địa hình của trận đang chọn, tiến lại, chạm nhau, đánh tại chỗ, rồi một bên bị đẩy lùi; cặp thứ năm đánh từ xa, cặp thứ sáu là kỵ binh Numidia, cặp thứ bảy là kỵ binh Gaul (T-050);
   - `?lang=vi`: xem chuỗi giao diện của cảnh bằng tiếng Việt.
 
 ### Giáp lá cà (đợt G)
