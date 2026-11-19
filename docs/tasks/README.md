@@ -67,5 +67,6 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-046](T-046-footprint-fade.md) | Phiên chính | Trận đánh 3D, đợt J: mảng màu phe dưới chân khối quân mờ đi khi nhìn gần | Xong, đã gộp 2026-11-19 (không có lane đọc lại, theo lựa chọn của người dùng) |
 | [T-047](T-047-lod-cavalry.md) | 1 | Trận đánh 3D, đợt J: LOD1, LOD2 ít đường nối UV cho 11 mô hình; vạt áo, tóc Numidia, người Gaul trong kỵ binh Iberia/Gaul; nhát chém của lính Gaul | Xong, đã gộp 2026-11-19 (ý 9 làm sau: tách hai loại lính) |
 | [T-048](T-048-dust-wind.md) | Phiên chính | Trận đánh 3D, đợt J (chặng 4 của đợt H): bụi theo khối quân và kỵ binh, trôi theo gió Volturnus | Xong, đã gộp 2026-11-19 (người dùng chuyển từ lane 3; không có lane đọc lại) |
-| [T-049](T-049-cavalry-split.md) | 2 | Trận đánh 3D: tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (loại lính, khối quân, lời dẫn) | Đã giao 2026-11-19 |
+| [T-049](T-049-cavalry-split.md) | 2 | Trận đánh 3D: tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (loại lính, khối quân, lời dẫn) | Xong, đã review 2026-11-19; chờ gộp cùng T-050 (người dùng chọn) |
 | [T-050](T-050-gallic-cavalry.md) | 1 | Trận đánh 3D: mô hình kỵ binh Gaul (`gallic-cavalry`), người dùng xem ảnh render trước | Đã giao 2026-11-19 |
+| [T-051](T-051-trasimene-stage0.md) | 2 | Trận hồ Trasimene (đợt K), chặng 0: tư liệu, vị trí, bảng đơn vị, lưới độ cao, kiểm tra hồ và sương mù | Đã giao 2026-11-19 (nhánh nối tiếp T-049) |

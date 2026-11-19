@@ -292,6 +292,26 @@ export interface SceneryStructure {
   evidence: SceneryEvidence;
 }
 
+/**
+ * Standing water above sea level: a lake. The scene draws water inside
+ * `outline` at `level`; the elevation grid inside it is not drawn. Unlike the
+ * sea, units may stand in a lake (men driven into the water): the scene has
+ * them wade, deeper the farther from the shore.
+ */
+export interface BattleLake {
+  id: string;
+  name: LocalizedText;
+  /** Height of the water surface, metres above sea level. */
+  level: number;
+  /**
+   * The shore: three or more points, field metres; the outline closes from
+   * the last back to the first. It may run beyond the elevation grid.
+   */
+  outline: FieldPoint[];
+  /** Whose shore this is (today's, as a rule) and how the ancient one differed. */
+  evidence: SceneryEvidence;
+}
+
 export interface BattleWind {
   /** Direction the wind blows FROM, degrees clockwise from north. */
   from: number;
@@ -318,6 +338,14 @@ export interface BattleScenery {
    * from 0 (damp ground, none) to 1 (parched ground: thick clouds).
    */
   dust?: { level: number; evidence: SceneryEvidence };
+  /**
+   * Mist over the ground when the battle begins. `level` runs from 0 (none)
+   * to 1 (a man is lost to sight at a javelin's throw). The scene draws it
+   * thicker on low ground than on the heights, thins it as the battle goes
+   * on, and has it gone by `clearsAt`, an hour of the day counted as
+   * Battle.startHour is; without `clearsAt` it stays to the end.
+   */
+  mist?: { level: number; clearsAt?: number; evidence: SceneryEvidence };
 }
 
 /**
@@ -357,6 +385,8 @@ export interface BattleTerrain {
   /** Without it the ground runs level from the edges of the grid to the horizon. */
   far?: BattleFarTerrain;
   rivers: BattleRiver[];
+  /** Lakes; a battle without any leaves it out. */
+  lakes?: BattleLake[];
   landmarks: BattleLandmark[];
   scenery?: BattleScenery;
   /** Where the elevation data comes from, with its licence. */
