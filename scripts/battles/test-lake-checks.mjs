@@ -112,11 +112,11 @@ const cases = [
     b.phases[1].units[0] = state("romans", 2930, -2290, 1500, "rout", 0);
   }, "men wade no farther out than 150 m"],
   ["passes: the grid's median leaves out an island of high ground", (b) => {
-    b.terrain.lakes[0].outline = rectangle(200, 1300, -1500, 1600);
-    b.terrain.lakes[0].islands = [rectangle(220, 1280, -1040, 1580)];
+    b.terrain.lakes[0].outline = rectangle(200, 1250, -1500, 1600);
+    b.terrain.lakes[0].islands = [rectangle(220, 1230, -1040, 1580)];
   }, null],
   ["the same shore without the island: median on dry ground (warning)", (b) => {
-    b.terrain.lakes[0].outline = rectangle(200, 1300, -1500, 1600);
+    b.terrain.lakes[0].outline = rectangle(200, 1250, -1500, 1600);
     delete b.terrain.lakes[0].islands;
   }, "the grid over the water (inside the shore, off the islands) lies at"],
   ["islands is not a list", (b) => (b.terrain.lakes[0].islands = { x: 0, y: 0 }), "islands: must be a list of outlines"],

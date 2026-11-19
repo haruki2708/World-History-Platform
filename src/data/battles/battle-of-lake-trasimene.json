@@ -1089,13 +1089,13 @@
       "units": [
         {
           "unit": "extraordinarii",
-          "formation": { "center": { "x": 2050, "y": 1300 }, "frontage": 40, "depth": 200, "facing": 59 },
+          "formation": { "center": { "x": 2080, "y": 1090 }, "frontage": 40, "depth": 200, "facing": 70 },
           "action": "advance",
           "men": 2760
         },
         {
           "unit": "allied-right-front",
-          "formation": { "center": { "x": 2200, "y": 1190 }, "frontage": 40, "depth": 200, "facing": 59 },
+          "formation": { "center": { "x": 2230, "y": 960 }, "frontage": 40, "depth": 200, "facing": 70 },
           "action": "advance",
           "men": 2760
         },
@@ -1269,7 +1269,7 @@
         }
       ],
       "arrows": [
-        { "side": "rome", "points": [{ "x": 1250, "y": 770 }, { "x": 1700, "y": 1020 }, { "x": 2100, "y": 1300 }] }
+        { "side": "rome", "points": [{ "x": 1250, "y": 760 }, { "x": 1650, "y": 900 }, { "x": 2060, "y": 1070 }] }
       ]
     },
     {
@@ -2063,7 +2063,7 @@
       {
         "name": { "en": "Hannibal's camp", "vi": "Trại của Hannibal" },
         "kind": "camp",
-        "point": { "x": 1330, "y": 1210 },
+        "point": { "x": 1290, "y": 1320 },
         "approximate": true
       },
       {
@@ -2308,7 +2308,7 @@
           "id": "hannibal-camp",
           "kind": "camp",
           "side": "carthage",
-          "center": { "x": 1330, "y": 1210 },
+          "center": { "x": 1290, "y": 1320 },
           "width": 550,
           "depth": 550,
           "facing": 200,

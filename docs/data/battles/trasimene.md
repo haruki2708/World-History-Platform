@@ -1,6 +1,6 @@
 # Trận hồ Trasimene (217 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-19 (T-051, chặng 0 của đợt K). File trận (chặng 1, chưa viết): `src/data/battles/battle-of-lake-trasimene.json`. Khối `terrain` nháp cho chặng 1: `docs/data/battles/trasimene-terrain.json`. Lưới độ cao: `public/data/terrain/battle-of-lake-trasimene.bin` và `battle-of-lake-trasimene-far.bin`, dựng bằng `scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene`.
+Cập nhật: 2026-11-19 (T-051, chặng 0 của đợt K; T-052, chặng 1). File trận: `src/data/battles/battle-of-lake-trasimene.json` (T-052; khối `terrain` nháp `trasimene-terrain.json` của T-051 đã xoá, file trận thay nó). Cách đặt khối quân trong file trận: mục 12. Lưới độ cao: `public/data/terrain/battle-of-lake-trasimene.bin` và `battle-of-lake-trasimene-far.bin`, dựng bằng `scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene`.
 
 Tài liệu này ghi nguồn đã đọc, vị trí đã chọn và lý do, bảng đơn vị và các giai đoạn đề nghị cho chặng 1, cảnh vật kèm mức căn cứ, và những gì hợp đồng (`src/lib/battle.ts`) chưa tả được. Cách trình bày theo `cannae.md`.
 
@@ -101,16 +101,16 @@ Theo bản tóm của Wikipedia tiếng Ý (mục "Identificazione del sito dell
 
 Mọi địa danh, trại và vị trí các khối quân sẽ đặt `approximate: true`, và `uncertainty` của file trận nói rõ vị trí còn tranh cãi.
 
-### Địa danh nháp
+### Địa danh
 
-Đã ghi trong `trasimene-terrain.json`. Tên núi và đồi là tên ngày nay.
+Trong `terrain.landmarks` của file trận (T-051 ghi trong khối nháp; T-052 dời trại của Hannibal, xem bảng). Tên núi và đồi là tên ngày nay.
 
 | Địa danh | Loại | x, y (m) | Căn cứ |
 |---|---|---|---|
 | Lối hẹp (Malpasso) | `other` | −450, −1 200 | Chỗ hẹp nhất giữa sườn đồi và bờ ngày nay (đo trên lưới). Polybius 3.83.1, Livy 22.4.2 |
 | Núi Gualandro | `hill` | −1 640, 1 440 | Đỉnh 486 m trên lưới |
 | Đồi Tuoro | `hill` | 1 326, 1 361 | Đỉnh 343 m trên lưới |
-| Trại của Hannibal | `camp` | 1 366, 1 090 | Trên sườn nam đồi Tuoro, nhìn xuống đồng bằng (Polybius 3.83.2; Livy 22.4.3: trại ở chỗ thấy được). Vị trí là giả định |
+| Trại của Hannibal | `camp` | 1 290, 1 320 | Trên đồi Tuoro, nhìn xuống đồng bằng (Polybius 3.83.2: Hannibal chiếm ngọn đồi và đóng trại trên đó; Livy 22.4.3: trại ở chỗ thấy được). T-051 đặt ở 1 366, 1 090 trên sườn nam; T-052 dời khoảng 240 m lên phía bắc, vào giữa trại 550 × 550 m (mục 8) trùm cả đỉnh đồi, để toán đầu phá vây đi được sát góc đông nam trại mà không qua trại. Vị trí là giả định |
 | Trại của Flaminius | `camp` | −2 700, −900 | Polybius 3.83.7: đóng trại sát hồ, rất muộn. Đặt trên đồng bằng Borghetto (259–266 m), cách lối hẹp 2,3 km. Vị trí là giả định |
 | Núi Castelluccio | `hill` | 2 530, 3 809 | Đỉnh 746 m trên lưới |
 | Làng Etruria | `town` | 3 140, 3 309 | Polybius 3.84.13: toán 6 000 người rút vào một làng Etruria. Theo Wikipedia tiếng Ý, người ta tìm thấy dấu vết một làng gần đỉnh núi Castelluccio; đặt trên chỗ đất ít dốc nhất cách đỉnh dưới 1,2 km (cao 601 m, chênh 8 m trên 120 m). Vị trí là giả định |
@@ -183,11 +183,11 @@ Lấy theo cách chia quân ở Cannae một năm sau (`cannae.md`, mục 5, 18)
 |---|---|---|---|---|
 | Bộ binh Libya, hai khối | `libyan-infantry` | 4 000 + 4 000 | Đồi Tuoro, trước trại | Polybius 3.83.2, Livy 22.4.3: cùng Hannibal ở đồi phía trước |
 | Bộ binh Iberia, hai khối | `iberian-infantry` | 4 000 + 4 000 | Đồi Tuoro | Như trên |
-| Bộ binh Gaul, bốn khối | `gallic-infantry` | 4 × 4 000 | Dưới các đồi phía bắc đồng bằng, từ sườn đông núi Gualandro tới thung lũng Sanguineto | Polybius 3.83.4: người Celt dàn liền dưới chân các đồi bên trái |
+| Bộ binh Gaul, năm khối (T-051 đề nghị bốn khối 4 000) | `gallic-infantry` | 5 × 3 200 | Dưới các đồi phía bắc và tây bắc đồng bằng: mỏm núi trên lối hẹp, sườn đông núi Gualandro, cửa thung lũng Sanguineto, chân phía tây đồi Tuoro | Polybius 3.83.4: người Celt dàn liền dưới chân các đồi bên trái. Năm khối để mỗi khối đánh một hay hai khối La Mã nằm trên một đường thẳng (mục 12) |
 | Lính ném đá Baleares | `balearic-slingers` | 2 000 | Sau mỏm Tuoro, thung lũng phía đông | Polybius 3.83.3; Livy 22.4.3: sau các núi |
 | Lính giáo nhẹ | `light-spearmen` | 6 000 | Như trên | Polybius 3.83.3: "lính giáo" (*lonchophoroi*) |
-| Kỵ binh Numidia | `numidian-cavalry` | 4 000 | Sau gò 381 m ở cửa lối hẹp | Polybius 3.83.4, Livy 22.4.3: kỵ binh ở cửa lối hẹp |
-| Kỵ binh Iberia | `iberian-cavalry` | 2 000 | Như trên | |
+| Kỵ binh Numidia | `numidian-cavalry` | 4 000 | Sườn tây nam mỏm núi Malpasso, sau các gò đất ở cửa tây lối hẹp (T-051 đề nghị sau gò 381 m: từ đó xuống lối hẹp phải vượt sườn núi) | Polybius 3.83.4, Livy 22.4.3: kỵ binh ở ngay cửa lối hẹp, nấp sau các gò đất |
+| Kỵ binh Iberia | `iberian-cavalry` | 2 000 | Như trên, xa hơn về phía tây | |
 | Kỵ binh Gaul | `gallic-cavalry` | 4 000 | Giữa các khối bộ binh Gaul | Livy 22.6.3: Ducarius, người giết Flaminius, là **kỵ sĩ** Insubres (người Gaul) |
 
 Chỗ đứng của lính nhẹ theo bản tóm của Wikipedia tiếng Ý về phỏng dựng năm 2008: nấp ở thung lũng sau mỏm Tuoro, rồi ra chặn khoảng giữa đồi và bờ hồ, bịt đường thoát về phía đông. Các chỗ khác theo Polybius và Livy như trên. Cảnh phác ở ảnh `2-phuong-an-bo-tri.jpg` (mục 9).
@@ -212,17 +212,19 @@ Theo công thức mặt trời của cảnh (`sky.ts`), ở ngày 131 và vĩ đ
 
 `startHour` = 4,5 (4:30). Hai luật của cảnh: giai đoạn `fight` dài ít nhất 8 giây phát; khối chỉ tới chỗ địch ở cuối một giai đoạn thì giai đoạn sau mới ghi `fight`.
 
+Bảng dưới là đề nghị của T-051, người dùng đã duyệt. **T-052 đổi ba chỗ** (lý do ở mục 12): lúc 4:30 đầu đoàn quân đã qua lối hẹp, không còn ở trại; giai đoạn 2 dài 20 giây phát thay vì 12; toán 6 000 người phá vây ở giai đoạn 4, lên chỗ cao ở giai đoạn 5, rút về làng ở giai đoạn 6.
+
 | Giai đoạn | Bắt đầu – kết thúc | Phát (giây) | Diễn ra | Căn cứ |
 |---|---|---|---|---|
-| Lúc bắt đầu (`initial`) | 4:30 | | Đầu đoàn quân La Mã vừa ra khỏi trại, đi về phía lối hẹp; phần còn lại trong và quanh trại. Quân Hannibal đã ở chỗ nấp | Polybius 3.83.5: dàn quân phục kích trong đêm. Polybius 3.83.7, Livy 22.4.4 |
+| Lúc bắt đầu (`initial`) | 4:30 | | Đoàn quân La Mã đang hành quân dọc hồ: đầu đoàn đã qua lối hẹp và ở giữa đồng bằng, cuối đoàn ở ngoài cửa tây lối hẹp (T-051 đề nghị: đầu đoàn vừa ra khỏi trại). Quân Hannibal đã ở chỗ nấp | Polybius 3.83.5: dàn quân phục kích trong đêm. Polybius 3.83.7; Livy 22.4.4: qua lối hẹp khi trời còn chưa sáng rõ |
 | 1. Vào lối hẹp | 4:30 – 6:00 | 25 | Đoàn quân đi dọc hồ, qua Malpasso, dàn rộng ra ở đồng bằng; đầu đoàn tới chân đồi Tuoro, chạm toán Libya và Iberia ở cuối giai đoạn. Phần lớn đoàn quân đã vào trong. Phục binh đứng yên | Polybius 3.84.1; Livy 22.4.4. Đầu đoàn đi khoảng 4,5 km trong 1,5 giờ |
-| 2. Hiệu lệnh | 6:00 – 6:15 | 12 | Hannibal ra hiệu; mọi toán phục binh lao xuống cùng lúc và tới sát đoàn quân ở cuối giai đoạn; kỵ binh bịt lối hẹp sau lưng. Các khối La Mã quay về phía tiếng hò (đổi từ hàng dọc sang hàng ngang). Đầu đoàn và toán Libya, Iberia đã chạm nhau từ đầu giai đoạn nên đánh ngay (`fight`) | Polybius 3.84.1–3; Livy 22.4.6–7, 22.5.1 |
+| 2. Hiệu lệnh | 6:00 – 6:15 | 20 (T-051: 12) | Hannibal ra hiệu; mọi toán phục binh lao xuống cùng lúc và tới sát đoàn quân ở cuối giai đoạn; kỵ binh bịt lối hẹp sau lưng. Các khối La Mã quay về phía tiếng hò (đổi từ hàng dọc sang hàng ngang). Đầu đoàn và toán Libya, Iberia đã chạm nhau từ đầu giai đoạn nên đánh ngay (`fight`) | Polybius 3.84.1–3; Livy 22.4.6–7, 22.5.1 |
 | 3. Đánh trong sương | 6:15 – 7:45 | 25 | Đánh khắp nơi (`fight`); quân La Mã bị đánh từ trước, sau và hai bên, phần lớn chưa kịp dàn trận | Polybius 3.84.3–5; Livy 22.5.2–7 |
 | 4. Flaminius tử trận | 7:45 – 9:00 | 25 | Vẫn đánh (`fight`). Toán 6 000 người ở đầu mở được đường, đi lên đồi (`advance`). Cuối giai đoạn Flaminius bị kỵ sĩ Ducarius giết | Livy 22.6.1–4 (gần ba giờ, tính từ 6:00); Polybius 3.84.6, 3.84.11–12 |
 | 5. Bị dồn xuống hồ | 9:00 – 9:45 | 20 | Quân La Mã tan chạy (`rout`); nhiều khối bị dồn xuống hồ, đứng trong nước; kỵ binh đuổi xuống nước (`pursue`) | Polybius 3.84.8–10; Livy 22.6.5–7 |
 | 6. Sương tan | 9:45 – 10:30 | 15 | Toán 6 000 người trên đỉnh đồi thấy đạo quân đã thua, rút về làng Etruria; quân Hannibal làm chủ chiến trường | Polybius 3.84.12–13; Livy 22.6.8–10 |
 
-Tổng 122 giây phát. Không vẽ thành chuyển động riêng: động đất (Livy 22.5.8, lời dẫn nói), Maharbal vây làng và toán 6 000 người đầu hàng hôm sau (Polybius 3.84.14, Livy 22.6.11, lời dẫn nói).
+Tổng 130 giây phát (T-051: 122). Không vẽ thành chuyển động riêng: động đất (Livy 22.5.8, lời dẫn nói), Maharbal vây làng và toán 6 000 người đầu hàng hôm sau (Polybius 3.84.14, Livy 22.6.11, lời dẫn nói).
 
 **Quân số qua các giai đoạn:** 15 000 người chết chia cho các khối ngoài toán đi đầu (19 000 người), dồn vào giai đoạn 3–5; toán đi đầu mất vài trăm khi phá vây. Phía Hannibal mất 1 500–2 500, phần lớn là bộ binh Gaul. Cuối trận còn khoảng 4 000 người La Mã ngoài toán đi đầu, tượng trưng cho những người bị bắt hay chạy thoát; như ở Cannae, số "còn lại" chỉ để cảnh biết vẽ bao nhiêu hình lính.
 
@@ -246,17 +248,17 @@ Tổng 122 giây phát. Không vẽ thành chuyển động riêng: động đ�
 | Thứ | Đề nghị cho chặng 1 | Mức | Căn cứ và phần giả định |
 |---|---|---|---|
 | Hồ | `terrain.lakes[0]`, `trasimene` (đã có trong khối nháp) | `attested` | Polybius 3.82–84, Livy 22.4–6. Bờ ngày nay (mục 4) |
-| Mép hồ đầm lầy | `areas`: dải `reeds` dọc bờ, rộng 30–60 m, ở phần bờ trong vùng trận | `inferred` | Livy 22.6.6: "chỗ nước nông của đầm". Lau sậy là suy ra; rộng bao nhiêu là giả định |
+| Mép hồ đầm lầy | `areas`: dải `reeds` dọc bờ bắc từ x −1 500 tới 1 200, từ 15 m ngoài nước vào 45 m trên bờ (22 m trong lối hẹp, chừa con đường) | `inferred` | Livy 22.6.6: "chỗ nước nông của đầm". Lau sậy là suy ra; rộng bao nhiêu là giả định |
 | Sương | `scenery.mist` (mục 7) | `attested` | Polybius 3.84, Livy 22.4–6 |
 | Đồi, lối hẹp | Lưới độ cao; địa danh | (địa hình) | Polybius 3.83.1, Livy 22.4.2; vị trí theo giả thuyết đã chọn (mục 3) |
-| Trại của Hannibal | `structures`: `camp`, `side` Carthage, khoảng 450 × 450 m trên sườn nam đồi Tuoro | `attested` | Polybius 3.83.2, Livy 22.4.3. Chỉ có lính Libya và Iberia ở đó (16 000 người, khoảng 19 m² mỗi người như Cannae: 30 ha). Kích thước và vị trí là giả định; đất dốc (chênh khoảng 30 m) |
+| Trại của Hannibal | `structures`: `camp`, `side` Carthage, 550 × 550 m trên đồi Tuoro (T-051 ghi 450 × 450 m, không khớp với phép tính bên cạnh: 450 × 450 m chỉ là 20 ha) | `attested` | Polybius 3.83.2, Livy 22.4.3. Chỉ có lính Libya và Iberia ở đó (16 000 người, khoảng 19 m² mỗi người như Cannae: 30 ha, tức cạnh khoảng 550 m). Kích thước và vị trí là giả định; đất dốc |
 | Trại của Flaminius | `structures`: `camp`, `side` La Mã, khoảng 700 × 700 m ở đồng bằng Borghetto | `attested` | Polybius 3.83.7: đóng trại sát hồ. 25 000 người × 19 m² ≈ 48 ha. Vị trí và kích thước là giả định. Lúc trận bắt đầu trại còn hành lý và người theo quân, không vẽ |
 | Làng Etruria | `structures`: `village` nhỏ, khoảng 200 × 150 m | `attested` | Polybius 3.84.13–14 (có làng); vị trí là giả định (mục 3) |
 | Mặt đất | `ground.cover`: `grass` | `inferred` | Khác Cannae: trận giữa tháng 5 lịch Julius, lúa và cỏ còn xanh, nên đất xanh **không** trái nguồn. Livy 22.3.3 tả đồng bằng Etruria giữa Faesulae và Arretium, trên đường Hannibal đi tới, giàu lúa và gia súc |
-| Nhà nông, phần lớn bị đốt | `structures`: vài `farm`, nhiều cái `ruined` | `illustrative` cho nhà; `inferred` cho chuyện bị đốt | Polybius 3.82.3, 3.82.10, Livy 22.4.1: Hannibal đốt phá vùng quê dọc đường. Số nhà và chỗ đặt: minh hoạ |
-| Cây | `trees` và vài `areas` `woodland` trên sườn đồi | `illustrative` | Nguồn không nhắc cây. Livy 22.4.3 nói kỵ binh nấp sau gò, không nói sau rừng. Sườn đồi ngày nay có rừng sồi và ô liu; loại cây chọn theo hiểu biết chung |
-| Gió | `wind`: nhẹ, khoảng 1 m/s | `inferred` | Nguồn không nhắc gió. Sương dày đọng lại trên đồng bằng thường đi với trời lặng. Hướng gió là giả định |
-| Bụi | `dust.level` thấp, khoảng 0,2 | `inferred` | Buổi sáng có sương, đất ẩm. Nguồn không nhắc bụi |
+| Nhà nông, phần lớn bị đốt | `structures`: tám `farm`, sáu cái `ruined`, đặt ngoài đường đi của các khối quân | `illustrative` cho nhà còn nguyên; `inferred` cho nhà bị đốt | Polybius 3.82.3, 3.82.10, Livy 22.4.1: Hannibal đốt phá vùng quê dọc đường. Số nhà và chỗ đặt: minh hoạ |
+| Cây | `trees` (16 cây mỗi km²); ba `areas` `woodland` trên phần cao của núi Gualandro, sườn bắc đồi Tuoro và núi Castelluccio; một mảng `scrub` trên mỏm núi Malpasso | `illustrative` | Nguồn không nhắc cây. Livy 22.4.3 nói kỵ binh nấp sau gò, không nói sau rừng. Sườn đồi ngày nay có rừng sồi và ô liu; loại cây chọn theo hiểu biết chung |
+| Gió | `wind`: từ hướng 20°, 1 m/s | `inferred` | Nguồn không nhắc gió. Sương dày đọng lại trên đồng bằng thường đi với trời lặng. Hướng gió là giả định |
+| Bụi | `dust.level` 0,15 | `inferred` | Buổi sáng có sương, đất ẩm. Nguồn không nhắc bụi |
 | Con đường ven hồ | Không vẽ (hợp đồng chưa có đường, mục 10) | | Polybius 3.83.1: "con đường chạy qua…" |
 | Khói từ vùng bị đốt | Không vẽ (hợp đồng chưa có khói) | | Polybius 3.82.3 |
 
@@ -292,13 +294,19 @@ Như Cannae (`cannae.md`, mục 7): **Copernicus DEM GLO-30**, kho AWS công kha
 | `3-loi-hep.jpg` | Lối hẹp Malpasso và đồng bằng ven hồ, ô 6 m, đường đồng mức 5 m |
 | `4-vung-xa.jpg` | Lưới vùng xa, khung lưới chính, Cortona, Perugia |
 
-Lệnh dựng ảnh gốc (nhãn chữ được thêm bằng một script ngoài repo):
+Lệnh dựng ảnh gốc (nhãn chữ được thêm bằng một script ngoài repo). Đây là lệnh của T-051, khi còn khối nháp; khối nháp nay đã xoá, bỏ `--terrain` thì script vẽ theo file trận:
 
 ```
 node scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene --extent -4500,5100,-3000,5100 --spacing 15 --contour 10 --range 254,620 --terrain docs/data/battles/trasimene-terrain.json --preview out.png
 ```
 
-`--terrain` vẽ địa danh và hồ của khối nháp khi chưa có file trận; khi đã có file trận, script vẽ theo file trận như với Cannae.
+Ảnh phác từng giai đoạn của T-052 (`E:\World_History_Platform_assets\duyet\T-052\`, nhãn chữ cũng thêm ngoài repo):
+
+```
+node scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene --extent -3200,3400,-1900,3500 --spacing 6 --contour 10 --range 254,560 --phase n --preview out.png
+```
+
+`--terrain` vẽ địa danh và hồ của khối nháp khi chưa có file trận; khi đã có file trận, script vẽ theo file trận như với Cannae. Từ T-052 ảnh xem trước vẽ cả bờ các đảo, và với `--phase n` vẽ khối đang nấp (`concealed`) màu xám.
 
 ### Thay đổi trong `build-terrain.mjs`
 
@@ -311,10 +319,10 @@ node scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene --exten
 
 | # | Chuyện | Đề nghị |
 |---|---|---|
-| 1 | **Đảo trong hồ.** `BattleLake` chỉ có một đường bờ, không có lỗ, và hợp đồng nói cảnh không vẽ lưới độ cao bên trong đường bờ. Đảo Maggiore và Minore (trong lưới chính, cao hơn mặt nước 35–55 m, nhìn thẳng từ chiến trường) sẽ biến mất | **Đổi hợp đồng.** Cách đơn giản nhất: cảnh vẽ nước trong `outline` chỉ ở chỗ mặt đất không cao hơn `level`; đảo cao hơn nên tự hiện lên, không cần dữ liệu thêm. Cách khác: thêm `islands?: FieldPoint[][]` vào `BattleLake`; script đã vạch sẵn đường bao các đảo (`--lake`). Tôi nghiêng về cách thứ nhất |
+| 1 | **Đảo trong hồ.** `BattleLake` chỉ có một đường bờ, không có lỗ, và hợp đồng nói cảnh không vẽ lưới độ cao bên trong đường bờ. Đảo Maggiore và Minore (trong lưới chính, cao hơn mặt nước 35–55 m, nhìn thẳng từ chiến trường) sẽ biến mất | **Đã quyết (người dùng chọn, khi gộp T-051):** thêm `BattleLake.islands`. File trận có ba đảo vạch bằng `--lake`: Polvese (51 điểm, ngoài lưới chính, để lưới vùng xa có đảo), Maggiore (25 điểm, vắt qua mép nam lưới chính), Minore (17 điểm) |
 | 2 | **Hồ ở vùng xa.** Lưới xa có mặt hồ ở 254,5 m, không phải ≤ 0, nên nếu chỉ dựa vào lưới thì vẽ thành đất | Không cần đổi hợp đồng (hợp đồng đã cho đường bờ chạy ra ngoài lưới). Ghi cho lane 3 ở chặng 2: vẽ nước theo `outline` ở cả vùng xa |
-| 3 | **Quân phục kích nấp sau đồi.** Không có cách nói một khối "đang nấp"; người xem thấy mọi khối từ đầu | **Đề nghị đổi hợp đồng (tuỳ phiên chính):** thêm `UnitState.concealed?: boolean`; cảnh vẽ khối đang nấp mờ đi hay ẩn nhãn tên, thẻ khối ghi "đang nấp". Phục kích là chuyện chính của trận này. Không đổi thì vẫn làm được: đặt khối ở sườn khuất, sương mù che bớt, lời dẫn nói rõ |
-| 4 | **Cột hành quân uốn theo bờ hồ.** Khối quân là hình chữ nhật, đi thẳng giữa hai mốc | Không đổi hợp đồng. Chia đoàn quân La Mã thành 16 khối ngắn (dài 150–250 m), mỗi khối quay theo hướng con đường ở chỗ nó đứng; đặt mốc sao cho đường thẳng giữa hai mốc không cắt qua sườn núi hay xuống hồ ở Malpasso. Nếu trông vẫn gãy, đề nghị sau: `UnitState.path?: FieldPoint[]` (khối đi theo đường gấp khúc giữa hai mốc) |
+| 3 | **Quân phục kích nấp sau đồi.** Không có cách nói một khối "đang nấp"; người xem thấy mọi khối từ đầu | **Đã quyết (người dùng chọn, khi gộp T-051):** thêm `UnitState.concealed`. Trong file trận, mười khối phục kích (năm khối bộ binh Gaul, kỵ binh Gaul, kỵ binh Numidia, kỵ binh Iberia, lính giáo nhẹ, lính ném đá) có `concealed` ở `initial` và cuối giai đoạn 1; lính Libya và Iberia đứng ở trại, nhìn thấy được, nên không có |
+| 4 | **Cột hành quân uốn theo bờ hồ.** Khối quân là hình chữ nhật, đi thẳng giữa hai mốc | Không đổi hợp đồng. Làm ở T-052 (mục 12): qua lối hẹp chỉ có một đường thẳng không leo sườn núi, nên khối nào còn ở phía tây lối hẹp ở một mốc thì mốc sau vẫn nằm trên đường thẳng ấy. Cái giá: lúc 4:30 đầu đoàn đã qua lối hẹp. Muốn đầu đoàn bắt đầu ở trại thì cần thêm một giai đoạn, hoặc `UnitState.path?: FieldPoint[]` (khối đi theo đường gấp khúc giữa hai mốc) |
 | 5 | **Bị đánh vào sườn khi đang hành quân.** Cảnh chỉ ghép cặp những người đối mặt nhau trong 70°; một khối hàng dọc bị đánh từ bên hông thì người đầu hàng không có ai để đánh | Không đổi hợp đồng. Ở giai đoạn 2 các khối La Mã quay về phía địch, đổi từ hàng dọc sang hàng ngang (đổi `frontage`, `depth`, xoay 90°); Livy 22.5.1 nói Flaminius cố dàn lại hàng ngũ. Cảnh nội suy thẳng nên khối xoay quanh tâm; khối ngắn thì hai đầu chỉ quét 75–125 m |
 | 6 | **Bị đánh từ nhiều phía cùng lúc** (Polybius 3.84.3: trước, sau, hai bên) | Không đổi hợp đồng. Một khối chỉ đánh ở mép trước (hay mép sau nếu quay đầu). Chỗ cần, chia một nhóm thành hai khối quay lưng vào nhau |
 | 7 | **Người lội xuống hồ** | Hợp đồng đã cho phép. `npm run validate` giới hạn 150 m tính từ bờ (mục 11) |
@@ -336,11 +344,70 @@ node scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene --exten
 - Trận không có hồ hay sương (Cannae) qua như cũ.
 - `validate-battles.mjs` nhận thêm đường dẫn file trận: `node scripts/battles/validate-battles.mjs path/to/<id>.json` chỉ kiểm các file đó.
 
-**Thử:** `node scripts/battles/test-lake-checks.mjs` dựng một trận nhỏ trên địa hình hồ Trasimene (khối nháp, hay file trận khi đã có), làm sai theo từng kiểu và chạy kiểm tra từ một thư mục tạm, không đụng tới `src/data/battles/`. 25 ca: 4 ca phải qua (có hồ và sương, một khối đứng trong hồ cách bờ 100 m, sương không có `clearsAt`, không hồ không sương), 21 ca phải bị bắt (gồm một cảnh báo). Cả 25 ca cho đúng kết quả.
+Thêm ở T-052:
 
-## 12. Việc cho chặng 1
+- **`islands`**: là danh sách nếu có; mỗi đảo từ ba điểm (số `x`, `y`), có diện tích, nằm trong `outline` (mọi đỉnh ở trong, không cạnh nào cắt bờ), không chồng đảo khác (không cạnh nào cắt nhau, không đỉnh nào nằm trong đảo kia).
+- **Trên đảo không phải trong hồ:** địa danh và công trình đặt được trên đảo; khoảng cách lội tính tới bờ gần nhất, kể cả bờ đảo; trung vị độ cao lưới (cảnh báo) chỉ tính phần nước.
+- **`concealed`**: là boolean nếu có; khối có `concealed` ở một mốc thì `action` của mốc đó không phải `fight` hay `skirmish`.
+- **Mũi tên** (cảnh báo): mũi tên của một giai đoạn bắt đầu hay kết thúc trong (hay cách không quá 30 m) một khối ẩn suốt giai đoạn đó, tức có `concealed` ở cả hai mốc.
 
-- Viết `src/data/battles/battle-of-lake-trasimene.json` theo mục 5–8, lấy khối `terrain` từ `trasimene-terrain.json` (thêm `scenery`).
-- Đặt mốc cho đoàn quân sao cho đường thẳng giữa hai mốc không cắt sườn núi ở Malpasso và không xuống hồ quá 150 m; xem bằng `--preview --phase n` và `check-overlap.mjs`.
-- Chờ phiên chính quyết các đề nghị ở mục 10 (đảo, `concealed`).
-- Sau khi có file trận, xoá `trasimene-terrain.json` (file trận thay nó), và `test-lake-checks.mjs` tự dùng địa hình của file trận.
+**Thử:** `node scripts/battles/test-lake-checks.mjs` dựng một trận nhỏ trên địa hình của file trận, làm sai theo từng kiểu và chạy kiểm tra từ một thư mục tạm, không đụng tới `src/data/battles/`. 45 ca (25 ca của T-051, 20 ca của T-052): 9 ca phải qua (thêm: địa danh và trang trại trên đảo Maggiore, một khối lội cách bờ đảo 55–100 m nhưng cách bờ hồ 1,2 km, trung vị bỏ qua một "đảo" đất cao, quân nấp rời chỗ nấp ở giai đoạn 2 có mũi tên), 36 ca phải bị bắt (gồm ba cảnh báo). Cả 45 ca cho đúng kết quả.
+
+## 12. File trận (T-052)
+
+Đã viết `src/data/battles/battle-of-lake-trasimene.json` theo mục 5–8, qua `npm run validate` không có cảnh báo. File được sinh bằng một script tạm ngoài repo (hình học tính từ lưới độ cao, chữ viết tay), rồi kiểm bằng các công cụ trong `scripts/battles/`; sửa về sau thì sửa thẳng file JSON.
+
+### Đi qua lối hẹp bằng đường thẳng
+
+Cảnh di chuyển mỗi khối theo đường thẳng giữa hai mốc. Đo trên lưới: mọi đường thẳng qua lối hẹp Malpasso đều lên tới ít nhất **16,7 m** trên mặt hồ, ở chỗ yên ngựa tự nhiên gần x −450 (dải đất sát bờ ở đó cũng cao như vậy). Đường thấp nhất đi qua (−450, −1 175), hướng **67°**; tôi gọi nó là con đường ven hồ. Đường thẳng nào lệch khỏi nó vài độ là leo lên sườn núi: từ trại của Flaminius tới đồng bằng Tuoro thì lên 50–90 m.
+
+Từ đó:
+
+- **Khối nào ở phía tây lối hẹp ở một mốc thì mốc kế tiếp vẫn nằm trên con đường ven hồ** (kéo dài sang đồng bằng). Đoàn quân rẽ về phía đồi Tuoro ở điểm K = (563, −745), giữa đồng bằng, rồi đi thẳng tới chân đồi H = (1 250, 690), hướng 25,6°.
+- Vì vậy **lúc 4:30 đầu đoàn đã qua lối hẹp** (khối đi đầu ở (974, 113)), cuối đoàn ở ngoài cửa tây lối hẹp (−1 734, −1 720), cách bờ hơn 100 m; trong giai đoạn 1 mỗi khối tiến khoảng 1,1–1,3 km. Khớp với Livy 22.4.4 (qua lối hẹp khi trời còn chưa sáng rõ), nhưng khác đề nghị của T-051 (đầu đoàn vừa ra khỏi trại). Muốn giữ đề nghị cũ thì cần thêm một giai đoạn, hoặc một đường gấp khúc cho khối (`UnitState.path`, mục 10 ý 4).
+- Kiểm bằng một script tạm: lấy mẫu mỗi 10 m dọc đường đi của tâm và hai đầu mặt trận của mọi khối La Mã, ở mọi giai đoạn. Trong lối hẹp (x < 0), chỗ cao nhất là 18 m trên mặt hồ (yên ngựa 16,7 m). Không đường đi nào của bất kỳ khối nào xuống hồ quá 51 m.
+
+### Đoàn quân và thứ tự hành quân
+
+- 16 khối theo mục 5. Hàng dọc rộng 16 m; dài theo quân số, 1,6 m² mỗi người đi bộ, 4 m² mỗi kỵ binh; cách nhau 40 m. Không khối nào vắt qua chỗ rẽ K.
+- Cuối giai đoạn 1: hai khối đi đầu (toán *extraordinarii* và phần đầu cánh phải đồng minh, 6 000 người) đã dàn hàng ngang (250 × 24 m) trước lính Libya ở chân đồi Tuoro, chạm mặt trận của họ; phần còn lại nằm trên đường K–H và con đường ven hồ, khối cuối (kỵ binh đồng minh cánh trái) ở trong lối hẹp.
+- Giai đoạn 2: các khối quay về phía bị đánh ngay tại chỗ, từ hàng dọc sang hàng ngang (đổi `frontage` và `depth`, xoay 90°): quay trái về phía quân Gaul, hai khối ngay sau đầu đoàn quay phải về phía lính Iberia; khối cuối trong lối hẹp quay đầu về phía kỵ binh và đứng chắn ngang dải đất (50 × 96 m).
+
+### Ai đánh ai
+
+Mỗi khối phục kích đánh một hay hai khối La Mã nằm trên một đường thẳng, mặt trận trùng khít mặt trận của họ (validator đòi điều này ở cả hai mốc của giai đoạn `fight`):
+
+| Khối của Hannibal | Đánh | Nấp ở (lúc đầu) | Tới chỗ địch |
+|---|---|---|---|
+| Libya (2 khối) | hai khối đi đầu | trước trại, nhìn thấy được | cuối giai đoạn 1 |
+| Iberia phía bắc, phía nam | cánh phải đồng minh phần sau; kỵ binh đồng minh | đứng ở phía đông đầu đoàn, nhìn thấy được | cuối giai đoạn 2 |
+| Gaul dưới đồi Tuoro | velites và hastati quân đoàn I | (800, 1 250), chân phía tây đồi Tuoro | cuối giai đoạn 2 |
+| Gaul ở cửa thung lũng Sanguineto | principes và triarii quân đoàn I | (300, 1 050) | cuối giai đoạn 2 |
+| Kỵ binh Gaul | kỵ binh La Mã cùng Flaminius, velites quân đoàn II | (−150, 750) | cuối giai đoạn 2 |
+| Gaul dưới núi Gualandro (bắc) | hastati và principes quân đoàn II | (−380, 320) | cuối giai đoạn 2 |
+| Gaul dưới núi Gualandro (nam) | triarii quân đoàn II, cánh trái đồng minh phần đầu | (−420, −120) | cuối giai đoạn 2 |
+| Gaul trên lối hẹp | cánh trái đồng minh phần sau | (−430, −560), sườn đông mỏm núi | cuối giai đoạn 2 |
+| Kỵ binh Numidia | kỵ binh đồng minh cánh trái (đi cuối) | (−1 150, −1 000), sườn tây nam mỏm núi | bịt cửa tây lối hẹp cuối giai đoạn 2; men bờ vào lối hẹp, tới khối cuối ở cuối giai đoạn 3; đánh ở giai đoạn 4 |
+| Kỵ binh Iberia | (chặn cửa tây lối hẹp) | (−1 450, −850) | đứng chặn từ giai đoạn 2 |
+| Lính giáo nhẹ, lính ném đá | `skirmish` vào sườn phải đoàn quân ở giai đoạn 4 | thung lũng sau đồi Tuoro, (1 880, 1 180) và (1 850, 1 400) | ra chặn đường về phía đông ở giai đoạn 2, tới tầm ném ở giai đoạn 3 |
+
+Kỵ binh Gaul đánh đúng chỗ Flaminius đi (Livy 22.6.3–4: Ducarius là kỵ sĩ Insubres). Hai giai đoạn `fight` (3, 4) mỗi bên bị đẩy lùi về phía hồ 30 m, cả hai cùng dời nên vẫn chạm nhau.
+
+### Giai đoạn 4–6
+
+- **Giai đoạn 4:** hai khối đi đầu chuyển sang hàng dọc và phá vây về phía đông bắc, đi sát góc đông nam trại của Hannibal (khối gần nhất cách mép trại 3 m, đo cả lúc đang đổi đội hình), tới thung lũng sau đồi Tuoro; lính Libya dạt sang hai bên. Hết giai đoạn, kỵ binh La Mã cùng Flaminius còn 42% người.
+- **Giai đoạn 5:** mỗi khối La Mã quay lưng về phía địch ngay tại chỗ (quay đầu, không xoay cả khối) và chạy thẳng ra hồ: phần ven con đường theo hướng 157°, phần trên đường K–H chạy về phía nam và toả ra dọc bờ theo thứ tự đang đứng; dừng khi tâm khối ở 45 m ngoài bờ (điểm xa bờ nhất của một khối ở một mốc là 95 m, dưới giới hạn 150 m). Quân Gaul ở phần gần bờ theo sát sau lưng tới mép nước; ở phần xa bờ chỉ theo 40% quãng đường (Iberia 25%), để hai bên không chạy song song đè lên nhau. Toán đầu lên chỗ cao quanh (2 650, 2 250), 420–440 m trên mặt biển, 160–180 m trên mặt hồ.
+- **Giai đoạn 6:** toán đầu rút về làng Etruria, dừng ngay dưới làng; mọi khối khác đứng yên.
+- **Tốc độ trên sân** (mét mỗi giây phát): giai đoạn 1 khoảng 50; quân phục kích xung phong ở giai đoạn 2 từ 47 tới 76 (kỵ binh Gaul); tan chạy ở giai đoạn 5 tới 87; toán đầu lên chỗ cao ở giai đoạn 5 và rút về làng ở giai đoạn 6, 60–67. Cannae có 30–70. Giai đoạn 2 vì thế dài 20 giây thay vì 12: với 12 giây, quân Gaul phải chạy 110–130 m/s.
+
+### Quân số
+
+- La Mã 25 000 → 9 546 (mất 15 454): toán đầu mất 480; các khối khác còn 70% cuối giai đoạn 3, 42% cuối giai đoạn 4, 22% cuối giai đoạn 5, 21% cuối trận; khối đi cuối mất người từ giai đoạn 4.
+- Hannibal 50 000 → 47 870 (mất 2 130, trong khoảng 1 500–2 500): bộ binh Gaul 1 200, kỵ binh Gaul 200, Libya 400, Iberia 200, Numidia 100, lính giáo nhẹ 30.
+
+### Kiểm tra đã chạy
+
+- `npm run validate`: qua, không cảnh báo.
+- `node scripts/battles/check-overlap.mjs battle-of-lake-trasimene --min 0.05`: các cặp đánh nhau chạm mép 7% (mặt trận trùng khít); không có chồng lấn nào khác từ 5% trở lên, kể cả giữa các mốc.
+- `node scripts/battles/test-lake-checks.mjs`: 45 trên 45 ca đúng.
+- Xem trong cảnh ở `/battle-lab?battle=battle-of-lake-trasimene` qua cả sáu giai đoạn (cảnh chưa vẽ hồ, sương và quân nấp: chặng 2 của lane 3). Ảnh duyệt ở `E:\World_History_Platform_assets\duyet\T-052\`: `0`–`6-phac-giai-doan-*.jpg` (ảnh phác từng mốc, `build-terrain.mjs --preview --phase n`, có tên địa danh tiếng Việt) và `7`–`16-canh-*.jpg` (ảnh chụp cảnh: qua lối hẹp, toàn cảnh lúc 6:00, phục binh lao xuống, giáp mặt, kỵ binh trong lối hẹp, chỗ Flaminius, phá vây, bị dồn xuống hồ, cuối giai đoạn 5, rút về làng).
