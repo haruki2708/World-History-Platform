@@ -150,7 +150,8 @@ const en = {
   "map.legend.approximate": "Approximate location",
   "map.legend.bordersCredit":
     "Borders are approximate, redrawn after Shepherd's Historical Atlas and",
-  "map.legend.basemap": "Present-day coastlines and rivers (Natural Earth).",
+  "map.legend.basemap":
+    "Present-day coastlines, rivers and lakes (Natural Earth; Lake Trasimene from the Copernicus DEM, see About).",
   "map.flyingToBattle": "Flying to the battlefield…",
   "events.heading": "Events",
   "events.empty": "No events recorded yet.",
@@ -433,7 +434,8 @@ const vi: Record<MessageKey, string> = {
   "map.legend.approximate": "Vị trí ước lượng",
   "map.legend.bordersCredit":
     "Biên giới là ước lượng, vẽ lại theo Historical Atlas của Shepherd và",
-  "map.legend.basemap": "Đường bờ biển và sông ngày nay (Natural Earth).",
+  "map.legend.basemap":
+    "Đường bờ biển, sông và hồ ngày nay (Natural Earth; hồ Trasimene theo Copernicus DEM, xem phần Giới thiệu).",
   "map.flyingToBattle": "Đang bay tới chiến trường…",
   "events.heading": "Các sự kiện",
   "events.empty": "Chưa có sự kiện nào trong dữ liệu.",
