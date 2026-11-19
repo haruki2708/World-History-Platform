@@ -65,6 +65,21 @@ Commit sau mỗi phần việc lớn.
 - **Dừng sớm một lần:** khi đã có mặt hồ, đảo và sương mù ở mức đầu tiên, chụp vài ảnh (góc nhìn mở lúc 5:00, lúc sương dày nhất ở giai đoạn 2–3, lúc sương tan) rồi báo người dùng xem trước khi làm tiếp. Người dùng sẽ chỉnh độ dày sương và màu nước ở bước này.
 - Ảnh cuối: hồ và đảo nhìn từ đồng bằng; lính lội nước cận cảnh; khối phục kích lúc ẩn và lúc lộ ra; cùng một góc ở 5:00, 7:00, 9:00, 10:00 để thấy sương tan dần.
 
+### 8. Người dùng duyệt bản đầu (2026-11-19)
+
+Người dùng đã xem ảnh `duyet\T-053\dung-som` và chọn:
+
+- **Sương mù:** giữ như ảnh 02–03, cả độ dày lẫn độ cao lớp sương (`SCALE_HEIGHT` 25 m). Đồng bằng cao hơn mặt hồ 0–25 m thì chìm trong sương; đồi phục kích cao hơn 90–130 m thì gần như quang, đúng với Livy 22.4.6.
+- **Màu nước:** đục hơn và ngả lục hơn, để nhìn ra ngay là hồ nông chứ không phải biển. Hồ thật sâu nhất khoảng 6 m, nước thường xám lục. Cannae không đổi.
+- **Dải bùn ở mép hồ:** giữ nguyên khi nhìn gần (ảnh 07, 10, 11). Nhạt dần khi nhìn xa: ở ảnh 09, dải bùn thành một đường viền nâu quanh hồ và quanh đảo.
+- **Độ sâu nhân `FIGURE_SCALE`:** phiên chính đồng ý, và đã ghi vào `docs/ARCHITECTURE.md`, mục "Hồ".
+- **Thêm vào task này hai lỗi lộ ra ở ảnh 09.** Cannae không lộ hai lỗi này vì phía xa chủ yếu là biển và đất phẳng.
+  1. Lưới chính hiện thành một hình chữ nhật sáng hơn hẳn vùng xa xung quanh. Mặt đất phải nối liền giữa lưới chính và vùng xa.
+  2. Một vệt nâu nằm giữa dãy đồi xa và bầu trời, ở mép trên ảnh. Tìm nguyên nhân và sửa: mép vùng xa, màu mù xa, hay thứ khác.
+
+  Sửa xong thì chụp lại góc ảnh 09, và một góc Cannae nhìn xa để chắc Cannae không đổi.
+- **Đo hiệu năng:** ghi cả Godot lẫn Blender trong điều kiện máy (`tasklist`). Khi máy không sạch thì đo xen kẽ A-B như mục 6.
+
 ## Ràng buộc
 
 - Ngoài phạm vi trên, không sửa file của người khác. Cần đổi hợp đồng (`src/lib/battle.ts`) thì ghi đề nghị vào "Kết quả".
@@ -75,6 +90,7 @@ Commit sau mỗi phần việc lớn.
 
 - Trận Trasimene thật (sau T-052) có mặt hồ, đảo, lính lội nước, sương mù tan theo giờ, khối phục kích ẩn rồi lộ ra.
 - Từ 50 khung hình/giây; Cannae không chậm hơn `main`.
+- Các điểm ở mục 8 đã làm; lưới chính nối liền vùng xa, không còn vệt nâu ở chân trời.
 - Nhánh không còn file trận thử; có ảnh duyệt; mục "Kết quả" đã điền (cách làm, số đo, đề nghị cho hộp thoại Giới thiệu ở chặng 3).
 
 ## Kết quả

@@ -115,6 +115,8 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng duyệt phương án (La Mã 25 000 người trong 16 khối, Hannibal 50 000, sáu giai đoạn 4:30–10:30, `dayOfYear` 131) và cho gộp. Chọn thêm hai thay đổi hợp đồng: **đảo trong hồ là dữ liệu riêng** (`BattleLake.islands`; phiên chính đề nghị cách "nước chỉ ở chỗ đất thấp", người dùng chọn cách có dữ liệu) và **quân nấp** (`UnitState.concealed`).
   - Sửa khi gộp: hai trường mới trong `src/lib/battle.ts` và ARCHITECTURE; sự kiện có thêm nguồn Livy bản Latinh.
   - Người dùng chọn cho chặng 1 và 2 chạy song song: giao [T-052](tasks/T-052-trasimene-battle.md) cho lane 2 (file trận) và [T-053](tasks/T-053-trasimene-scene.md) cho lane 3 (mặt hồ, đảo, lội nước, sương mù, quân nấp; dùng trận thử tạm trong nhánh tới khi T-052 gộp).
+- **2026-11-19:** Lane 3 dừng sớm ở [T-053](tasks/T-053-trasimene-scene.md), theo yêu cầu của task. Đã có mặt hồ và đảo, cả ở vùng xa; lính lội nước; sương mù tan theo giờ trận, hết lúc 9:45; khối phục kích ẩn rồi lộ ra. Tất cả mới chạy trên trận thử tạm. Ảnh ở `duyet\T-053\dung-som`. Lane 3 tự quyết vẽ đáy hồ sâu gấp `FIGURE_SCALE` lần, để nước ngập lính tới vai như Livy 22.6.6 tả; phiên chính đồng ý và ghi vào ARCHITECTURE.
+  - Người dùng chọn: giữ sương như ảnh; nước đục hơn và ngả lục hơn; dải bùn ở mép hồ nhạt dần khi nhìn xa. Thêm vào T-053 hai lỗi lộ ra khi nhìn cả hồ từ xa: lưới chính sáng hơn hẳn vùng xa, và một vệt nâu ở chân trời. Các lựa chọn ghi ở mục 8 của task.
 
 ## Việc để giai đoạn 5
 
