@@ -10,6 +10,10 @@
 //   ne_10m_lakes_europe.geojson
 //   ne_10m_rivers_lake_centerlines.geojson
 //
+// Lake Trasimene's shore is not Natural Earth's but the one in the battle file
+// src/data/battles/battle-of-lake-trasimene.json, traced from the Copernicus
+// DEM water mask; the map legend credits it (T-056).
+//
 // Output: one FeatureCollection with `properties.kind` = "ocean" | "lake" |
 // "river" (rivers also carry `rank`, Natural Earth's scalerank). Everything is
 // clipped to REGION, simplified and rounded to keep the file small. Modern
@@ -72,7 +76,7 @@ const EUROPE_LAKES = new Map([
   [1159109095, "Traunsee"],
   [1159109357, "Wörthersee"],
   // Italy and the Adriatic
-  [1159109725, "Lake Trasimene"],
+  [1159109725, "Lake Trasimene"], // shore from the battle file, see TRASIMENE
   [1159109787, "Lake Bracciano"],
   [1159110217, "Lago di Lesina"],
   [1159110185, "Lago di Varano"],
@@ -172,6 +176,25 @@ if (!inputDir) {
 }
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = join(here, "../../../../public/map/basemap.json");
+
+/**
+ * Lake Trasimene. Natural Earth's shore lies up to 0.9 km off on the north
+ * side, where the battle was fought, and puts the Roman column on the water,
+ * so the lake is drawn from the battle file's outline instead (Copernicus DEM
+ * water mask, 30 m). It is read at build time: a new outline in the battle
+ * file needs only a rebuild. The shore is simplified in metres and kept to 4
+ * decimals, since 3 alone would move it up to about 70 m; the build stops if
+ * it ends up more than `maxOff` metres from the battle file's.
+ */
+const TRASIMENE = {
+  neId: 1159109725,
+  battle: join(here, "../../../data/battles/battle-of-lake-trasimene.json"),
+  lake: "trasimene",
+  /** Douglas–Peucker tolerance in metres. */
+  tolerance: 25,
+  maxOff: 50,
+  decimals: 4,
+};
 
 function read(name) {
   return JSON.parse(readFileSync(join(inputDir, name), "utf8"));
@@ -299,14 +322,15 @@ function simplifyRing(ring, tolerance) {
   return [...firstHalf, ...secondHalf.slice(1)];
 }
 
-function round(value) {
-  return Math.round(value * 1000) / 1000;
+function round(value, decimals) {
+  const scale = 10 ** decimals;
+  return Math.round(value * scale) / scale;
 }
 
-function roundPoints(points) {
+function roundPoints(points, decimals = 3) {
   const output = [];
   for (const [x, y] of points) {
-    const point = [round(x), round(y)];
+    const point = [round(x, decimals), round(y, decimals)];
     const previous = output[output.length - 1];
     if (!previous || previous[0] !== point[0] || previous[1] !== point[1]) {
       output.push(point);
@@ -326,6 +350,84 @@ function processRing(ring) {
     if (rounded.length >= 4 && ringArea(rounded) >= MIN_AREA / 2) return rounded;
   }
   return null;
+}
+
+/**
+ * The battle file's projection: metres east (x) and north (y) of `origin` on
+ * a plane tangent to the WGS84 ellipsoid. The same as projection() in
+ * scripts/battles/build-terrain.mjs and fieldToLngLat() in battleFlight.ts.
+ */
+function battleProjection(origin) {
+  const a = 6378137;
+  const e2 = 6.69437999014e-3;
+  const rad = Math.PI / 180;
+  const phi = origin.lat * rad;
+  const w = Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+  const metresPerDegLat = ((a * (1 - e2)) / w ** 3) * rad;
+  const metresPerDegLng = (a / w) * Math.cos(phi) * rad;
+  return {
+    toLngLat: ([x, y]) => [
+      origin.lng + x / metresPerDegLng,
+      origin.lat + y / metresPerDegLat,
+    ],
+    toXY: ([lng, lat]) => [
+      (lng - origin.lng) * metresPerDegLng,
+      (lat - origin.lat) * metresPerDegLat,
+    ],
+  };
+}
+
+/** The farthest any point of one closed ring lies from the other, sampled every `step`. */
+function ringsApart(a, b, step = 5) {
+  let farthestSq = 0;
+  for (const [from, to] of [
+    [a, b],
+    [b, a],
+  ]) {
+    for (let i = 0; i < from.length - 1; i++) {
+      const [p, q] = [from[i], from[i + 1]];
+      const n = Math.max(1, Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1]) / step));
+      for (let k = 0; k < n; k++) {
+        const sample = [p[0] + ((q[0] - p[0]) * k) / n, p[1] + ((q[1] - p[1]) * k) / n];
+        let nearestSq = Infinity;
+        for (let j = 0; j < to.length - 1; j++) {
+          nearestSq = Math.min(nearestSq, segmentDistanceSq(sample, to[j], to[j + 1]));
+        }
+        farthestSq = Math.max(farthestSq, nearestSq);
+      }
+    }
+  }
+  return Math.sqrt(farthestSq);
+}
+
+/**
+ * Lake Trasimene as one polygon from the battle file's outline. Islands
+ * under MIN_AREA are dropped, as everywhere else on the map.
+ */
+function trasimeneFromBattle() {
+  const battle = JSON.parse(readFileSync(TRASIMENE.battle, "utf8"));
+  const lake = battle.terrain.lakes.find((l) => l.id === TRASIMENE.lake);
+  if (!lake) throw new Error(`No lake "${TRASIMENE.lake}" in ${TRASIMENE.battle}`);
+  const { toLngLat, toXY } = battleProjection(battle.origin);
+  const closed = (points) => {
+    const ring = points.map((p) => [p.x, p.y]);
+    return [...ring, ring[0]];
+  };
+  const toMap = (ring) =>
+    roundPoints(simplifyRing(ring, TRASIMENE.tolerance).map(toLngLat), TRASIMENE.decimals);
+  const outline = closed(lake.outline);
+  const shore = toMap(outline);
+  const off = ringsApart(outline, shore.map(toXY));
+  if (off > TRASIMENE.maxOff) {
+    throw new Error(`Lake Trasimene's shore is ${off.toFixed(1)} m off the battle file's`);
+  }
+  const islands = (lake.islands ?? []).map(closed);
+  const kept = islands.filter((ring) => ringArea(ring.map(toLngLat)) >= MIN_AREA);
+  console.log(
+    `Lake Trasimene from the battle file: ${shore.length - 1} points, at most ${off.toFixed(1)} m off; ` +
+      `${kept.length} of ${islands.length} islands kept`,
+  );
+  return [shore, ...kept.map(toMap)];
 }
 
 function isRegionRectangle(ring) {
@@ -381,7 +483,8 @@ function buildLakes() {
     const id = feature.properties.ne_id;
     if (!EUROPE_LAKES.has(id)) continue;
     found.add(id);
-    add(feature);
+    if (id === TRASIMENE.neId) polygons.push(trasimeneFromBattle());
+    else add(feature);
   }
   const missing = [...EUROPE_LAKES].filter(([id]) => !found.has(id));
   if (missing.length > 0) {
