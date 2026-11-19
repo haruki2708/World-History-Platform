@@ -173,6 +173,10 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `skirmish`: đánh từ xa (lao, đá ném). Hàng trước ném từ chỗ đứng; hai khối không cần chạm nhau.
   - `fight`: giáp lá cà. Mép trước của khối phải nằm trên mép trước của một khối địch cũng `fight`, ở **cả mốc đầu lẫn mốc cuối** của giai đoạn, vì giữa hai mốc cảnh nội suy thẳng. `npm run validate` kiểm tra (ít nhất 15% bề ngang cách mép trước của địch không quá 8 m).
   - Khối chỉ tới chỗ địch ở cuối một giai đoạn thì giai đoạn đó ghi `advance` hay `charge`, giai đoạn sau mới ghi `fight`.
+- **Quân nấp** (`UnitState.concealed`, thêm ở đợt K cho trận hồ Trasimene, người dùng chọn): khối đang phục kích, địch chưa thấy.
+  - Khối chỉ ẩn trong một giai đoạn khi `concealed` ở **cả hai mốc** của giai đoạn đó (mốc đầu và mốc cuối); giai đoạn nào nó rời chỗ nấp thì nó lộ ra ngay từ đầu giai đoạn ấy.
+  - Trong lúc ẩn, cảnh vẫn vẽ lính nhưng không vẽ nhãn tên và mảng màu phe dưới chân; thẻ khối ghi là đang nấp. Mũi tên của giai đoạn không nên chỉ vào khối đang ẩn.
+  - Khối đang nấp không `fight` hay `skirmish`.
 - **Địa hình:**
   - Lưới độ cao trong `public/data/terrain/`: số Int16 little-endian, đơn vị decimet, hàng chạy từ bắc xuống nam, cột từ tây sang đông.
   - Sông và địa danh (trại, đồi, thành) đi kèm trong `terrain`.
@@ -334,8 +338,12 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
   - **Suy ra từ đồng hồ trận**, như vật bay: mỗi khung tính lại mọi đám còn sống từ thời gian trận và `UnitTrack.formationAt`. Một đợt bốc được nhớ lại trong một vòng đệm cho các khung sau; bỏ vòng đệm đi vẫn ra đúng từng con số. Tua tới đâu cũng ra cùng cảnh như khi phát tới đó; dừng phát thì bụi đứng yên. `BattleClock.time` đổi giây phát ra thời gian trận.
   - **Vẽ:** một `InstancedBufferGeometry` các tấm vuông luôn quay về camera, ảnh mây sinh bằng code (bốn mẫu). Ánh sáng lấy từ `Sky` như một mặt mờ, sáng lên khi nhìn ngược nắng; đi qua sương mù và đường cong màu như cả cảnh. Đám bụi mờ dần khi chạm đất, và khi ở gần camera.
   - **Mức chất lượng thấp không có bụi.** Hiệu năng (2026-11-19, máy rảnh, bản production): lúc phát giai đoạn 1 (cả hai đạo quân dàn trận, khoảng 2 300 đám) chậm hơn `main` khoảng 3%; giai đoạn 3 và 4 ngang `main`.
-- **Hồ** (`terrain.lakes`, kiểu `BattleLake`, thêm ở đợt K cho trận hồ Trasimene): nước đứng ở trên mực biển. `outline` là bờ hồ (ít nhất ba điểm, có thể chạy ra ngoài lưới độ cao), `level` là cao độ mặt nước, `evidence` nói đó là bờ của thời nào. Khác với biển, khối quân được đứng trong hồ; cảnh cho lính lội nước, càng xa bờ càng sâu. **Cảnh chưa vẽ hồ** (chặng 2 của đợt K).
-- **Sương mù** (`scenery.mist`, thêm ở đợt K): `level` từ 0 tới 1 lúc đầu trận; cảnh vẽ dày hơn ở chỗ thấp, mỏng dần theo trận và hết vào giờ `clearsAt`. **Cảnh chưa vẽ sương mù** (chặng 2 của đợt K).
+- **Hồ** (`terrain.lakes`, kiểu `BattleLake`, thêm ở đợt K cho trận hồ Trasimene): nước đứng ở trên mực biển.
+  - `outline` là bờ hồ (ít nhất ba điểm, có thể chạy ra ngoài lưới độ cao), `level` là cao độ mặt nước, `evidence` nói đó là bờ của thời nào. `islands` là các đảo, mỗi đảo một đường bao nằm trong `outline` (người dùng chọn cách có dữ liệu đảo riêng, 2026-11-19).
+  - Cảnh vẽ nước ở `level` trong `outline`, trừ các đảo, ở cả lưới chính lẫn lưới vùng xa. Lưới vùng xa không đánh dấu được hồ bằng độ cao (mặt hồ ở trên mực biển), nên phải dựa vào `outline`.
+  - Khác với biển, khối quân được đứng trong hồ; cảnh cho lính lội nước, càng xa bờ càng sâu. `npm run validate` không cho điểm nào của khối xa bờ quá 150 m ở một mốc (Polybius 3.84.9, Livy 22.6.6: ngập tới cổ, tới vai). Độ sâu đề nghị cho cảnh: khoảng 1,4–1,6 m ở 150 m từ bờ.
+  - **Cảnh chưa vẽ hồ** (chặng 2 của đợt K, [T-053](tasks/T-053-trasimene-scene.md)).
+- **Sương mù** (`scenery.mist`, thêm ở đợt K): `level` từ 0 tới 1 lúc đầu trận; cảnh vẽ dày hơn ở chỗ thấp, mỏng dần theo trận và hết vào giờ `clearsAt` (phải sau `startHour` và không muộn hơn giờ kết thúc giai đoạn cuối). **Cảnh chưa vẽ sương mù** (chặng 2 của đợt K, [T-053](tasks/T-053-trasimene-scene.md)).
 - **Trận không có `scenery`** vẫn hợp lệ: mặt đất vẽ như trước đợt H (không có ô ruộng), sông đầy nước và không có dải bờ.
 - **Vùng xa** (`terrain.far`, kiểu `BattleFarTerrain`, T-038): một lưới độ cao thưa của cả vùng quanh chiến trường, cùng định dạng với lưới chính, để chân trời có đồi núi và biển thật.
   - Phải vượt ra ngoài lưới chính ít nhất hai ô của nó ở mọi phía. Không có thì mặt đất kéo phẳng từ mép lưới chính ra 40 km như trước.
@@ -346,7 +354,10 @@ Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt �
 - **Biển** (T-038): đất có độ cao từ 0 trở xuống, ở cả hai lưới, được vẽ là biển, viền một dải cát. Trong lưới chính, mặt nạ biển được làm mờ hai lượt để đường bờ tròn lại. Sông dừng ở bờ biển. `npm run validate` không cho khối quân (quá 10% diện tích), địa danh hay công trình nào nằm trên biển.
 - **Mặt đất và sông trong cảnh** (T-038): `engine/terrain.ts` (ô ruộng, hàng rạ, độ gồ ghề gần camera) và `engine/river.ts` (lòng sỏi, dòng nước cạn, chỗ lội, dải bờ, phản chiếu trời). Chi tiết ở `docs/tasks/T-038-ground-river.md`.
 - **Kiểm tra** (`checkScenery` trong `scripts/battles/validate-battles.mjs`): mức căn cứ, ghi chú và nguồn; công trình nằm trọn trong vùng địa hình, không chồng nhau, không lấn vào sông và dải bờ; các số nằm trong khoảng cho phép.
-- **Căn cứ của Cannae:** `docs/data/battles/cannae.md`, mục 12.
+  - Hồ và sương mù (T-051, `checkLakes`): id, tên, `level`, `outline`, `evidence`; địa danh và công trình không nằm trong hồ; trung vị độ cao lưới trong bờ lệch `level` quá 1 m thì cảnh báo; khối quân không xa bờ quá 150 m; `mist.level` và `clearsAt`.
+  - `node scripts/battles/validate-battles.mjs <file trận> ...` chỉ kiểm các file được nêu. `node scripts/battles/test-lake-checks.mjs` chạy 25 ca sai có chủ ý trên địa hình hồ Trasimene, trong một thư mục tạm.
+- **Dựng hồ:** `node scripts/battles/build-terrain.mjs --battle <id> --lake out.json` vạch đường bờ và các đảo từ mặt nạ nước của Copernicus và đo mực nước (T-051).
+- **Căn cứ của Cannae:** `docs/data/battles/cannae.md`, mục 12. **Của hồ Trasimene:** `docs/data/battles/trasimene.md` (vị trí đã chọn: lối hẹp Malpasso và đồng bằng Tuoro, còn tranh cãi).
 
 ### Đồ hoạ theo ảnh mẫu (đợt I)
 
@@ -384,6 +395,6 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
 - **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
-- **Đợt K:** trận 3D thứ hai, hồ Trasimene (217 TCN), không dựng mô hình mới: tư liệu, hợp đồng có hồ và sương mù (T-051), dữ liệu trận, cảnh, ghép vào app. Chi tiết ở `docs/PLAN.md`.
+- **Đợt K:** trận 3D thứ hai, hồ Trasimene (217 TCN), không dựng mô hình mới: tư liệu, hợp đồng có hồ và sương mù (T-051), dữ liệu trận (T-052), cảnh có hồ, đảo, sương mù và quân nấp (T-053), ghép vào app. Chi tiết ở `docs/PLAN.md`.
 - **Đợt J:** làm nốt trận Cannae: quân giữ trại của Hannibal, ra trại qua cổng (T-045, lane 2); mảng màu phe mờ khi nhìn gần (T-046); LOD ít đường nối UV, sửa kỵ binh (T-047, lane 1); bụi và gió (T-048).
 - **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Chặng 4 (T-048, đợt J): bụi.

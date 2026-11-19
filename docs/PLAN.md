@@ -111,6 +111,10 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Sửa khi gộp: trận thử `?duel=1` dùng `iberian-cavalry` và có thêm cặp thứ bảy với `gallic-cavalry`; ARCHITECTURE ghi bốn mô hình kỵ binh; README ghi công thêm kỵ binh Gaul.
   - Người dùng duyệt gộp cả hai. Còn thấy được: ống quần kỵ binh Gaul lọt vào thân ngựa tối đa 2 cm; tóc nhìn từ sau hơi thành một khối; cách chia 2 000/4 000 chưa đối chiếu được với sách.
 - **2026-11-19:** Kiểm tra lại: câu giao [T-051](tasks/T-051-trasimene-stage0.md) chưa được dán vào lane 2 (nhánh không có commit nào). Phiên chính sửa phần bối cảnh của task (T-049, T-050 đã gộp), gộp `main` vào nhánh của lane 2 và đưa lại câu giao việc.
+- **2026-11-19:** Lane 2 xong [T-051](tasks/T-051-trasimene-stage0.md): `docs/data/battles/trasimene.md` (nguồn đọc lại bằng bản Latinh; Livy 22.7.2 ghi 10 000 người chạy thoát, "1 000" là lỗi của bản dịch Roberts), vị trí lối hẹp Malpasso và đồng bằng Tuoro (ba giả thuyết khác ghi kèm), lưới độ cao chính và vùng xa, bờ hồ ngày nay 239 điểm, mặt hồ 254,5 m, kiểm tra hồ và sương mù (25/25 ca thử). Phiên chính review: validate, lint, `tutor:check` qua; dựng lại bốn lưới độ cao ra đúng từng byte; không chạy build (máy còn 2,9 GB RAM, nhánh không đổi code của app).
+  - Người dùng duyệt phương án (La Mã 25 000 người trong 16 khối, Hannibal 50 000, sáu giai đoạn 4:30–10:30, `dayOfYear` 131) và cho gộp. Chọn thêm hai thay đổi hợp đồng: **đảo trong hồ là dữ liệu riêng** (`BattleLake.islands`; phiên chính đề nghị cách "nước chỉ ở chỗ đất thấp", người dùng chọn cách có dữ liệu) và **quân nấp** (`UnitState.concealed`).
+  - Sửa khi gộp: hai trường mới trong `src/lib/battle.ts` và ARCHITECTURE; sự kiện có thêm nguồn Livy bản Latinh.
+  - Người dùng chọn cho chặng 1 và 2 chạy song song: giao [T-052](tasks/T-052-trasimene-battle.md) cho lane 2 (file trận) và [T-053](tasks/T-053-trasimene-scene.md) cho lane 3 (mặt hồ, đảo, lội nước, sương mù, quân nấp; dùng trận thử tạm trong nhánh tới khi T-052 gộp).
 
 ## Việc để giai đoạn 5
 
@@ -249,9 +253,9 @@ Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng vi�
 
 | Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|---|
-| 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Phần của phiên chính xong 2026-11-19 (sự kiện `battle-of-lake-trasimene`, `BattleLake`, `scenery.mist`). T-051 giao lane 2 ngày 2026-11-19 |
-| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | Chưa viết | Chưa bắt đầu |
-| 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | Chưa viết | Chưa bắt đầu |
+| 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Xong, đã gộp 2026-11-19. Vị trí: lối hẹp Malpasso và đồng bằng Tuoro (người dùng duyệt) |
+| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | [T-052](tasks/T-052-trasimene-battle.md) | Giao 2026-11-19 |
+| 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | [T-053](tasks/T-053-trasimene-scene.md) | Giao 2026-11-19, chạy song song với chặng 1 (người dùng chọn) |
 | 3 | Ghép vào app: đăng ký trận, nút xem trận ở sự kiện mới, bản đồ bay tới hồ; hộp thoại Giới thiệu và ghi công hết viết riêng cho Cannae (bốn khoá) | Phiên chính; lane 1 phần hộp thoại | Mở được cả hai trận từ app; hồi quy qua | Chưa viết | Chưa bắt đầu |
 
 **Giả định phiên chính đã nêu, người dùng không sửa:**

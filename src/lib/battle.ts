@@ -168,6 +168,17 @@ export interface UnitState {
   action: UnitAction;
   /** Men still in the fight. */
   men: number;
+  /**
+   * Lying in ambush, out of the enemy's sight. A unit is hidden through a
+   * phase only when it is concealed at both of the phase's keys (the end of
+   * the phase before, or `initial`, and the end of this one): it shows
+   * itself as soon as the phase in which it breaks cover begins. While
+   * hidden, the scene still draws its men, but not its name or its side's
+   * colour on the ground, and its card says it lies in wait; the phase's
+   * arrows should not point it out. A concealed unit does not fight or
+   * skirmish. Leave it out otherwise.
+   */
+  concealed?: boolean;
 }
 
 /** A movement arrow drawn on the ground during a phase. */
@@ -293,10 +304,13 @@ export interface SceneryStructure {
 }
 
 /**
- * Standing water above sea level: a lake. The scene draws water inside
- * `outline` at `level`; the elevation grid inside it is not drawn. Unlike the
- * sea, units may stand in a lake (men driven into the water): the scene has
- * them wade, deeper the farther from the shore.
+ * Standing water above sea level: a lake. The scene draws water at `level`
+ * inside `outline` and outside every one of `islands`, over the elevation
+ * grid and over the far grid alike (the far grid has no sea there to mark
+ * it: a lake lies above sea level). The islands are land: the scene draws the
+ * elevation grid on them. Unlike the sea, units may stand in a lake (men
+ * driven into the water): the scene has them wade, deeper the farther from
+ * the shore.
  */
 export interface BattleLake {
   id: string;
@@ -308,6 +322,12 @@ export interface BattleLake {
    * the last back to the first. It may run beyond the elevation grid.
    */
   outline: FieldPoint[];
+  /**
+   * Islands in the lake, each the outline of its shore like `outline`
+   * (three or more points, closing back to the first). Each lies inside
+   * `outline`, and no two overlap. Leave it out when there are none.
+   */
+  islands?: FieldPoint[][];
   /** Whose shore this is (today's, as a rule) and how the ancient one differed. */
   evidence: SceneryEvidence;
 }
