@@ -132,6 +132,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - **Sửa khi gộp:** `/battle-lab` hiện tên giai đoạn theo `?lang=` (trước đó luôn là tiếng Anh); ARCHITECTURE ghi cách cảnh vẽ hồ, sương mù, quân nấp, các thay đổi ở vùng xa và các kiểm tra mới.
   - **Từ lúc này, trận Trasimene có nút xem trong app chính.** Còn chặng 3: hộp thoại Giới thiệu và ghi công vẫn viết riêng cho Cannae (bốn khoá); cú bay bản đồ tới hồ chưa kiểm.
 - **2026-11-19:** Người dùng đồng ý làm chặng 3 của đợt K. Giao [T-054](tasks/T-054-about-two-battles.md) cho lane 1: hộp thoại Giới thiệu tách ý chung và ý riêng của từng trận, thêm lời và nguồn cho hồ Trasimene. Khi viết task thấy khoá `about.accuracy.battle.scenery` cũng viết riêng cho Cannae, nên phải sửa năm khoá chứ không phải bốn. Phiên chính kiểm cú bay bản đồ tới hồ.
+- **2026-11-19:** Phiên chính kiểm cú bay bản đồ tới hồ Trasimene trên bản production của `main`: bay khoảng 2 giây rồi khung xem trận mở, chạy đúng. Thấy ba điều: cảnh sẵn sàng sau 8–9 giây, so với 5,7 giây ở Cannae; lúc mở trận (4:30, trước bình minh, có sương) cảnh gần như đen; bản đồ nền thiếu hồ Trasimene. Người dùng yêu cầu sửa cả ba. Giao [T-055](tasks/T-055-trasimene-dawn-load.md) cho lane 3 (ánh sáng rạng đông, thời gian tải, hai chỗ nhỏ ở mép nước) và [T-056](tasks/T-056-map-lake-trasimene.md) cho lane 2 (hồ trên bản đồ nền).
 
 ## Việc để giai đoạn 5
 
