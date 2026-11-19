@@ -865,14 +865,18 @@ if (previewPath) {
     for (const river of battle.terrain?.rivers ?? []) overlay.push({ points: river.points, color: [40, 90, 220], line: true });
     overlay.push({ points: (battle.terrain?.landmarks ?? []).map((m) => m.point), color: [220, 40, 40] });
     if (!lake) lakes.push(...(battle.terrain?.lakes ?? []));
-    for (const l of battle.terrain?.lakes ?? []) overlay.push({ points: [...l.outline, l.outline[0]], color: [20, 50, 140], line: true });
+    for (const l of battle.terrain?.lakes ?? []) {
+      for (const shore of [l.outline, ...(l.islands ?? [])]) overlay.push({ points: [...shore, shore[0]], color: [20, 50, 140], line: true });
+    }
     // --phase n draws the unit blocks at the end of phase n (0: the start) and
-    // that phase's arrows: the outline of the front and depth, a tick on the front.
+    // that phase's arrows: the outline of the front and depth, a tick on the
+    // front; grey for a block lying in ambush (UnitState.concealed).
     const phase = Number(option("--phase") ?? 0);
     const states = phase === 0 ? battle.initial : battle.phases?.[phase - 1]?.units;
-    const colorOf = (sideId) => (sideId === battle.sides[0].id ? [230, 30, 30] : [20, 20, 20]);
+    const sideColor = (sideId) => (sideId === battle.sides[0].id ? [230, 30, 30] : [20, 20, 20]);
     for (const s of states ?? []) {
       const side = battle.units.find((u) => u.id === s.unit)?.side;
+      const colorOf = () => (s.concealed ? [150, 150, 150] : sideColor(side));
       const { center, frontage, depth, facing } = s.formation;
       const a = facing * RAD;
       const ahead = { x: Math.sin(a), y: Math.cos(a) };
@@ -883,8 +887,8 @@ if (previewPath) {
       });
       const w = frontage / 2;
       const d = depth / 2;
-      overlay.push({ points: [at(-w, d), at(w, d), at(w, -d), at(-w, -d), at(-w, d)], color: colorOf(side), line: true });
-      overlay.push({ points: [at(0, d), at(0, d + 40)], color: colorOf(side), line: true });
+      overlay.push({ points: [at(-w, d), at(w, d), at(w, -d), at(-w, -d), at(-w, d)], color: colorOf(), line: true });
+      overlay.push({ points: [at(0, d), at(0, d + 40)], color: colorOf(), line: true });
     }
     for (const arrow of (phase > 0 && battle.phases?.[phase - 1]?.arrows) || []) {
       overlay.push({ points: arrow.points, color: arrow.side === battle.sides[0].id ? [255, 140, 0] : [120, 0, 160], line: true });
