@@ -73,6 +73,8 @@ Phiên chính đã review phần 1–4: đạt. Người dùng chọn cách (b) 
 
 Lane 2, 2026-11-19. Hồ Trasimene đã có trên bản đồ nền, thấy rõ khi bay tới và bay về ở cả nền sáng lẫn nền tối. Bờ bắc của hồ trên bản đồ nền lệch 0,7–0,9 km so với bờ thật, nên đoàn quân La Mã trên con đường ven hồ nằm trên nước của bản đồ nền (xem mục "Lệch bờ" và đề nghị 1). `npm run validate`, `npm run lint`, `npm run build` qua.
 
+Phần 5 (sau review, cùng ngày): hồ Trasimene trên bản đồ nền giờ lấy bờ trong file trận (Copernicus DEM). Bờ mới lệch tối đa 27,6 m so với đường bao của file trận, và không còn khối quân nào trên cạn lại nằm trên nước. Xem mục "Phần 5" ở cuối.
+
 ### Vì sao thiếu
 
 - `ne_10m_lakes` không có hồ Trasimene. Không phải do bước lọc hay đơn giản hoá: dựng lại từ bản Natural Earth đã dùng (tải 2026-11-15) ra đúng từng byte `basemap.json` cũ.
@@ -197,3 +199,66 @@ Trong `E:\World_History_Platform_assets\duyet\T-056\`:
    - Đầm Ligustinus ở cửa sông Guadalquivir.
    - Fucinus và Copais đáng làm nhất.
 3. **Hồ ngoài vùng đã xét** (Scandinavia, Ireland phía bắc, Nga, Caspi): khi bản đồ cần tới các vùng đó thì xét tiếp theo cùng cách, thêm `ne_id` vào `EUROPE_LAKES`.
+
+### Phần 5: bờ hồ Trasimene theo file trận
+
+Lane 2, 2026-11-19, sau review. Trước khi làm đã gộp `main` vào nhánh (`ef16728`, không xung đột). Commit `5e2cf00`: script, dữ liệu, chú giải, README.
+
+**Đã làm**
+
+- `build-basemap.mjs`: tới hồ Trasimene (`ne_id` 1159109725) trong `ne_10m_lakes_europe`, script không lấy hình của Natural Earth mà dựng hồ từ `terrain.lakes[0].outline` (tìm theo `id: "trasimene"`) trong `src/data/battles/battle-of-lake-trasimene.json`.
+  - Script đọc thẳng file trận lúc dựng, không chép toạ độ. File trận không có hồ `trasimene` thì script dừng và báo.
+  - Hồ mới đứng đúng chỗ của hồ Trasimene cũ trong danh sách hồ, nên các hồ khác giữ nguyên thứ tự và từng byte.
+  - Phép đổi: mặt phẳng tiếp xúc ellipsoid WGS84 tại `origin` (12,055; 43,2), x về phía đông, y về phía bắc. Công thức giống `projection()` trong `scripts/battles/build-terrain.mjs` và `fieldToLngLat()` trong `battleFlight.ts`. Script không import được `build-terrain.mjs` (file đó chạy ngay khi nạp), nên công thức được viết lại trong `battleProjection()`, có comment chỉ sang hai chỗ kia.
+- **Đơn giản hoá:** Douglas–Peucker tính theo mét, sai số 25 m, giữ 4 chữ số thập phân (một bước khoảng 11 m theo vĩ độ, 8 m theo kinh độ).
+  - Phải giữ 4 chữ số: chỉ làm tròn 3 chữ số như phần còn lại của bản đồ đã xê dịch bờ tới 67,6 m, quá ngưỡng 50 m.
+  - Lệch tối đa đo theo cả hai chiều (từ bờ mới tới đường bao của file trận và ngược lại), lấy mẫu mỗi 5 m dọc hai đường bờ:
+
+    | Sai số | Số điểm | Lệch tối đa, 4 chữ số | Lệch tối đa, 3 chữ số |
+    |---|---|---|---|
+    | không đơn giản hoá | 239 | 6,7 m | 67,6 m |
+    | 20 m | 195 | 21,6 m | 68,1 m |
+    | **25 m (chọn)** | **162** | **27,6 m** | 81,6 m |
+    | 30 m | 147 | 30,0 m | 81,6 m |
+
+  - Chọn 25 m vì ở mức phóng lúc cú bay kết thúc (11,7, khoảng 17 m mỗi điểm ảnh) sai số chưa tới 2 điểm ảnh, và còn cách ngưỡng 50 m gần gấp đôi.
+  - Script tự đo lại mỗi lần dựng, lệch quá 50 m thì dừng và báo. Lần dựng này: 162 điểm, lệch tối đa 27,6 m.
+- **Đảo:** theo quy tắc chung của bản đồ nền (bỏ đảo dưới 0,0001 độ vuông, ở vĩ độ này là 0,90 km²). Cả ba đảo đều bị bỏ:
+  - Polvese 0,79 km²: bỏ.
+  - Maggiore 0,23 km²: bỏ.
+  - Minore 0,06 km²: bỏ.
+  - Polvese chỉ nhỏ hơn ngưỡng khoảng 12%. Muốn giữ đảo này thì phải đặt ngưỡng riêng cho hồ; tôi không làm vì task bảo theo quy tắc chung.
+- **Ghi công:** sửa khoá có sẵn `map.legend.basemap` cho cả `en` lẫn `vi`.
+  - en: "Present-day coastlines, rivers and lakes (Natural Earth; Lake Trasimene from the Copernicus DEM, see About)."
+  - vi: "Đường bờ biển, sông và hồ ngày nay (Natural Earth; hồ Trasimene theo Copernicus DEM, xem phần Giới thiệu)."
+  - "About" và "Giới thiệu" khớp với nút mở hộp thoại ở thanh trên (`about.button`).
+  - Trong khung chú giải, dòng này giờ chiếm 4 dòng thay vì 2 (ảnh 14, 17).
+- **`public/map/README.md`:** thêm nguồn, cách dựng, sai số, đảo và chỗ ghi công. Bỏ ghi chú cũ về bờ lệch.
+
+**Kiểm tra**
+
+- So với bản phần 1–4: biển, 9 lớp sông và 413 hồ còn lại giống hệt từng byte. Chỉ hồ thứ 348 (Trasimene) đổi, từ 9 điểm thành 162 điểm.
+- **Kích thước `basemap.json`:** 1 381 223 → 1 383 963 byte (+2 740 byte, +0,2%); gzip 447 794 → 448 579. So với trước T-056 (1 362 101 byte): +1,6%.
+- **Khối quân:** đếm vị trí tâm khối quân ở đầu trận và ở mọi giai đoạn, tổng 210 vị trí.
+  - Bờ cũ (Natural Earth): 103 vị trí trên cạn theo file trận nhưng nằm trên nước của bản đồ nền. Lúc đầu trận là 18 trên 30 khối: 15 khối La Mã, quân Numidia, kỵ binh Iberia và một khối Gaul.
+  - Bờ mới: 0 vị trí như vậy. Lúc đầu trận không khối nào nằm trong hồ.
+  - 34 vị trí nằm trong nước ở cả file trận lẫn bản đồ nền. Đó là quân La Mã bị dồn xuống hồ ở các giai đoạn sau, đúng ý của file trận.
+- **Khung chiến trường:** nước chiếm 18% khung trên bản đồ nền, đúng bằng file trận (bờ cũ: 24%). Tính trên các điểm bờ của file trận nằm trong khung, bờ mới lệch trung bình 9 m, xa nhất 28 m (bờ cũ: trung bình 0,73 km, xa nhất 1,8 km).
+- **Khi vẽ:** nguồn `basemap` chỉ dựng ô tới mức phóng 8 (`MAX_ZOOM`), từ đó trở lên MapLibre phóng to các ô ấy. Lưới toạ độ của một ô ở mức 8 khoảng 14 m, nên bờ vẽ ra có thể xê thêm vài mét so với dữ liệu. Ảnh 16 (mức phóng 13,6) cho thấy mép nước vẫn bám sát đường bao của file trận.
+- `npm run validate`, `npm run lint`, `npm run build` qua.
+
+**Ảnh** (cùng thư mục `E:\World_History_Platform_assets\duyet\T-056\`)
+
+- `14`, `15`: như ảnh 13 nhưng với bờ mới, nền sáng và nền tối. Khung chiến trường ở đúng mức phóng lúc cú bay kết thúc (11,7). Đường bao của file trận vẽ bằng nét xanh mảnh, không tô, để thấy mép nước của bản đồ nền ngay bên dưới. Đoàn quân La Mã (chấm đỏ) nằm trên cạn, sát bờ.
+- `16`: cận cảnh bờ bắc chỗ đoàn quân La Mã, mức phóng 13,6, nền sáng.
+- `17`, `18`: miền trung Ý năm 217 TCN, mức phóng 6,2, nền sáng và nền tối.
+- `19`, `20`: quanh hồ, mức phóng 8, hai nền.
+- `21`–`24`: bay tới chiến trường ở 0,7 giây và 1,3 giây, hai nền. Hồ thấy rõ dưới khung chiến trường.
+- Ảnh 13 (bờ Natural Earth) giữ lại để so.
+- Trên bản đồ nền không còn đảo nào trong hồ. Các đảo ở ảnh 14–16 chỉ là nét xanh vẽ chồng lên.
+
+**Ghi chú**
+
+- Bờ hồ trên bản đồ nền giờ đi theo file trận. Ai sửa `terrain.lakes[0].outline` thì nên dựng lại `basemap.json` (cần 4 file Natural Earth, xem `public/map/README.md`). Không dựng lại thì bản đồ nền vẫn giữ bờ cũ, không lỗi gì.
+- Hình hồ đổi một chút nên nhãn tên thế lực gần hồ có thể dời đi chút ít, cũng như với các hồ mới ở phần 1–4.
+- Phần phiên chính làm khi gộp (theo task): README gốc, `docs/data/SOURCES.md` và dòng bản đồ nền trong hộp thoại Giới thiệu. Lời ghi công Copernicus đầy đủ đã có sẵn trong `src/lib/credits.ts`.
