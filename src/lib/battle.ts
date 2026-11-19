@@ -27,8 +27,33 @@ export const MEN_PER_FIGURE = 20;
  * it gets through and he flinches. Both start and end standing as in idle,
  * do not loop, and have the blow land REACTION_IMPACT seconds in. A model
  * without them takes blows without moving. See "Giáp lá cà".
+ *
+ * knockdown and ridedown (added last again) belong to horsemen riding
+ * through foot (the action `overrun`; "Kỵ binh xông qua").
+ * - knockdown, for models on foot: a horse bowls the man over, he lies a
+ *   moment, then gets up. It starts and ends standing as in idle, does not
+ *   loop, lasts KNOCKDOWN_SECONDS at most, and the horse strikes him
+ *   REACTION_IMPACT seconds in. He goes over backwards: the scene turns him
+ *   to face the horse first. A model without it flinches (hit) instead.
+ * - ridedown, for mounted models: the gallop of `run` with the rider
+ *   striking down at the men on foot beside him. It is a whole number of
+ *   cycles of `run` (two, as a rule), the horse moving exactly as in `run`,
+ *   and it loops: the scene plays it by the ground covered, in step with
+ *   `run`, and fades between the two. A model without it gallops through
+ *   without striking.
  */
-export const UNIT_CLIPS = ["idle", "walk", "run", "attack", "die", "jog", "block", "hit"] as const;
+export const UNIT_CLIPS = [
+  "idle",
+  "walk",
+  "run",
+  "attack",
+  "die",
+  "jog",
+  "block",
+  "hit",
+  "knockdown",
+  "ridedown",
+] as const;
 export type UnitClip = (typeof UNIT_CLIPS)[number];
 
 /**
@@ -37,6 +62,12 @@ export type UnitClip = (typeof UNIT_CLIPS)[number];
  * scripts build the clips to it (REACT in art/blender/whp_clips.py).
  */
 export const REACTION_IMPACT = 0.3;
+
+/**
+ * The clip knockdown lasts no longer than this, seconds: a man bowled over
+ * is on his feet again before the next horse may bowl him over.
+ */
+export const KNOCKDOWN_SECONDS = 4;
 
 /** Mesh names inside a unit model, from most to least detailed. */
 export const UNIT_LODS = ["LOD0", "LOD1", "LOD2"] as const;
@@ -80,6 +111,20 @@ export interface ModelIndex {
  * unit, at the start of the phase as well as at its end (the scene moves
  * units in a straight line between the two). `npm run validate` checks it.
  * See docs/ARCHITECTURE.md, "Giáp lá cà".
+ *
+ * `overrun` is for horsemen alone (UnitType.mounted): they ride through the
+ * enemy foot before them instead of halting to fight it. Each rider leaves
+ * his place, gallops through the enemy, wheels and comes back, again and
+ * again through the phase; a man on foot in the way of a horse is bowled
+ * over, and gets up again unless he is one of those the data has fall in the
+ * phase. So for a phase of `overrun` the data brings the front of the unit
+ * up to enemy foot (onto a block of it, or within a few metres of one in
+ * front), at the start of the phase as well as at its end, as for `fight`;
+ * `npm run validate` checks it. The foot ridden through takes any action
+ * but a `fight` against these horsemen, who are not standing to be fought:
+ * its men fall where the horses pass unless it fights another enemy hand to
+ * hand (then the heads of its files fall, as in any fight). Horse against
+ * horse stays `fight`. See docs/ARCHITECTURE.md, "Kỵ binh xông qua".
  */
 export type UnitAction =
   | "stand"
@@ -89,7 +134,8 @@ export type UnitAction =
   | "skirmish"
   | "retreat"
   | "rout"
-  | "pursue";
+  | "pursue"
+  | "overrun";
 
 /**
  * A point on the battlefield, in metres from Battle.origin:

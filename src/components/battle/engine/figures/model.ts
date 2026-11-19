@@ -47,6 +47,8 @@ const LOOPING: Record<UnitClip, boolean> = {
   jog: true,
   block: false,
   hit: false,
+  knockdown: false,
+  ridedown: true,
 };
 
 /** Frames per second baked into the texture. */
@@ -243,6 +245,10 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     // Without them the figure takes a blow without moving (reaction).
     block: byName.get("block") ?? null,
     hit: byName.get("hit") ?? null,
+    // Bowled over by a horse: without it the man flinches (hit) or does not move.
+    knockdown: byName.get("knockdown") ?? null,
+    // Never chosen by the scene without a clip of its own.
+    ridedown: byName.get("ridedown") ?? byName.get("run") ?? walk,
   };
 
   // Bake each distinct clip once. Without any clip, bake the rest pose.

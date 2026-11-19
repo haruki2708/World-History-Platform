@@ -173,6 +173,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `skirmish`: đánh từ xa (lao, đá ném). Hàng trước ném từ chỗ đứng; hai khối không cần chạm nhau.
   - `fight`: giáp lá cà. Mép trước của khối phải nằm trên mép trước của một khối địch cũng `fight`, ở **cả mốc đầu lẫn mốc cuối** của giai đoạn, vì giữa hai mốc cảnh nội suy thẳng. `npm run validate` kiểm tra (ít nhất 15% bề ngang cách mép trước của địch không quá 8 m).
   - Khối chỉ tới chỗ địch ở cuối một giai đoạn thì giai đoạn đó ghi `advance` hay `charge`, giai đoạn sau mới ghi `fight`.
+  - `overrun` (đợt L): kỵ binh xông qua bộ binh địch thay vì dừng lại đấu. Chỉ dành cho loại lính `mounted`. Xem mục "Kỵ binh xông qua".
 - **Quân nấp** (`UnitState.concealed`, thêm ở đợt K cho trận hồ Trasimene, người dùng chọn): khối đang phục kích, địch chưa thấy.
   - Khối chỉ ẩn trong một giai đoạn khi `concealed` ở **cả hai mốc** của giai đoạn đó (mốc đầu và mốc cuối); giai đoạn nào nó rời chỗ nấp thì nó lộ ra ngay từ đầu giai đoạn ấy.
   - Trong lúc ẩn, cảnh vẫn vẽ lính nhưng không vẽ nhãn tên và mảng màu phe dưới chân; thẻ khối ghi là đang nấp. Mũi tên của giai đoạn không nên chỉ vào khối đang ẩn.
@@ -210,6 +211,9 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
     - Cả hai bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài 1,0 giây. Đòn của địch chạm ở giây thứ `REACTION_IMPACT` (0,3) của clip; cảnh canh giờ theo số này, nên đổi nó là đổi hợp đồng.
     - Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi. Mô hình chưa có hai clip này thì nhận đòn mà không phản ứng.
     - Có ở mười mô hình: sáu mô hình bộ binh đánh gần (`roman-legionary`, `roman-hastatus`, `roman-triarii`, `libyan-infantry`, `iberian-infantry`, `gallic-infantry`) và bốn mô hình kỵ binh. Hai mô hình bộ binh đánh từ xa (`roman-velites`, `balearic-slinger`) không có.
+  - **`knockdown`, `ridedown`** (thêm 2026-11-20, đợt L; xem mục "Kỵ binh xông qua"). Đứng cuối `UNIT_CLIPS`, nên chỉ số các clip cũ không đổi.
+    - `knockdown`, cho mô hình bộ binh: bị ngựa xô ngã ngửa, nằm một lát, rồi gượng dậy. Bắt đầu và kết thúc ở thế đứng như `idle`, không lặp, dài tối đa `KNOCKDOWN_SECONDS` (4 giây). Ngựa chạm ở giây thứ `REACTION_IMPACT` (0,3), như `block` và `hit`. Người ngã ngửa ra sau: cảnh xoay anh ta quay mặt về phía ngựa trước khi ngựa tới. Lúc nằm, thân không ra xa chỗ đứng quá 1,5 m, và cuối clip chân về đúng chỗ cũ. Mô hình chưa có clip này thì phát `hit`.
+    - `ridedown`, cho mô hình kỵ binh: ngựa phi như `run`, người cưỡi vung vũ khí đánh xuống người đi bộ bên cạnh. Dài đúng một số nguyên lần vòng `run` (thường là hai), ngựa chuyển động **y hệt** `run` từng khung, lặp liền mạch. Cảnh phát nó theo quãng đường đã đi, cùng nhịp với `run`, và chuyển mờ giữa hai clip, nên chân ngựa không lệch nhịp. Mô hình chưa có clip này thì phi qua mà không đánh.
   - Không có chuyển động gốc: hình lính đứng tại chỗ, cảnh tự di chuyển nó.
   - **Bước chân:** cảnh không dùng số sải chân trong tài liệu. Khi nạp mô hình, cảnh đo sải chân từ chính clip `walk` và `run` (`plantedStride` trong `src/components/battle/engine/figures/model.ts`), rồi cho chân bước theo quãng đường từng hình lính đi được.
     - Đứng, đi hay chạy chọn theo tốc độ đo được của khối quân, không theo `action`; `action` chỉ còn quyết định lúc đánh (`fight`, `skirmish`). Ngưỡng ghi ở đầu `src/components/battle/engine/units.ts`.
@@ -314,6 +318,22 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
   - **Vật bay** (`engine/missiles.ts`): lớp `Missiles` vẽ lao và đá đang bay bằng hai `InstancedMesh`. Nó không giữ gì giữa hai khung hình: mỗi khung, `UnitBlock.update` báo vật nào đang bay và đã bay được bao nhiêu phần đường (`Missiles.add`), tính từ lúc người ném buông tay. Khối `skirmish` ném theo đúng vòng lặp clip `attack` mà shader phát cho họ (đồng hồ thật); tầm ném là khoảng cách tới khối địch gần nhất phía trước (`Crowd.aim`).
   - Tất cả suy ra từ đồng hồ và số ngẫu nhiên cố định của hình lính, nên tua cho đúng cảnh như phát. Phần này vẽ cho giống trận đánh, không lấy từ tư liệu.
 
+### Kỵ binh xông qua (đợt L)
+
+Người dùng chọn 2026-11-20: kỵ binh gặp bộ binh thì không dừng lại đấu từng cặp như trong `fight`, mà phi xuyên qua, hỗn loạn; bộ binh trên đường ngựa chạy bị xô ngã. Kỵ binh đấu kỵ binh vẫn là `fight`. Phần này vẽ cho giống trận đánh; tư liệu chỉ nói kỵ binh đánh vào đâu, không tả từng con ngựa.
+
+- **Dữ liệu** (`UnitAction` `overrun`, `src/lib/battle.ts`):
+  - Chỉ khối kỵ binh (`UnitType.mounted`) được ghi `overrun`.
+  - Như `fight`, điều kiện phải đúng ở **cả mốc đầu lẫn mốc cuối** của giai đoạn: mép trước của khối có bộ binh địch ngay phía trước. `npm run validate` lấy 21 điểm trên mép trước; từ ít nhất 15% số điểm, đường thẳng về phía trước phải nằm trong một khối bộ binh địch hoặc đi vào một khối trong vòng 12 m. Dưới 50% thì cảnh báo: phần còn lại của khối đứng yên.
+  - Khối chỉ tới chỗ địch ở cuối một giai đoạn thì giai đoạn đó ghi `charge`, giai đoạn sau mới ghi `overrun`.
+  - Khối bộ binh bị xông qua ghi hành động nào cũng được, trừ `fight` với chính khối kỵ binh đó (kỵ binh không đứng lại để đấu, nên kiểm tra của `fight` sẽ báo không có địch). Nó vẫn có thể `fight` với một khối địch khác ở mép trước của nó.
+  - Khối kỵ binh đang nấp (`concealed`) không `overrun`.
+- **Ai ngã, ai dậy** (người dùng chọn):
+  - Ai nằm trên đường ngựa chạy đều bị xô ngã (`knockdown`), rồi gượng dậy.
+  - Số người chết mỗi giai đoạn vẫn lấy từ `men` của hai mốc. Trong khối bị xông qua mà không `fight` với ai, người chết là người bị ngựa xô: anh ta ngã đúng lúc ngựa tới và nằm lại (`die`). Trong khối đang `fight` với một khối khác, người chết vẫn là người đầu hàng dọc như mọi trận giáp lá cà; ngựa chỉ xô ngã người rồi họ dậy.
+- **Cảnh** (chặng A1, đang làm; phần này sẽ được viết lại khi xong): mỗi người cưỡi rời chỗ, phi xuyên khối bộ binh, vòng lại, nhiều lượt trong giai đoạn; đầu và cuối giai đoạn anh ta đứng ở chỗ của mình trong đội hình. Đường đi của từng con ngựa và lúc từng người bị xô ngã đều là hàm của thời gian trong trận, nên tua tới đâu cũng ra cùng một cảnh.
+- **Clip:** `knockdown` và `ridedown`, xem mục "Mô hình lính", phần hoạt hình.
+
 ### Phong cảnh (đợt H)
 
 Từ đợt H, một trận có thể mô tả những thứ nằm trên mặt đất ngoài hai đạo quân: lớp phủ mặt đất, bờ sông, trại, thành, làng, gió và bụi. Chặng 0 (T-037) thêm kiểu dữ liệu, dữ liệu của Cannae và phần kiểm tra. Chặng 1 (T-038) vẽ mặt đất, sông, vùng xa và biển. Chặng 2 (T-039) dựng công trình. Chặng 3 (T-040) trồng cây, kể cả trong các mảng đất riêng (`areas`). Chặng 4 (T-048, làm ở đợt J) vẽ bụi; gió làm cây và bụi cỏ nghiêng, và mang bụi đi.
@@ -405,6 +425,7 @@ Chi tiết ở `docs/PLAN.md`.
 - **Đợt C:** khung xem trận (lời dẫn, nút điều khiển, thông tin hai bên, ghi công), mở trận từ panel sự kiện, chuyển cảnh từ bản đồ vào trận, ghi công trong hộp thoại Giới thiệu.
 - **Đợt G:** giáp lá cà (T-032, T-033, T-034).
 - **Đợt I:** đồ hoạ theo ảnh mẫu của người dùng: màu và ánh sáng (T-041), giáp lá cà hỗn chiến và vật bay (T-043), nước, cây, lều, nhà có chất liệu ảnh chụp, đo ảnh mẫu rồi khớp số (T-044). T-042 (mô hình `hi`) dựng thử, không dùng.
+- **Đợt L:** kỵ binh xông qua bộ binh (hành động `overrun`, clip `knockdown` và `ridedown`), làm đẹp lính 3D. Chi tiết ở `docs/PLAN.md`.
 - **Đợt K:** trận 3D thứ hai, hồ Trasimene (217 TCN), không dựng mô hình mới: tư liệu, hợp đồng có hồ và sương mù (T-051), dữ liệu trận (T-052), cảnh có hồ, đảo, sương mù và quân nấp (T-053), ghép vào app. Chi tiết ở `docs/PLAN.md`.
 - **Đợt J:** làm nốt trận Cannae: quân giữ trại của Hannibal, ra trại qua cổng (T-045, lane 2); mảng màu phe mờ khi nhìn gần (T-046); LOD ít đường nối UV, sửa kỵ binh (T-047, lane 1); bụi và gió (T-048).
 - **Đợt H:** phong cảnh. Chặng 0 (T-037): kiểu dữ liệu và dữ liệu Cannae. Chặng 1 (T-038): mặt đất, sông, vùng xa và biển. Chặng 2 (T-039): công trình. Chặng 3 (T-040): thực vật. Chặng 4 (T-048, đợt J): bụi.

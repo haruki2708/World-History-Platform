@@ -148,6 +148,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Sửa khi gộp: ghi công Copernicus cho bờ hồ ở README, `docs/data/SOURCES.md` và dòng bản đồ nền trong hộp thoại Giới thiệu; ARCHITECTURE nói script dựng bản đồ nền đọc bờ hồ từ file trận.
   - **Đợt K xong.** Để lại, theo đề nghị của lane 2: hồ đã mất từ thời cổ (Fucinus, Copais) cần nguồn tái dựng và ghi công riêng; hồ ngoài vùng đã xét (Scandinavia, Nga, bờ bắc biển Caspi) xét tiếp khi bản đồ cần tới.
 - **2026-11-20:** Người dùng xem app và hai trận trên bản production của `main`. Trận 3D giật: Chrome của người dùng tắt tăng tốc phần cứng (vẽ bằng CPU) và Windows để Chrome dùng card tích hợp. Mọi số đo khung hình/giây của phiên chính trước đó đều ép dùng RTX 3050 (`GPU=1`), nên không lộ ra. Người dùng bật lại, trận chạy mượt. Người dùng chọn hướng tiếp: kỵ binh xông qua bộ binh và làm đẹp lính 3D (mục "Đợt L"); phiên chính làm hợp đồng và logic cảnh.
+- **2026-11-20:** Người dùng duyệt kế hoạch đợt L. Phiên chính xong chặng A0: `UnitAction` thêm `overrun` (chỉ kỵ binh; mép trước phải có bộ binh địch ngay phía trước ở cả hai mốc của giai đoạn, `validate` kiểm tra); `UNIT_CLIPS` thêm `knockdown` (bộ binh bị ngựa xô ngã rồi gượng dậy) và `ridedown` (kỵ binh đánh lúc ngựa phi); cảnh chưa đổi gì, mô hình chưa có clip mới vẫn chạy như cũ. Thử kiểm tra trên bản sao file Cannae: đổi kỵ binh Iberia và Gaul ở giai đoạn 6 sang `overrun` và triarii sang `stand` thì qua; kỵ binh Numidia (không có bộ binh phía trước) và một khối bộ binh ghi `overrun` thì bị báo lỗi. Giao [T-057](tasks/T-057-knockdown-clip.md) cho lane 1 (clip `knockdown`) và [T-058](tasks/T-058-horse-walk.md) cho lane 2 (móng ngựa trượt khi đi bước). Phiên chính làm chặng A1 (cảnh).
 
 ## Việc để giai đoạn 5
 
@@ -315,9 +316,9 @@ Người dùng chọn 2026-11-20, sau khi xem cả app và hai trận trên bả
 
 | Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|---|
-| A0 | Hợp đồng: hành động mới cho kỵ binh (xông qua khối địch) và kiểm tra trong `npm run validate`; hai clip mới trong `UNIT_CLIPS` (bộ binh bị xô ngã rồi gượng dậy; kỵ binh đánh trong lúc ngựa phi), kèm độ dài và mốc thời gian | Phiên chính | `battle.ts`, ARCHITECTURE và script kiểm tra đã có; task cho lane 1 đã viết | | Chờ duyệt kế hoạch |
+| A0 | Hợp đồng: hành động mới cho kỵ binh (xông qua khối địch) và kiểm tra trong `npm run validate`; hai clip mới trong `UNIT_CLIPS` (bộ binh bị xô ngã rồi gượng dậy; kỵ binh đánh trong lúc ngựa phi), kèm độ dài và mốc thời gian | Phiên chính | `battle.ts`, ARCHITECTURE và script kiểm tra đã có; task cho lane 1 đã viết | | Xong 2026-11-20: hành động `overrun`, clip `knockdown` và `ridedown`, kiểm tra trong `validate` |
 | A1 | Cảnh, dùng clip sẵn có trước: khi xông, mỗi con ngựa chạy một đường riêng xuyên qua khối bộ binh, ra phía sau, vòng lại; bộ binh trên đường ngựa ngã đúng lúc ngựa tới; người chết theo dữ liệu nằm lại. Mọi thứ là hàm của thời gian, tua tới đâu cũng ra cùng một cảnh. Bản thử trong `/battle-lab?duel=1` | Phiên chính | Người dùng xem bản thử và duyệt | | |
-| A2 | Hai clip mới: ngã rồi dậy cho 8 mô hình bộ binh, đánh lúc ngựa phi cho 4 mô hình kỵ binh. Làm một mô hình mỗi loại trước, người dùng xem rồi mới làm hết | Lane 1 | Clip chạy trong bản thử | | |
+| A2 | Hai clip mới: ngã rồi dậy cho 8 mô hình bộ binh, đánh lúc ngựa phi cho 4 mô hình kỵ binh. Làm một mô hình mỗi loại trước, người dùng xem rồi mới làm hết | Lane 1 | Clip chạy trong bản thử | [T-057](tasks/T-057-knockdown-clip.md) (`knockdown`); `ridedown` giao sau T-058, vì cùng đụng bốn file kỵ binh | T-057 đã giao 2026-11-20 |
 | A3 | Dữ liệu hai trận: Cannae giai đoạn 6 (kỵ binh Iberia và Gaul đánh vào lưng quân La Mã; Polybius 3.116), hồ Trasimene (kỵ binh của Hannibal đánh vào đoàn quân). Kỵ binh đấu kỵ binh giữ như cũ. Một câu về độ chính xác trong hộp thoại Giới thiệu | Lane 2; lane 1 phần hộp thoại | Xem được trong app; hồi quy qua; đo khung hình/giây không giảm | | |
 
 **Phần B: làm đẹp lính** (chạy song song với phần A ở các lane; mỗi việc có ảnh trước và sau cho người dùng duyệt)
@@ -326,7 +327,7 @@ Người dùng chọn 2026-11-20, sau khi xem cả app và hai trận trên bả
 |---|---|---|---|---|
 | B1 | Mỗi lính một vẻ: vài kiểu mặt, tóc, râu, màu áo, hoạ tiết khiên cho mỗi loại lính; cảnh chọn cố định cho từng người. Phiên chính chốt cách làm trong hợp đồng trước (vẫn một vật liệu, vẽ theo lô) | Phiên chính (hợp đồng, cảnh), lane 1 (mô hình) | | |
 | B2 | Chân trượt khi chạy: đo xem khối nào, giai đoạn nào vượt trần của clip, rồi đưa người dùng chọn cách sửa (dữ liệu, trần phát clip, hay cả hai) | Phiên chính đo; sửa tuỳ lựa chọn | | |
-| B3 | Ngựa và người cưỡi: móng trượt khi đi bước (file ngựa của lane 2); vạt áo xoè, chân người cưỡi cứng, cú ngã của kỵ binh (lane 1) | Lane 2, lane 1 | | |
+| B3 | Ngựa và người cưỡi: móng trượt khi đi bước (file ngựa của lane 2); vạt áo xoè, chân người cưỡi cứng, cú ngã của kỵ binh (lane 1) | Lane 2, lane 1 | [T-058](tasks/T-058-horse-walk.md) (ngựa đi bước, lane 2); phần người cưỡi giao cùng `ridedown` | T-058 đã giao 2026-11-20 |
 | B4 | Nhìn gần chi tiết hơn: dùng mức chi tiết cao từ xa hơn, làm lại mức thấp cho bớt giống hình khối; đo khung hình/giây trên máy người dùng (RTX 3050), giữ từ 50 trở lên | Lane 3 nếu còn hạn mức, không thì phiên chính; lane 1 phần mô hình | | |
 
 **Thứ tự:** A0 trước (một buổi), để lane 1 bắt đầu clip trong lúc phiên chính làm A1. Lane 2 làm B3 (ngựa đi bước) trong lúc chờ hợp đồng, rồi A3. B1 và B4 bắt đầu sau khi A2 xong, vì cùng đụng các file mô hình.

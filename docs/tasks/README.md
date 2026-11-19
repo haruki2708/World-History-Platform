@@ -75,3 +75,5 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-054](T-054-about-two-battles.md) | 1 | Trận hồ Trasimene (đợt K), chặng 3: hộp thoại Giới thiệu nói đúng về cả hai trận (ý riêng từng trận, nguồn của Trasimene) | Xong, đã gộp 2026-11-19 |
 | [T-055](T-055-trasimene-dawn-load.md) | 3 | Trận hồ Trasimene: cảnh lúc mở trận (4:30) quá tối; cảnh tải chậm hơn Cannae 2,5–3 giây; hai chỗ nhỏ ở mép nước | Xong, đã gộp 2026-11-19 (phiên chính làm thay lane 3) |
 | [T-056](T-056-map-lake-trasimene.md) | 2 | Bản đồ nền thiếu hồ Trasimene: thêm hồ, thấy được trong cú bay tới chiến trường | Xong, đã gộp 2026-11-19 |
+| [T-057](T-057-knockdown-clip.md) | 1 | Đợt L (kỵ binh xông qua): clip `knockdown`, bộ binh bị ngựa xô ngã rồi gượng dậy; một mô hình trước, người dùng xem, rồi cả tám | Đã giao 2026-11-20 |
+| [T-058](T-058-horse-walk.md) | 2 | Đợt L (làm đẹp lính): móng ngựa trượt và lún khi đi bước; xuất lại bốn mô hình kỵ binh | Đã giao 2026-11-20 |

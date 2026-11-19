@@ -15,7 +15,7 @@ const battlesDir = join(root, "src", "data", "battles");
 const terrainDir = join(root, "public", "data", "terrain");
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "retreat", "rout", "pursue"]);
+const ACTIONS = new Set(["stand", "advance", "charge", "fight", "skirmish", "retreat", "rout", "pursue", "overrun"]);
 const LANDMARK_KINDS = new Set(["camp", "town", "hill", "ford", "other"]);
 const SCENERY_BASES = new Set(["attested", "inferred", "illustrative"]);
 const GROUND_COVERS = new Set(["stubble", "grass", "scrub", "reeds", "woodland", "bare"]);
@@ -652,8 +652,12 @@ for (const path of battlePaths) {
       if (!ACTIONS.has(s.action)) fail(sw, `action ${s.action} is not one of ${[...ACTIONS].join(", ")}`);
       // Lying in ambush (UnitState.concealed): out of the enemy's sight, so not fighting.
       if (s.concealed !== undefined && typeof s.concealed !== "boolean") fail(sw, "concealed must be true or false (leave it out when not in ambush)");
-      else if (s.concealed === true && (s.action === "fight" || s.action === "skirmish")) {
+      else if (s.concealed === true && (s.action === "fight" || s.action === "skirmish" || s.action === "overrun")) {
         fail(sw, `${s.unit} is concealed, lying in wait, so it cannot ${s.action}; it breaks cover first`);
+      }
+      // Riding through the enemy is for horsemen (UnitAction "overrun").
+      if (s.action === "overrun" && units.has(s.unit) && unitTypes.get(units.get(s.unit).type)?.mounted !== true) {
+        fail(sw, `${s.unit} is not mounted, so it cannot overrun; only horsemen ride through the enemy`);
       }
       if (!Number.isInteger(s.men) || s.men < 0) fail(sw, "men must be a whole number >= 0");
       else if (units.has(s.unit)) {
@@ -764,6 +768,82 @@ for (const path of battlePaths) {
             fail(
               `${where}.phases[${i}]`,
               `${state.unit} fights hand to hand, but at the ${moment} of the phase its front is not on the front of an enemy unit that fights (${touching} of ${FRONT_SAMPLES} points within ${CONTACT} m). Use "skirmish" for a fight at a distance, or bring the fronts together.`,
+            );
+          }
+        }
+      }
+      start = end;
+    }
+  }
+
+  // Riding through (`overrun`, src/lib/battle.ts): the riders gallop through
+  // the enemy foot in front of them, so the front of the unit must have enemy
+  // foot before it, at the start of the phase as well as at its end. Checked
+  // at FRONT_SAMPLES points across the front (bulge ignored): from at least
+  // MIN_CONTACT of them, a line straight ahead must lie in a block of enemy
+  // foot or enter one within OVERRUN_GAP metres. The same test, in the scene,
+  // says how far each rider goes (engine/overrun.ts).
+  const OVERRUN_GAP = 12;
+  /** How far straight ahead of `point` (the way `edge` faces) the block of formation `f` begins: 0 inside it, Infinity when the line misses it. */
+  const aheadTo = (edge, point, f) => {
+    const a = (f.facing * Math.PI) / 180;
+    const sin = Math.sin(a);
+    const cos = Math.cos(a);
+    const dx = point.x - f.center.x;
+    const dy = point.y - f.center.y;
+    // The point and the way ahead, in the frame of the block: across its front, and towards its front.
+    const at = [dx * cos - dy * sin, dx * sin + dy * cos];
+    const way = [edge.sin * cos - edge.cos * sin, edge.sin * sin + edge.cos * cos];
+    const half = [f.frontage / 2, f.depth / 2];
+    let enter = 0;
+    let leave = Infinity;
+    for (let axis = 0; axis < 2; axis++) {
+      if (Math.abs(way[axis]) < 1e-9) {
+        if (Math.abs(at[axis]) > half[axis]) return Infinity;
+        continue;
+      }
+      const one = (-half[axis] - at[axis]) / way[axis];
+      const other = (half[axis] - at[axis]) / way[axis];
+      enter = Math.max(enter, Math.min(one, other));
+      leave = Math.min(leave, Math.max(one, other));
+    }
+    return enter <= leave ? enter : Infinity;
+  };
+  {
+    let start = new Map((Array.isArray(b.initial) ? b.initial : []).map((state) => [state.unit, state]));
+    for (const [i, phase] of (b.phases ?? []).entries()) {
+      const end = new Map((Array.isArray(phase.units) ? phase.units : []).map((state) => [state.unit, state]));
+      const riders = [...end.values()].filter(
+        (state) => state.action === "overrun" && units.has(state.unit) && start.has(state.unit) && isNumber(state.formation?.facing),
+      );
+      for (const state of riders) {
+        for (const [moment, states] of [["start", start], ["end", end]]) {
+          const own = edgeOf(states.get(state.unit).formation, false);
+          const foot = [...states.values()].filter(
+            (other) =>
+              units.has(other.unit) &&
+              units.get(other.unit).side !== units.get(state.unit).side &&
+              unitTypes.get(units.get(other.unit).type)?.mounted !== true &&
+              other.men > 0 &&
+              isNumber(other.formation?.facing) &&
+              isNumber(other.formation?.frontage) &&
+              isNumber(other.formation?.depth),
+          );
+          let meeting = 0;
+          for (let k = 0; k < FRONT_SAMPLES; k++) {
+            const point = edgePoint({ ...own, f: { ...own.f, bulge: 0 } }, (k + 0.5) / FRONT_SAMPLES - 0.5);
+            if (foot.some((other) => aheadTo(own, point, other.formation) <= OVERRUN_GAP)) meeting++;
+          }
+          if (meeting >= MIN_CONTACT * FRONT_SAMPLES && meeting < WARN_CONTACT * FRONT_SAMPLES) {
+            warn(
+              `${where}.phases[${i}]`,
+              `${state.unit} rides through the enemy, but at the ${moment} of the phase only ${meeting} of ${FRONT_SAMPLES} points of its front have enemy foot before them; the rest of its riders stay where they are.`,
+            );
+          }
+          if (meeting < MIN_CONTACT * FRONT_SAMPLES) {
+            fail(
+              `${where}.phases[${i}]`,
+              `${state.unit} rides through the enemy, but at the ${moment} of the phase its front has no enemy foot before it (${meeting} of ${FRONT_SAMPLES} points within ${OVERRUN_GAP} m of a block of enemy foot, straight ahead). Bring its front up to the foot it rides through; against horsemen use "fight".`,
             );
           }
         }

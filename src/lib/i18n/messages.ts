@@ -281,6 +281,7 @@ const en = {
   "battle.action.retreat": "Falling back",
   "battle.action.rout": "Fleeing",
   "battle.action.pursue": "Pursuing",
+  "battle.action.overrun": "Riding through the enemy",
   "battle.credits.heading": "Credits",
   "battle.credits.models":
     'Soldier models based on "Roman Soldier - T pose" and "Celt - rigged for UE4/5", both by Andywoodhead (Sketchfab, CC BY 4.0). Horses based on "Horse" by Tarnyloo (Blend Swap, CC BY 3.0), with the rig and gaits of "Horse Rigged All Gaits" by fdoss001 (Blend Swap, CC0). Modified. Animations from the Universal Animation Library by Quaternius (CC0).',
@@ -566,6 +567,7 @@ const vi: Record<MessageKey, string> = {
   "battle.action.retreat": "Rút lui",
   "battle.action.rout": "Tháo chạy",
   "battle.action.pursue": "Truy kích",
+  "battle.action.overrun": "Xông qua hàng ngũ địch",
   "battle.credits.heading": "Ghi công",
   "battle.credits.models":
     'Các mô hình lính dựa trên "Roman Soldier - T pose" và "Celt - rigged for UE4/5", cùng của Andywoodhead (Sketchfab, CC BY 4.0). Ngựa dựa trên "Horse" của Tarnyloo (Blend Swap, CC BY 3.0), khung xương và dáng đi từ "Horse Rigged All Gaits" của fdoss001 (Blend Swap, CC0). Đã sửa đổi. Hoạt hình từ Universal Animation Library của Quaternius (CC0).',
