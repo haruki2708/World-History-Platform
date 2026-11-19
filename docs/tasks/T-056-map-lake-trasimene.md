@@ -51,4 +51,129 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-(Lane 2 điền khi xong.)
+Lane 2, 2026-11-19. Hồ Trasimene đã có trên bản đồ nền, thấy rõ khi bay tới và bay về ở cả nền sáng lẫn nền tối. Bờ bắc của hồ trên bản đồ nền lệch 0,7–0,9 km so với bờ thật, nên đoàn quân La Mã trên con đường ven hồ nằm trên nước của bản đồ nền (xem mục "Lệch bờ" và đề nghị 1). `npm run validate`, `npm run lint`, `npm run build` qua.
+
+### Vì sao thiếu
+
+- `ne_10m_lakes` không có hồ Trasimene. Không phải do bước lọc hay đơn giản hoá: dựng lại từ bản Natural Earth đã dùng (tải 2026-11-15) ra đúng từng byte `basemap.json` cũ.
+- File này chỉ có các hồ lớn. Quanh Ý nó còn ghi nhầm tên hai hồ: hồ ở chỗ Bolsena mang tên "Lago di Bracciano", hồ ở chỗ Maggiore mang tên "Lago di Como". Bản đồ không hiện tên hồ nên không ảnh hưởng gì.
+- Hồ có trong file bổ sung `ne_10m_lakes_europe`: tên "Trasimeno", `ne_id` 1159109725, 20 điểm, không có đảo (đảo nào cũng dưới 1 km²).
+
+### Đã làm
+
+- `src/components/map/tools/build-basemap.mjs` đọc thêm `ne_10m_lakes_europe` (tải 2026-11-19 từ nhánh `master` của natural-earth-vector, sha256 `b4dd9e7a…0369769`).
+  - Hồ của file bổ sung được nối vào sau các hồ cũ.
+  - Một `ne_id` trong danh sách mà không còn trong file thì script dừng và báo tên hồ.
+- `public/map/basemap.json` dựng lại bằng script.
+  - So với file cũ: biển, 9 lớp sông và 304 hồ cũ giống hệt từng byte.
+  - Chỉ thêm 110 hồ, nằm sau các hồ cũ trong cùng feature `lake`.
+- `public/map/README.md`: thêm nguồn mới, cách chọn hồ, ngày tải, và hai lưu ý (hồ Bafa, bờ hồ Trasimene thô).
+
+**Khác yêu cầu: chọn theo danh sách, không lọc.** Task bảo lọc như script đang làm (bỏ `Reservoir` và một danh sách tên). Với file bổ sung, cách này không đủ:
+
+- Trong vùng bản đồ file có 767 hồ từ 1 km² trở lên, một nửa không có tên.
+- Nhiều hồ đập vẫn ghi là `Lake`, kể cả trường `lke_type`: La Serena, Orellana, Kremasta, Polyfytos, Mornos, Hirfanlı, hồ Assad, Mosul, Buško Blato, Fierza. Lọc theo phân loại thì những hồ này lên bản đồ thời cổ.
+- Vì vậy script lấy theo danh sách `EUROPE_LAKES` (110 hồ, mỗi hồ một dòng ghi tên).
+  - Tôi xét từng hồ trong vùng kinh độ 11° T–45° Đ, vĩ độ 30° B–53° B: 204 hồ, gồm Địa Trung Hải, Gaul, miền nam Germania và Biển Đen.
+  - Hồ không tên được nhận ra theo toạ độ và hình dạng.
+  - Hồ nào không chắc là hồ tự nhiên có từ thời cổ thì không lấy: thiếu một hồ đỡ hại hơn vẽ một hồ đập thế kỷ 20 lên bản đồ thời cổ.
+- 563 hồ ngoài vùng đó chưa được xét nên chưa lấy: Scandinavia, Phần Lan, vùng Baltic, Nga, Ireland phía bắc 53° B (Corrib, Mask, Conn), bờ bắc biển Caspi, Lưỡng Hà phía đông 45° Đ.
+
+### Hồ mới (110)
+
+- **Iberia và Gaul (9):** Albufera de València, Grand-Lieu, Biscarrosse-Parentis, Cazaux-Sanguinet, Hourtin-Carcans, Thau, Vaccarès, Bourget, Annecy.
+- **Dãy Alps (18):** Neuchâtel, Murten, Biel, Thun, Brienz, Lucerne, Zug, Zürich, Walensee, Lugano, Como (hồ Como thật), Iseo, Starnberg, Ammersee, Chiemsee, Attersee, Traunsee, Wörthersee.
+- **Ý và bờ Adriatic (7):** Trasimene, Bracciano (hồ Bracciano thật), Lesina, Varano, đầm Salpi (Salapia, nay là ruộng muối, gần Cannae), Vrana, Prokljan.
+- **Pannonia và hạ lưu sông Danube (14):** Neusiedl, Bistreț, Oltina, Brateș, Manta, Kagul, Yalpug–Kugurlui, Katlabukh, Kytai, một hồ trong châu thổ Danube, Dranov, Isacov, Babadag, Tașaul.
+- **Hy Lạp và Thrace (11):** Pamvotis (Ioannina), Orestiada (Kastoria), Trichonida, Vegoritida, Dojran, Koroneia, Volvi, Yliki, Vistonida, Burgas (Vaya), Mandra.
+- **Anatolia và Kavkaz (24):**
+  - Terkos, İznik, Sapanca, Uluabat, Manyas, Marmara (hồ Gygaea), Bafa, Köyceğiz.
+  - Salda, Acıgöl, Işıklı, Burdur, Akşehir, Eber, một hồ muối ở bồn địa Konya, Seyfe, Yay.
+  - Hazar, Nazik, Erçek, Balık, Çıldır, Aktaş, Paravani.
+- **Syria (2):** Sabkhat al-Jabbul, hai phần.
+- **Bờ bắc Biển Đen và biển Azov (21):**
+  - Các liman Kuchurhan, Khadzhibey, Kuyalnik, Tiligul.
+  - Sasyk-Sivash, bốn hồ ở Perekop.
+  - Molochnyi, Aktash, Uzunlar, Tobechik, Kiziltash, Vityazevo, Akhtanizovsky, hai liman ở châu thổ Kuban, Akhtarsky, Beysug, Manych-Gudilo.
+- **Phía bắc thế giới La Mã (4):** Lough Leane, Steinhuder Meer, Gopło, Svitiaz.
+
+Vài hồ là quyết định riêng, đã ghi trong comment của script:
+
+- **Bafa:** thời cổ là vịnh Latmos, nước biển. Bờ biển của bản đồ là bờ ngày nay, nên vẽ nước ở đó vẫn đúng với thời cổ hơn là vẽ đất.
+- **Salpi, Mandra, Kuchurhan, Sasyk, Terkos, Işıklı, Manych-Gudilo:** hồ hay đầm tự nhiên có từ thời cổ, về sau mới đắp đập hay làm ruộng muối, nên bờ ngày nay rộng hơn hoặc khác bờ thời cổ.
+
+### Hồ đã xét mà không lấy (94)
+
+- **Hồ đập, hồ chứa hiện đại (phần lớn):**
+  - Tây Ban Nha: 11 hồ embalse.
+  - Pháp: Sainte-Croix, Serre-Ponçon, Orient, hồ Der (ghi là "Étang de Bonnevais").
+  - Balkan: Buško Blato, Bileća, Vau i Dejës, Fierza, Kremasta, Kastraki, Pineios, Plastiras, Polyfytos, Mornos, Kerkini, Iskar, Dospat, Batak, Studen Kladenets, Zhrebchevo, Ticha, Bicaz, các hồ trên sông Siret, Stânca-Costești.
+  - Hungary và Trung Âu: Tisza (Kisköre), Lipno, Orlík, Nové Mlýny, Orava, Jeziorsko, Włocławek, Sulejów, Zemplínska šírava, Solina, Siemianówka.
+  - Thổ Nhĩ Kỳ: Demirköprü, Ömerli, Porsuk, Sarıyar, Hirfanlı, hai hồ trên sông Kızılırmak, Seyhan, Çatalan, Almus.
+  - Syria và Iraq: hồ Assad, Haditha (ghi là "Qadisiyah"), Mosul, Dukan, Hamrin.
+  - Nga và Ukraina: Krasnodar, Veselovskoe, Proletarsk (ghi là "Manych Reservoir"), Dubăsari, và mấy hồ chứa trên đồng cỏ Kuban, Stavropol, Kryvyi Rih.
+- **Có từ sau thời cổ:**
+  - Valli di Comacchio: nghĩa địa của Spina nằm dưới Valle Trebba và Valle Pega, tức thời cổ chỗ đó là đất.
+  - Hai hồ than bùn ở Friesland (Heegermeer, Tjeukemeer), do đào than bùn thời trung cổ.
+- **Hồ nhân tạo dù có từ thời cổ:** hồ Homs (Qattinah). Đập có từ thời cổ, nhưng vẫn là hồ nhân tạo.
+- **Không chắc là hồ gì:**
+  - Đầm lầy Brière.
+  - Một vùng gần Aigues-Mortes, có lẽ là ruộng muối.
+  - Mostiștea; bốn hồ tròn trên đồng cỏ phía nam Yeysk (hình dạng giống các hồ chứa bên cạnh); phần tây thung lũng Manych.
+  - Bahr al-Najaf; một hồ gần Eğirdir (có lẽ là hồ chứa Karacaören); một hồ ở Belarus.
+- **Trùng hồ đã có:** Bolsena (`ne_10m_lakes` đã có, chỉ ghi nhầm tên).
+
+### Kích thước `basemap.json`
+
+| | Trước | Sau | Tăng |
+|---|---|---|---|
+| File | 1 362 101 byte | 1 381 223 byte | +19 122 byte (+1,4%) |
+| Nén gzip | 441 580 byte | 447 794 byte | +1,4% |
+
+### Cú bay
+
+- Hồ thấy rõ dưới lớp màu thế lực và khung chiến trường, ở cả hai nền.
+  - Nền sáng: hồ màu xám xanh.
+  - Nền tối: hồ gần đen.
+- Trong khung, lớp phủ màu accent 12% làm nước ngả xám (nền sáng) hay nâu sẫm (nền tối), vẫn tách rõ khỏi màu thế lực.
+- Lúc bay về, khung mờ dần nên hồ càng rõ.
+
+### Lệch bờ (task yêu cầu báo kèm ảnh)
+
+- Bờ bắc hồ Trasimene của Natural Earth nằm lệch về phía bắc 0,7–0,9 km so với bờ trong file trận (Copernicus 30 m).
+  - Đo ở ba đỉnh bờ bắc của đường bao gốc: 0,9 km ở phía tây lối hẹp Malpasso, 0,7 km ở đồng bằng Tuoro, 0,8 km giữa Tuoro và Passignano.
+  - Tính trên mọi điểm bờ thật trong khung: trung bình 0,73 km, xa nhất 1,8 km.
+  - Nước chiếm 24% khung trên bản đồ nền, 18% theo file trận.
+- Lỗi nằm ở dữ liệu gốc, không phải bước đơn giản hoá: 101 trên 210 vị trí khối quân của file trận nằm trong nước của đường bao gốc (20 điểm), 103 trên 210 sau khi đơn giản hoá (9 điểm).
+- Trên bản đồ nền, cả đoàn quân La Mã trên con đường ven hồ ở lúc đầu trận nằm trên nước. Đúng là trường hợp "chiến trường nằm trên nước" task dặn ghi lại.
+- Hồ không nằm ngoài khung: hồ chiếm nửa dưới của khung.
+- Ảnh 13 vẽ bờ thật (đường xanh đậm), các đảo, khung chiến trường và vị trí các khối quân lúc đầu trận (đỏ: La Mã, tím: quân Hannibal) chồng lên bản đồ nền, ở đúng mức phóng lúc cú bay kết thúc.
+
+### Ảnh
+
+Trong `E:\World_History_Platform_assets\duyet\T-056\`:
+
+- `01`–`04`: miền trung Ý năm 217 TCN, trước và sau, nền sáng và nền tối (mức phóng 6,2). Ở ảnh "sau" thấy Trasimene, Bolsena và Bracciano.
+- `05`–`08`: quanh hồ, trước và sau, hai nền (mức phóng 8).
+- `09`–`11`: bay tới chiến trường (nền sáng ở 0,7 giây và 1,3 giây, nền tối ở 0,7 giây).
+- `12`: bay về, nền tối. Ở nền sáng không chụp kịp giữa cú bay về (cú bay về chỉ dài 1,2 giây, mỗi ảnh chụp mất vài trăm mili giây). Bay về đi qua cùng các mức phóng như bay tới, mà ảnh 09–10 cho thấy hồ rõ trên nền sáng ở những mức phóng đó.
+- `13`: lệch bờ so với file trận.
+
+### Ghi chú
+
+- Nhãn tên thế lực tránh nước theo một lưới 0,05° dựng từ hồ và biển của `basemap.json` (`labels/landMask.ts`). Gần các hồ mới, nhãn có thể dời đi một chút; ví dụ nhãn "Các đồng minh Ý" ở ảnh 05 và 06. Ngoài ra bản đồ ở các năm và các vùng khác không đổi.
+- Không sửa code vẽ bản đồ; chỉ sửa script dựng, dữ liệu và README.
+
+### Đề nghị cho phiên chính
+
+1. **Bờ hồ Trasimene** (cần phiên chính và người dùng quyết vì kéo theo ghi công). Ba cách:
+   - (a) Để nguyên. Cú bay chỉ 2 giây, sau đó cảnh 3D hiện đúng bờ.
+   - (b) Script dựng thay hồ Trasimene của Natural Earth bằng đường bờ trong file trận. Đường này bao trọn cả hồ (`terrain.lakes[0].outline`, 239 điểm, kèm 3 đảo) và đã có trong repo. Phải thêm Copernicus vào dòng nguồn ở chú giải bản đồ ("Đường bờ biển và sông ngày nay (Natural Earth)"). Tôi nghiêng về cách này: ít việc, hồ đúng hình ở mọi mức phóng.
+   - (c) Chỉ trong cú bay mới vẽ hồ của file trận lên khung. Cách này phức tạp hơn vì phải che phần nước thừa của bản đồ nền bằng màu đất cộng màu thế lực.
+2. **Hồ đã mất từ thời cổ**, nếu muốn thêm (Natural Earth không có, cần nguồn tái dựng và ghi công riêng):
+   - Hồ Fucinus (khoảng 140 km², tháo cạn năm 1878; đường hầm của Claudius).
+   - Hồ Copais ở Boeotia (khoảng 200 km², tháo cạn những năm 1880).
+   - Hồ Velinus (Curius Dentatus tháo nước năm 271 TCN).
+   - Đầm Ligustinus ở cửa sông Guadalquivir.
+   - Fucinus và Copais đáng làm nhất.
+3. **Hồ ngoài vùng đã xét** (Scandinavia, Ireland phía bắc, Nga, Caspi): khi bản đồ cần tới các vùng đó thì xét tiếp theo cùng cách, thêm `ne_id` vào `EUROPE_LAKES`.
