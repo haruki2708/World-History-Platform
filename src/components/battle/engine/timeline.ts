@@ -231,6 +231,16 @@ export class BattleClock {
     const span = this.cumulative[index + 1] - this.cumulative[index];
     return this.cumulative[index] + span * (t - index);
   }
+
+  /** Seconds of playback back to battle time: the inverse of `seconds`. */
+  time(seconds: number): number {
+    if (this.phases === 0) return 0;
+    const s = Math.min(Math.max(seconds, 0), this.cumulative[this.phases]);
+    let index = 0;
+    while (index < this.phases - 1 && this.cumulative[index + 1] <= s) index++;
+    const span = this.cumulative[index + 1] - this.cumulative[index];
+    return index + (s - this.cumulative[index]) / span;
+  }
 }
 
 /**
