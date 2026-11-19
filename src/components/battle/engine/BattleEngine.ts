@@ -713,8 +713,11 @@ export class BattleEngine {
       const foot = battle.units
         .filter((other) => other.side !== unit.side && !mounted.has(other.type))
         .map((other) => unitKeys(battle, other));
-      const run = modelOf(unit).gait.run;
-      rides.set(unit.id, new Ride(track, clock, foot, (run.metres / run.seconds) * FIGURE_SCALE));
+      const model = modelOf(unit);
+      const run = model.gait.run;
+      // From one blow of a rider to the next: his clip, and a breath.
+      const strikeEvery = (model.ridedown > 0 ? model.ridedown : model.strike.seconds) + 0.5;
+      rides.set(unit.id, new Ride(track, clock, foot, (run.metres / run.seconds) * FIGURE_SCALE, strikeEvery));
     }
 
     for (const unit of battle.units) {
@@ -742,6 +745,8 @@ export class BattleEngine {
       block.ride = rides.get(unit.id) ?? null;
       this.crowd.add(block);
     }
+    // The blows of the riders are known once every unit on foot is laid out.
+    for (const ride of rides.values()) ride.seal();
     this.crowd.engage();
     this.step("units");
 

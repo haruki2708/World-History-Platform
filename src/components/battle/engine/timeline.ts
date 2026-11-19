@@ -218,6 +218,8 @@ export interface Knock {
   seconds: number;
   /** The way the horse is going, radians clockwise from north. */
   bearing: number;
+  /** False: the horse runs into him. True: its rider strikes at him in passing, and he flinches. */
+  blade: boolean;
 }
 
 /**
@@ -238,9 +240,12 @@ export interface Trampling {
   /**
    * Every time a horse runs into a man of the unit in the phase, in order of
    * time. `count` is the figures of the unit; `place` says where they stand.
-   * A man run into is left alone for `rest` seconds after.
+   * A man run into is left alone for `rest` seconds after. With `blades`
+   * the riders also strike at the men they pass within reach of a weapon:
+   * the blows are kept by the ride (overrun.ts), and those at men who stand
+   * are in the list too.
    */
-  contacts(phase: number, count: number, place: Placing, rest: number): Knock[];
+  contacts(phase: number, count: number, place: Placing, rest: number, blades: boolean): Knock[];
 }
 
 /** A man bowled over by a horse is left alone this long, seconds of playback: he is up again before the next. */
@@ -350,14 +355,17 @@ export class UnitTrack {
   readonly seed: Float32Array;
   /**
    * The times enemy horses bowl each figure over (UnitAction "overrun") and
-   * he gets up again: figure i has the entries knockStart[i] to
-   * knockStart[i + 1] of `knockSeconds` (seconds of playback, in order) and
-   * `knockBearing` (the way the horse was going, radians clockwise from
-   * north). Empty for a unit no horseman rides through.
+   * he gets up again, or a rider strikes at him in passing and he
+   * flinches: figure i has the entries knockStart[i] to knockStart[i + 1]
+   * of `knockSeconds` (seconds of playback, in order), `knockBearing` (the
+   * way the horse was going, radians clockwise from north) and `knockBlade`
+   * (1 for a blow of the rider, 0 for the horse). Empty for a unit no
+   * horseman rides through.
    */
   readonly knockStart: Int32Array;
   knockSeconds: Float32Array = new Float32Array(0);
   knockBearing: Float32Array = new Float32Array(0);
+  knockBlade: Uint8Array = new Uint8Array(0);
 
   /** Per keyframe: u (across, -0.5..0.5) and v (front 0 to rear 1) per figure. */
   private readonly slots: Float32Array[];
@@ -591,6 +599,7 @@ export class UnitTrack {
               }
             },
             0,
+            false,
           );
         }
         let next = 0;
@@ -722,6 +731,7 @@ export class UnitTrack {
             for (let i = 0; i < n; i++) up[i] = this.status[i] === ALIVE ? 1 : 0;
           },
           KNOCK_REST,
+          true,
         );
         for (const hit of hits) {
           if (this.deathPhase[hit.figure] === k && hit.seconds > this.deathSeconds[hit.figure] - KNOCK_REST) continue;
@@ -735,10 +745,12 @@ export class UnitTrack {
       knocks.sort((a, b) => a.figure - b.figure || a.seconds - b.seconds);
       this.knockSeconds = new Float32Array(knocks.length);
       this.knockBearing = new Float32Array(knocks.length);
+      this.knockBlade = new Uint8Array(knocks.length);
       knocks.forEach((knock, q) => {
         this.knockStart[knock.figure + 1]++;
         this.knockSeconds[q] = knock.seconds;
         this.knockBearing[q] = knock.bearing;
+        this.knockBlade[q] = knock.blade ? 1 : 0;
       });
       for (let i = 0; i < n; i++) this.knockStart[i + 1] += this.knockStart[i];
     }

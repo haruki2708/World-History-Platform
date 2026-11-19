@@ -8,18 +8,24 @@
  * started, and goes round again: a long loop anchored at his place in the
  * formation, a whole number of times, so that he is in his place when the
  * phase begins and when it ends. Every rider has his own loop (how deep he
- * goes, which way he wheels, when he sets off, how fast), so the block comes
- * apart into a swirl of horses.
+ * goes, which way he wheels, how fast), so after the first charge the block
+ * comes apart into a swirl of horses.
+ *
+ * A block that comes up at a charge does not halt before the foot: its
+ * riders ride on into it at the speed they came at, gathering speed. Only a
+ * block that stood before the foot sets off from a standing start.
  *
  * Where a rider is, is a function of the battle time alone (`Ride.sample`):
  * a seek shows what playing up to that moment shows.
  *
- * A man on foot in the way of a horse is bowled over. Which men, and when,
- * is worked out once, when the battle is loaded (`trampling`): the horses are
- * walked along their loops in small steps against the men of every enemy
- * unit on foot nearby. The track of that unit (timeline.ts) keeps the list:
- * most of the men get up again; those the data has fall in the phase fall
- * under a horse, and stay down.
+ * A man on foot in the way of a horse is bowled over, and a rider passing a
+ * man within reach of his weapon strikes at him, whether he stands or lies
+ * on the ground. Which men, and when, is worked out once, when the battle is
+ * loaded (`trampling`): the horses are walked along their loops in small
+ * steps against the men of every enemy unit on foot nearby. The track of
+ * that unit (timeline.ts) keeps the list of what befalls its men: most get
+ * up again; those the data has fall in the phase fall under a horse, and
+ * stay down. The ride keeps the list of the blows its riders strike.
  */
 
 import type { UnitTrack } from "./timeline";
@@ -37,9 +43,9 @@ const WHEEL = 12;
 const RIDE_RATE = 0.7;
 /** ...and never faster than this share of it: a shorter loop instead. */
 const RIDE_RATE_MAX = 1.15;
-/** The riders set off within this many seconds of the start of the phase... */
-const START_SPREAD = 3;
-/** ...and are back in their places at least this long before its end. */
+/** From a standing start, the riders set off within this many seconds of the start of the phase... */
+const START_SPREAD = 1.5;
+/** ...and all are back in their places at least this long before its end, unless they ride on in the next. */
 const REST = 0.4;
 const REST_SPREAD = 0.8;
 /** Seconds a rider takes to gather speed, and to pull up. */
@@ -51,15 +57,23 @@ const WEAVE = 2.2;
 const WEAVE_LENGTH = 38;
 /** A change of facing this large in the phase is an about-face (timeline.ts): no riding through in such a phase. */
 const ABOUT_FACE = (135 * Math.PI) / 180;
+/** A block that came on within this of the way it faces, radians, came on at a charge: its riders ride on. */
+const CHARGE_CONE = Math.PI / 4;
 
 /** The horses are walked along their loops in steps of this many seconds of playback. */
 const STEP = 0.1;
 /** A horse that passes this close to a man, metres, runs into him. */
-const CONTACT = 2;
+const CONTACT = 2.4;
 /** The same horse, or the next, does not run into him again within this many seconds. */
 const AGAIN = 1;
+/** A rider strikes at a man he passes within this, metres: the reach of his weapon from the saddle, as drawn. */
+const BLADE = 5.5;
+/** A man struck at with a weapon is not struck at again, by any rider, within this many seconds. */
+const BLADE_AGAIN = 1.5;
+/** A man bowled over lies on the ground this long, seconds: riders strike at him there. */
+const DOWN = 3.2;
 /** The men are sorted into cells of this size, metres, to find those near a horse. */
-const CELL = 4;
+const CELL = 6;
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
@@ -90,6 +104,8 @@ interface Box {
   sin: number;
   cos: number;
 }
+
+const blankBox = (): Box => ({ x: 0, y: 0, halfAcross: 0, halfDepth: 0, sin: 0, cos: 1 });
 
 function boxBetween(a: UnitKey, b: UnitKey, s: number, out: Box): Box {
   const facing = a.facing + angleDelta(a.facing, b.facing) * s;
@@ -147,9 +163,8 @@ function throughFoot(boxes: Box[], px: number, py: number, wx: number, wy: numbe
  * that rides through.
  */
 export function frontOnFoot(own: UnitKey, foot: UnitKey[], samples: number): number {
-  const blank = (): Box => ({ x: 0, y: 0, halfAcross: 0, halfDepth: 0, sin: 0, cos: 1 });
-  const boxes = foot.map((key) => boxBetween(key, key, 0, blank()));
-  const f = boxBetween(own, own, 0, blank());
+  const boxes = foot.map((key) => boxBetween(key, key, 0, blankBox()));
+  const f = boxBetween(own, own, 0, blankBox());
   let meeting = 0;
   for (let k = 0; k < samples; k++) {
     const across = ((k + 0.5) / samples - 0.5) * 2 * f.halfAcross;
@@ -173,10 +188,16 @@ interface RidePhase {
   /** He sets off this long after the phase begins, and rides for `span` seconds. */
   delay: Float32Array;
   span: Float32Array;
-  /** The ground he covers in all, metres: a whole number of loops. */
-  total: Float32Array;
-  /** The share of `span` he takes to gather speed, and to pull up. */
-  ramp: Float32Array;
+  /**
+   * His pace, metres a second: `enter` as he sets off (0 from a standing
+   * start), `cruise` once `rampIn` seconds have passed, and from `rampOut`
+   * seconds before the end down to a stand (0: he rides on into the next
+   * phase).
+   */
+  enter: Float32Array;
+  cruise: Float32Array;
+  rampIn: Float32Array;
+  rampOut: Float32Array;
   /** From his place to the front of his block, and to the far side of the foot before it, metres. */
   ahead: Float32Array;
   deep: Float32Array;
@@ -207,30 +228,50 @@ export interface Riding {
   inside: number;
 }
 
+export function blankRiding(): Riding {
+  return { forward: 0, right: 0, turn: 0, speed: 0, inside: 0 };
+}
+
 export class Ride {
   /** Per phase: the loops, or null when the unit does not ride through in it. */
   readonly phases: (RidePhase | null)[];
   readonly track: UnitTrack;
+  /**
+   * The blows the riders strike at men they pass (see BLADE): rider i has
+   * the entries strikeStart[i] to strikeStart[i + 1] of `strikeSeconds`, the
+   * moments his blows land, seconds of playback, in order. Filled by
+   * `seal`, once the tracks of the foot have been made.
+   */
+  readonly strikeStart: Int32Array;
+  strikeSeconds: Float32Array = new Float32Array(0);
   private readonly clock: BattleClock;
   private readonly starts: number[];
+  /** A rider strikes no more often than once in this many seconds. */
+  private readonly strikeEvery: number;
+  private readonly struck: number[][];
 
   /**
    * `foot` is the keyframes (timeline.unitKeys) of every enemy unit on foot;
    * `gallop` the natural speed of the unit's gallop clip, metres a second as
-   * the figures are drawn.
+   * the figures are drawn; `strikeEvery` the seconds a rider needs from one
+   * blow to the next (the length of his clip, and a breath).
    */
-  constructor(track: UnitTrack, clock: BattleClock, foot: UnitKey[][], gallop: number) {
+  constructor(track: UnitTrack, clock: BattleClock, foot: UnitKey[][], gallop: number, strikeEvery = 1.6) {
     this.track = track;
     this.clock = clock;
+    this.strikeEvery = strikeEvery;
+    this.strikeStart = new Int32Array(track.count + 1);
+    this.struck = Array.from({ length: track.count }, () => []);
     const { keys } = track;
     const phases = keys.length - 1;
     this.starts = Array.from({ length: phases + 1 }, (_, k) => clock.seconds(k));
     this.phases = [];
-    const box: Box = { x: 0, y: 0, halfAcross: 0, halfDepth: 0, sin: 0, cos: 1 };
+    const rides = (k: number) =>
+      k >= 0 && k < phases && keys[k + 1].action === "overrun" && Math.abs(angleDelta(keys[k].facing, keys[k + 1].facing)) < ABOUT_FACE;
     for (let k = 0; k < phases; k++) {
       const a = keys[k];
       const b = keys[k + 1];
-      if (b.action !== "overrun" || Math.abs(angleDelta(a.facing, b.facing)) >= ABOUT_FACE) {
+      if (!rides(k)) {
         this.phases.push(null);
         continue;
       }
@@ -246,22 +287,36 @@ export class Ride {
         side: new Int8Array(n),
         delay: new Float32Array(n),
         span: new Float32Array(n),
-        total: new Float32Array(n),
-        ramp: new Float32Array(n),
+        enter: new Float32Array(n),
+        cruise: new Float32Array(n),
+        rampIn: new Float32Array(n),
+        rampOut: new Float32Array(n),
         ahead: new Float32Array(n),
         deep: new Float32Array(n),
         cache: null,
       };
       this.phases.push(plan);
+      const before = k > 0 ? this.phases[k - 1] : null;
+      // The pace the block came on at, if it came on the way it faces: its riders ride on at it.
+      let charge = 0;
+      if (k > 0 && before === null) {
+        const dx = a.center.x - keys[k - 1].center.x;
+        const dy = a.center.y - keys[k - 1].center.y;
+        const came = Math.hypot(dx, dy);
+        if (came > 1 && Math.abs(angleDelta(a.facing, Math.atan2(dx, dy))) < CHARGE_CONE) {
+          charge = came / Math.max(this.starts[k] - this.starts[k - 1], 0.001);
+        }
+      }
+      const ridesOn = rides(k + 1);
 
       // The enemy foot at three moments of the phase, and the unit itself at the same moments.
       const moments = [0.5, 0, 1];
       const enemy = moments.map((s) =>
         foot
           .filter((other) => lerp(other[k].men, other[k + 1].men, s) > 0)
-          .map((other) => boxBetween(other[k], other[k + 1], s, { ...box })),
+          .map((other) => boxBetween(other[k], other[k + 1], s, blankBox())),
       );
-      const own = moments.map((s) => boxBetween(a, b, s, { ...box }));
+      const own = moments.map((s) => boxBetween(a, b, s, blankBox()));
 
       // Where the riders stand as the phase begins.
       track.sample(k, Infinity);
@@ -284,8 +339,11 @@ export class Ride {
           reach = throughFoot(enemy[m], px, py, f.sin, f.cos);
         }
         if (reach <= 0) continue;
-        const delay = hash01(1, seed) * Math.min(START_SPREAD, 0.12 * seconds);
-        const span = seconds - delay - REST - REST_SPREAD * hash01(2, seed);
+        // He rides on from the phase before, or with the block as it comes up; or he sets off from a stand.
+        const rodeBefore = before !== null && before.length[i] > 0 && before.rampOut[i] === 0;
+        const enter = rodeBefore ? before.cruise[i] : charge;
+        const delay = enter > 0 ? 0 : hash01(1, seed) * Math.min(START_SPREAD, 0.12 * seconds);
+        const span = seconds - delay - (ridesOn ? 0 : REST + REST_SPREAD * hash01(2, seed));
         if (span < MIN_SPAN) continue;
         // Right through and out of the far side, or, in a deep mass and for one rider in four, a wheel inside it.
         const through = reach < REACH_MAX && hash01(3, seed) > 0.25;
@@ -296,14 +354,17 @@ export class Ride {
         // He wheels towards the middle of the block rather than out past its end.
         let side = hash01(6, seed) < 0.5 ? -1 : 1;
         if (Math.abs(across + side * 2 * radius) > a.frontage / 2 + radius) side = -side;
-        const ramp = Math.min(RAMP, span / 4) / span;
-        const riding = span * (1 - ramp);
+        const rampIn = rodeBefore ? 0 : Math.min(RAMP, span / 4);
+        const rampOut = ridesOn ? 0 : Math.min(RAMP, span / 4);
+        // The ground covered is cruise × `riding` + `head`: see `sample`.
+        const riding = span - rampIn / 2 - rampOut / 2;
+        const head = (enter * rampIn) / 2;
         let loop = 2 * length + 2 * Math.PI * radius;
-        let laps = Math.max(Math.round((riding * gallop * RIDE_RATE) / loop), 1);
-        if ((laps * loop) / riding > gallop * RIDE_RATE_MAX) {
+        let laps = Math.max(Math.round((riding * gallop * RIDE_RATE + head) / loop), 1);
+        if ((laps * loop - head) / riding > gallop * RIDE_RATE_MAX) {
           // One loop, as deep as he can ride it in the time.
           laps = 1;
-          loop = riding * gallop * RIDE_RATE_MAX;
+          loop = riding * gallop * RIDE_RATE_MAX + head;
           length = (loop - 2 * Math.PI * radius) / 2;
           if (length < ahead + GAP) continue;
         }
@@ -312,8 +373,10 @@ export class Ride {
         plan.side[i] = side;
         plan.delay[i] = delay;
         plan.span[i] = span;
-        plan.total[i] = laps * loop;
-        plan.ramp[i] = ramp;
+        plan.enter[i] = enter;
+        plan.cruise[i] = (laps * loop - head) / riding;
+        plan.rampIn[i] = rampIn;
+        plan.rampOut[i] = rampOut;
         plan.ahead[i] = ahead;
         plan.deep[i] = ahead + Math.min(reach, REACH_MAX);
       }
@@ -340,28 +403,30 @@ export class Ride {
     const length = plan.length[i];
     if (length === 0) return false;
     const span = plan.span[i];
-    const x = (t - plan.from - plan.delay[i]) / span;
-    if (x <= 0 || x >= 1) return false;
+    const at = t - plan.from - plan.delay[i];
+    if (at <= 0 || at >= span) return false;
 
     // How far he has ridden: gathering speed, at speed, pulling up.
-    const total = plan.total[i];
-    const ramp = plan.ramp[i];
-    const k2 = 1 / (ramp * (1 - ramp));
-    let gone: number;
-    let pace: number;
-    if (x < ramp) {
-      gone = 0.5 * x * x * k2;
-      pace = x * k2;
-    } else if (x > 1 - ramp) {
-      const y = 1 - x;
-      gone = 1 - 0.5 * y * y * k2;
-      pace = y * k2;
+    const enter = plan.enter[i];
+    const cruise = plan.cruise[i];
+    const rampIn = plan.rampIn[i];
+    const rampOut = plan.rampOut[i];
+    let distance: number;
+    let speed: number;
+    if (at < rampIn) {
+      speed = enter + ((cruise - enter) * at) / rampIn;
+      distance = ((enter + speed) * at) / 2;
     } else {
-      gone = (x - ramp / 2) / (1 - ramp);
-      pace = 1 / (1 - ramp);
+      distance = ((enter + cruise) * rampIn) / 2 + cruise * (at - rampIn);
+      speed = cruise;
+      const left = span - at;
+      if (left < rampOut) {
+        const over = rampOut - left;
+        speed = (cruise * left) / rampOut;
+        distance -= (cruise * over * over) / (2 * rampOut);
+      }
     }
-    const distance = total * gone;
-    out.speed = (total * pace) / span;
+    out.speed = speed;
 
     // Where that is on the loop: out, the wheel at the far end, back, the wheel at the near end.
     const radius = plan.radius[i];
@@ -375,20 +440,20 @@ export class Ride {
     let right: number;
     let turn: number;
     if (along < length) {
-      const weave = weaving(along, length, hash01(lap * 2 + 11, seed));
+      const w = weaving(along, length, hash01(lap * 2 + 11, seed));
       forward = along;
-      right = weave.off;
-      turn = Math.atan2(weave.slope, 1);
+      right = w.off;
+      turn = Math.atan2(w.slope, 1);
     } else if ((along -= length) < wheel) {
       const angle = along / radius;
       forward = length + radius * Math.sin(angle);
       right = side * radius * (1 - Math.cos(angle));
       turn = side * angle;
     } else if ((along -= wheel) < length) {
-      const weave = weaving(along, length, hash01(lap * 2 + 12, seed));
+      const w = weaving(along, length, hash01(lap * 2 + 12, seed));
       forward = length - along;
-      right = side * 2 * radius + weave.off;
-      turn = Math.atan2(weave.slope, -1);
+      right = side * 2 * radius + w.off;
+      turn = Math.atan2(w.slope, -1);
     } else {
       const angle = (along - length) / radius;
       forward = -radius * Math.sin(angle);
@@ -418,7 +483,7 @@ export class Ride {
     const steps = Math.max(Math.ceil((plan.until - plan.from) / STEP), 1);
     const x = new Float32Array((steps + 1) * count).fill(NaN);
     const y = new Float32Array((steps + 1) * count).fill(NaN);
-    const riding: Riding = { forward: 0, right: 0, turn: 0, speed: 0, inside: 0 };
+    const riding = blankRiding();
     for (let m = 0; m <= steps; m++) {
       const seconds = Math.min(plan.from + m * STEP, plan.until - 0.001);
       const time = clock.time(seconds);
@@ -434,6 +499,29 @@ export class Ride {
     }
     plan.cache = { from: plan.from, steps, count, x, y };
     return plan.cache;
+  }
+
+  /**
+   * Rider `i` strikes a blow that lands at `seconds`, if he has not struck,
+   * and is not to strike, within `strikeEvery` of it. True when he does.
+   */
+  strike(i: number, seconds: number): boolean {
+    const blows = this.struck[i];
+    for (const other of blows) if (Math.abs(other - seconds) < this.strikeEvery) return false;
+    blows.push(seconds);
+    return true;
+  }
+
+  /** Lays the blows out rider by rider, in order: call once every track of the foot has been made. */
+  seal(): void {
+    const total = this.struck.reduce((sum, blows) => sum + blows.length, 0);
+    this.strikeSeconds = new Float32Array(total);
+    let q = 0;
+    this.struck.forEach((blows, i) => {
+      blows.sort((a, b) => a - b);
+      for (const seconds of blows) this.strikeSeconds[q++] = seconds;
+      this.strikeStart[i + 1] = q;
+    });
   }
 }
 
@@ -478,19 +566,23 @@ export function trampling(keys: UnitKey[], rides: Ride[]): Trampling | null {
   let cells = new Int32Array(0);
   return {
     active: (k) => near(k).length > 0,
-    contacts(k, count, place: Placing, rest) {
+    contacts(k, count, place: Placing, rest, blades) {
       const hits: Knock[] = [];
-      const riders = near(k)
-        .map((ride) => ride.positions(k))
-        .filter((steps): steps is RideSteps => steps !== null);
+      const riders: { ride: Ride; horses: RideSteps }[] = [];
+      for (const ride of near(k)) {
+        const horses = ride.positions(k);
+        if (horses) riders.push({ ride, horses });
+      }
       if (riders.length === 0) return hits;
       const x = new Float32Array(count);
       const y = new Float32Array(count);
       const up = new Uint8Array(count);
       const next = new Int32Array(count);
       const lastHit = new Float32Array(count).fill(-Infinity);
+      const lastBlade = new Float32Array(count).fill(-Infinity);
       const again = Math.max(rest, AGAIN);
-      const { from, steps } = riders[0];
+      const reach = blades ? BLADE : CONTACT;
+      const { from, steps } = riders[0].horses;
       for (let m = 0; m < steps; m++) {
         const seconds = from + m * STEP;
         place(seconds, x, y, up);
@@ -524,7 +616,7 @@ export function trampling(keys: UnitKey[], rides: Ride[]): Trampling | null {
           cells[c] = i;
         }
         // Each horse, from where it is at this step to where it is at the next.
-        for (const horses of riders) {
+        for (const { ride, horses } of riders) {
           if (m >= horses.steps) continue;
           const base = m * horses.count;
           for (let j = 0; j < horses.count; j++) {
@@ -537,10 +629,10 @@ export function trampling(keys: UnitKey[], rides: Ride[]): Trampling | null {
             const sy = y1 - y0;
             const squared = sx * sx + sy * sy;
             if (squared < 0.0025) continue;
-            const c0 = Math.max(Math.floor((Math.min(x0, x1) - CONTACT - minX) / cell), 0);
-            const c1 = Math.min(Math.floor((Math.max(x0, x1) + CONTACT - minX) / cell), columns - 1);
-            const r0 = Math.max(Math.floor((Math.min(y0, y1) - CONTACT - minY) / cell), 0);
-            const r1 = Math.min(Math.floor((Math.max(y0, y1) + CONTACT - minY) / cell), rows - 1);
+            const c0 = Math.max(Math.floor((Math.min(x0, x1) - reach - minX) / cell), 0);
+            const c1 = Math.min(Math.floor((Math.max(x0, x1) + reach - minX) / cell), columns - 1);
+            const r0 = Math.max(Math.floor((Math.min(y0, y1) - reach - minY) / cell), 0);
+            const r1 = Math.min(Math.floor((Math.max(y0, y1) + reach - minY) / cell), rows - 1);
             for (let r = r0; r <= r1; r++) {
               for (let c = c0; c <= c1; c++) {
                 for (let i = cells[r * columns + c]; i !== -1; i = next[i]) {
@@ -548,11 +640,24 @@ export function trampling(keys: UnitKey[], rides: Ride[]): Trampling | null {
                   const share = Math.min(Math.max(((x[i] - x0) * sx + (y[i] - y0) * sy) / squared, 0), 1);
                   const dx = x0 + sx * share - x[i];
                   const dy = y0 + sy * share - y[i];
-                  if (dx * dx + dy * dy > CONTACT * CONTACT) continue;
+                  const apart = dx * dx + dy * dy;
+                  if (apart > reach * reach) continue;
                   const when = seconds + share * STEP;
-                  if (when - lastHit[i] < again) continue;
-                  lastHit[i] = when;
-                  hits.push({ figure: i, seconds: when, bearing: Math.atan2(sx, sy) });
+                  const since = when - lastHit[i];
+                  if (apart <= CONTACT * CONTACT && since >= again) {
+                    // The horse runs into him.
+                    lastHit[i] = when;
+                    hits.push({ figure: i, seconds: when, bearing: Math.atan2(sx, sy), blade: false });
+                  } else if (blades && share > 0 && share < 1) {
+                    // The rider strikes at him as he passes: a man on the ground, or one who stands.
+                    const down = since < DOWN;
+                    if (!down && (since < again || when - lastBlade[i] < BLADE_AGAIN)) continue;
+                    if (!ride.strike(j, when)) continue;
+                    if (!down) {
+                      lastBlade[i] = when;
+                      hits.push({ figure: i, seconds: when, bearing: Math.atan2(sx, sy), blade: true });
+                    }
+                  }
                 }
               }
             }
