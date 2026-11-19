@@ -72,3 +72,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-051](T-051-trasimene-stage0.md) | 2 | Trận hồ Trasimene (đợt K), chặng 0: tư liệu, vị trí, bảng đơn vị, lưới độ cao, kiểm tra hồ và sương mù | Xong, đã gộp 2026-11-19 |
 | [T-052](T-052-trasimene-battle.md) | 2 | Trận hồ Trasimene (đợt K), chặng 1: file trận (khối quân, lời dẫn, cảnh vật, đảo, quân nấp); kiểm tra `islands` và `concealed` | Xong, đã gộp 2026-11-19 (cùng T-053) |
 | [T-053](T-053-trasimene-scene.md) | 3 | Trận hồ Trasimene (đợt K), chặng 2: mặt hồ và đảo, lính lội nước, sương mù, quân nấp; hiệu năng | Xong, đã gộp 2026-11-19 (cùng T-052) |
+| [T-054](T-054-about-two-battles.md) | 1 | Trận hồ Trasimene (đợt K), chặng 3: hộp thoại Giới thiệu nói đúng về cả hai trận (ý riêng từng trận, nguồn của Trasimene) | Đã giao 2026-11-19 |
