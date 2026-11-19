@@ -46,10 +46,10 @@
       ],
       "strength": {
         "min": 50000,
-        "max": 50000,
+        "max": 58000,
         "note": {
-          "en": "Polybius (3.114) and Livy (22.46) agree on about 40,000 foot and 10,000 horse. A guard left in Hannibal's camp is not counted and its size is unknown.",
-          "vi": "Polybius (3.114) và Livy (22.46) cùng ghi khoảng 40.000 bộ binh và 10.000 kỵ binh. Toán quân giữ trại của Hannibal không được tính và không rõ quân số."
+          "en": "Polybius (3.114) and Livy (22.46) agree on about 40,000 foot and 10,000 horse, in their accounts of the line of battle. Polybius (3.117) adds that Hannibal left a guard strong enough to hold his camp, but gives no number. The higher figure adds that guard to the 50,000, as the 8,000 Gauls of a modern estimate (Daly); its size, and that it is not part of the 50,000, are assumptions.",
+          "vi": "Polybius (3.114) và Livy (22.46) cùng ghi khoảng 40.000 bộ binh và 10.000 kỵ binh, trong đoạn tả thế trận. Polybius (3.117) cho biết thêm Hannibal để lại một toán quân đủ sức giữ trại, nhưng không nói bao nhiêu người. Con số cao hơn cộng toán này vào 50.000, tính là 8.000 lính Gaul theo một ước lượng hiện đại (Daly); quân số của toán, và việc nó nằm ngoài 50.000, đều là giả định."
         }
       },
       "casualties": {
@@ -204,13 +204,20 @@
       "type": "numidian-cavalry",
       "name": { "en": "Numidian cavalry (Hanno)", "vi": "Kỵ binh Numidia (Hanno)" },
       "men": 4000
+    },
+    {
+      "id": "camp-guard",
+      "side": "carthage",
+      "type": "gallic-infantry",
+      "name": { "en": "Guard of Hannibal's camp", "vi": "Quân giữ trại của Hannibal" },
+      "men": 8000
     }
   ],
   "startHour": 5.5,
   "initial": [
     {
       "unit": "roman-cavalry",
-      "formation": { "center": { "x": -1200, "y": 1080 }, "frontage": 300, "depth": 70, "facing": 180 },
+      "formation": { "center": { "x": -1570, "y": 850 }, "frontage": 160, "depth": 90, "facing": 160 },
       "action": "advance",
       "men": 2400
     },
@@ -222,7 +229,7 @@
     },
     {
       "unit": "allied-light-infantry",
-      "formation": { "center": { "x": 225, "y": 910 }, "frontage": 450, "depth": 20, "facing": 180 },
+      "formation": { "center": { "x": 250, "y": 851 }, "frontage": 220, "depth": 41, "facing": 180 },
       "action": "advance",
       "men": 7000
     },
@@ -246,13 +253,13 @@
     },
     {
       "unit": "allied-infantry-front",
-      "formation": { "center": { "x": 225, "y": 1050 }, "frontage": 450, "depth": 40, "facing": 180 },
+      "formation": { "center": { "x": 250, "y": 920 }, "frontage": 220, "depth": 82, "facing": 180 },
       "action": "advance",
       "men": 14000
     },
     {
       "unit": "allied-infantry-rear",
-      "formation": { "center": { "x": 225, "y": 1105 }, "frontage": 450, "depth": 40, "facing": 180 },
+      "formation": { "center": { "x": 250, "y": 1010 }, "frontage": 220, "depth": 82, "facing": 180 },
       "action": "advance",
       "men": 14000
     },
@@ -264,7 +271,7 @@
     },
     {
       "unit": "camp-force",
-      "formation": { "center": { "x": -1600, "y": 1250 }, "frontage": 220, "depth": 220, "facing": 180 },
+      "formation": { "center": { "x": -1600, "y": 975 }, "frontage": 140, "depth": 110, "facing": 180 },
       "action": "stand",
       "men": 10000
     },
@@ -339,6 +346,12 @@
       "formation": { "center": { "x": -550, "y": -670 }, "frontage": 360, "depth": 40, "facing": 0 },
       "action": "advance",
       "men": 4000
+    },
+    {
+      "unit": "camp-guard",
+      "formation": { "center": { "x": -3515.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+      "action": "stand",
+      "men": 8000
     }
   ],
   "phases": [
@@ -346,8 +359,8 @@
       "id": "deployment",
       "title": { "en": "The armies deploy", "vi": "Hai bên dàn trận" },
       "narration": {
-        "en": "Just after sunrise the consul Varro, in command that day, leads the army from the large camp across the Aufidus and joins it to the troops of the small camp. The line faces south, with the Roman horse against the river on the right and the allied horse on the open left. Hannibal crosses at two places and forms opposite, facing north, then pushes the middle of his Gauls and Iberians forward into a crescent. Ten thousand Romans stay behind to raid his camp.",
-        "vi": "Ngay sau khi mặt trời mọc, chấp chính quan Varro, người cầm quân hôm ấy, dẫn đạo quân từ trại lớn vượt sông Aufidus và nhập với quân của trại nhỏ. Chiến tuyến quay mặt về phía nam, kỵ binh La Mã tựa vào sông ở cánh phải, kỵ binh đồng minh ở cánh trái trống trải. Hannibal vượt sông ở hai chỗ, dàn quân đối diện, mặt quay về phía bắc, rồi đẩy phần giữa của lính Gaul và Iberia lên trước thành hình lưỡi liềm. Mười nghìn lính La Mã ở lại để đánh vào trại của ông."
+        "en": "Just after sunrise the consul Varro, in command that day, leads the army from the large camp across the Aufidus and joins it to the troops of the small camp. The line faces south, with the Roman horse against the river on the right and the allied horse on the open left. Hannibal crosses at two places and forms opposite, facing north, then pushes the middle of his Gauls and Iberians forward into a crescent. Ten thousand Romans stay behind in the large camp and form up outside its gate, ready to fall on his camp, where he has left a guard.",
+        "vi": "Ngay sau khi mặt trời mọc, chấp chính quan Varro, người cầm quân hôm ấy, dẫn đạo quân từ trại lớn vượt sông Aufidus và nhập với quân của trại nhỏ. Chiến tuyến quay mặt về phía nam, kỵ binh La Mã tựa vào sông ở cánh phải, kỵ binh đồng minh ở cánh trái trống trải. Hannibal vượt sông ở hai chỗ, dàn quân đối diện, mặt quay về phía bắc, rồi đẩy phần giữa của lính Gaul và Iberia lên trước thành hình lưỡi liềm. Mười nghìn lính La Mã ở lại trại lớn, kéo ra dàn hàng trước cổng trại, chờ đánh vào trại của ông, nơi ông để lại một toán quân canh giữ."
       },
       "endHour": 8,
       "playSeconds": 25,
@@ -408,8 +421,8 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -1600, "y": 1250 }, "frontage": 220, "depth": 220, "facing": 180 },
-          "action": "stand",
+          "formation": { "center": { "x": -1600, "y": 680 }, "frontage": 140, "depth": 110, "facing": 225 },
+          "action": "advance",
           "men": 10000
         },
         {
@@ -483,12 +496,18 @@
           "formation": { "center": { "x": 1150, "y": -290 }, "frontage": 600, "depth": 40, "facing": 0 },
           "action": "advance",
           "men": 4000
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3515.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+          "action": "stand",
+          "men": 8000
         }
       ],
       "arrows": [
-        { "side": "rome", "points": [{ "x": -1200, "y": 1040 }, { "x": -1050, "y": 400 }] },
+        { "side": "rome", "points": [{ "x": -1540, "y": 790 }, { "x": -1110, "y": 380 }] },
         { "side": "rome", "points": [{ "x": -525, "y": 1000 }, { "x": -375, "y": 420 }] },
-        { "side": "rome", "points": [{ "x": 225, "y": 1000 }, { "x": 375, "y": 420 }] },
+        { "side": "rome", "points": [{ "x": 255, "y": 860 }, { "x": 370, "y": 420 }] },
         { "side": "rome", "points": [{ "x": 930, "y": 1020 }, { "x": 1080, "y": 370 }] },
         { "side": "carthage", "points": [{ "x": -2850, "y": -680 }, { "x": -1150, "y": -340 }] },
         { "side": "carthage", "points": [{ "x": -1760, "y": -600 }, { "x": -60, "y": -270 }] },
@@ -499,8 +518,8 @@
       "id": "skirmish",
       "title": { "en": "The light troops clash", "vi": "Lính nhẹ đụng độ" },
       "narration": {
-        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A south-easterly wind, which the locals call Volturnus, blows dust into the Romans' faces. By the river the cavalry of both sides rides up to close quarters, while the force from the large camp marches on Hannibal's camp.",
-        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Gió đông nam, người địa phương gọi là Volturnus, thổi bụi vào mặt quân La Mã. Bên bờ sông, kỵ binh hai bên tiến sát vào nhau, trong lúc lực lượng từ trại lớn tiến về trại của Hannibal."
+        "en": "The slingers, spearmen and velites run out between the lines and trade missiles, and neither side gains much. Livy says a sling stone badly wounded Paullus at the start of the fight. A south-easterly wind, which the locals call Volturnus, blows dust into the Romans' faces. By the river the cavalry of both sides rides up to close quarters, while the force from the large camp marches on Hannibal's camp and comes up against the guard at its gate.",
+        "vi": "Lính ném đá, lính giáo nhẹ và velites chạy ra khoảng giữa hai chiến tuyến, ném đá và lao vào nhau, chưa bên nào chiếm ưu thế. Theo Livy, Paullus bị một viên đá ném trúng, bị thương nặng ngay từ đầu trận. Gió đông nam, người địa phương gọi là Volturnus, thổi bụi vào mặt quân La Mã. Bên bờ sông, kỵ binh hai bên tiến sát vào nhau, trong lúc lực lượng từ trại lớn tiến về trại của Hannibal và áp sát toán quân giữ cổng trại."
       },
       "endHour": 9,
       "playSeconds": 15,
@@ -561,7 +580,7 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -2900, "y": 0 }, "frontage": 300, "depth": 120, "facing": 225 },
+          "formation": { "center": { "x": -3419.2, "y": -500 }, "frontage": 200, "depth": 110, "facing": 270 },
           "action": "advance",
           "men": 10000
         },
@@ -636,6 +655,12 @@
           "formation": { "center": { "x": 1150, "y": -290 }, "frontage": 600, "depth": 40, "facing": 0 },
           "action": "stand",
           "men": 4000
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3515.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+          "action": "stand",
+          "men": 8000
         }
       ],
       "arrows": [
@@ -645,15 +670,15 @@
         { "side": "carthage", "points": [{ "x": 400, "y": -50 }, { "x": 400, "y": -5 }] },
         { "side": "rome", "points": [{ "x": -1050, "y": 290 }, { "x": -1075, "y": 125 }] },
         { "side": "carthage", "points": [{ "x": -1150, "y": -220 }, { "x": -1100, "y": -20 }] },
-        { "side": "rome", "points": [{ "x": -1650, "y": 1100 }, { "x": -2400, "y": 450 }, { "x": -2900, "y": 50 }] }
+        { "side": "rome", "points": [{ "x": -1667, "y": 636 }, { "x": -3318, "y": -435 }] }
       ]
     },
     {
       "id": "cavalry-by-the-river",
       "title": { "en": "Hasdrubal breaks the Roman horse", "vi": "Hasdrubal đánh tan kỵ binh La Mã" },
       "narration": {
-        "en": "On the narrow strip by the river, Hasdrubal's Iberian and Gallic horsemen meet the Roman cavalry head on. There is no room to wheel, so many men dismount and fight on foot, and the Romans are cut down where they stand. The light troops fall back through the ranks and the heavy infantry moves up until it meets the crescent, while on the far wing the Numidians tie down the allied horse.",
-        "vi": "Trên dải đất hẹp ven sông, kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã. Không có chỗ để xoay trở, nên nhiều người xuống ngựa đánh bộ, và quân La Mã bị chém ngã ngay tại chỗ. Lính nhẹ lui về qua hàng ngũ và bộ binh nặng tiến lên cho tới khi chạm lưỡi liềm, trong khi ở cánh bên kia kỵ binh Numidia cầm chân kỵ binh đồng minh."
+        "en": "On the narrow strip by the river, Hasdrubal's Iberian and Gallic horsemen meet the Roman cavalry head on. There is no room to wheel, so many men dismount and fight on foot, and the Romans are cut down where they stand. The light troops fall back through the ranks and the heavy infantry moves up until it meets the crescent, while on the far wing the Numidians tie down the allied horse. At Hannibal's camp the Romans from the large camp storm the gate, and the guard holds them there.",
+        "vi": "Trên dải đất hẹp ven sông, kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã. Không có chỗ để xoay trở, nên nhiều người xuống ngựa đánh bộ, và quân La Mã bị chém ngã ngay tại chỗ. Lính nhẹ lui về qua hàng ngũ và bộ binh nặng tiến lên cho tới khi chạm lưỡi liềm, trong khi ở cánh bên kia kỵ binh Numidia cầm chân kỵ binh đồng minh. Ở trại của Hannibal, quân La Mã từ trại lớn đánh vào cổng, và toán quân giữ trại chặn họ lại ngay tại đó."
       },
       "endHour": 9.75,
       "playSeconds": 20,
@@ -714,9 +739,9 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -3250, "y": -260 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "skirmish",
-          "men": 9500
+          "formation": { "center": { "x": -3419.2, "y": -500 }, "frontage": 200, "depth": 110, "facing": 270 },
+          "action": "fight",
+          "men": 9800
         },
         {
           "unit": "balearic-slingers",
@@ -789,6 +814,12 @@
           "formation": { "center": { "x": 1180, "y": 80 }, "frontage": 600, "depth": 60, "facing": 0 },
           "action": "skirmish",
           "men": 3990
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3515.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+          "action": "fight",
+          "men": 7700
         }
       ],
       "arrows": [
@@ -810,7 +841,7 @@
       "units": [
         {
           "unit": "roman-cavalry",
-          "formation": { "center": { "x": -1180, "y": 820 }, "frontage": 200, "depth": 60, "facing": 20 },
+          "formation": { "center": { "x": -850, "y": 920 }, "frontage": 200, "depth": 60, "facing": 20 },
           "action": "rout",
           "men": 300
         },
@@ -864,9 +895,9 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "skirmish",
-          "men": 9000
+          "formation": { "center": { "x": -3429.2, "y": -500 }, "frontage": 200, "depth": 110, "facing": 270 },
+          "action": "fight",
+          "men": 9600
         },
         {
           "unit": "balearic-slingers",
@@ -939,13 +970,19 @@
           "formation": { "center": { "x": 1200, "y": 160 }, "frontage": 650, "depth": 70, "facing": 350 },
           "action": "skirmish",
           "men": 3980
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3525.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+          "action": "fight",
+          "men": 7300
         }
       ],
       "arrows": [
         { "side": "rome", "points": [{ "x": -330, "y": -200 }, { "x": -290, "y": -390 }] },
         { "side": "rome", "points": [{ "x": 210, "y": -200 }, { "x": 170, "y": -390 }] },
         { "side": "carthage", "points": [{ "x": -60, "y": -180 }, { "x": -60, "y": -450 }] },
-        { "side": "rome", "points": [{ "x": -1090, "y": 210 }, { "x": -1150, "y": 500 }, { "x": -1180, "y": 780 }] },
+        { "side": "rome", "points": [{ "x": -1066, "y": 236 }, { "x": -874, "y": 844 }] },
         { "side": "carthage", "points": [{ "x": -1050, "y": 160 }, { "x": -450, "y": 430 }, { "x": 250, "y": 440 }] }
       ]
     },
@@ -953,15 +990,15 @@
       "id": "libyans-and-cavalry-close-in",
       "title": { "en": "The trap is sprung", "vi": "Cái bẫy sập xuống" },
       "narration": {
-        "en": "Now the Libyans, armed with Roman gear taken in earlier victories, turn inwards and fall on both flanks of the Roman mass. The allied cavalry sees Hasdrubal coming and flees; he leaves the Numidians to hunt them down and turns on the rear of the legions. The Romans in the front ranks can no longer advance, those on the edges turn to face attacks from the sides, and the rear ranks turn about to face the horsemen.",
-        "vi": "Lúc này lính Libya, mang vũ khí La Mã thu được từ các trận thắng trước, quay vào trong và đánh vào cả hai sườn của khối quân La Mã. Kỵ binh đồng minh thấy Hasdrubal kéo đến liền bỏ chạy; ông để kỵ binh Numidia truy đuổi họ rồi quay sang đánh vào lưng các quân đoàn. Các hàng đầu của La Mã không tiến được nữa, những người ở rìa phải quay ra chống đỡ từ hai bên, còn các hàng sau cùng quay đầu lại đối mặt với kỵ binh."
+        "en": "Now the Libyans, armed with Roman gear taken in earlier victories, turn inwards and fall on both flanks of the Roman mass. The allied cavalry sees Hasdrubal coming and flees; he leaves the Numidians to hunt them down and turns on the rear of the legions. The Romans in the front ranks can no longer advance, those on the edges turn to face attacks from the sides, and the rear ranks turn about to face the horsemen. At Hannibal's camp the guard, hard pressed, is forced back from the gate into the camp.",
+        "vi": "Lúc này lính Libya, mang vũ khí La Mã thu được từ các trận thắng trước, quay vào trong và đánh vào cả hai sườn của khối quân La Mã. Kỵ binh đồng minh thấy Hasdrubal kéo đến liền bỏ chạy; ông để kỵ binh Numidia truy đuổi họ rồi quay sang đánh vào lưng các quân đoàn. Các hàng đầu của La Mã không tiến được nữa, những người ở rìa phải quay ra chống đỡ từ hai bên, còn các hàng sau cùng quay đầu lại đối mặt với kỵ binh. Ở trại của Hannibal, toán quân giữ trại bị ép mạnh và bị đẩy lùi từ cổng vào trong trại."
       },
       "endHour": 12.5,
       "playSeconds": 25,
       "units": [
         {
           "unit": "roman-cavalry",
-          "formation": { "center": { "x": -1150, "y": 1120 }, "frontage": 150, "depth": 50, "facing": 20 },
+          "formation": { "center": { "x": -800, "y": 1200 }, "frontage": 150, "depth": 50, "facing": 20 },
           "action": "rout",
           "men": 200
         },
@@ -1015,9 +1052,9 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -3300, "y": -300 }, "frontage": 350, "depth": 100, "facing": 225 },
-          "action": "skirmish",
-          "men": 8500
+          "formation": { "center": { "x": -3459.2, "y": -500 }, "frontage": 200, "depth": 110, "facing": 270 },
+          "action": "fight",
+          "men": 9400
         },
         {
           "unit": "balearic-slingers",
@@ -1090,6 +1127,12 @@
           "formation": { "center": { "x": 1480, "y": 760 }, "frontage": 400, "depth": 100, "facing": 30 },
           "action": "pursue",
           "men": 3970
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3555.7, "y": -500 }, "frontage": 200, "depth": 80, "facing": 90 },
+          "action": "fight",
+          "men": 6700
         }
       ],
       "arrows": [
@@ -1105,8 +1148,8 @@
       "id": "encirclement",
       "title": { "en": "The ring closes", "vi": "Vòng vây khép lại" },
       "narration": {
-        "en": "Hasdrubal's horsemen charge the Roman rear again and again, and the encirclement is complete. Packed so tightly that many cannot use their weapons, the Romans fight on as long as the outer ranks stand, then are cut down where they are. Paullus falls in the slaughter, as do the consuls of the previous year; Varro escapes with a handful of riders. Hannibal also relieves his camp and drives the Roman raiders back into theirs.",
-        "vi": "Kỵ binh của Hasdrubal liên tục xung phong vào lưng quân La Mã, và vòng vây khép kín. Bị dồn chặt đến mức nhiều người không thể vung vũ khí, quân La Mã chống cự chừng nào các hàng ngoài còn đứng vững, rồi bị giết ngay tại chỗ. Paullus tử trận trong cuộc tàn sát, cùng với hai chấp chính quan của năm trước; Varro thoát được cùng một nhóm nhỏ kỵ sĩ. Hannibal cũng giải vây cho trại của mình và đánh lui toán quân La Mã về trại của họ."
+        "en": "Hasdrubal's horsemen charge the Roman rear again and again, and the encirclement is complete. Packed so tightly that many cannot use their weapons, the Romans fight on as long as the outer ranks stand, then are cut down where they are. Paullus falls in the slaughter, as do the consuls of the previous year; Varro escapes with a handful of riders. Hannibal also comes to the relief of his camp. The Roman raiders are driven back into their own camp with the loss of two thousand men; the rest will be taken prisoner.",
+        "vi": "Kỵ binh của Hasdrubal liên tục xung phong vào lưng quân La Mã, và vòng vây khép kín. Bị dồn chặt đến mức nhiều người không thể vung vũ khí, quân La Mã chống cự chừng nào các hàng ngoài còn đứng vững, rồi bị giết ngay tại chỗ. Paullus tử trận trong cuộc tàn sát, cùng với hai chấp chính quan của năm trước; Varro thoát được cùng một nhóm nhỏ kỵ sĩ. Hannibal cũng kéo về giải vây cho trại của mình. Toán quân La Mã bị đánh lui về trại của họ, mất hai nghìn người; số còn lại về sau bị bắt làm tù binh."
       },
       "endHour": 17,
       "playSeconds": 30,
@@ -1167,9 +1210,9 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -1700, "y": 1050 }, "frontage": 300, "depth": 200, "facing": 45 },
+          "formation": { "center": { "x": -1542.3, "y": 814.6 }, "frontage": 120, "depth": 120, "facing": 55.6 },
           "action": "retreat",
-          "men": 8000
+          "men": 7400
         },
         {
           "unit": "balearic-slingers",
@@ -1242,13 +1285,20 @@
           "formation": { "center": { "x": 1290, "y": 1540 }, "frontage": 400, "depth": 80, "facing": 325 },
           "action": "pursue",
           "men": 3960
+        },
+        {
+          "unit": "camp-guard",
+          "formation": { "center": { "x": -3184.6, "y": -245.5 }, "frontage": 200, "depth": 80, "facing": 55.6 },
+          "action": "pursue",
+          "men": 6700
         }
       ],
       "arrows": [
         { "side": "carthage", "points": [{ "x": -420, "y": -210 }, { "x": -320, "y": -310 }] },
         { "side": "carthage", "points": [{ "x": 300, "y": -210 }, { "x": 200, "y": -310 }] },
         { "side": "carthage", "points": [{ "x": -60, "y": -10 }, { "x": -60, "y": -140 }] },
-        { "side": "rome", "points": [{ "x": -3200, "y": -200 }, { "x": -2500, "y": 450 }, { "x": -1750, "y": 1000 }] }
+        { "side": "rome", "points": [{ "x": -3335, "y": -415 }, { "x": -1649, "y": 740 }] },
+        { "side": "carthage", "points": [{ "x": -3470, "y": -440 }, { "x": -3250, "y": -290 }] }
       ]
     }
   ],
@@ -1521,8 +1571,8 @@
           "evidence": {
             "basis": "attested",
             "note": {
-              "en": "Polybius: Hannibal entrenched his camp on the same bank as the larger Roman camp, and on the day the Romans left in that camp attacked it. Nothing is known of how a Carthaginian camp was laid out: it is given the room a Roman camp would give as many men, and its place, shape and inside are assumed.",
-              "vi": "Polybius: Hannibal đào hào đắp luỹ cho trại ở cùng bờ với trại lớn của La Mã, và hôm giao chiến đạo quân La Mã ở lại trại lớn đã đánh vào trại này. Không rõ một trại của Carthage được bố trí thế nào: trại được cho phần đất bằng một trại La Mã chứa chừng ấy người, còn vị trí, hình dạng và bên trong là giả định."
+              "en": "Polybius: Hannibal entrenched his camp on the same bank as the larger Roman camp, and on the day the Romans left in that camp attacked it, while a guard he had left held it. Nothing is known of how a Carthaginian camp was laid out: it is given the room a Roman camp would give as many men, and its place, shape and inside are assumed.",
+              "vi": "Polybius: Hannibal đào hào đắp luỹ cho trại ở cùng bờ với trại lớn của La Mã, và hôm giao chiến đạo quân La Mã ở lại trại lớn đã đánh vào trại này, trong lúc toán quân ông để lại giữ trại. Không rõ một trại của Carthage được bố trí thế nào: trại được cho phần đất bằng một trại La Mã chứa chừng ấy người, còn vị trí, hình dạng và bên trong là giả định."
             },
             "sources": [{ "title": "Polybius, Histories 3.111, 3.117", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" }]
           }
@@ -1786,8 +1836,8 @@
     ]
   },
   "uncertainty": {
-    "en": "This is a reconstruction. Which bank of the Aufidus the battle was fought on is disputed; this scene follows the ancient statements that the Romans faced south with the river on their right, on the plain north-east of Cannae, but other reconstructions put the field on the opposite bank. The river and the shore have shifted since antiquity: the scene shows them where they run today. The sources' numbers differ and may be inflated, and the split of each army into units is a modern estimate. The position of every unit, the camps and the fords, and the clock times, are reasoned guesses from the descriptions of Polybius and Livy.",
-    "vi": "Đây là phỏng dựng. Trận diễn ra ở bờ nào của sông Aufidus vẫn còn tranh cãi; cảnh này theo lời các sử gia cổ rằng quân La Mã quay mặt về nam, sông ở bên phải, trên đồng bằng phía đông bắc Cannae, nhưng có những phỏng dựng khác đặt chiến trường ở bờ bên kia. Dòng sông và bờ biển đã đổi chỗ từ thời cổ: cảnh vẽ chúng ở vị trí ngày nay. Quân số giữa các nguồn khác nhau và có thể bị thổi phồng, còn cách chia mỗi đạo quân thành các đơn vị là ước lượng hiện đại. Vị trí của từng đơn vị, các trại, chỗ vượt sông và giờ trong ngày đều là phỏng đoán có căn cứ từ mô tả của Polybius và Livy."
+    "en": "This is a reconstruction. Which bank of the Aufidus the battle was fought on is disputed; this scene follows the ancient statements that the Romans faced south with the river on their right, on the plain north-east of Cannae, but other reconstructions put the field on the opposite bank. The river and the shore have shifted since antiquity: the scene shows them where they run today. The sources' numbers differ and may be inflated, and the split of each army into units is a modern estimate. Polybius says Hannibal left a guard in his camp but gives no number: its size and make-up follow a modern estimate. The position of every unit, the camps and the fords, and the clock times, are reasoned guesses from the descriptions of Polybius and Livy.",
+    "vi": "Đây là phỏng dựng. Trận diễn ra ở bờ nào của sông Aufidus vẫn còn tranh cãi; cảnh này theo lời các sử gia cổ rằng quân La Mã quay mặt về nam, sông ở bên phải, trên đồng bằng phía đông bắc Cannae, nhưng có những phỏng dựng khác đặt chiến trường ở bờ bên kia. Dòng sông và bờ biển đã đổi chỗ từ thời cổ: cảnh vẽ chúng ở vị trí ngày nay. Quân số giữa các nguồn khác nhau và có thể bị thổi phồng, còn cách chia mỗi đạo quân thành các đơn vị là ước lượng hiện đại. Polybius nói Hannibal để quân giữ trại nhưng không cho quân số: quân số và thành phần của toán này theo một ước lượng hiện đại. Vị trí của từng đơn vị, các trại, chỗ vượt sông và giờ trong ngày đều là phỏng đoán có căn cứ từ mô tả của Polybius và Livy."
   },
   "sources": [
     { "title": "Polybius, Histories 3.107–118", "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html" },

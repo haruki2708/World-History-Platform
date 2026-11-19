@@ -1,6 +1,6 @@
 # Trận Cannae (216 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-18 (T-032, giáp lá cà: mục 11; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
+Cập nhật: 2026-11-19 (T-045, quân giữ trại của Hannibal và đường ra vào trại: mục 17; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
 
 Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và lý do, để người sau kiểm tra hoặc sửa.
 
@@ -11,7 +11,10 @@ Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và l�
 | Polybius, *Histories* 3.107–118 (bản dịch Loeb 1922 của W. R. Paton) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html) | Trại, hướng quân, thứ tự dàn trận, diễn biến, quân số, thương vong |
 | Livy, *Ab Urbe Condita* 22.36–52 (bản dịch Roberts) | [Wikisource](https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22) và Perseus (chương 40, 41, 45–48) | Hai trại, dàn trận, gió Volturnus, mưu 500 kỵ binh Numidia, thương vong, số người chạy thoát |
 | Livy 22 (bản Latin) | [The Latin Library](https://www.thelatinlibrary.com/livy/liv.22.shtml) | Đối chiếu 22.36 (87.200 người), 22.46 (hướng quân), 22.49 (thương vong, Paullus trúng đá ném) |
-| Bài "Battle of Cannae" | [Wikipedia](https://en.wikipedia.org/wiki/Battle_of_Cannae) | Chỉ để tham khảo cách chia quân của Hannibal theo ước lượng hiện đại (bài dẫn Daly 2002 và Goldsworthy 2001). Không chép nội dung |
+| Bài "Battle of Cannae" | [Wikipedia](https://en.wikipedia.org/wiki/Battle_of_Cannae) | Chỉ để tham khảo cách chia quân của Hannibal theo ước lượng hiện đại (bài dẫn Daly 2002 và Goldsworthy 2001), kể cả toán giữ trại (T-045, mục 17). Không chép nội dung |
+| Appian, *Hannibalica* 17–28 (bản dịch Horace White) | [Livius.org](https://www.livius.org/sources/content/appian/appian-war-against-hannibal/) | T-045: chuyện hai trại La Mã sau trận (mục 17) |
+| Plutarch, *Fabius Maximus* 14–17 (bản dịch Loeb 1916) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Fabius_Maximus*.html) | T-045: số người bị bắt ở hai trại (16.8) |
+| Cassius Dio, sách 15 (bản tóm của Zonaras) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/15*.html) | T-045: đối chiếu; không nhắc cuộc đánh trại |
 
 Mọi tiêu đề và lời dẫn trong file trận là tự viết. Chỉ dẫn link, không chép văn bản.
 
@@ -67,7 +70,7 @@ Hannibal lúc đầu đóng trại gần Cannae (bờ phải), rồi mới dời
 ### Tổng quân số (`strength`)
 
 - **La Mã: 86 000 – 87 200.** Polybius 3.113: khoảng 80 000 bộ binh (kể cả 10 000 người để lại trại lớn, 3.117) và hơn 6 000 kỵ binh. Livy 22.36: các nguồn không thống nhất; một số tác giả cho 87 200 người. Một số sử gia hiện đại nghĩ con số thật thấp hơn; ghi trong `note`.
-- **Carthage: 50 000.** Polybius 3.114 và Livy 22.46 cùng ghi khoảng 40 000 bộ binh và 10 000 kỵ binh. Toán giữ trại của Hannibal không rõ quân số nên không có đơn vị riêng.
+- **Carthage: 50 000 – 58 000.** Polybius 3.114 và Livy 22.46 cùng ghi khoảng 40 000 bộ binh và 10 000 kỵ binh, trong đoạn tả thế trận: đó là quân ra trận. Toán giữ trại của Hannibal (Polybius 3.117) được tính riêng, ngoài 50 000; con số cao hơn cộng thêm 8 000 người của toán này. Quân số của toán, và việc nó nằm ngoài 50 000, là giả định (mục 17). Trước T-045 toán này không có đơn vị riêng.
 
 ### Đơn vị phía La Mã (tổng 86 200)
 
@@ -86,7 +89,7 @@ Hannibal lúc đầu đóng trại gần Cannae (bờ phải), rồi mới dời
 
 Cách chia 70 000 bộ binh ra trận thành lính nhẹ và ba hàng là ước lượng: tám quân đoàn La Mã, mỗi quân đoàn 5 000 bộ binh (Livy 22.36), cùng số bộ binh đồng minh tương đương; phần 10 000 ở lại trại lấy đều từ cả hai.
 
-### Đơn vị phía Hannibal (tổng 50 000)
+### Đơn vị phía Hannibal (tổng 58 000: 50 000 ra trận, 8 000 giữ trại)
 
 | Đơn vị | Loại | Người | Căn cứ |
 |---|---|---|---|
@@ -96,6 +99,7 @@ Cách chia 70 000 bộ binh ra trận thành lính nhẹ và ba hàng là ước
 | Bộ binh Libya, cánh trái / cánh phải | `libyan-infantry` | 4 000 + 4 000 | Polybius 3.113: một nửa lính châu Phi ở mỗi bên. Tổng 8 000 theo ước lượng hiện đại |
 | Lưỡi liềm: Gaul trái, Iberia lệch trái, Gaul giữa, Iberia lệch phải, Gaul phải | `gallic-infantry`, `iberian-infantry` | 5 000, 4 000, 6 000, 4 000, 5 000 | Polybius 3.114: Gaul và Iberia đứng xen kẽ từng toán. Gaul 16 000, Iberia 8 000 theo ước lượng hiện đại |
 | Kỵ binh Numidia | `numidian-cavalry` | 4 000 | Cánh phải. Polybius ghi Hanno chỉ huy cánh phải, Livy ghi Maharbal |
+| Quân giữ trại của Hannibal (`camp-guard`, T-045) | `gallic-infantry` | 8 000 | Polybius 3.117 nói có toán giữ trại nhưng không cho số. Số và thành phần theo một ước lượng hiện đại (Daly 2002, qua Wikipedia); không nằm trong 50 000 ra trận. Mục 17 |
 
 Ước lượng hiện đại về cách chia quân của Hannibal lấy từ bài Wikipedia nói trên, bài này dẫn Daly (2002) và Goldsworthy (2001). Hộp thông tin của chính bài đó lại cho cách chia khác (21 000 Gaul, 3 000 Iberia); đây là chỗ chưa thống nhất.
 
@@ -105,7 +109,7 @@ Cách chia 70 000 bộ binh ra trận thành lính nhẹ và ba hàng là ước
 
 - **La Mã: 48 200 – 70 000.** Livy 22.49: 45 500 bộ binh và 2 700 kỵ binh chết; 3 000 bộ binh và 1 500 kỵ binh bị bắt ngay trong trận. Polybius 3.117: khoảng 70 000 chết, khoảng 10 000 bị bắt (lực lượng ở trại), chỉ khoảng 3 000 bộ binh và 370 kỵ binh thoát.
 - **Carthage: 5 700 – 8 000.** Polybius 3.117: khoảng 4 000 Gaul, 1 500 Iberia và Libya, 200 kỵ binh. Livy 22.52: tới 8 000.
-- Trong file, số người của từng đơn vị giảm dần qua các giai đoạn. Phía Carthage mất tổng cộng khoảng 6 000 người, chia theo Polybius: Gaul mất 4 000, Iberia và Libya 1 500, kỵ binh 200, lính nhẹ 350. Phía La Mã còn khoảng 9 300 người trên chiến trường ở cuối trận (gồm cả người chạy thoát) và 8 000 ở trại; tức gần với con số của Polybius. Số "còn lại" chỉ để cảnh biết vẽ bao nhiêu hình lính, không phải một con số lịch sử.
+- Trong file, số người của từng đơn vị giảm dần qua các giai đoạn. Các đơn vị ra trận của Carthage mất tổng cộng khoảng 6 000 người, chia theo Polybius: Gaul mất 4 000, Iberia và Libya 1 500, kỵ binh 200, lính nhẹ 350. Từ T-045 toán giữ trại mất thêm 1 300 người ở cổng trại (giả định, mục 17), nên phía Carthage mất tổng cộng 7 350, vẫn dưới con số 8 000 của Livy. Phía La Mã còn khoảng 9 300 người trên chiến trường ở cuối trận (gồm cả người chạy thoát) và 7 400 ở trại (trước T-045: 8 000); tức gần với con số của Polybius. Số "còn lại" chỉ để cảnh biết vẽ bao nhiêu hình lính, không phải một con số lịch sử.
 
 ### Chỉ huy
 
@@ -135,6 +139,17 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 | 4 | Lưỡi liềm vừa đánh vừa lùi từ lồi sang lõm, mặt trận La Mã bám theo. Kỵ binh La Mã tháo chạy dọc bờ sông; Hasdrubal vòng ra sau lưng quân La Mã, hướng sang cánh bên kia (Polybius 3.116) |
 | 5 | Lính Libya quay vào và tới sườn quân La Mã ở cuối giai đoạn; hàng sau của La Mã quay ra hai sườn; triarii quay đầu. Kỵ binh đồng minh bỏ chạy khi Hasdrubal tới gần; ông quay sang lưng các quân đoàn và tới nơi ở cuối giai đoạn |
 | 6 | Bốn phía cùng đánh suốt giai đoạn: lưỡi liềm ở mặt trước, lính Libya ở hai sườn, kỵ binh Hasdrubal ở sau lưng |
+
+**Từ T-045 (mục 17)**, quanh các trại:
+
+| Giai đoạn | Thêm hay đổi |
+|---|---|
+| Lúc bắt đầu | Lực lượng ở trại lớn và kỵ binh La Mã đứng ngay sau cổng chính của trại lớn; ba khối đồng minh đứng thành cột sau cổng trại nhỏ. Toán giữ trại của Hannibal đứng ở cổng trại của ông |
+| 1 | Các khối này ra khỏi trại qua cổng. Lực lượng ở trại lớn dàn hàng ngay ngoài cổng |
+| 2 | Lực lượng ở trại lớn tới cổng trại Hannibal ở cuối giai đoạn |
+| 3–5 | Đánh giáp lá cà với toán giữ trại ở cổng (trước đây là đánh từ xa vào một trại không người). Toán giữ trại trụ được ở giai đoạn 3–4, bị đẩy lùi 40 m vào trong trại ở giai đoạn 5 |
+| 4–5 | Kỵ binh La Mã tháo chạy lên phía bắc giữa trại lớn và sông, không chạy qua trại |
+| 6 | Lực lượng ở trại lớn quay đầu, rút về trại lớn qua cổng, mất 2 000 người; toán giữ trại đuổi theo 450 m |
 
 Chi tiết không vẽ thành chuyển động riêng: mưu 500 kỵ binh Numidia giả hàng (Livy 22.48), cảnh Lentulus gặp Paullus (Livy 22.49), các toán chạy thoát về hai trại và làng Cannae (Livy 22.49–50).
 
@@ -284,7 +299,8 @@ Từ đợt G, cảnh cho người đầu mỗi hàng dọc đấu với ngườ
 
 - Hai khối đánh giáp lá cà thì **mép trước nằm trên cùng một đường**, cách nhau 1,5 m, ở **cả mốc đầu lẫn mốc cuối** của giai đoạn. Giữa hai mốc cảnh nội suy thẳng, nên chỉ như vậy hai hàng đầu mới ở trong tầm nhau suốt giai đoạn.
 - Khối tới chỗ địch trong một giai đoạn thì giai đoạn đó ghi `advance` hay `charge`; giai đoạn sau mới ghi `fight`.
-- Đánh từ xa ghi `skirmish`: lính nhẹ ở giai đoạn 2, kỵ binh Numidia ở giai đoạn 3–4, lực lượng ở trại lớn đánh trại Hannibal ở giai đoạn 3–5 (toán giữ trại không có đơn vị riêng, nên cuộc đánh trại được vẽ như đánh từ xa).
+- Đánh từ xa ghi `skirmish`: lính nhẹ ở giai đoạn 2, kỵ binh Numidia ở giai đoạn 3–4.
+- Lực lượng ở trại lớn đánh trại Hannibal ở giai đoạn 3–5. Trước T-045 toán giữ trại không có đơn vị riêng, nên cuộc đánh trại được vẽ như đánh từ xa (`skirmish`). Từ T-045 đó là giáp lá cà (`fight`) với toán giữ trại ở cổng trại (mục 17).
 - Kỵ binh đồng minh bị kỵ binh Numidia cầm chân ở giai đoạn 3–4 ghi `stand`.
 
 ### Script dựng bố cục
@@ -299,6 +315,7 @@ Từ đợt G, cảnh cho người đầu mỗi hàng dọc đấu với ngườ
 - **Giai đoạn 5–6, quân La Mã là một cái hộp.** Mặt trước nằm trên cung; principes ở sườn tây và bộ binh đồng minh hàng sau ở sườn đông, quay mặt ra ngoài; triarii quay đầu, khép mặt sau; lính nhẹ ở bên trong. Hộp ở mốc 5 rộng khoảng 600 m, sâu khoảng 430 m ở giữa; ở mốc 6 rộng khoảng 410 m, sâu khoảng 320 m.
 - **Lính Libya** đứng yên tới hết giai đoạn 4, quay vào trong ở giai đoạn 5 và chạm sườn ở mốc 5. Ở mốc 5 họ đứng lệch về bắc 45 m so với sườn mà họ đánh, vì phải đi vòng ngoài đầu mút của lưỡi liềm. Không lệch nhiều hơn được: người chỉ ngã ở hàng dọc có địch trước mặt, nên một sườn chỉ bị che một nửa sẽ mất hết người ở nửa đó và không mất ai ở nửa kia (đã thử với 90 m: principes còn 0 trên 9 người đầu hàng có đối thủ ở 3/4 giai đoạn 6).
 - **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau.
+- **Cổng trại Hannibal** (T-045, mục 17): lực lượng ở trại lớn và toán giữ trại đứng hai bên một đường bắc–nam là mặt trước (phía đông) của trại, x = −3475, cổng ở y = −500; bề ngang 200 m. Mốc 2 và 3 đường này nằm đúng ở cổng, mốc 4 lùi vào trong trại 10 m, mốc 5 lùi 40 m. Mốc 6: chỗ lực lượng ở trại lớn đứng sau cổng trại lớn (rút về theo đường thẳng qua cổng) và đoạn toán giữ trại đuổi theo cũng do script tính.
 
 ### Quân số
 
@@ -407,12 +424,14 @@ Các con số làm tròn tới 50 m. Trại vẽ vuông, cạnh theo hướng đ
 | Làng Cannae | 3,8 ha | 45,3–59,5 m | 1 424 m |
 
 - Tâm trại lớn dời 50 m về bắc so với nhãn (−1600, 1250) để luỹ phía nam không lấn vào bờ sông.
-- Trại của Hannibal đặt sao cho luỹ phía đông nằm ngay trước mặt đạo quân La Mã đánh trại (`camp-force`, giai đoạn 3–5): tâm khối này cách luỹ 175–225 m, đầu phía tây của hàng trước cách luỹ khoảng 16 m. Nhãn "Trại của Hannibal" dời theo về tâm trại.
+- Trại của Hannibal đặt sao cho luỹ phía đông nằm ngay trước mặt đạo quân La Mã đánh trại (`camp-force`, giai đoạn 3–5): tâm khối này cách luỹ 175–225 m, đầu phía tây của hàng trước cách luỹ khoảng 16 m. Nhãn "Trại của Hannibal" dời theo về tâm trại. Từ T-045, `camp-force` đánh ngay ở cổng, giữa luỹ phía đông (mục 17).
 - Gò thành: đỉnh gò (cao từ 54 m trở lên) trải khoảng 180 m theo hướng đông–tây và 90 m theo hướng bắc–nam, quanh điểm −4770, −4015; sườn tây và bắc dốc xuống đồng bằng ven sông (14–25 m). Lưới Copernicus là mô hình bề mặt, có thể đã tính cả tàn tích hiện nay trên gò.
 
 ### Khối quân đứng trong trại
 
 Lúc bắt đầu, vài khối quân còn đứng trong trại của mình: `camp-force` và `roman-cavalry` trong trại lớn; ba khối đồng minh trong trại nhỏ. Cuối trận, `roman-cavalry` (đang tháo chạy) và `camp-force` (rút về) lại ở trong trại lớn. Chặng công trình phải để trống chỗ các khối này đứng và đi qua (không dựng lều ở đó).
+
+Từ T-045 (mục 17): các khối này đứng ngay sau cổng chính và ra qua cổng; `camp-force` về trại lớn cũng qua cổng; kỵ binh La Mã tháo chạy ở ngoài trại lớn, giữa trại và sông. Toán giữ trại của Hannibal đứng ở cổng trại của mình từ đầu trận.
 
 ### Kiểm tra
 
@@ -428,7 +447,7 @@ Lúc bắt đầu, vài khối quân còn đứng trong trại của mình: `cam
 
 ### Còn lại
 
-- Chưa có khối quân Carthage nào giữ trại của Hannibal, dù Polybius 3.117 nói có: `camp-force` đang đánh vào một trại không người. Đề nghị thêm một khối giữ trại khi làm chặng công trình.
+- ~~Chưa có khối quân Carthage nào giữ trại của Hannibal, dù Polybius 3.117 nói có: `camp-force` đang đánh vào một trại không người.~~ Đã thêm ở T-045 (mục 17).
 - Sông vẫn là dòng chảy ngày nay (mục 7); vị trí các trại bám theo dòng đó.
 - Cách xếp lều, đường và cổng trong trại La Mã (Polybius 6.27–32) chưa đọc kỹ; chặng công trình cần đọc trước khi dựng. Kích thước hào và luỹ không có trong Polybius, phải lấy từ nguồn khác hoặc ghi là minh hoạ.
 
@@ -492,10 +511,12 @@ Cách chọn: thử 24 điểm rải quanh chiến trường, giữ điểm nào
 
 Lều không được dựng ở nơi một khối quân đứng hay đi qua. Vì `camp-force` và `roman-cavalry` xuất phát từ trong trại lớn và đi chéo qua trại, góc tây nam của trại lớn gần như không có lều. Ba khối đồng minh xuất phát từ nửa nam của trại nhỏ, nên nửa đó cũng thưa lều.
 
+Từ T-045 (mục 17) các khối ra vào qua cổng. Phần đất không được dựng lều: trại lớn 6,1% (trước 34,6%), trại nhỏ 14,4% (trước 29,8%), trại của Hannibal 3,7% (trước 0%, nay có toán giữ trại đứng ở cổng).
+
 ### Còn lại
 
-- Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại thì trại lớn mới đầy lều.
-- Khối quân Carthage giữ trại của Hannibal (Polybius 3.117) vẫn chưa có.
+- ~~Sửa đường ra của `camp-force` và `roman-cavalry` cho qua đúng cổng trại thì trại lớn mới đầy lều.~~ Đã sửa ở T-045.
+- ~~Khối quân Carthage giữ trại của Hannibal (Polybius 3.117) vẫn chưa có.~~ Đã thêm ở T-045.
 - Câu về lều da cần một nguồn dẫn được trước khi đưa vào ghi chú cho người xem.
 
 ### Sửa sau khi người dùng xem (T-039)
@@ -536,3 +557,101 @@ Không cây nào đứng ở chỗ quân đứng hay đi qua (cây lùi 55 m so 
 Ngày 2026-11-18 người dùng chọn vẽ mặt đất **xanh tươi như ảnh mẫu**, dù biết trái mùa. `ground.cover` đổi từ `stubble` sang `grass`, mức căn cứ đổi từ `inferred` sang `illustrative`, và ghi chú nói rõ: theo Polybius (3.110) và Livy (22.43), ngày diễn ra trận đánh nơi đây là ruộng đã gặt và cỏ khô; cảnh vẽ xanh là lựa chọn cho vẻ ngoài. Bảng ở mục 12 ghi lớp phủ cũ. Hộp thoại Giới thiệu nói điều này trong dòng về cảnh vật (`about.accuracy.battle.scenery`).
 
 Phần hỗn chiến ở các hàng sau và lao ném qua đầu hàng trước (T-043) không có trong dữ liệu trận: cảnh tự vẽ, và dòng `about.accuracy.battle.duels` của hộp thoại Giới thiệu nói đó là minh hoạ.
+
+## 17. Quân giữ trại của Hannibal và đường ra vào trại (T-045)
+
+Hai việc dở ghi ở mục 12 và 14: trại của Hannibal không có người giữ, và các khối quân đi chéo qua trại lớn nên trại thiếu lều.
+
+### Nguồn đã đọc (2026-11-19)
+
+| Nguồn | Nói gì về toán giữ trại và cuộc đánh trại |
+|---|---|
+| Polybius 3.117 (bản Paton) | Paullus để 10 000 bộ binh ở trại của ông (trại lớn), tính rằng nếu Hannibal dồn hết quân ra trận mà bỏ trống trại thì họ vào lấy hành lý, còn nếu ông để nhiều quân giữ trại thì quân ra trận của ông ít đi. Trận vừa bắt đầu, họ đánh vào trại Hannibal như đã được lệnh. Hannibal có để lại một toán đủ sức giữ trại, nhưng Polybius không nói bao nhiêu người hay là quân gì. Toán này lúc đầu trụ được, rồi bắt đầu núng; đúng lúc ấy Hannibal, đã thắng trên khắp chiến trường, kéo tới giúp, đánh tan quân La Mã và dồn họ vào trại của họ, giết 2 000 người, sau đó bắt hết số còn lại. Ở đầu chương Polybius ghi khoảng 10 000 bộ binh bị bắt khi đang đánh nhưng không ở trận chính; con số này không khớp hẳn với 10 000 trừ 2 000 bị giết |
+| Polybius 3.113–114 | Hannibal cho lính ném đá và lính giáo vượt sông trước, rồi dẫn phần quân còn lại ra khỏi trại, vượt sông ở hai chỗ; không nói ông để lại ai. Con số khoảng 10 000 kỵ binh và hơn 40 000 bộ binh một chút nằm ngay trong đoạn tả thế trận |
+| Livy 22.41–52 | Không nhắc cuộc đánh trại Hannibal hay toán giữ trại. Sau trận: 7 000 người chạy vào trại nhỏ, 10 000 vào trại lớn, chừng 2 000 vào làng Cannae (22.49). Đêm đó một toán do Sempronius Tuditanus dẫn phá vây từ trại nhỏ sang trại lớn rồi về Canusium (22.50). Hôm sau Hannibal chặn đường lấy nước của trại nhỏ và trại này đầu hàng; khoảng 4 000 bộ binh và 200 kỵ binh từ trại lớn thoát về Canusium, số còn lại nộp trại lớn với cùng điều kiện (22.52) |
+| Appian, *Hannibalica* 17–28 | Không nhắc toán quân ở lại trại hay cuộc đánh trại Hannibal. Sau trận chừng 15 000 người chạy vào hai trại (24); khoảng 10 000 người ở trại lớn nửa đêm phá vây về Canusium, 5 000 người ở trại nhỏ bị bắt hôm sau (26) |
+| Plutarch, *Fabius* 16.8 | Sau trận có không dưới 10 000 người bị bắt ở hai trại của hai chấp chính quan. Không nhắc cuộc đánh trại |
+| Cassius Dio, sách 15 (bản Zonaras) | Không nhắc |
+| Bài "Battle of Cannae" trên Wikipedia, mục "Armies" (đọc văn bản gốc của bài) | Bộ binh của Hannibal: 8 000 Libya, 5 500 Gaetuli, 16 000 Gaul (chủ yếu người Boii và Insubres, kèm chú thích rằng 8 000 người ở lại trại hôm giao chiến), 8 000 người các tộc ở Hispania; dẫn Daly (2002), tr. 94. Câu này không nói rõ 8 000 người ở trại nằm trong hay ngoài 16 000. Tôi chưa đọc được sách của Daly. Ô thông tin của chính bài đó ghi 21 000 Gaul, không dẫn nguồn |
+
+Tóm lại: chỉ Polybius kể cuộc đánh trại. Các nguồn khác không nhắc, nhưng cũng không nói điều gì trái với nó.
+
+### Quyết định
+
+- **Khối `camp-guard`** ("Quân giữ trại của Hannibal", tiếng Anh "Guard of Hannibal's camp"), loại `gallic-infantry` có sẵn, mô hình `gallic-infantry`; không thêm loại lính. Lý do chọn lính Gaul: ước lượng hiện đại duy nhất tìm được (Daly, qua Wikipedia) nói toán ở lại trại là lính Gaul. Ngoài ra, kỵ binh, lính Libya, lính Iberia và lính nhẹ đều được Polybius 3.113–116 tả là có mặt trên chiến trường.
+- **8 000 người**, giả định, theo con số của Daly. Polybius chỉ nói toán này đủ sức giữ trại và trụ được một lúc trước 10 000 quân La Mã.
+- **Ngoài 50 000.** Polybius 3.114 và Livy 22.46 đưa con số 40 000 bộ binh và 10 000 kỵ binh trong đoạn tả thế trận, nên coi đó là quân ra trận; các đơn vị ra trận trong file cộng đúng 50 000. Toán giữ trại cộng thêm: `strength` của Carthage đổi từ 50 000 thành 50 000–58 000, `note` nói rõ con số cao hơn là giả định. Nếu đọc câu của Daly theo nghĩa 8 000 người ở trại nằm trong 16 000 Gaul, thì số Gaul ra trận chỉ còn 8 000, khác với bảng ở mục 5. Tôi không đổi bảng đó, vì chưa đọc được Daly, và vì Polybius đặt con số 50 000 trong thế trận.
+- **`uncertainty`** của file trận thêm một câu: Polybius nói có toán giữ trại nhưng không cho quân số; quân số và thành phần là theo một ước lượng hiện đại. Ghi chú (`evidence.note`) của trại Hannibal thêm vế "trong lúc toán quân ông để lại giữ trại".
+- **Đánh ở cổng.** Trại Hannibal quay mặt về đông (`facing` 90), nên cổng chính ở giữa mặt đông, khoảng (−3475, −500), quay về phía quân La Mã tới từ trại lớn. Toán giữ trại đứng ngay trong cổng, mặt quay ra; quân La Mã đứng ngoài, mặt quay vào. Bề ngang 200 m: hẹp hơn mặt trại nhiều, nên nhìn vào thấy một khoảng trống giữa các lều ở mép trại, hai bên đánh nhau ở đó. Cảnh không vẽ luỹ và cổng (mục 14).
+- **Diễn biến theo Polybius 3.117.** Giai đoạn 2: quân La Mã tới cổng (Polybius: họ đánh khi trận bắt đầu). Giai đoạn 3–4: toán giữ trại trụ được, đường giáp chiến đứng yên ở cổng (giai đoạn 4 lùi 10 m). Giai đoạn 5: toán giữ trại núng thế, bị đẩy lùi 40 m vào trong trại. Giai đoạn 6: Hannibal kéo về giải vây; quân La Mã quay đầu, rút về trại lớn qua cổng và mất 2 000 người. Lời dẫn nói Hannibal về giải vây, nhưng cảnh không có khối nào đi từ chiến trường về trại, vì mọi khối của Hannibal đang vây quân La Mã suốt giai đoạn 6. Thay vào đó toán giữ trại đuổi theo 450 m. Chi tiết đuổi theo là suy ra, nguồn không nói.
+- **Thương vong ở cổng**, giả định: quân La Mã mất 200 người mỗi giai đoạn (10 000 còn 9 400 ở mốc 5); toán giữ trại mất 300, 400, 600 (8 000 còn 6 700), nhiều dần khi bị ép. Giai đoạn 6 quân La Mã còn 7 400; toán giữ trại không mất thêm.
+- **Ra vào qua cổng.** Cảnh dời khối quân theo đường thẳng giữa hai mốc, nên các khối bắt đầu ngay sau cổng, đi thẳng ra, và mốc cuối giai đoạn 6 của `camp-force` nằm ngay sau cổng trên đường thẳng từ cổng trại Hannibal. Trại lớn và trại nhỏ cùng quay mặt về nam, cổng chính ở giữa mặt nam: (−1600, 775) và (250, 825). Polybius 3.113 chỉ nói Varro đưa quân từ hai trại ra; không nguồn nào nói họ ra cổng nào.
+- **Kỵ binh La Mã tháo chạy** (giai đoạn 4–5) lên phía bắc giữa trại lớn và sông, không chạy qua trại. Nguồn chỉ nói họ bị đánh tan và bị giết dọc bờ sông (Polybius 3.115–116, Livy 22.47); cả đường cũ lẫn đường mới đều là giả định.
+- Lời dẫn các giai đoạn 1, 2, 3, 5, 6 (cả `en` và `vi`) nói tới toán giữ trại và cổng trại. Mũi tên của giai đoạn 1, 2, 4, 6 vẽ lại theo đường mới; thêm một mũi tên cho toán giữ trại đuổi theo ở giai đoạn 6.
+
+### Vị trí
+
+Các khối đánh nhau ở cổng do `scripts/battles/cannae-lines.mjs` dựng (mốc 2–6, mục 11); `initial`, mốc 1 và đường tháo chạy của kỵ binh La Mã sửa tay.
+
+| Khối | Mốc | Trước | Sau |
+|---|---|---|---|
+| `camp-force` | đầu trận | (−1600, 1250), 220 × 220, hướng 180 | (−1600, 975), 140 × 110, hướng 180, sau cổng trại lớn |
+| | 1 | như đầu trận, `stand` | (−1600, 680), hướng 225, ngay ngoài cổng, `advance` |
+| | 2 | (−2900, 0), `advance` | (−3419,2, −500), 200 × 110, hướng 270, ở cổng trại Hannibal |
+| | 3, 4, 5 | (−3250, −260) rồi (−3300, −300), `skirmish`, 9 500, 9 000, 8 500 | Ở cổng, lùi 0, 10, 40 m vào trong trại; `fight`, 9 800, 9 600, 9 400 |
+| | 6 | (−1700, 1050), 300 × 200, hướng 45, 8 000 | (−1542,3, 814,6), 120 × 120, hướng 55,6, ngay sau cổng trại lớn; 7 400 |
+| `camp-guard` | đầu trận đến 2 | | (−3515,7, −500), 200 × 80, hướng 90, ngay trong cổng, `stand`, 8 000 |
+| | 3, 4, 5 | | Lùi 0, 10, 40 m; `fight`, 7 700, 7 300, 6 700 |
+| | 6 | | (−3184,6, −245,5), hướng 55,6, `pursue`, 6 700 |
+| `roman-cavalry` | đầu trận | (−1200, 1080), 300 × 70, hướng 180 | (−1570, 850), 160 × 90, hướng 160, sau cổng trại lớn |
+| | 4 | (−1180, 820), trong góc đông nam của trại | (−850, 920), giữa trại và sông |
+| | 5 | (−1150, 1120), trong trại | (−800, 1200), giữa trại và sông |
+| `allied-light-infantry`, `allied-infantry-front`, `allied-infantry-rear` | đầu trận | (225, 910 / 1050 / 1105), rộng 450 | Ba khối nối nhau thành cột sau cổng trại nhỏ: (250, 851 / 920 / 1010), rộng 220, sâu 41 / 82 / 82 (cùng mật độ) |
+
+Hướng 160 của kỵ binh La Mã lúc đầu trận: từ cổng trại lớn tới chỗ dàn trận bên sông, khối đi về hướng đông nam (khoảng 134°). Đứng hướng 180 thì cả giai đoạn 1 đi lệch hướng mặt 46°, `check-facing.mjs` báo; quay sẵn 20° thì không.
+
+### Số đo
+
+Phần đất mỗi trại không được dựng lều, đo bằng `E:\World_History_Platform_assets\T-045\tools\camp-occupancy.mjs` (bản sao của `occupancy` trong `structures.ts`):
+
+| Trại | Trước | Sau |
+|---|---|---|
+| `roman-large-camp` | 34,6% | 6,1% |
+| `roman-small-camp` | 29,8% | 14,4% |
+| `hannibal-camp` | 0,0% | 3,7% |
+
+- Trại lớn còn 6,1%: chỗ hai khối đứng lúc đầu trận sau cổng, và phần `camp-force` đi vào qua cổng rồi đứng lại ở cuối trận.
+- Trại nhỏ còn 14,4%: ba khối đồng minh vừa đi vừa giãn bề ngang từ 220 m lên 750 m, nên phần đất chúng đi qua trong trại loe ra như hình thang. Muốn hẹp hơn thì khối phải ra hẳn khỏi trại rồi mới giãn, tức cần thêm một mốc giữa giai đoạn 1.
+- Trại Hannibal 3,7%: chỗ toán giữ trại đứng và bị đẩy lùi.
+
+Kiểm tra:
+
+- `npm run validate` qua, không còn cảnh báo. Kiểm tra `fight` (mép trước chạm nhau ở mốc đầu và mốc cuối) qua ở giai đoạn 3, 4, 5 cho cả hai khối.
+- `check-overlap.mjs --min 0.04`: in đúng như trước T-045. Chạy lại với bước 0,02 giai đoạn và ngưỡng 0,01%: không cặp nào có `camp-force`, `camp-guard`, `roman-cavalry` hay ba khối đồng minh chồng lên nhau trong giai đoạn 1, tức không khối nào đi xuyên khối khác lúc ra cổng. Suốt trận, `camp-force`, `camp-guard` và `roman-cavalry` không chồng lên khối nào; ba khối đồng minh chỉ còn những chỗ chồng có từ trước, từ giai đoạn 3 (mục 9 và 11).
+- `check-facing.mjs`: thêm hai dòng, `camp-guard` ở giai đoạn 4 và 5 đi lùi (10 m và 30 m) khi bị đẩy vào trại. Đi lùi lúc giao chiến là có chủ ý, như lưỡi liềm (mục 10).
+- Tốc độ (quãng đường chia cho giờ của giai đoạn): `camp-force` đi 2 168 m ở giai đoạn 2, 0,60 m/s (trước 0,5 m/s, mục 9); rút về 2 324 m ở giai đoạn 6, 0,14 m/s. Kỵ binh La Mã tháo chạy 796 m ở giai đoạn 4, 0,18 m/s.
+- Không khối nào đứng trong nước sông ở một mốc. Đường đi của `camp-force` ở giai đoạn 2 và 6 không cắt sông; kỵ binh La Mã vẫn lội sông ở giai đoạn 1 và 4 như trước.
+
+### Xem trong cảnh
+
+`/battle-lab` (cả `?lang=vi`), dev server ở cổng 3102. Ảnh trước và sau ở `E:\World_History_Platform_assets\duyet\T-045\`, chụp bằng `s-scenery.mjs` của phiên chính, mỗi cặp cùng góc nhìn:
+
+| Ảnh | Thời điểm | Góc |
+|---|---|---|
+| `01-trai-lon-tren-cao-dau-tran` | Đầu trận | Trại lớn từ trên cao |
+| `02-trai-nho-tren-cao-dau-tran` | Đầu trận | Trại nhỏ từ trên cao |
+| `03-cong-trai-lon-dau-tran` | Đầu trận | Cổng trại lớn |
+| `04-ra-cong-trai-lon-giua-giai-doan-1` | Giữa giai đoạn 1 | Các khối ra cổng trại lớn |
+| `05-cua-trai-hannibal-can-canh-giua-giai-doan-4` | Giữa giai đoạn 4 | Cận cảnh hàng đầu hai bên ở cổng trại Hannibal |
+| `06-cua-trai-hannibal-tam-trung-giua-giai-doan-4` | Giữa giai đoạn 4 | Tầm trung, thấy lều sau lưng toán giữ trại |
+| `07-trai-hannibal-tren-cao-giua-giai-doan-4` | Giữa giai đoạn 4 | Trại Hannibal từ trên cao |
+| `08-rut-ve-giua-giai-doan-6` | Giữa giai đoạn 6 | Quân La Mã rút về, toán giữ trại đuổi theo |
+| `09-ve-cong-trai-lon-cuoi-giai-doan-6` | Cuối giai đoạn 6 | Quân La Mã vào lại cổng trại lớn |
+
+Hàng đầu hai bên ở cổng trại Hannibal đấu từng cặp; có người ngã và lao ném qua đầu các hàng trước. Console không có lỗi. Khi phát, cảnh chạy 56–73 khung hình/giây ở 1280×800 (máy có card RTX 3050).
+
+### Còn lại
+
+- Con số 8 000 của Daly mới đọc qua Wikipedia, chưa đối chiếu với sách. Nếu đọc được sách thì nên xem lại cả câu "8 000 người ở trại nằm trong hay ngoài 16 000 Gaul" (ở trên) lẫn bảng chia quân ở mục 5.
+- Trại không vẽ luỹ và cổng: chỗ đánh nhau chỉ đọc ra là cổng trại nhờ khoảng trống trong lều.
+- Hộp thoại Giới thiệu chưa nói toán giữ trại là phỏng dựng; đề nghị câu chữ ở mục "Kết quả" của `docs/tasks/T-045-camp-guard.md`.
