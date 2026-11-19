@@ -2,7 +2,7 @@
 
 - **Lane:** 2
 - **Model đề xuất:** Opus 5.5, effort `high`.
-- **Nhánh:** `lane2/T-051-trasimene-stage0` (phiên chính đã tạo sẵn trong worktree của bạn: nối tiếp nhánh `lane2/T-049-cavalry-split`, đã gộp `main` vào để có file này, sự kiện mới và phần hợp đồng hồ, sương mù)
+- **Nhánh:** `lane2/T-051-trasimene-stage0` (phiên chính đã tạo sẵn trong worktree của bạn và gộp `main` mới nhất vào: có file này, sự kiện mới, phần hợp đồng hồ và sương mù, cùng T-049 và T-050)
 - **Phạm vi file:**
   - `docs/data/battles/` (file mới `trasimene.md`);
   - `scripts/battles/` (`build-terrain.mjs`, `validate-battles.mjs`);
@@ -11,7 +11,7 @@
 
 ## Bối cảnh
 
-T-049 của bạn đã được phiên chính review và đạt; người dùng chọn **chờ T-050 (mô hình kỵ binh Gaul, lane 1) rồi gộp cả hai cùng lúc**, nên T-049 chưa vào `main`. Nhánh của task này vì thế chứa cả T-049. Đừng sửa thêm dữ liệu Cannae ở đây.
+T-049 của bạn và T-050 (mô hình kỵ binh Gaul, lane 1) đã gộp vào `main` ngày 2026-11-19: loại lính `iberian-cavalry` và `gallic-cavalry` đều có mô hình riêng. Đừng sửa thêm dữ liệu Cannae ở task này.
 
 Người dùng duyệt **đợt K: trận 3D thứ hai, hồ Trasimene (217 TCN)** (`docs/PLAN.md`, mục "Đợt K"). Lý do chọn: cùng hai đạo quân với Cannae một năm trước đó, nên **không dựng mô hình mới**; việc mới là dữ liệu, địa hình có hồ và đồi, sương mù. Đợt này thử xem trận thứ hai có đúng là chỉ thêm dữ liệu không.
 

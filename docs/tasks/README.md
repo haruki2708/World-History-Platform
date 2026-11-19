@@ -69,4 +69,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-048](T-048-dust-wind.md) | Phiên chính | Trận đánh 3D, đợt J (chặng 4 của đợt H): bụi theo khối quân và kỵ binh, trôi theo gió Volturnus | Xong, đã gộp 2026-11-19 (người dùng chuyển từ lane 3; không có lane đọc lại) |
 | [T-049](T-049-cavalry-split.md) | 2 | Trận đánh 3D: tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (loại lính, khối quân, lời dẫn) | Xong, đã gộp 2026-11-19 (cùng T-050) |
 | [T-050](T-050-gallic-cavalry.md) | 1 | Trận đánh 3D: mô hình kỵ binh Gaul (`gallic-cavalry`), người dùng xem ảnh render trước | Xong, đã gộp 2026-11-19 (cùng T-049) |
-| [T-051](T-051-trasimene-stage0.md) | 2 | Trận hồ Trasimene (đợt K), chặng 0: tư liệu, vị trí, bảng đơn vị, lưới độ cao, kiểm tra hồ và sương mù | Đã giao 2026-11-19 (nhánh nối tiếp T-049) |
+| [T-051](T-051-trasimene-stage0.md) | 2 | Trận hồ Trasimene (đợt K), chặng 0: tư liệu, vị trí, bảng đơn vị, lưới độ cao, kiểm tra hồ và sương mù | Đã giao 2026-11-19 |

@@ -110,6 +110,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Phiên chính kiểm tra trên bản gộp thử T-049 cùng T-050: validate (hết cảnh báo mô hình không có loại lính), lint, `tutor:check`, build qua; hồi quy lõi 17/17; lúc phát 65–68 khung hình/giây khi máy rảnh. Việc "clip giống hệt" và "dựng lại ra đúng từng byte" là theo báo cáo của lane 1; phiên chính không chạy lại Blender lần này (máy thiếu RAM).
   - Sửa khi gộp: trận thử `?duel=1` dùng `iberian-cavalry` và có thêm cặp thứ bảy với `gallic-cavalry`; ARCHITECTURE ghi bốn mô hình kỵ binh; README ghi công thêm kỵ binh Gaul.
   - Người dùng duyệt gộp cả hai. Còn thấy được: ống quần kỵ binh Gaul lọt vào thân ngựa tối đa 2 cm; tóc nhìn từ sau hơi thành một khối; cách chia 2 000/4 000 chưa đối chiếu được với sách.
+- **2026-11-19:** Kiểm tra lại: câu giao [T-051](tasks/T-051-trasimene-stage0.md) chưa được dán vào lane 2 (nhánh không có commit nào). Phiên chính sửa phần bối cảnh của task (T-049, T-050 đã gộp), gộp `main` vào nhánh của lane 2 và đưa lại câu giao việc.
 
 ## Việc để giai đoạn 5
 
