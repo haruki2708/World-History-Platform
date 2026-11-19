@@ -95,7 +95,7 @@ Số nguyên, âm là TCN, không có năm 0. Phạm vi MVP: `-509` đến `-27`
 
 ### Bản đồ nền
 
-`public/map/basemap.json`: biển, hồ và sông từ Natural Earth (phạm vi công cộng), không có yếu tố hiện đại. Nguồn và cách tạo lại xem `public/map/README.md`. Màu đất, biển và đường bờ lấy từ token `--map-land`, `--map-water`, `--map-coast` trong `globals.css`.
+`public/map/basemap.json`: biển, hồ và sông từ Natural Earth (phạm vi công cộng), không có yếu tố hiện đại. Riêng bờ hồ Trasimene lấy từ đường bao `terrain.lakes` trong file trận (Copernicus DEM, T-056): script dựng đọc thẳng file trận, nên sửa bờ hồ trong file trận thì dựng lại `basemap.json`. Nguồn và cách tạo lại xem `public/map/README.md`. Màu đất, biển và đường bờ lấy từ token `--map-land`, `--map-water`, `--map-coast` trong `globals.css`.
 
 ### Kiểm tra dữ liệu
 

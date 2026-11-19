@@ -85,7 +85,7 @@ const en = {
   "about.credits.data": "Data",
   "about.credits.paper": "Paper",
   "about.credits.basemap":
-    "Base map (sea, lakes and rivers): {link}, public domain.",
+    "Base map (sea, lakes and rivers): {link}, public domain. Lake Trasimene's shore is traced from the Copernicus DEM, credited under 3D battles below.",
   "about.credits.events":
     "Events: summaries written for this project. Each event cites its own sources, mostly ancient authors such as Livy, Polybius, Plutarch and Appian, most with a link to a translation or reference page online.",
   "about.credits.battles": "3D battles:",
@@ -369,7 +369,7 @@ const vi: Record<MessageKey, string> = {
   "about.credits.data": "Dữ liệu",
   "about.credits.paper": "Bài báo",
   "about.credits.basemap":
-    "Bản đồ nền (biển, hồ, sông): {link}, phạm vi công cộng.",
+    "Bản đồ nền (biển, hồ, sông): {link}, phạm vi công cộng. Bờ hồ Trasimene dò theo Copernicus DEM, ghi công ở mục Trận đánh 3D bên dưới.",
   "about.credits.events":
     "Sự kiện: tóm tắt tự viết cho dự án. Mỗi sự kiện dẫn nguồn riêng, chủ yếu là sử liệu cổ như Livy, Polybius, Plutarch, Appian; phần lớn có link tới bản dịch hoặc bài tham khảo trực tuyến.",
   "about.credits.battles": "Trận đánh 3D:",

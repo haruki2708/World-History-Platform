@@ -37,7 +37,7 @@ Toạ độ là vị trí của địa danh cổ theo hiểu biết phổ thông
 
 ## Bản đồ nền
 
-Xem `public/map/README.md` (Natural Earth, phạm vi công cộng).
+Xem `public/map/README.md` (Natural Earth, phạm vi công cộng). Riêng bờ hồ Trasimene lấy từ đường bao trong file trận, dò theo mặt nạ nước của Copernicus DEM GLO-30 (`docs/data/battles/trasimene.md`), nên theo cùng giấy phép và lời ghi công với địa hình trận đánh (T-056).
 
 ## Biên giới (T-004)
 
