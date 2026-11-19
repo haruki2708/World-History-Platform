@@ -1,13 +1,13 @@
-// Tests the lake and mist checks of validate-battles.mjs (T-051): builds a
-// small battle on the ground of Lake Trasimene, breaks it in one way per case,
-// and runs the validator on it from a temporary folder, so src/data/battles/
-// is never touched. Not part of `npm run validate`.
+// Tests the lake and mist checks of validate-battles.mjs (T-051), and those of
+// the lake's islands and of units lying in ambush (T-052): builds a small
+// battle on the ground of Lake Trasimene, breaks it in one way per case, and
+// runs the validator on it from a temporary folder, so src/data/battles/ is
+// never touched. Not part of `npm run validate`.
 //
 //   node scripts/battles/test-lake-checks.mjs
 //
-// The ground is the draft terrain in docs/data/battles/trasimene-terrain.json
-// until the battle file src/data/battles/battle-of-lake-trasimene.json exists,
-// then that file's terrain.
+// The ground is the terrain of src/data/battles/battle-of-lake-trasimene.json:
+// the lake with its three islands (Polvese, Maggiore, Minore).
 
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -21,6 +21,9 @@ const terrain = existsSync(battlePath)
   ? JSON.parse(readFileSync(battlePath, "utf8")).terrain
   : JSON.parse(readFileSync(join(root, "docs", "data", "battles", "trasimene-terrain.json"), "utf8"));
 if (!terrain.lakes?.length) throw new Error("the terrain has no lake to test against");
+// Isola Maggiore, the second island: 22.8 ha, 2.7–3.2 km east of the origin, 1.2 km out from the Tuoro shore.
+if (terrain.lakes[0].islands?.length !== 3) throw new Error("the lake should have three islands: Polvese, Maggiore, Minore");
+const rectangle = (x0, x1, y0, y1) => [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }];
 
 const evidence = { basis: "illustrative", note: { en: "Test.", vi: "Thử." } };
 const unit = (id, side, type, men) => ({ id, side, type, name: { en: id, vi: id }, men });
@@ -102,6 +105,53 @@ const cases = [
   ["mist clears as the battle starts", (b) => (b.terrain.scenery.mist.clearsAt = 4.5), "clearsAt 4.5 must fall within the battle"],
   ["mist clears after the end", (b) => (b.terrain.scenery.mist.clearsAt = 10), "clearsAt 10 must fall within the battle"],
   ["mist without evidence", (b) => delete b.terrain.scenery.mist.evidence, "mist.evidence: needs evidence"],
+
+  // Islands (BattleLake.islands): ground on one is not in the lake.
+  ["passes: a landmark on Isola Maggiore", (b) => b.terrain.landmarks.push({ name: { en: "Isle", vi: "Đảo" }, kind: "other", point: { x: 2961, y: -2739 } }), null],
+  ["passes: a farm on Isola Maggiore", (b) => b.terrain.scenery.structures.push({ id: "isle-farm", kind: "farm", center: { x: 2961, y: -2739 }, width: 60, depth: 40, facing: 0, evidence }), null],
+  ["passes: a unit wading 55–100 m off Maggiore, 1.2 km from the lake's shore", (b) => (b.phases[1].units[0] = state("romans", 2930, -2290, 1500, "rout", 0)), null],
+  ["the same unit with no islands is too far out", (b) => {
+    delete b.terrain.lakes[0].islands;
+    b.phases[1].units[0] = state("romans", 2930, -2290, 1500, "rout", 0);
+  }, "men wade no farther out than 150 m"],
+  ["passes: the grid's median leaves out an island of high ground", (b) => {
+    b.terrain.lakes[0].outline = rectangle(200, 1300, -1500, 1600);
+    b.terrain.lakes[0].islands = [rectangle(220, 1280, -1040, 1580)];
+  }, null],
+  ["the same shore without the island: median on dry ground (warning)", (b) => {
+    b.terrain.lakes[0].outline = rectangle(200, 1300, -1500, 1600);
+    delete b.terrain.lakes[0].islands;
+  }, "the grid over the water (inside the shore, off the islands) lies at"],
+  ["islands is not a list", (b) => (b.terrain.lakes[0].islands = { x: 0, y: 0 }), "islands: must be a list of outlines"],
+  ["island of two points", (b) => (b.terrain.lakes[0].islands[1] = b.terrain.lakes[0].islands[1].slice(0, 2)), "islands[1]: needs at least three points"],
+  ["island point without x", (b) => delete b.terrain.lakes[0].islands[1][3].x, "islands[1]: needs at least three points"],
+  ["island on a straight line", (b) => (b.terrain.lakes[0].islands[2] = [{ x: 3800, y: -2300 }, { x: 3810, y: -2310 }, { x: 3820, y: -2320 }]), "islands[2]: encloses no ground"],
+  ["island on dry land", (b) => b.terrain.lakes[0].islands.push(rectangle(-100, 100, 900, 1100)), "islands[3]: must lie inside the shore"],
+  ["island across the shore", (b) => b.terrain.lakes[0].islands.push(rectangle(400, 600, -1200, -900)), "islands[3]: must lie inside the shore"],
+  ["island with its corners in the water, its sides across a headland", (b) => b.terrain.lakes[0].islands.push(rectangle(1100, 1900, -1800, -1300)), "islands[3]: must lie inside the shore"],
+  ["two islands overlap", (b) => b.terrain.lakes[0].islands.push(structuredClone(b.terrain.lakes[0].islands[2])), "islands[3]: overlaps the island islands[2]"],
+  ["an island inside another", (b) => b.terrain.lakes[0].islands.push([{ x: 2900, y: -2700 }, { x: 3000, y: -2700 }, { x: 2950, y: -2650 }]), "islands[3]: overlaps the island islands[1]"],
+
+  // Units lying in ambush (UnitState.concealed).
+  ["passes: Gauls concealed at the start and through phase 1, out in phase 2", (b) => {
+    b.initial[1].concealed = true;
+    b.phases[0].units[1].concealed = true;
+    b.phases[1].arrows = [{ side: "carthage", points: [{ x: 300, y: 0 }, { x: 300, y: -650 }] }];
+  }, null],
+  ["concealed is a string", (b) => (b.phases[0].units[1].concealed = "yes"), "concealed must be true or false"],
+  ["concealed while fighting", (b) => {
+    b.phases[0].units[1].concealed = true;
+    b.phases[0].units[1].action = "fight";
+  }, "gauls is concealed, lying in wait, so it cannot fight"],
+  ["concealed while skirmishing", (b) => {
+    b.initial[1].concealed = true;
+    b.initial[1].action = "skirmish";
+  }, "gauls is concealed, lying in wait, so it cannot skirmish"],
+  ["an arrow points out a hidden unit (warning)", (b) => {
+    b.initial[1].concealed = true;
+    b.phases[0].units[1].concealed = true;
+    b.phases[0].arrows = [{ side: "carthage", points: [{ x: 0, y: 1500 }, { x: 300, y: 0 }] }];
+  }, "warning: battle-of-lake-trasimene.json.phases[0].arrows[0]: starts or ends on gauls"],
 ];
 
 const dir = mkdtempSync(join(tmpdir(), "whp-lake-checks-"));

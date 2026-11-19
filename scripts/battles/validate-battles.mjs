@@ -161,6 +161,38 @@ function distanceToOutline(p, outline) {
   return best;
 }
 
+/** True when the segments ab and cd cross or touch. */
+function segmentsMeet(a, b, c, d) {
+  const side = (p, q, r) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x));
+  const within = (p, q, r) => Math.min(p.x, q.x) <= r.x && r.x <= Math.max(p.x, q.x) && Math.min(p.y, q.y) <= r.y && r.y <= Math.max(p.y, q.y);
+  const d1 = side(c, d, a);
+  const d2 = side(c, d, b);
+  const d3 = side(a, b, c);
+  const d4 = side(a, b, d);
+  if (d1 !== d2 && d3 !== d4 && d1 !== 0 && d2 !== 0 && d3 !== 0 && d4 !== 0) return true;
+  return (d1 === 0 && within(c, d, a)) || (d2 === 0 && within(c, d, b)) || (d3 === 0 && within(a, b, c)) || (d4 === 0 && within(a, b, d));
+}
+
+/** True when a side of one closed outline crosses or touches a side of the other. */
+function outlinesMeet(p, q) {
+  for (let i = 0; i < p.length; i++) {
+    for (let j = 0; j < q.length; j++) {
+      if (segmentsMeet(p[i], p[(i + 1) % p.length], q[j], q[(j + 1) % q.length])) return true;
+    }
+  }
+  return false;
+}
+
+/** True when the point lies on the water of a lake: inside its shore and on none of its islands. */
+function inLake(p, lake) {
+  return insideOutline(p, lake.outline) && !(lake.islands ?? []).some((island) => insideOutline(p, island));
+}
+
+/** Distance from a point in a lake to its nearest shore, the islands' shores included, metres. */
+function distanceToShore(p, lake) {
+  return Math.min(distanceToOutline(p, lake.outline), ...(lake.islands ?? []).map((island) => distanceToOutline(p, island)));
+}
+
 /** Points over a rectangle from corners(): `across` × `ahead` of them, the corners included. */
 function samplePoints(r, across, ahead) {
   const out = [];
@@ -175,9 +207,49 @@ function samplePoints(r, across, ahead) {
 }
 
 /**
+ * BattleLake.islands: each a closed outline of three or more points that
+ * encloses ground, inside the lake's shore, clear of the other islands.
+ * Returns the islands the checks that follow can use.
+ */
+function checkIslands(at, lake, shoreUsable) {
+  if (lake.islands === undefined) return [];
+  if (!Array.isArray(lake.islands)) {
+    fail(`${at}.islands`, "must be a list of outlines (leave it out when there are none)");
+    return [];
+  }
+  const usable = [];
+  for (const [i, island] of lake.islands.entries()) {
+    const islandAt = `${at}.islands[${i}]`;
+    if (!Array.isArray(island) || island.length < 3 || !island.every((p) => isNumber(p?.x) && isNumber(p?.y))) {
+      fail(islandAt, "needs at least three points, each with numbers x and y");
+      continue;
+    }
+    if (Math.abs(outlineArea2(island)) < 2) {
+      fail(islandAt, "encloses no ground");
+      continue;
+    }
+    if (shoreUsable && (!island.every((p) => insideOutline(p, lake.outline)) || outlinesMeet(island, lake.outline))) {
+      fail(islandAt, "must lie inside the shore of the lake (outline)");
+      continue;
+    }
+    const other = usable.findIndex(
+      (u) => outlinesMeet(island, u.island) || island.some((p) => insideOutline(p, u.island)) || u.island.some((p) => insideOutline(p, island)),
+    );
+    if (other !== -1) {
+      fail(islandAt, `overlaps the island islands[${usable[other].index}]`);
+      continue;
+    }
+    usable.push({ island, index: i });
+  }
+  return usable.map((u) => u.island);
+}
+
+/**
  * BattleTerrain.lakes: standing water above sea level. Returns the lakes
  * whose level and outline can be used by the checks that follow (nothing is
- * built or named in a lake; units wade no farther than LAKE_WADE from the shore).
+ * built or named in a lake; units wade no farther than LAKE_WADE from the
+ * shore), each with only its usable islands. Ground on an island is not in
+ * the lake.
  */
 function checkLakes(where, t) {
   if (t.lakes === undefined) return [];
@@ -198,8 +270,9 @@ function checkLakes(where, t) {
     const points = Array.isArray(outline) && outline.length >= 3 && outline.every((p) => isNumber(p?.x) && isNumber(p?.y));
     if (!points) fail(at, "outline needs at least three points, each with numbers x and y");
     else if (Math.abs(outlineArea2(outline)) < 2) fail(at, "outline encloses no water");
+    const islands = checkIslands(at, lake ?? {}, points);
     checkEvidence(`${at}.evidence`, lake?.evidence);
-    if (points && isNumber(lake.level)) usable.push(lake);
+    if (points && isNumber(lake.level)) usable.push({ ...lake, islands });
   }
   return usable;
 }
@@ -506,16 +579,17 @@ for (const path of battlePaths) {
     if (share > 0) fail(`${terrainWhere}.scenery.structures[${i}]`, `${Math.round(share * 100)}% of it lies in the sea`);
     for (const lake of lakes) {
       const points = samplePoints(rectangle, 9, 5);
-      const wet = points.filter((p) => insideOutline(p, lake.outline)).length;
+      const wet = points.filter((p) => inLake(p, lake)).length;
       if (wet > 0) fail(`${terrainWhere}.scenery.structures[${i}]`, `${Math.round((wet / points.length) * 100)}% of it lies in the lake ${lake.id}`);
     }
   }
 
-  // Lakes: nothing is named in one, and the grid inside the shore lies at the
-  // water's level (Copernicus, a surface model, gives the water surface there).
+  // Lakes: nothing is named in one (on an island is not in it), and the grid
+  // over the water lies at the water's level (Copernicus, a surface model,
+  // gives the water surface there; the islands are left out).
   for (const [i, mark] of (t.landmarks ?? []).entries()) {
     for (const lake of lakes) {
-      if (isNumber(mark.point?.x) && isNumber(mark.point?.y) && insideOutline(mark.point, lake.outline)) {
+      if (isNumber(mark.point?.x) && isNumber(mark.point?.y) && inLake(mark.point, lake)) {
         fail(`${terrainWhere}.landmarks[${i}]`, `${mark.name?.en} lies in the lake ${lake.id}`);
       }
     }
@@ -525,7 +599,7 @@ for (const path of battlePaths) {
       const heights = [];
       for (let row = 0; row < t.height; row++) {
         for (let col = 0; col < t.width; col++) {
-          if (insideOutline({ x: t.minX + col * cellX, y: t.maxY - row * cellY }, lake.outline)) heights.push(grid.readInt16LE((row * t.width + col) * 2) / 10);
+          if (inLake({ x: t.minX + col * cellX, y: t.maxY - row * cellY }, lake)) heights.push(grid.readInt16LE((row * t.width + col) * 2) / 10);
         }
       }
       if (heights.length === 0) {
@@ -535,17 +609,17 @@ for (const path of battlePaths) {
       heights.sort((a, b) => a - b);
       const median = heights[heights.length >> 1];
       if (Math.abs(median - lake.level) > 1) {
-        warn(`${terrainWhere}.lakes`, `${lake.id}: the grid inside the shore lies at ${median} m (median), but level is ${lake.level} m`);
+        warn(`${terrainWhere}.lakes`, `${lake.id}: the grid over the water (inside the shore, off the islands) lies at ${median} m (median), but level is ${lake.level} m`);
       }
     }
   }
-  // Men driven into a lake wade out from the shore; LAKE_WADE metres out they
-  // would be swimming. Checked at the keys, as the sea is.
+  // Men driven into a lake wade out from the shore (an island's too);
+  // LAKE_WADE metres out they would be swimming. Checked at the keys, as the sea is.
   const LAKE_WADE = 150;
   const lakeTooDeep = (r) => {
     for (const lake of lakes) {
       let far = 0;
-      for (const p of samplePoints(r, 9, 5)) if (insideOutline(p, lake.outline)) far = Math.max(far, distanceToOutline(p, lake.outline));
+      for (const p of samplePoints(r, 9, 5)) if (inLake(p, lake)) far = Math.max(far, distanceToShore(p, lake));
       if (far > LAKE_WADE) return { lake, far };
     }
     return null;
@@ -576,6 +650,11 @@ for (const path of battlePaths) {
       if (!(isNumber(f.facing) && f.facing >= 0 && f.facing < 360)) fail(sw, "facing must be in [0, 360)");
       if (f.bulge !== undefined && !isNumber(f.bulge)) fail(sw, "bulge must be a number");
       if (!ACTIONS.has(s.action)) fail(sw, `action ${s.action} is not one of ${[...ACTIONS].join(", ")}`);
+      // Lying in ambush (UnitState.concealed): out of the enemy's sight, so not fighting.
+      if (s.concealed !== undefined && typeof s.concealed !== "boolean") fail(sw, "concealed must be true or false (leave it out when not in ambush)");
+      else if (s.concealed === true && (s.action === "fight" || s.action === "skirmish")) {
+        fail(sw, `${s.unit} is concealed, lying in wait, so it cannot ${s.action}; it breaks cover first`);
+      }
       if (!Number.isInteger(s.men) || s.men < 0) fail(sw, "men must be a whole number >= 0");
       else if (units.has(s.unit)) {
         if (s.men > lastMen.get(s.unit)) fail(sw, `men ${s.men} is more than before (${lastMen.get(s.unit)}); units only lose men`);
@@ -718,6 +797,28 @@ for (const path of battlePaths) {
       }
     }
   }
+  // A unit concealed at both keys of a phase stays hidden through it, and the
+  // phase's arrows should not point it out: no arrow starts or ends on it.
+  {
+    const ARROW_MARGIN = 30;
+    let start = new Map((Array.isArray(b.initial) ? b.initial : []).map((state) => [state.unit, state]));
+    for (const [i, phase] of (b.phases ?? []).entries()) {
+      const end = new Map((Array.isArray(phase.units) ? phase.units : []).map((state) => [state.unit, state]));
+      const hidden = [...end.values()].filter((state) => state.concealed === true && start.get(state.unit)?.concealed === true);
+      for (const [j, arrow] of (phase.arrows ?? []).entries()) {
+        if (!Array.isArray(arrow.points) || arrow.points.length < 2 || !arrow.points.every(inside)) continue;
+        const tips = [arrow.points[0], arrow.points[arrow.points.length - 1]];
+        for (const state of hidden) {
+          const keys = [start.get(state.unit), state].map((s) => s.formation).filter((f) => inside(f?.center) && isNumber(f.frontage) && isNumber(f.depth) && isNumber(f.facing));
+          if (keys.some((f) => tips.some((p) => inRectangle(p, corners(f), ARROW_MARGIN)))) {
+            warn(`${where}.phases[${i}].arrows[${j}]`, `starts or ends on ${state.unit}, which lies hidden through the phase (concealed at both keys)`);
+          }
+        }
+      }
+      start = end;
+    }
+  }
+
   // The mist clears during the battle: after it begins, by the end of the last phase.
   const clearsAt = t.scenery?.mist?.clearsAt;
   if (isNumber(clearsAt) && isNumber(b.startHour) && (clearsAt <= b.startHour || clearsAt > hour)) {
