@@ -1,0 +1,2380 @@
+{
+  "id": "battle-of-lake-trasimene",
+  "origin": {
+    "lng": 12.055,
+    "lat": 43.2
+  },
+  "date": {
+    "en": "Test: 21 June 217 BCE (Roman calendar)",
+    "vi": "Thử: 21 tháng 6 năm 217 TCN (lịch La Mã)"
+  },
+  "dayOfYear": 131,
+  "sides": [
+    {
+      "id": "rome",
+      "polityId": "rome",
+      "name": {
+        "en": "Rome (test)",
+        "vi": "La Mã (thử)"
+      },
+      "commanders": [
+        {
+          "en": "Gaius Flaminius",
+          "vi": "Gaius Flaminius"
+        }
+      ],
+      "strength": {
+        "min": 4400,
+        "max": 4400
+      }
+    },
+    {
+      "id": "carthage",
+      "polityId": "carthage",
+      "name": {
+        "en": "Hannibal's army (test)",
+        "vi": "Quân của Hannibal (thử)"
+      },
+      "commanders": [
+        {
+          "en": "Hannibal",
+          "vi": "Hannibal"
+        }
+      ],
+      "strength": {
+        "min": 5600,
+        "max": 5600
+      }
+    }
+  ],
+  "units": [
+    {
+      "id": "column-front",
+      "side": "rome",
+      "type": "roman-hastati",
+      "name": {
+        "en": "Test: head of the column",
+        "vi": "Thử: đầu đoàn quân"
+      },
+      "men": 2000
+    },
+    {
+      "id": "column-middle",
+      "side": "rome",
+      "type": "socii-infantry",
+      "name": {
+        "en": "Test: middle of the column",
+        "vi": "Thử: giữa đoàn quân"
+      },
+      "men": 2000
+    },
+    {
+      "id": "roman-horse",
+      "side": "rome",
+      "type": "roman-cavalry",
+      "name": {
+        "en": "Test: Roman horse",
+        "vi": "Thử: kỵ binh La Mã"
+      },
+      "men": 400
+    },
+    {
+      "id": "ambush-gauls",
+      "side": "carthage",
+      "type": "gallic-infantry",
+      "name": {
+        "en": "Test: Gauls in ambush",
+        "vi": "Thử: lính Gaul phục kích"
+      },
+      "men": 3000
+    },
+    {
+      "id": "ambush-libyans",
+      "side": "carthage",
+      "type": "libyan-infantry",
+      "name": {
+        "en": "Test: Libyans in ambush",
+        "vi": "Thử: lính Libya phục kích"
+      },
+      "men": 2000
+    },
+    {
+      "id": "numidians",
+      "side": "carthage",
+      "type": "numidian-cavalry",
+      "name": {
+        "en": "Test: Numidian horse",
+        "vi": "Thử: kỵ binh Numidia"
+      },
+      "men": 600
+    }
+  ],
+  "startHour": 4.5,
+  "initial": [
+    {
+      "unit": "column-front",
+      "formation": {
+        "center": {
+          "x": -1300,
+          "y": -1380
+        },
+        "frontage": 60,
+        "depth": 260,
+        "facing": 70
+      },
+      "action": "advance",
+      "men": 2000
+    },
+    {
+      "unit": "column-middle",
+      "formation": {
+        "center": {
+          "x": -1900,
+          "y": -1580
+        },
+        "frontage": 60,
+        "depth": 260,
+        "facing": 75
+      },
+      "action": "advance",
+      "men": 2000
+    },
+    {
+      "unit": "roman-horse",
+      "formation": {
+        "center": {
+          "x": -2300,
+          "y": -1700
+        },
+        "frontage": 50,
+        "depth": 120,
+        "facing": 80
+      },
+      "action": "advance",
+      "men": 400
+    },
+    {
+      "unit": "ambush-gauls",
+      "formation": {
+        "center": {
+          "x": 300,
+          "y": 450
+        },
+        "frontage": 400,
+        "depth": 60,
+        "facing": 180
+      },
+      "action": "stand",
+      "men": 3000,
+      "concealed": true
+    },
+    {
+      "unit": "ambush-libyans",
+      "formation": {
+        "center": {
+          "x": -700,
+          "y": -650
+        },
+        "frontage": 300,
+        "depth": 60,
+        "facing": 170
+      },
+      "action": "stand",
+      "men": 2000,
+      "concealed": true
+    },
+    {
+      "unit": "numidians",
+      "formation": {
+        "center": {
+          "x": 2300,
+          "y": 500
+        },
+        "frontage": 200,
+        "depth": 60,
+        "facing": 230
+      },
+      "action": "stand",
+      "men": 600,
+      "concealed": true
+    }
+  ],
+  "phases": [
+    {
+      "id": "test-narrows",
+      "title": {
+        "en": "Test 1: into the narrows",
+        "vi": "Thử 1: vào lối hẹp"
+      },
+      "narration": {
+        "en": "Test phase 1 of the scene (T-053).",
+        "vi": "Giai đoạn thử 1 của cảnh (T-053)."
+      },
+      "endHour": 6,
+      "playSeconds": 25,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -900
+            },
+            "frontage": 60,
+            "depth": 300,
+            "facing": 90
+          },
+          "action": "advance",
+          "men": 2000
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1050
+            },
+            "frontage": 60,
+            "depth": 300,
+            "facing": 70
+          },
+          "action": "advance",
+          "men": 2000
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -900,
+              "y": -1300
+            },
+            "frontage": 50,
+            "depth": 120,
+            "facing": 60
+          },
+          "action": "advance",
+          "men": 400
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": 450
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "stand",
+          "men": 3000,
+          "concealed": true
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -700,
+              "y": -650
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 170
+          },
+          "action": "stand",
+          "men": 2000,
+          "concealed": true
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 2300,
+              "y": 500
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 230
+          },
+          "action": "stand",
+          "men": 600,
+          "concealed": true
+        }
+      ]
+    },
+    {
+      "id": "test-signal",
+      "title": {
+        "en": "Test 2: the signal",
+        "vi": "Thử 2: hiệu lệnh"
+      },
+      "narration": {
+        "en": "Test phase 2 of the scene (T-053).",
+        "vi": "Giai đoạn thử 2 của cảnh (T-053)."
+      },
+      "endHour": 6.25,
+      "playSeconds": 12,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -900
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 0
+          },
+          "action": "stand",
+          "men": 2000
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1050
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 340
+          },
+          "action": "stand",
+          "men": 2000
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -900,
+              "y": -1300
+            },
+            "frontage": 120,
+            "depth": 50,
+            "facing": 60
+          },
+          "action": "stand",
+          "men": 400
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -840
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "charge",
+          "men": 3000
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -340,
+              "y": -960
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 160
+          },
+          "action": "charge",
+          "men": 2000
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 900,
+              "y": -800
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 250
+          },
+          "action": "charge",
+          "men": 600
+        }
+      ]
+    },
+    {
+      "id": "test-mist",
+      "title": {
+        "en": "Test 3: fighting in the mist",
+        "vi": "Thử 3: đánh trong sương"
+      },
+      "narration": {
+        "en": "Test phase 3 of the scene (T-053).",
+        "vi": "Giai đoạn thử 3 của cảnh (T-053)."
+      },
+      "endHour": 7.75,
+      "playSeconds": 25,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -900
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 0
+          },
+          "action": "fight",
+          "men": 1800
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1050
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 340
+          },
+          "action": "stand",
+          "men": 1900
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -900,
+              "y": -1300
+            },
+            "frontage": 120,
+            "depth": 50,
+            "facing": 60
+          },
+          "action": "stand",
+          "men": 400
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -840
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "fight",
+          "men": 2900
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -340,
+              "y": -960
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 160
+          },
+          "action": "stand",
+          "men": 2000
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 900,
+              "y": -800
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 250
+          },
+          "action": "stand",
+          "men": 600
+        }
+      ]
+    },
+    {
+      "id": "test-shore",
+      "title": {
+        "en": "Test 4: back to the shore",
+        "vi": "Thử 4: lùi về bờ"
+      },
+      "narration": {
+        "en": "Test phase 4 of the scene (T-053).",
+        "vi": "Giai đoạn thử 4 của cảnh (T-053)."
+      },
+      "endHour": 9,
+      "playSeconds": 25,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -1010
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 0
+          },
+          "action": "retreat",
+          "men": 1500
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1150
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 340
+          },
+          "action": "retreat",
+          "men": 1700
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -1100,
+              "y": -1400
+            },
+            "frontage": 120,
+            "depth": 50,
+            "facing": 60
+          },
+          "action": "retreat",
+          "men": 350
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -950
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "pursue",
+          "men": 2800
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -340,
+              "y": -1060
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 160
+          },
+          "action": "pursue",
+          "men": 1950
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 900,
+              "y": -950
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 200
+          },
+          "action": "pursue",
+          "men": 600
+        }
+      ]
+    },
+    {
+      "id": "test-lake",
+      "title": {
+        "en": "Test 5: into the lake",
+        "vi": "Thử 5: xuống hồ"
+      },
+      "narration": {
+        "en": "Test phase 5 of the scene (T-053).",
+        "vi": "Giai đoạn thử 5 của cảnh (T-053)."
+      },
+      "endHour": 9.75,
+      "playSeconds": 20,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -1140
+            },
+            "frontage": 400,
+            "depth": 120,
+            "facing": 0
+          },
+          "action": "rout",
+          "men": 1100
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1170
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 340
+          },
+          "action": "rout",
+          "men": 1400
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -1300,
+              "y": -1500
+            },
+            "frontage": 120,
+            "depth": 50,
+            "facing": 60
+          },
+          "action": "rout",
+          "men": 300
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -1030
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "pursue",
+          "men": 2750
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -340,
+              "y": -1090
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 160
+          },
+          "action": "stand",
+          "men": 1950
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 820,
+              "y": -1110
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 200
+          },
+          "action": "pursue",
+          "men": 590
+        }
+      ]
+    },
+    {
+      "id": "test-clear",
+      "title": {
+        "en": "Test 6: the mist lifts",
+        "vi": "Thử 6: sương tan"
+      },
+      "narration": {
+        "en": "Test phase 6 of the scene (T-053).",
+        "vi": "Giai đoạn thử 6 của cảnh (T-053)."
+      },
+      "endHour": 10.5,
+      "playSeconds": 15,
+      "units": [
+        {
+          "unit": "column-front",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -1140
+            },
+            "frontage": 400,
+            "depth": 120,
+            "facing": 0
+          },
+          "action": "stand",
+          "men": 1000
+        },
+        {
+          "unit": "column-middle",
+          "formation": {
+            "center": {
+              "x": -350,
+              "y": -1170
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 340
+          },
+          "action": "stand",
+          "men": 1300
+        },
+        {
+          "unit": "roman-horse",
+          "formation": {
+            "center": {
+              "x": -1300,
+              "y": -1500
+            },
+            "frontage": 120,
+            "depth": 50,
+            "facing": 60
+          },
+          "action": "stand",
+          "men": 300
+        },
+        {
+          "unit": "ambush-gauls",
+          "formation": {
+            "center": {
+              "x": 300,
+              "y": -1000
+            },
+            "frontage": 400,
+            "depth": 60,
+            "facing": 180
+          },
+          "action": "stand",
+          "men": 2750
+        },
+        {
+          "unit": "ambush-libyans",
+          "formation": {
+            "center": {
+              "x": -340,
+              "y": -1060
+            },
+            "frontage": 300,
+            "depth": 60,
+            "facing": 160
+          },
+          "action": "stand",
+          "men": 1950
+        },
+        {
+          "unit": "numidians",
+          "formation": {
+            "center": {
+              "x": 820,
+              "y": -1110
+            },
+            "frontage": 200,
+            "depth": 60,
+            "facing": 200
+          },
+          "action": "stand",
+          "men": 590
+        }
+      ]
+    }
+  ],
+  "terrain": {
+    "file": "battle-of-lake-trasimene.bin",
+    "width": 321,
+    "height": 271,
+    "minX": -4500,
+    "maxX": 5100,
+    "minY": -3000,
+    "maxY": 5100,
+    "far": {
+      "file": "battle-of-lake-trasimene-far.bin",
+      "width": 271,
+      "height": 271,
+      "minX": -54000,
+      "maxX": 54000,
+      "minY": -54000,
+      "maxY": 54000
+    },
+    "rivers": [],
+    "lakes": [
+      {
+        "id": "trasimene",
+        "name": {
+          "en": "Lake Trasimene",
+          "vi": "Hồ Trasimene"
+        },
+        "level": 254.5,
+        "outline": [
+          {
+            "x": -2895,
+            "y": -3502
+          },
+          {
+            "x": -2745,
+            "y": -4417
+          },
+          {
+            "x": -2310,
+            "y": -5362
+          },
+          {
+            "x": -2265,
+            "y": -5662
+          },
+          {
+            "x": -2130,
+            "y": -5677
+          },
+          {
+            "x": -1710,
+            "y": -6277
+          },
+          {
+            "x": -1087,
+            "y": -6960
+          },
+          {
+            "x": -930,
+            "y": -7027
+          },
+          {
+            "x": -915,
+            "y": -7192
+          },
+          {
+            "x": -427,
+            "y": -7725
+          },
+          {
+            "x": -277,
+            "y": -7830
+          },
+          {
+            "x": 53,
+            "y": -7860
+          },
+          {
+            "x": 285,
+            "y": -8137
+          },
+          {
+            "x": 143,
+            "y": -8445
+          },
+          {
+            "x": -127,
+            "y": -8595
+          },
+          {
+            "x": -247,
+            "y": -8535
+          },
+          {
+            "x": -382,
+            "y": -8655
+          },
+          {
+            "x": -502,
+            "y": -8625
+          },
+          {
+            "x": -735,
+            "y": -8917
+          },
+          {
+            "x": -600,
+            "y": -9487
+          },
+          {
+            "x": -195,
+            "y": -10042
+          },
+          {
+            "x": 473,
+            "y": -10695
+          },
+          {
+            "x": 1628,
+            "y": -11595
+          },
+          {
+            "x": 2678,
+            "y": -12270
+          },
+          {
+            "x": 3203,
+            "y": -12450
+          },
+          {
+            "x": 3503,
+            "y": -12735
+          },
+          {
+            "x": 5183,
+            "y": -13380
+          },
+          {
+            "x": 6038,
+            "y": -13320
+          },
+          {
+            "x": 6188,
+            "y": -13125
+          },
+          {
+            "x": 6308,
+            "y": -13155
+          },
+          {
+            "x": 6908,
+            "y": -12885
+          },
+          {
+            "x": 7223,
+            "y": -12330
+          },
+          {
+            "x": 7868,
+            "y": -12420
+          },
+          {
+            "x": 8033,
+            "y": -12240
+          },
+          {
+            "x": 8183,
+            "y": -12300
+          },
+          {
+            "x": 8243,
+            "y": -12180
+          },
+          {
+            "x": 8588,
+            "y": -12300
+          },
+          {
+            "x": 8918,
+            "y": -12075
+          },
+          {
+            "x": 9488,
+            "y": -12210
+          },
+          {
+            "x": 9758,
+            "y": -12075
+          },
+          {
+            "x": 9818,
+            "y": -11925
+          },
+          {
+            "x": 10118,
+            "y": -12045
+          },
+          {
+            "x": 10298,
+            "y": -11865
+          },
+          {
+            "x": 10388,
+            "y": -11895
+          },
+          {
+            "x": 10485,
+            "y": -11527
+          },
+          {
+            "x": 10650,
+            "y": -11452
+          },
+          {
+            "x": 10605,
+            "y": -11197
+          },
+          {
+            "x": 10695,
+            "y": -10972
+          },
+          {
+            "x": 10643,
+            "y": -10845
+          },
+          {
+            "x": 10530,
+            "y": -10837
+          },
+          {
+            "x": 10530,
+            "y": -10552
+          },
+          {
+            "x": 10395,
+            "y": -10432
+          },
+          {
+            "x": 10440,
+            "y": -10297
+          },
+          {
+            "x": 9563,
+            "y": -9825
+          },
+          {
+            "x": 9353,
+            "y": -9525
+          },
+          {
+            "x": 9113,
+            "y": -9465
+          },
+          {
+            "x": 9090,
+            "y": -9247
+          },
+          {
+            "x": 8925,
+            "y": -9052
+          },
+          {
+            "x": 9045,
+            "y": -7837
+          },
+          {
+            "x": 8880,
+            "y": -7537
+          },
+          {
+            "x": 8925,
+            "y": -7117
+          },
+          {
+            "x": 8820,
+            "y": -6532
+          },
+          {
+            "x": 8475,
+            "y": -6097
+          },
+          {
+            "x": 8993,
+            "y": -5910
+          },
+          {
+            "x": 9338,
+            "y": -5535
+          },
+          {
+            "x": 10238,
+            "y": -5265
+          },
+          {
+            "x": 10485,
+            "y": -5032
+          },
+          {
+            "x": 10470,
+            "y": -4627
+          },
+          {
+            "x": 10800,
+            "y": -4222
+          },
+          {
+            "x": 10350,
+            "y": -2797
+          },
+          {
+            "x": 9758,
+            "y": -2295
+          },
+          {
+            "x": 9518,
+            "y": -2265
+          },
+          {
+            "x": 8783,
+            "y": -2430
+          },
+          {
+            "x": 8138,
+            "y": -1935
+          },
+          {
+            "x": 7718,
+            "y": -1995
+          },
+          {
+            "x": 7568,
+            "y": -1830
+          },
+          {
+            "x": 7238,
+            "y": -1830
+          },
+          {
+            "x": 7253,
+            "y": -1710
+          },
+          {
+            "x": 6608,
+            "y": -1860
+          },
+          {
+            "x": 6578,
+            "y": -1710
+          },
+          {
+            "x": 6150,
+            "y": -1492
+          },
+          {
+            "x": 6083,
+            "y": -1215
+          },
+          {
+            "x": 5588,
+            "y": -1125
+          },
+          {
+            "x": 5438,
+            "y": -1125
+          },
+          {
+            "x": 5423,
+            "y": -1155
+          },
+          {
+            "x": 5348,
+            "y": -1155
+          },
+          {
+            "x": 5310,
+            "y": -1192
+          },
+          {
+            "x": 5265,
+            "y": -1252
+          },
+          {
+            "x": 5250,
+            "y": -1522
+          },
+          {
+            "x": 5213,
+            "y": -1560
+          },
+          {
+            "x": 5168,
+            "y": -1500
+          },
+          {
+            "x": 5078,
+            "y": -1500
+          },
+          {
+            "x": 5063,
+            "y": -1470
+          },
+          {
+            "x": 5033,
+            "y": -1470
+          },
+          {
+            "x": 4980,
+            "y": -1342
+          },
+          {
+            "x": 4943,
+            "y": -1305
+          },
+          {
+            "x": 4898,
+            "y": -1305
+          },
+          {
+            "x": 4883,
+            "y": -1275
+          },
+          {
+            "x": 4808,
+            "y": -1275
+          },
+          {
+            "x": 4748,
+            "y": -1185
+          },
+          {
+            "x": 4688,
+            "y": -1185
+          },
+          {
+            "x": 4628,
+            "y": -1125
+          },
+          {
+            "x": 4418,
+            "y": -1125
+          },
+          {
+            "x": 4403,
+            "y": -1155
+          },
+          {
+            "x": 4373,
+            "y": -1155
+          },
+          {
+            "x": 4305,
+            "y": -1042
+          },
+          {
+            "x": 4268,
+            "y": -1035
+          },
+          {
+            "x": 4223,
+            "y": -975
+          },
+          {
+            "x": 4133,
+            "y": -975
+          },
+          {
+            "x": 4118,
+            "y": -945
+          },
+          {
+            "x": 4058,
+            "y": -945
+          },
+          {
+            "x": 4043,
+            "y": -915
+          },
+          {
+            "x": 3923,
+            "y": -915
+          },
+          {
+            "x": 3908,
+            "y": -885
+          },
+          {
+            "x": 3833,
+            "y": -885
+          },
+          {
+            "x": 3818,
+            "y": -855
+          },
+          {
+            "x": 3698,
+            "y": -855
+          },
+          {
+            "x": 3683,
+            "y": -825
+          },
+          {
+            "x": 3593,
+            "y": -825
+          },
+          {
+            "x": 3578,
+            "y": -780
+          },
+          {
+            "x": 3473,
+            "y": -780
+          },
+          {
+            "x": 3458,
+            "y": -750
+          },
+          {
+            "x": 2933,
+            "y": -750
+          },
+          {
+            "x": 2850,
+            "y": -832
+          },
+          {
+            "x": 2850,
+            "y": -877
+          },
+          {
+            "x": 2798,
+            "y": -885
+          },
+          {
+            "x": 2760,
+            "y": -922
+          },
+          {
+            "x": 2738,
+            "y": -1005
+          },
+          {
+            "x": 2708,
+            "y": -1005
+          },
+          {
+            "x": 2693,
+            "y": -1035
+          },
+          {
+            "x": 2573,
+            "y": -1005
+          },
+          {
+            "x": 2543,
+            "y": -1035
+          },
+          {
+            "x": 2535,
+            "y": -952
+          },
+          {
+            "x": 2565,
+            "y": -937
+          },
+          {
+            "x": 2565,
+            "y": -892
+          },
+          {
+            "x": 2490,
+            "y": -817
+          },
+          {
+            "x": 2483,
+            "y": -720
+          },
+          {
+            "x": 2438,
+            "y": -720
+          },
+          {
+            "x": 2393,
+            "y": -660
+          },
+          {
+            "x": 2303,
+            "y": -630
+          },
+          {
+            "x": 2288,
+            "y": -600
+          },
+          {
+            "x": 2258,
+            "y": -630
+          },
+          {
+            "x": 2243,
+            "y": -600
+          },
+          {
+            "x": 2183,
+            "y": -600
+          },
+          {
+            "x": 2168,
+            "y": -630
+          },
+          {
+            "x": 2153,
+            "y": -600
+          },
+          {
+            "x": 1988,
+            "y": -600
+          },
+          {
+            "x": 1958,
+            "y": -570
+          },
+          {
+            "x": 1950,
+            "y": -622
+          },
+          {
+            "x": 1980,
+            "y": -637
+          },
+          {
+            "x": 1980,
+            "y": -712
+          },
+          {
+            "x": 1905,
+            "y": -757
+          },
+          {
+            "x": 1890,
+            "y": -937
+          },
+          {
+            "x": 1860,
+            "y": -952
+          },
+          {
+            "x": 1860,
+            "y": -997
+          },
+          {
+            "x": 1800,
+            "y": -1012
+          },
+          {
+            "x": 1815,
+            "y": -1147
+          },
+          {
+            "x": 1860,
+            "y": -1207
+          },
+          {
+            "x": 1763,
+            "y": -1305
+          },
+          {
+            "x": 1710,
+            "y": -1312
+          },
+          {
+            "x": 1703,
+            "y": -1410
+          },
+          {
+            "x": 1635,
+            "y": -1417
+          },
+          {
+            "x": 1635,
+            "y": -1522
+          },
+          {
+            "x": 1665,
+            "y": -1537
+          },
+          {
+            "x": 1680,
+            "y": -1672
+          },
+          {
+            "x": 1755,
+            "y": -1717
+          },
+          {
+            "x": 1755,
+            "y": -1762
+          },
+          {
+            "x": 1688,
+            "y": -1770
+          },
+          {
+            "x": 1673,
+            "y": -1800
+          },
+          {
+            "x": 1598,
+            "y": -1800
+          },
+          {
+            "x": 1530,
+            "y": -1597
+          },
+          {
+            "x": 1463,
+            "y": -1560
+          },
+          {
+            "x": 1365,
+            "y": -1432
+          },
+          {
+            "x": 1350,
+            "y": -1312
+          },
+          {
+            "x": 1208,
+            "y": -1125
+          },
+          {
+            "x": 1148,
+            "y": -1125
+          },
+          {
+            "x": 1133,
+            "y": -1095
+          },
+          {
+            "x": 1028,
+            "y": -1095
+          },
+          {
+            "x": 1013,
+            "y": -1065
+          },
+          {
+            "x": -97,
+            "y": -1065
+          },
+          {
+            "x": -172,
+            "y": -1125
+          },
+          {
+            "x": -277,
+            "y": -1125
+          },
+          {
+            "x": -397,
+            "y": -1215
+          },
+          {
+            "x": -457,
+            "y": -1215
+          },
+          {
+            "x": -517,
+            "y": -1275
+          },
+          {
+            "x": -637,
+            "y": -1305
+          },
+          {
+            "x": -652,
+            "y": -1335
+          },
+          {
+            "x": -690,
+            "y": -1342
+          },
+          {
+            "x": -697,
+            "y": -1380
+          },
+          {
+            "x": -862,
+            "y": -1410
+          },
+          {
+            "x": -922,
+            "y": -1470
+          },
+          {
+            "x": -997,
+            "y": -1470
+          },
+          {
+            "x": -1012,
+            "y": -1500
+          },
+          {
+            "x": -1117,
+            "y": -1500
+          },
+          {
+            "x": -1192,
+            "y": -1560
+          },
+          {
+            "x": -1267,
+            "y": -1560
+          },
+          {
+            "x": -1282,
+            "y": -1590
+          },
+          {
+            "x": -1342,
+            "y": -1590
+          },
+          {
+            "x": -1417,
+            "y": -1650
+          },
+          {
+            "x": -1477,
+            "y": -1650
+          },
+          {
+            "x": -1492,
+            "y": -1680
+          },
+          {
+            "x": -1537,
+            "y": -1680
+          },
+          {
+            "x": -1627,
+            "y": -1800
+          },
+          {
+            "x": -1672,
+            "y": -1800
+          },
+          {
+            "x": -1732,
+            "y": -1860
+          },
+          {
+            "x": -1852,
+            "y": -1860
+          },
+          {
+            "x": -1935,
+            "y": -1792
+          },
+          {
+            "x": -1942,
+            "y": -1740
+          },
+          {
+            "x": -2257,
+            "y": -1740
+          },
+          {
+            "x": -2272,
+            "y": -1770
+          },
+          {
+            "x": -2332,
+            "y": -1770
+          },
+          {
+            "x": -2347,
+            "y": -1800
+          },
+          {
+            "x": -2422,
+            "y": -1770
+          },
+          {
+            "x": -2445,
+            "y": -1822
+          },
+          {
+            "x": -2490,
+            "y": -1837
+          },
+          {
+            "x": -2490,
+            "y": -1897
+          },
+          {
+            "x": -2520,
+            "y": -1912
+          },
+          {
+            "x": -2535,
+            "y": -1987
+          },
+          {
+            "x": -2565,
+            "y": -2002
+          },
+          {
+            "x": -2587,
+            "y": -2115
+          },
+          {
+            "x": -2797,
+            "y": -2115
+          },
+          {
+            "x": -2812,
+            "y": -2145
+          },
+          {
+            "x": -2850,
+            "y": -2152
+          },
+          {
+            "x": -2850,
+            "y": -2227
+          },
+          {
+            "x": -2887,
+            "y": -2265
+          },
+          {
+            "x": -2940,
+            "y": -2272
+          },
+          {
+            "x": -2940,
+            "y": -2347
+          },
+          {
+            "x": -2895,
+            "y": -2392
+          },
+          {
+            "x": -2895,
+            "y": -2452
+          },
+          {
+            "x": -2925,
+            "y": -2467
+          },
+          {
+            "x": -2940,
+            "y": -3007
+          },
+          {
+            "x": -2970,
+            "y": -3022
+          },
+          {
+            "x": -2970,
+            "y": -3067
+          },
+          {
+            "x": -2940,
+            "y": -3082
+          },
+          {
+            "x": -2925,
+            "y": -3157
+          },
+          {
+            "x": -2895,
+            "y": -3172
+          },
+          {
+            "x": -2940,
+            "y": -3262
+          },
+          {
+            "x": -2925,
+            "y": -3457
+          },
+          {
+            "x": -2895,
+            "y": -3472
+          }
+        ],
+        "evidence": {
+          "basis": "attested",
+          "note": {
+            "en": "Polybius and Livy both fight the battle on the shore of the lake, and Livy calls its edge the shallows of a marsh. The shore drawn is today's, from the Copernicus survey (2010–2015), with the water at 254.5 m; in Etruscan and Roman times the lake stood lower for long spells, so the strip of level ground by the shore was probably a little wider.",
+            "vi": "Polybius và Livy đều kể trận đánh diễn ra bên bờ hồ; Livy gọi mép hồ là chỗ nước nông của đầm. Bờ hồ vẽ ở đây là bờ ngày nay, theo dữ liệu Copernicus (đo 2010–2015), mặt nước ở 254,5 m; thời Etruria và La Mã nước hồ nhiều lúc thấp hơn bây giờ, nên dải đất bằng ven hồ có lẽ rộng hơn một chút."
+          },
+          "sources": [
+            {
+              "title": "Polybius, Histories 3.82–84",
+              "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html"
+            },
+            {
+              "title": "Livy, Ab Urbe Condita 22.4–6 (Latin)",
+              "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml"
+            },
+            {
+              "title": "L. Borgia et al., First results of waterborne geophysical surveys around the Malpasso site (Tuoro sul Trasimeno, Italy), GNGTS 2013, pp. 186–188",
+              "url": "https://gngts.ogs.it/atti/GNGTS2013/1049/"
+            }
+          ]
+        },
+        "islands": [
+          [
+            {
+              "x": 6158,
+              "y": -8595
+            },
+            {
+              "x": 6188,
+              "y": -8595
+            },
+            {
+              "x": 6248,
+              "y": -8655
+            },
+            {
+              "x": 6308,
+              "y": -8655
+            },
+            {
+              "x": 6428,
+              "y": -8775
+            },
+            {
+              "x": 6533,
+              "y": -8775
+            },
+            {
+              "x": 6548,
+              "y": -8805
+            },
+            {
+              "x": 6623,
+              "y": -8805
+            },
+            {
+              "x": 6638,
+              "y": -8835
+            },
+            {
+              "x": 6803,
+              "y": -8865
+            },
+            {
+              "x": 6810,
+              "y": -8902
+            },
+            {
+              "x": 6848,
+              "y": -8910
+            },
+            {
+              "x": 6863,
+              "y": -8940
+            },
+            {
+              "x": 7028,
+              "y": -8940
+            },
+            {
+              "x": 7103,
+              "y": -9000
+            },
+            {
+              "x": 7223,
+              "y": -9000
+            },
+            {
+              "x": 7283,
+              "y": -9060
+            },
+            {
+              "x": 7343,
+              "y": -9060
+            },
+            {
+              "x": 7365,
+              "y": -9112
+            },
+            {
+              "x": 7448,
+              "y": -9150
+            },
+            {
+              "x": 7463,
+              "y": -9180
+            },
+            {
+              "x": 7613,
+              "y": -9210
+            },
+            {
+              "x": 7665,
+              "y": -9277
+            },
+            {
+              "x": 7665,
+              "y": -9322
+            },
+            {
+              "x": 7493,
+              "y": -9330
+            },
+            {
+              "x": 7478,
+              "y": -9360
+            },
+            {
+              "x": 7418,
+              "y": -9360
+            },
+            {
+              "x": 7403,
+              "y": -9390
+            },
+            {
+              "x": 7283,
+              "y": -9390
+            },
+            {
+              "x": 7268,
+              "y": -9435
+            },
+            {
+              "x": 7178,
+              "y": -9435
+            },
+            {
+              "x": 7140,
+              "y": -9472
+            },
+            {
+              "x": 7133,
+              "y": -9525
+            },
+            {
+              "x": 7118,
+              "y": -9495
+            },
+            {
+              "x": 7088,
+              "y": -9495
+            },
+            {
+              "x": 6938,
+              "y": -9615
+            },
+            {
+              "x": 6698,
+              "y": -9645
+            },
+            {
+              "x": 6668,
+              "y": -9585
+            },
+            {
+              "x": 6593,
+              "y": -9585
+            },
+            {
+              "x": 6503,
+              "y": -9495
+            },
+            {
+              "x": 6383,
+              "y": -9435
+            },
+            {
+              "x": 6360,
+              "y": -9367
+            },
+            {
+              "x": 6240,
+              "y": -9232
+            },
+            {
+              "x": 6225,
+              "y": -9127
+            },
+            {
+              "x": 6195,
+              "y": -9112
+            },
+            {
+              "x": 6180,
+              "y": -9007
+            },
+            {
+              "x": 6150,
+              "y": -8992
+            },
+            {
+              "x": 6150,
+              "y": -8917
+            },
+            {
+              "x": 6180,
+              "y": -8902
+            },
+            {
+              "x": 6180,
+              "y": -8872
+            },
+            {
+              "x": 6150,
+              "y": -8857
+            }
+          ],
+          [
+            {
+              "x": 2798,
+              "y": -2355
+            },
+            {
+              "x": 3023,
+              "y": -2355
+            },
+            {
+              "x": 3038,
+              "y": -2385
+            },
+            {
+              "x": 3098,
+              "y": -2385
+            },
+            {
+              "x": 3120,
+              "y": -2452
+            },
+            {
+              "x": 3150,
+              "y": -2467
+            },
+            {
+              "x": 3165,
+              "y": -2572
+            },
+            {
+              "x": 3150,
+              "y": -2632
+            },
+            {
+              "x": 3120,
+              "y": -2647
+            },
+            {
+              "x": 3105,
+              "y": -3037
+            },
+            {
+              "x": 3075,
+              "y": -3052
+            },
+            {
+              "x": 3068,
+              "y": -3135
+            },
+            {
+              "x": 3023,
+              "y": -3075
+            },
+            {
+              "x": 2985,
+              "y": -3067
+            },
+            {
+              "x": 2963,
+              "y": -3015
+            },
+            {
+              "x": 2933,
+              "y": -3015
+            },
+            {
+              "x": 2918,
+              "y": -2985
+            },
+            {
+              "x": 2858,
+              "y": -2985
+            },
+            {
+              "x": 2850,
+              "y": -2947
+            },
+            {
+              "x": 2813,
+              "y": -2940
+            },
+            {
+              "x": 2790,
+              "y": -2902
+            },
+            {
+              "x": 2790,
+              "y": -2587
+            },
+            {
+              "x": 2700,
+              "y": -2527
+            },
+            {
+              "x": 2745,
+              "y": -2512
+            },
+            {
+              "x": 2745,
+              "y": -2437
+            }
+          ],
+          [
+            {
+              "x": 3863,
+              "y": -2115
+            },
+            {
+              "x": 3953,
+              "y": -2115
+            },
+            {
+              "x": 3968,
+              "y": -2145
+            },
+            {
+              "x": 3998,
+              "y": -2145
+            },
+            {
+              "x": 4035,
+              "y": -2182
+            },
+            {
+              "x": 4035,
+              "y": -2287
+            },
+            {
+              "x": 3908,
+              "y": -2355
+            },
+            {
+              "x": 3893,
+              "y": -2385
+            },
+            {
+              "x": 3833,
+              "y": -2385
+            },
+            {
+              "x": 3818,
+              "y": -2430
+            },
+            {
+              "x": 3653,
+              "y": -2430
+            },
+            {
+              "x": 3645,
+              "y": -2392
+            },
+            {
+              "x": 3683,
+              "y": -2385
+            },
+            {
+              "x": 3728,
+              "y": -2325
+            },
+            {
+              "x": 3758,
+              "y": -2325
+            },
+            {
+              "x": 3810,
+              "y": -2257
+            },
+            {
+              "x": 3825,
+              "y": -2152
+            }
+          ]
+        ]
+      }
+    ],
+    "landmarks": [
+      {
+        "name": {
+          "en": "The narrows (Malpasso)",
+          "vi": "Lối hẹp (Malpasso)"
+        },
+        "kind": "other",
+        "point": {
+          "x": -450,
+          "y": -1200
+        },
+        "approximate": true
+      },
+      {
+        "name": {
+          "en": "Monte Gualandro",
+          "vi": "Núi Gualandro"
+        },
+        "kind": "hill",
+        "point": {
+          "x": -1640,
+          "y": 1440
+        }
+      },
+      {
+        "name": {
+          "en": "Tuoro hill",
+          "vi": "Đồi Tuoro"
+        },
+        "kind": "hill",
+        "point": {
+          "x": 1326,
+          "y": 1361
+        }
+      },
+      {
+        "name": {
+          "en": "Hannibal's camp",
+          "vi": "Trại của Hannibal"
+        },
+        "kind": "camp",
+        "point": {
+          "x": 1366,
+          "y": 1090
+        },
+        "approximate": true
+      },
+      {
+        "name": {
+          "en": "Flaminius's camp",
+          "vi": "Trại của Flaminius"
+        },
+        "kind": "camp",
+        "point": {
+          "x": -2700,
+          "y": -900
+        },
+        "approximate": true
+      },
+      {
+        "name": {
+          "en": "Monte Castelluccio",
+          "vi": "Núi Castelluccio"
+        },
+        "kind": "hill",
+        "point": {
+          "x": 2530,
+          "y": 3809
+        }
+      },
+      {
+        "name": {
+          "en": "Etruscan village",
+          "vi": "Làng Etruria"
+        },
+        "kind": "town",
+        "point": {
+          "x": 3140,
+          "y": 3309
+        },
+        "approximate": true
+      }
+    ],
+    "sources": [
+      {
+        "title": "Copernicus DEM GLO-30 (tiles N43 E012 and N43 E011) with their water body masks, produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. Resampled to 30 m, and to 400 m for the country around (tiles N42 E011 and N42 E012 as well); the lake shore traced from the water body mask.",
+        "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N43_00_E012_00_DEM/INFO/eula_F.pdf"
+      }
+    ],
+    "scenery": {
+      "ground": {
+        "cover": "grass",
+        "evidence": {
+          "basis": "illustrative",
+          "note": {
+            "en": "Test data of the scene (T-053), not the battle.",
+            "vi": "Dữ liệu thử của cảnh (T-053), không phải trận thật."
+          }
+        }
+      },
+      "areas": [
+        {
+          "id": "test-reeds",
+          "cover": "reeds",
+          "outline": [
+            {
+              "x": -150,
+              "y": -1020
+            },
+            {
+              "x": 1350,
+              "y": -1020
+            },
+            {
+              "x": 1350,
+              "y": -1110
+            },
+            {
+              "x": -150,
+              "y": -1110
+            }
+          ],
+          "evidence": {
+            "basis": "illustrative",
+            "note": {
+              "en": "Test data of the scene (T-053), not the battle.",
+              "vi": "Dữ liệu thử của cảnh (T-053), không phải trận thật."
+            }
+          }
+        }
+      ],
+      "structures": [],
+      "trees": {
+        "perSquareKm": 8,
+        "evidence": {
+          "basis": "illustrative",
+          "note": {
+            "en": "Test data of the scene (T-053), not the battle.",
+            "vi": "Dữ liệu thử của cảnh (T-053), không phải trận thật."
+          }
+        }
+      },
+      "wind": {
+        "from": 200,
+        "speed": 1,
+        "evidence": {
+          "basis": "illustrative",
+          "note": {
+            "en": "Test data of the scene (T-053), not the battle.",
+            "vi": "Dữ liệu thử của cảnh (T-053), không phải trận thật."
+          }
+        }
+      },
+      "dust": {
+        "level": 0.2,
+        "evidence": {
+          "basis": "illustrative",
+          "note": {
+            "en": "Test data of the scene (T-053), not the battle.",
+            "vi": "Dữ liệu thử của cảnh (T-053), không phải trận thật."
+          }
+        }
+      },
+      "mist": {
+        "level": 0.8,
+        "clearsAt": 9.75,
+        "evidence": {
+          "basis": "attested",
+          "note": {
+            "en": "Test: Polybius and Livy both tell of a thick mist.",
+            "vi": "Thử: Polybius và Livy đều kể có sương mù dày."
+          },
+          "sources": [
+            {
+              "title": "Livy, Ab Urbe Condita 22.4–6 (Latin)",
+              "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "uncertainty": {
+    "en": "Temporary test battle of the scene (T-053); replaced by the real file of T-052.",
+    "vi": "Trận thử tạm của cảnh (T-053); sẽ thay bằng file thật của T-052."
+  },
+  "sources": [
+    {
+      "title": "Livy, Ab Urbe Condita 22.4–6 (Latin)",
+      "url": "https://www.thelatinlibrary.com/livy/liv.22.shtml"
+    }
+  ]
+}
