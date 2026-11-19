@@ -93,6 +93,16 @@ const AMBIENT_COLOR: Stop<Color>[] = [
 ];
 const GROUND_BOUNCE: Stop<Color>[] = [[-18, c("#1b2030")], [-6, c("#2f3038")], [0, c("#5c4d3c")], [25, c("#7a6a4c")]];
 const MOON_COLOR = c("#9db4e0");
+/**
+ * The eye getting used to the dark (Sky.exposure): before sunrise the scene
+ * is drawn brighter than the light alone would make it, so that hills, the
+ * shore and the armies can be made out at first light (T-055: Lake
+ * Trasimene opens at 4:30, a quarter of an hour before sunrise, in mist).
+ * Still darker and bluer than the day: the light itself is not changed. From
+ * the sun at 8° up the scene is drawn as by day; Cannae, which opens with the
+ * sun near 10°, is not touched.
+ */
+const ADAPT: Stop<number>[] = [[-8, 2.9], [-3, 2.5], [2, 1.75], [8, 1]];
 
 /**
  * Light that only the figures get, by day (Sky.fill). Men and horses are
@@ -155,6 +165,12 @@ export class Sky {
    * markings on the ground (arrows, block outlines), which take no light.
    */
   daylight = 1;
+  /**
+   * How much brighter than by day the scene is drawn, 1 by day (ADAPT): a
+   * factor on the exposure of the colour curve (grade.ts), set by
+   * BattleEngine, and on the mist's own copy of the curve (mist.ts).
+   */
+  exposure = 1;
 
   private readonly latitude: number;
   private readonly declination: number;
@@ -283,6 +299,7 @@ export class Sky {
     uniforms.uMoon.value = moon;
     uniforms.uStars.value = 1 - smooth(-12, -4, elevation);
     this.haze.copy(uniforms.uHorizon.value).lerp(uniforms.uZenith.value, 0.25);
+    this.exposure = sampleNumber(ADAPT, elevation);
 
     if (elevation > -4) {
       this.light.color.copy(uniforms.uSunColor.value);

@@ -175,6 +175,8 @@ const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
 };
 
 const FOV = 40;
+/** Exposure of the colour curve by day (grade.ts); before sunrise the sky raises it (Sky.exposure). */
+const EXPOSURE = 0.8;
 const FALLBACK_COLOR = "#808080";
 /** Below this many frames per second for this many seconds: drop to low quality. */
 const SLOW_FPS = 30;
@@ -285,7 +287,7 @@ export class BattleEngine {
     installGrade();
     installMist();
     this.renderer.toneMapping = CustomToneMapping;
-    this.renderer.toneMappingExposure = 0.8;
+    this.renderer.toneMappingExposure = EXPOSURE;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
     const debugInfo = this.renderer.getContext().getExtension("WEBGL_debug_renderer_info");
@@ -876,6 +878,8 @@ export class BattleEngine {
     if (this.flight && this.placeFlightCamera(now)) this.flight = null;
     this.updateCamera(terrain);
     this.sky.setHour(hourAt(this.battle, time));
+    // Brighter before sunrise, as the eye gets used to the dark (sky.ts, ADAPT).
+    this.renderer.toneMappingExposure = EXPOSURE * this.sky.exposure;
     const distance = this.camera.position.distanceTo(this.controls.target);
     this.sky.follow(this.camera, this.controls.target, distance);
     this.fog.color.copy(this.sky.haze);
