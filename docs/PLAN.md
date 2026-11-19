@@ -117,6 +117,12 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng chọn cho chặng 1 và 2 chạy song song: giao [T-052](tasks/T-052-trasimene-battle.md) cho lane 2 (file trận) và [T-053](tasks/T-053-trasimene-scene.md) cho lane 3 (mặt hồ, đảo, lội nước, sương mù, quân nấp; dùng trận thử tạm trong nhánh tới khi T-052 gộp).
 - **2026-11-19:** Lane 3 dừng sớm ở [T-053](tasks/T-053-trasimene-scene.md), theo yêu cầu của task. Đã có mặt hồ và đảo, cả ở vùng xa; lính lội nước; sương mù tan theo giờ trận, hết lúc 9:45; khối phục kích ẩn rồi lộ ra. Tất cả mới chạy trên trận thử tạm. Ảnh ở `duyet\T-053\dung-som`. Lane 3 tự quyết vẽ đáy hồ sâu gấp `FIGURE_SCALE` lần, để nước ngập lính tới vai như Livy 22.6.6 tả; phiên chính đồng ý và ghi vào ARCHITECTURE.
   - Người dùng chọn: giữ sương như ảnh; nước đục hơn và ngả lục hơn; dải bùn ở mép hồ nhạt dần khi nhìn xa. Thêm vào T-053 hai lỗi lộ ra khi nhìn cả hồ từ xa: lưới chính sáng hơn hẳn vùng xa, và một vệt nâu ở chân trời. Các lựa chọn ghi ở mục 8 của task.
+- **2026-11-19:** Lane 2 xong [T-052](tasks/T-052-trasimene-battle.md). Kiểm tra mới cho `islands` và `concealed`, cùng một cảnh báo khi mũi tên chỉ vào khối đang nấp; bộ thử hồ có 45 ca. File trận: 3 đảo; La Mã 16 khối, Hannibal 14 khối, 10 khối nấp; sáu giai đoạn, 130 giây phát. Thương vong: La Mã mất 15 454, Hannibal mất 2 130.
+  - Phiên chính kiểm tra trên bản gộp thử với `main`. `validate` không cảnh báo, bộ thử 45/45, `lint`, `tutor:check` và `build` đều qua; hai lưới độ cao dựng lại ra đúng từng byte. Gộp với nhánh lane 3 chỉ vướng file trận thử, đúng như dự tính.
+  - Người dùng duyệt ba chỗ khác phương án. Lúc 4:30, đầu đoàn quân đã qua lối hẹp, vì cảnh chỉ cho đi thẳng giữa hai mốc; vẫn khớp Livy 22.4.4. Giai đoạn 2 dài 20 giây. Bộ binh Gaul chia 5 khối 3 200 người.
+  - Người dùng chọn **chưa gộp**: T-052 và T-053 vào `main` cùng một lượt khi T-053 xong. Lane 3 revert commit `TEMP:` và gộp thẳng nhánh của lane 2 (mục 9 của T-053).
+  - Khi gộp, phiên chính sẽ ghi vào ARCHITECTURE các kiểm tra mới (45 ca) và kiểm tra vì sao `/battle-lab?lang=vi` hiện tên giai đoạn bằng tiếng Anh.
+  - Sự cố phía phiên chính: lần dọn bản thử T-051, `git worktree remove` đã xoá xuyên qua liên kết thư mục, mất 14 mục trong `node_modules` của repo chính. Đã cài bù bằng `npm install`.
 
 ## Việc để giai đoạn 5
 
@@ -256,7 +262,7 @@ Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng vi�
 | Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|---|
 | 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Xong, đã gộp 2026-11-19. Vị trí: lối hẹp Malpasso và đồng bằng Tuoro (người dùng duyệt) |
-| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | [T-052](tasks/T-052-trasimene-battle.md) | Giao 2026-11-19 |
+| 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | [T-052](tasks/T-052-trasimene-battle.md) | Xong, đã review 2026-11-19; chờ gộp cùng T-053 (người dùng chọn) |
 | 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | [T-053](tasks/T-053-trasimene-scene.md) | Giao 2026-11-19, chạy song song với chặng 1 (người dùng chọn) |
 | 3 | Ghép vào app: đăng ký trận, nút xem trận ở sự kiện mới, bản đồ bay tới hồ; hộp thoại Giới thiệu và ghi công hết viết riêng cho Cannae (bốn khoá) | Phiên chính; lane 1 phần hộp thoại | Mở được cả hai trận từ app; hồi quy qua | Chưa viết | Chưa bắt đầu |
 

@@ -80,6 +80,14 @@ Người dùng đã xem ảnh `duyet\T-053\dung-som` và chọn:
   Sửa xong thì chụp lại góc ảnh 09, và một góc Cannae nhìn xa để chắc Cannae không đổi.
 - **Đo hiệu năng:** ghi cả Godot lẫn Blender trong điều kiện máy (`tasklist`). Khi máy không sạch thì đo xen kẽ A-B như mục 6.
 
+### 9. File trận thật, trước khi T-052 vào `main` (2026-11-19)
+
+Lane 2 đã xong T-052. Người dùng duyệt file trận, nhưng **chưa gộp vào `main`**: T-052 và T-053 sẽ vào `main` cùng một lượt khi T-053 xong, để app chính không hiện trận Trasimene khi cảnh còn dở. Vì vậy, thay cho ý cuối của mục 1:
+
+- `git revert` commit `TEMP:`, rồi gộp thẳng nhánh `lane2/T-052-trasimene-battle` vào nhánh của bạn (không phải `main`). Gộp sẽ không vướng gì, vì sau khi revert nhánh của bạn không còn file trận thử.
+- Làm tiếp và đo trên file trận thật. Cần biết về trận thật thì đọc mục "Cho lane 3 (T-053)" trong `docs/tasks/T-052-trasimene-battle.md` trên nhánh đó: 3 đảo, 10 khối nấp, quân La Mã lội tới 95 m, 3 750 hình lính.
+- Không sửa file của lane 2. Thấy file trận cần đổi thì ghi vào "Kết quả".
+
 ## Ràng buộc
 
 - Ngoài phạm vi trên, không sửa file của người khác. Cần đổi hợp đồng (`src/lib/battle.ts`) thì ghi đề nghị vào "Kết quả".
