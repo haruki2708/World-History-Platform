@@ -386,7 +386,8 @@ const SceneView = memo(function SceneView({
       // The units with men standing, largest on screen first.
       const units = namesOn
         ? views
-            .filter((v) => v.standing > 0 && v.id !== chosen && unitIndex.has(v.id))
+            // A unit lying in ambush has no name on the field (UnitState.concealed).
+            .filter((v) => v.standing > 0 && !v.hidden && v.id !== chosen && unitIndex.has(v.id))
             .map((v) => {
               const i = unitIndex.get(v.id) ?? 0;
               return { v, i, rank: v.prominence * (unitShown[i] ? UNIT_LABEL_KEEP : 1) };
@@ -815,7 +816,7 @@ function UnitCard({ cardRef, battle, unit, color, type, onClose }: UnitCardProps
   const { t, locale } = useT();
   const titleId = useId();
   const time = useAppStore((state) => state.battleTime);
-  const { men, action } = unitStateAt(battle, unit.id, time);
+  const { men, action, hidden } = unitStateAt(battle, unit.id, time);
   const side = battle.sides.find((s) => s.id === unit.side);
 
   return (
@@ -868,7 +869,7 @@ function UnitCard({ cardRef, battle, unit, color, type, onClose }: UnitCardProps
         <dt className="text-muted">{t("battle.card.now")}</dt>
         <dd className="font-medium tabular-nums">{formatCount(roundMen(men), locale)}</dd>
         <dt className="text-muted">{t("battle.card.action")}</dt>
-        <dd>{t(`battle.action.${action}`)}</dd>
+        <dd>{hidden ? t("battle.card.hidden") : t(`battle.action.${action}`)}</dd>
       </dl>
     </section>
   );

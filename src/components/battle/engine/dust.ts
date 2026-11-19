@@ -40,6 +40,8 @@ import type { Sky } from "./sky";
 import { type BattleClock, formationPoint, type UnitKey, type UnitTrack } from "./timeline";
 
 type HeightAt = (x: number, y: number) => number;
+/** True on the water of a lake (LakeField.wet): no dust rises there. */
+type Wet = (x: number, y: number) => boolean;
 
 /** A unit that can raise dust. */
 export interface DustSource {
@@ -247,6 +249,7 @@ export class Dust {
   private readonly sources: DustSource[];
   private readonly clock: BattleClock;
   private readonly heightAt: HeightAt;
+  private readonly wet: Wet;
   /** Down the wind, on the field (east, north), metres per second of playback. */
   private readonly windEast: number;
   private readonly windNorth: number;
@@ -272,11 +275,12 @@ export class Dust {
   private lastSeconds = NaN;
   private readonly lastCamera = new Vector3(NaN, NaN, NaN);
 
-  constructor(battle: Battle, sources: DustSource[], clock: BattleClock, heightAt: HeightAt) {
+  constructor(battle: Battle, sources: DustSource[], clock: BattleClock, heightAt: HeightAt, wet: Wet = () => false) {
     this.level = Math.min(Math.max(battle.terrain.scenery?.dust?.level ?? 0, 0), 1);
     this.sources = sources;
     this.clock = clock;
     this.heightAt = heightAt;
+    this.wet = wet;
     const wind = battle.terrain.scenery?.wind;
     // `from` is where the wind blows from: the dust goes the other way.
     const a = (((wind?.from ?? 0) + 180) * Math.PI) / 180;
@@ -446,6 +450,8 @@ export class Dust {
       const u = draw(seed, 2) - 0.5;
       const v = atFront ? -0.05 + 0.2 * draw(seed, 3) : 0.3 + 0.9 * draw(seed, 3);
       formationPoint(key, u, v, this.point);
+      // Men wading raise no dust.
+      if (this.wet(this.point.x, this.point.y)) continue;
       const s = base + k * FIELDS;
       slots[s] = 1;
       slots[s + 1] = this.point.x;

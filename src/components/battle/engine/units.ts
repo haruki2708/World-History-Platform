@@ -1113,7 +1113,8 @@ export class UnitBlock {
   }
 
   private updateFootprint(time: number, heightAt: HeightAt): void {
-    this.footprint.visible = this.standing > 0;
+    // A unit lying in ambush shows no colour of its side (UnitState.concealed).
+    this.footprint.visible = this.standing > 0 && !this.track.hiddenAt(time);
     if (!this.footprint.visible) return;
     const formation = this.track.formationAt(time);
     // A block standing still keeps its patch: the ground under it is the same.

@@ -11,9 +11,11 @@ import type { Battle, UnitAction } from "@/lib/battle";
 interface Key {
   men: number;
   action: UnitAction;
+  concealed: boolean;
 }
 
 const keysByBattle = new WeakMap<Battle, Map<string, Key[]>>();
+const concealedByKeys = new WeakMap<Key[], boolean[]>();
 
 function keysOf(battle: Battle, unitId: string): Key[] {
   let byUnit = keysByBattle.get(battle);
@@ -27,15 +29,15 @@ function keysOf(battle: Battle, unitId: string): Key[] {
   const first = battle.initial.find((s) => s.unit === unitId);
   keys = [
     first
-      ? { men: Math.max(first.men, 0), action: first.action }
-      : { men: unit?.men ?? 0, action: "stand" },
+      ? { men: Math.max(first.men, 0), action: first.action, concealed: first.concealed === true }
+      : { men: unit?.men ?? 0, action: "stand", concealed: false },
   ];
   for (const phase of battle.phases) {
     const previous = keys[keys.length - 1];
     const state = phase.units.find((s) => s.unit === unitId);
     keys.push(
       state
-        ? { men: Math.min(Math.max(state.men, 0), previous.men), action: state.action }
+        ? { men: Math.min(Math.max(state.men, 0), previous.men), action: state.action, concealed: state.concealed === true }
         : { ...previous },
     );
   }
@@ -48,6 +50,35 @@ export interface UnitMoment {
   men: number;
   /** What the unit does in the phase under way. */
   action: UnitAction;
+  /** Lying in ambush through the phase under way (see concealedThrough). */
+  hidden: boolean;
+}
+
+/**
+ * Whether a unit lies hidden through the phase under way at `time`, from
+ * whether it is concealed at each keyframe (the start, then the end of each
+ * phase): only when it is concealed at both keys of that phase
+ * (UnitState.concealed). Time 0 belongs to the first phase, as in phaseAt.
+ */
+export function concealedThrough(concealed: readonly boolean[], time: number): boolean {
+  const phases = concealed.length - 1;
+  if (phases <= 0) return concealed[0] === true;
+  const phase = Math.min(Math.max(Math.ceil(time), 1), phases);
+  return concealed[phase - 1] && concealed[phase];
+}
+
+/**
+ * Per keyframe of a unit, whether it is concealed; a unit missing from a
+ * phase keeps its last state, as everywhere else.
+ */
+export function concealedKeys(battle: Battle, unitId: string): boolean[] {
+  const keys = keysOf(battle, unitId);
+  let concealed = concealedByKeys.get(keys);
+  if (!concealed) {
+    concealed = keys.map((key) => key.concealed);
+    concealedByKeys.set(keys, concealed);
+  }
+  return concealed;
 }
 
 export function unitStateAt(battle: Battle, unitId: string, time: number): UnitMoment {
@@ -59,7 +90,7 @@ export function unitStateAt(battle: Battle, unitId: string, time: number): UnitM
   const to = keys[Math.min(k + 1, last)];
   const men = keys[k].men + (to.men - keys[k].men) * s;
   const action = t <= 0 || last === 0 ? keys[0].action : keys[Math.min(Math.ceil(t), last)].action;
-  return { men, action };
+  return { men, action, hidden: concealedThrough(concealedKeys(battle, unitId), t) };
 }
 
 /**

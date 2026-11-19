@@ -33,7 +33,9 @@ import {
   Vector3,
 } from "three";
 import { type BattleTerrain, type FieldPoint, type GroundCover, terrainUrl } from "@/lib/battle";
+import { LAKE_GLSL, LakeField } from "./lake";
 import { River, type RiverLight } from "./river";
+import { FIGURE_SCALE } from "./units";
 import { WATER_GLSL } from "./water";
 
 export type HeightAt = (x: number, y: number) => number;
@@ -48,6 +50,19 @@ const WADE_CELL = 5;
 const WADE_DEPTH = 1.5;
 /** Ground at or below this height, metres above sea level, is sea. */
 export const SEA_LEVEL = 0.05;
+/**
+ * The bed of a lake falls this many metres for every metre from the shore,
+ * down to LAKE_DEEPEST: 1.5 m at 150 m, the farthest a unit may stand out
+ * (`npm run validate`), where a man is in to his shoulders (Polybius 3.84.9,
+ * Livy 22.6.6). True metres: the scene draws the depth at FIGURE_SCALE, so
+ * that the water comes as high on a figure as it would on a man.
+ */
+const LAKE_SLOPE = 0.01;
+const LAKE_DEEPEST = 1.65;
+/** Depth of a lake at so many metres from the shore, metres as drawn. */
+function lakeDepth(fromShore: number): number {
+  return fromShore > 0 ? Math.min(fromShore * LAKE_SLOPE, LAKE_DEEPEST) * FIGURE_SCALE : 0;
+}
 /** The far ground sinks with distance as the curve of the earth makes it: d² / 2R. */
 const EARTH_DIAMETER = 2 * 6371000;
 const drop = (x: number, y: number): number => (x * x + y * y) / EARTH_DIAMETER;
@@ -63,6 +78,10 @@ const PALETTE = {
   forest: new Color("#566643"),
   sea: new Color("#1d3a4e"),
   strand: new Color("#d3c59c"),
+  // A shallow lake on a muddy bed, greener and murkier than the sea.
+  lakeDeep: new Color("#24404a"),
+  lakeShallow: new Color("#47584a"),
+  lakeMud: new Color("#5d5243"),
 };
 
 /**
@@ -137,6 +156,8 @@ export class Terrain {
   readonly group = new Group();
   readonly minHeight: number;
   readonly maxHeight: number;
+  /** The low ground: a height that one point of the grid in twenty lies below. */
+  readonly lowGround: number;
   readonly data: BattleTerrain;
   private readonly heights: Float32Array;
   private readonly far: Float32Array | null;
@@ -155,6 +176,8 @@ export class Terrain {
     uSunLight: { value: new Color() },
   };
   private readonly rivers: River[] = [];
+  /** The lakes and the distance of every point from their shores; null without lakes. */
+  readonly lake: LakeField | null;
   /** How deep a man stands in a river, in centimetres, on a grid of WADE_CELL metres; null without rivers. */
   private wade: Uint8Array | null = null;
   private wadeCols = 0;
@@ -191,6 +214,11 @@ export class Terrain {
     }
     this.minHeight = Number.isFinite(min) ? min : 0;
     this.maxHeight = Number.isFinite(max) ? max : 0;
+    const sample: number[] = [];
+    for (let i = 0; i < heights.length; i += 7) sample.push(heights[i]);
+    sample.sort((a, b) => a - b);
+    this.lowGround = sample.length > 0 ? sample[Math.floor(sample.length * 0.05)] : 0;
+    this.lake = LakeField.of(data);
 
     this.group.add(this.buildGround());
     for (const river of data.rivers) {
@@ -240,24 +268,27 @@ export class Terrain {
 
   /**
    * Where a man's feet are at a field point: the ground, or the bed of a
-   * river when he wades it. Use it for the figures; heightAt for all else.
+   * river or a lake when he wades it. The bed of a lake falls with the
+   * distance from the nearest shore, an island's included (LAKE_SLOPE).
+   * Use it for the figures; heightAt for all else.
    */
   readonly footingAt: HeightAt = (x, y) => {
     const ground = this.heightAt(x, y);
+    const lake = this.lake ? lakeDepth(this.lake.distanceAt(x, y)) : 0;
     const wade = this.wade;
-    if (!wade) return ground;
+    if (!wade) return ground - lake;
     const gx = (x - this.data.minX) / WADE_CELL;
     const gy = (this.data.maxY - y) / WADE_CELL;
     const col = Math.floor(gx);
     const row = Math.floor(gy);
-    if (col < 0 || row < 0 || col >= this.wadeCols - 1 || row >= this.wadeRows - 1) return ground;
+    if (col < 0 || row < 0 || col >= this.wadeCols - 1 || row >= this.wadeRows - 1) return ground - lake;
     const fx = gx - col;
     const fy = gy - row;
     const k = row * this.wadeCols + col;
     const depth =
       (wade[k] * (1 - fx) + wade[k + 1] * fx) * (1 - fy) +
       (wade[k + this.wadeCols] * (1 - fx) + wade[k + this.wadeCols + 1] * fx) * fy;
-    return ground - depth / 100;
+    return ground - Math.max(depth / 100, lake);
   };
 
   /** Call every frame: moving water, and the sky it reflects. */
@@ -371,7 +402,7 @@ export class Terrain {
           // Spread evenly along the edge of the hole, at the height of the far ground there.
           x = c === 0 ? hole.minX : c === cols - 1 ? hole.maxX : hole.minX + ((hole.maxX - hole.minX) * (c - 1)) / (width - 1);
           y = r === 0 ? hole.maxY : r === rows - 1 ? hole.minY : hole.maxY - ((hole.maxY - hole.minY) * (r - 1)) / (height - 1);
-          const level = this.farHeightAt(x, y);
+          const level = this.lake?.wet(x, y) ? this.lake.levelAt(x, y) : this.farHeightAt(x, y);
           h = level - drop(x, y);
           sea[r * cols + c] = level <= SEA_LEVEL ? 1 : 0;
         } else if (onRing) {
@@ -466,9 +497,23 @@ export class Terrain {
     geometry.computeBoundingSphere();
 
     const material = new MeshLambertMaterial({ vertexColors: true });
+    const lake = this.lake;
+    if (lake) material.defines = { LAKE: "" };
+    // The ripples on a lake run down the wind.
+    const windTo = (((this.data.scenery?.wind?.from ?? 300) + 180) * Math.PI) / 180;
     // The ground colour is made in the shader from layered noise, so it stays
     // crisp however coarse the elevation grid is.
     material.onBeforeCompile = (shader) => {
+      if (lake) {
+        shader.uniforms.uLakeMap = { value: lake.texture };
+        shader.uniforms.uLakeGrid = { value: new Vector3(lake.minX, lake.minY, 1 / lake.cell) };
+        shader.uniforms.uLakeSize = { value: [lake.cols, lake.rows] };
+        shader.uniforms.uLakeDeep = { value: PALETTE.lakeDeep };
+        shader.uniforms.uLakeShallow = { value: PALETTE.lakeShallow };
+        shader.uniforms.uLakeMud = { value: PALETTE.lakeMud };
+        // In the frame of the ground shader's g = (x, -y).
+        shader.uniforms.uLakeHeading = { value: Math.atan2(-Math.cos(windTo), Math.sin(windTo)) };
+      }
       shader.uniforms.uStubble = { value: cover.main };
       shader.uniforms.uGrass = { value: cover.other };
       shader.uniforms.uEarth = { value: cover.bare };
@@ -518,6 +563,13 @@ export class Terrain {
           uniform vec3 uSunLight;
           uniform sampler2D uSand;
           ${WATER_GLSL}
+          #ifdef LAKE
+          ${LAKE_GLSL}
+          uniform vec3 uLakeDeep;
+          uniform vec3 uLakeShallow;
+          uniform vec3 uLakeMud;
+          uniform float uLakeHeading;
+          #endif
           varying vec3 vGroundPos;
           varying float vOverlay;
           varying vec2 vLie;
@@ -698,6 +750,42 @@ export class Terrain {
               }
             }
             groundReliefShown *= 1.0 - smoothstep(0.05, 0.3, shore);
+            #ifdef LAKE
+            {
+              // A lake (lake.ts): damp ground, then mud and wet sand at the
+              // edge, then the shallows, where the bed shows, and open water.
+              // The edge wanders a few metres either way of the traced shore.
+              float d = lakeDistance(vec2(g.x, -g.y)) + (mottle - 0.5) * 7.0 + (patches - 0.5) * 6.0;
+              if (d > -20.0) {
+                float damp = smoothstep(-20.0, -2.5, d);
+                ground = mix(ground, mix(ground, uBank, 0.5) * 0.8, damp);
+                vec3 sandPhoto = mix(texture2D(uSand, g / 5.0).rgb, texture2D(uSand, g / 23.0 + 0.4).rgb, smoothstep(40.0, 200.0, distance));
+                vec3 mud = mix(uLakeMud, sandPhoto * 0.55, 0.35) * (0.85 + 0.3 * mottle);
+                float muddy = smoothstep(-6.0, -0.5, d);
+                ground = mix(ground, mud, muddy);
+                groundReliefShown *= 1.0 - muddy;
+                float wet = smoothstep(-0.5, 1.5, d);
+                if (wet > 0.0) {
+                  float deep = smoothstep(1.0, 70.0, d);
+                  vec3 water = mix(mix(mud, uLakeShallow, 0.6), uLakeDeep, deep);
+                  float footprint = max(length(fwidth(g)), 0.01);
+                  // Calmer than the sea: ripples running down the wind.
+                  vec2 slope = waterSlope(g * 0.8, uWaterTime, uLakeHeading, 1.1, footprint, 0.8);
+                  vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+                  vec3 toEye = normalize(cameraPosition - vGroundPos);
+                  float fresnel;
+                  vec3 thrown = waterLight(n, toEye, uSunDir, uSunLight, uSkyZenith, uSkyHorizon, fresnel);
+                  // Small waves lapping at the edge.
+                  float lap = (1.0 - smoothstep(0.0, 3.0, d)) * waterFoam(g * 0.9, uWaterTime) * 0.3
+                    * (1.0 - smoothstep(300.0, 1500.0, distance));
+                  water *= 1.0 - fresnel * 0.8;
+                  water = mix(water, vec3(0.8, 0.82, 0.78), lap);
+                  ground = mix(ground, water, wet);
+                  groundGlow += thrown * wet * (0.35 + 0.65 * deep) * (1.0 - lap);
+                }
+              }
+            }
+            #endif
             diffuseColor.rgb *= ground;
           }`,
         )
@@ -722,7 +810,7 @@ export class Terrain {
           totalEmissiveRadiance += groundGlow;`,
         );
     };
-    material.customProgramCacheKey = () => "battle-ground";
+    material.customProgramCacheKey = () => (lake ? "battle-ground-lake" : "battle-ground");
 
     const mesh = new Mesh(geometry, material);
     mesh.receiveShadow = true;
@@ -755,7 +843,9 @@ export class Terrain {
       for (let c = 0; c < width; c++) {
         const x = far.minX + c * cellX;
         const y = far.maxY - r * cellY;
-        const h = at(c, r);
+        // The far grid is the mean of the ground round each point: on a lake
+        // that is land and water together. The water lies level.
+        const h = this.lake?.wet(x, y) ? this.lake.levelAt(x, y) : at(c, r);
         const k = r * width + c;
         positions[k * 3] = x;
         positions[k * 3 + 1] = h - drop(x, y);
@@ -815,16 +905,21 @@ export class Terrain {
     heights.minFilter = heights.magFilter = NearestFilter;
     heights.needsUpdate = true;
 
-    // Where grass grows: not in the sea, not in the bed of a river. A grid of MASK_CELL metres.
-    // Its first and last points lie on the edges of the ground, as those of the elevation grid do.
+    // Where grass grows: not in the sea, not in a lake or on the mud at its
+    // edge, not in the bed of a river. A grid of MASK_CELL metres. Its first
+    // and last points lie on the edges of the ground, as those of the
+    // elevation grid do.
     const cols = Math.round((maxX - minX) / MASK_CELL) + 1;
     const rows = Math.round((maxY - minY) / MASK_CELL) + 1;
     const stepX = (maxX - minX) / (cols - 1);
     const stepY = (maxY - minY) / (rows - 1);
     const grows = new Uint8Array(cols * rows);
+    const lake = this.lake;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        grows[r * cols + c] = this.heightAt(minX + c * stepX, maxY - r * stepY) > SEA_LEVEL + 0.35 ? 255 : 0;
+        const x = minX + c * stepX;
+        const y = maxY - r * stepY;
+        grows[r * cols + c] = this.heightAt(x, y) > SEA_LEVEL + 0.35 && !lake?.wet(x, y, 6) ? 255 : 0;
       }
     }
     for (const river of rivers) {
@@ -859,6 +954,7 @@ export class Terrain {
 
   dispose(): void {
     for (const texture of this.textures) texture.dispose();
+    this.lake?.dispose();
     this.group.traverse((object) => {
       if (object instanceof Mesh) {
         object.geometry.dispose();
