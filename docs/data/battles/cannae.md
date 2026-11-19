@@ -1,6 +1,6 @@
 # Trận Cannae (216 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-19 (T-045, quân giữ trại của Hannibal và đường ra vào trại: mục 17; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
+Cập nhật: 2026-11-19 (T-049, kỵ binh của Hasdrubal tách thành kỵ binh Iberia và kỵ binh Gaul: mục 18; T-045, quân giữ trại của Hannibal và đường ra vào trại: mục 17; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
 
 Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và lý do, để người sau kiểm tra hoặc sửa.
 
@@ -11,7 +11,8 @@ Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và l�
 | Polybius, *Histories* 3.107–118 (bản dịch Loeb 1922 của W. R. Paton) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html) | Trại, hướng quân, thứ tự dàn trận, diễn biến, quân số, thương vong |
 | Livy, *Ab Urbe Condita* 22.36–52 (bản dịch Roberts) | [Wikisource](https://en.wikisource.org/wiki/From_the_Founding_of_the_City/Book_22) và Perseus (chương 40, 41, 45–48) | Hai trại, dàn trận, gió Volturnus, mưu 500 kỵ binh Numidia, thương vong, số người chạy thoát |
 | Livy 22 (bản Latin) | [The Latin Library](https://www.thelatinlibrary.com/livy/liv.22.shtml) | Đối chiếu 22.36 (87.200 người), 22.46 (hướng quân), 22.49 (thương vong, Paullus trúng đá ném) |
-| Bài "Battle of Cannae" | [Wikipedia](https://en.wikipedia.org/wiki/Battle_of_Cannae) | Chỉ để tham khảo cách chia quân của Hannibal theo ước lượng hiện đại (bài dẫn Daly 2002 và Goldsworthy 2001), kể cả toán giữ trại (T-045, mục 17). Không chép nội dung |
+| Livy 22 (bản Latin của B. O. Foster, Loeb 1929, có ghi chú văn bản) | [Perseus](https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.02.0200:book=22:chapter=46) (chương 46–48) | T-049: kỵ binh Gaul và Iberia ở cánh trái (mục 18) |
+| Bài "Battle of Cannae" | [Wikipedia](https://en.wikipedia.org/wiki/Battle_of_Cannae) | Chỉ để tham khảo cách chia quân của Hannibal theo ước lượng hiện đại (bài dẫn Daly 2002 và Goldsworthy 2001), kể cả toán giữ trại (T-045, mục 17) và số kỵ binh Iberia, Gaul (T-049, mục 18). Không chép nội dung |
 | Appian, *Hannibalica* 17–28 (bản dịch Horace White) | [Livius.org](https://www.livius.org/sources/content/appian/appian-war-against-hannibal/) | T-045: chuyện hai trại La Mã sau trận (mục 17) |
 | Plutarch, *Fabius Maximus* 14–17 (bản dịch Loeb 1916) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Plutarch/Lives/Fabius_Maximus*.html) | T-045: số người bị bắt ở hai trại (16.8) |
 | Cassius Dio, sách 15 (bản tóm của Zonaras) | [LacusCurtius](https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Cassius_Dio/15*.html) | T-045: đối chiếu; không nhắc cuộc đánh trại |
@@ -95,7 +96,8 @@ Cách chia 70 000 bộ binh ra trận thành lính nhẹ và ba hàng là ước
 |---|---|---|---|
 | Lính ném đá Baleares | `balearic-slingers` | 2 000 | Polybius 3.113 và Livy 22.46 nhắc lính ném đá đi trước; số theo ước lượng hiện đại |
 | Lính giáo nhẹ | `light-spearmen` (loại mới) | 6 000 | Polybius 3.113: lính ném đá và lính giáo đi trước; số theo ước lượng hiện đại |
-| Kỵ binh Iberia và Gaul, hàng trước / hàng sau (Hasdrubal) | `iberian-gallic-cavalry` | 3 000 + 3 000 | Cánh trái sát sông. Chia hai khối để dễ thấy cú vòng ra sau lưng |
+| Kỵ binh Iberia (Hasdrubal) | `iberian-cavalry` | 2 000 | Cánh trái, sát sông. Số theo một ước lượng hiện đại do Wikipedia nêu. Từ T-049 (mục 18); trước đó cánh trái là hai khối hàng trước, hàng sau, mỗi khối 3 000, cùng loại `iberian-gallic-cavalry` |
+| Kỵ binh Gaul (Hasdrubal) | `gallic-cavalry` | 4 000 | Cánh trái, đứng cạnh kỵ binh Iberia về phía trong. Như trên |
 | Bộ binh Libya, cánh trái / cánh phải | `libyan-infantry` | 4 000 + 4 000 | Polybius 3.113: một nửa lính châu Phi ở mỗi bên. Tổng 8 000 theo ước lượng hiện đại |
 | Lưỡi liềm: Gaul trái, Iberia lệch trái, Gaul giữa, Iberia lệch phải, Gaul phải | `gallic-infantry`, `iberian-infantry` | 5 000, 4 000, 6 000, 4 000, 5 000 | Polybius 3.114: Gaul và Iberia đứng xen kẽ từng toán. Gaul 16 000, Iberia 8 000 theo ước lượng hiện đại |
 | Kỵ binh Numidia | `numidian-cavalry` | 4 000 | Cánh phải. Polybius ghi Hanno chỉ huy cánh phải, Livy ghi Maharbal |
@@ -314,7 +316,7 @@ Từ đợt G, cảnh cho người đầu mỗi hàng dọc đấu với ngườ
 - **Hàng ba:** lính nhẹ lui qua hàng ngũ ở giai đoạn 3 rồi đứng sau hàng hai; triarii đứng sau cùng.
 - **Giai đoạn 5–6, quân La Mã là một cái hộp.** Mặt trước nằm trên cung; principes ở sườn tây và bộ binh đồng minh hàng sau ở sườn đông, quay mặt ra ngoài; triarii quay đầu, khép mặt sau; lính nhẹ ở bên trong. Hộp ở mốc 5 rộng khoảng 600 m, sâu khoảng 430 m ở giữa; ở mốc 6 rộng khoảng 410 m, sâu khoảng 320 m.
 - **Lính Libya** đứng yên tới hết giai đoạn 4, quay vào trong ở giai đoạn 5 và chạm sườn ở mốc 5. Ở mốc 5 họ đứng lệch về bắc 45 m so với sườn mà họ đánh, vì phải đi vòng ngoài đầu mút của lưỡi liềm. Không lệch nhiều hơn được: người chỉ ngã ở hàng dọc có địch trước mặt, nên một sườn chỉ bị che một nửa sẽ mất hết người ở nửa đó và không mất ai ở nửa kia (đã thử với 90 m: principes còn 0 trên 9 người đầu hàng có đối thủ ở 3/4 giai đoạn 6).
-- **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau.
+- **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau. Từ T-049 hai khối là kỵ binh Iberia và kỵ binh Gaul, đứng cạnh nhau cả ở mốc 2 và 3, nên cả hai cùng đánh kỵ binh La Mã (mục 18).
 - **Cổng trại Hannibal** (T-045, mục 17): lực lượng ở trại lớn và toán giữ trại đứng hai bên một đường bắc–nam là mặt trước (phía đông) của trại, x = −3475, cổng ở y = −500; bề ngang 200 m. Mốc 2 và 3 đường này nằm đúng ở cổng, mốc 4 lùi vào trong trại 10 m, mốc 5 lùi 40 m. Mốc 6: chỗ lực lượng ở trại lớn đứng sau cổng trại lớn (rút về theo đường thẳng qua cổng) và đoạn toán giữ trại đuổi theo cũng do script tính.
 
 ### Quân số
@@ -655,3 +657,112 @@ Hàng đầu hai bên ở cổng trại Hannibal đấu từng cặp; có ngư�
 - Con số 8 000 của Daly mới đọc qua Wikipedia, chưa đối chiếu với sách. Phiên chính tìm thêm khi gộp (2026-11-19): câu "8 000 người ở lại trại" có trong bài Wikipedia, nhưng không xác nhận được nó nằm trong sách của Daly; có thể đến từ một sách khác cùng năm (Healy, *Cannae 216 BC*, Osprey 2002). Ghi chú `strength` của Carthage vì thế nói "ước lượng hiện đại do Wikipedia nêu", không nêu tên Daly. Nếu đọc được sách thì nên xem lại cả câu "8 000 người ở trại nằm trong hay ngoài 16 000 Gaul" (ở trên) lẫn bảng chia quân ở mục 5.
 - Trại không vẽ luỹ và cổng: chỗ đánh nhau chỉ đọc ra là cổng trại nhờ khoảng trống trong lều.
 - Hộp thoại Giới thiệu chưa nói toán giữ trại là phỏng dựng; đề nghị câu chữ ở mục "Kết quả" của `docs/tasks/T-045-camp-guard.md`.
+
+## 18. Kỵ binh Iberia và kỵ binh Gaul của Hasdrubal (T-049)
+
+Trước T-049, kỵ binh cánh trái của Hasdrubal là hai khối (hàng trước, hàng sau), mỗi khối 3 000 người, cùng một loại lính chung `iberian-gallic-cavalry` mặc đồ người Iberia (mục 5). Ở T-047 lane 1 nêu: người Gaul trong cảnh vì thế trông như người Iberia. Người dùng chọn tách thành hai loại lính; mô hình kỵ binh Gaul do lane 1 dựng ở T-050.
+
+### Nguồn cổ đã đọc lại (2026-11-19)
+
+| Nguồn | Đọc ở đâu | Nói gì về kỵ binh cánh trái |
+|---|---|---|
+| Polybius 3.113 | Bản Paton, LacusCurtius (mục 1) | Hannibal đặt kỵ binh Iberia và Celt ở cánh trái, sát sông, đối diện kỵ binh La Mã. Hai dân tộc được gọi trong một cụm, như một cánh quân; không nói họ đứng với nhau thế nào |
+| Polybius 3.114 | Như trên | Khiên của người Iberia và người Celt gần giống nhau, kiếm khác hẳn; người Gaul cởi trần, người Iberia mặc áo ngắn viền tía. Đoạn này nói về bộ binh đứng xen kẽ từng toán ở giữa; trang phục của kỵ binh không được tả. Tổng khoảng 10 000 kỵ binh, không chia theo dân tộc. Hasdrubal chỉ huy cánh trái |
+| Polybius 3.115 | Như trên | Kỵ binh Iberia và Celt ở cánh trái đụng kỵ binh La Mã; gặp nhau là xuống ngựa đánh từng người; cuối cùng giết phần lớn và dồn số còn lại dọc bờ sông. Vẫn gọi chung một cụm |
+| Polybius 3.116 | Như trên | Hasdrubal từ cánh trái sang giúp kỵ binh Numidia, rồi dẫn các đội kỵ binh của ông tới chỗ bộ binh đang đánh và đánh vào lưng các quân đoàn. Không nêu tên dân tộc |
+| Polybius 3.117 | Như trên | Phía Carthage chết khoảng 4 000 người Celt, 1 500 người Iberia và Libya, 200 kỵ binh. Số kỵ binh không chia theo dân tộc |
+| Polybius 3.56, 3.67, 3.72 | Như trên | Hannibal vào Ý với không quá 6 000 kỵ binh, không chia theo dân tộc (3.56); lúc ấy chưa có người Gaul nào theo ông. Gần 200 kỵ binh Celt bỏ trại La Mã sang với ông (3.67). Ở sông Trebia cuối năm 218 TCN, kỵ binh của ông kể cả đồng minh Celt là hơn 10 000 (3.72) |
+| Livy 22.46.2 | Bản Latin của Foster (Loeb 1929) và bản dịch Roberts, đều trên Perseus | Kỵ binh Gaul và Iberia (*Gallos Hispanosque equites*) đứng ở cánh trái, sát bờ sông, đối diện kỵ binh La Mã. Livy gọi tên người Gaul trước, Polybius gọi người Iberia trước |
+| Livy 22.46.3–6 | Như trên | Khiên, kiếm, áo trắng viền tía, người Gaul cởi trần: tả bộ binh ở trung quân (22.46.3), không phải kỵ binh. 40 000 bộ binh và 10 000 kỵ binh, không chia theo dân tộc |
+| Livy 22.47.1–3 | Như trên | Cánh trái gồm kỵ binh Gaul và Iberia đụng cánh phải của La Mã. Không có chỗ xoay trở, hai bên phải đánh giáp mặt, kéo nhau xuống ngựa, phần lớn thành đánh bộ; kỵ binh La Mã bị đẩy lui và bỏ chạy |
+| Livy 22.48.5–6 | Như trên | Hasdrubal sai kỵ binh Numidia đuổi theo những người chạy trốn, còn kỵ binh Iberia và Gaul thì đưa tới hợp sức với lính châu Phi. Ghi chú văn bản của bản Foster: chữ *equites* (kỵ binh) ở câu này là chữ sửa của Gronovius; bản chép tay P ghi *pedites* (bộ binh) |
+
+Tóm lại:
+
+- Cả hai nguồn kể người Iberia và người Gaul **cùng** ở cánh trái sát sông và **cùng** đụng kỵ binh La Mã. Livy còn kể họ cùng được đưa vào trận chính lúc cuối. Không nguồn nào nói họ đứng thành hàng trước, hàng sau, hay dân tộc nào đứng sát sông.
+- Không nguồn cổ nào chia 10 000 kỵ binh theo dân tộc.
+- Trang phục trong Polybius 3.114 và Livy 22.46 là của bộ binh. Bộ đồ của kỵ binh Gaul dựa vào các nguồn khác, lane 1 ghi ở T-050.
+
+### Ước lượng hiện đại
+
+| Đọc ở đâu | Con số | Ghi chú |
+|---|---|---|
+| Bài "Battle of Cannae" trên Wikipedia tiếng Anh, đọc mã nguồn của bài ngày 2026-11-19: ô thông tin và mục "Armies" | Ô thông tin: 4 000 kỵ binh Numidia, 2 000 kỵ binh Hispania, 4 000 kỵ binh Gaul. Mục "Armies": 4 000 Numidia, 2 000 người bán đảo Iberia, 4 000 Gaul và 450 Libya-Phoenicia | Ô thông tin không dẫn nguồn. Trong mục "Armies", chú thích dẫn Daly (2002), tr. 106, nằm ở cuối câu **sau** (câu về lính ném đá và lính lao), nên không rõ con số kỵ binh có phải của Daly hay không. Tôi chưa đọc được sách của Daly. Vì vậy chỉ ghi là "do Wikipedia nêu" (rút kinh nghiệm từ T-045, mục 17) |
+| Cùng bài, mục "Battle" | Hasdrubal có 6 000–7 000 kỵ binh, Hanno 3 000–4 000 kỵ binh Numidia | Dẫn Goldsworthy, *Cannae* (Cassell, 2001), tr. 108 và 112. Không chia Iberia và Gaul. Chưa đọc được sách |
+| Một trang web đăng lại văn bản cuốn *Cannae* trong loạt *Cassell's Fields of Battle* (erenow.org; trang không ghi tác giả, có lẽ là sách của Goldsworthy nói trên; không phải bản phát hành chính thức, nên không đưa vào nguồn của file trận) | Toàn bộ kỵ binh Gaul và Iberia, khoảng 6 000–7 000 người, dồn ở cánh trái; kỵ binh Numidia có lẽ 3 000–4 000 | Sách nói thẳng là không có số liệu chính xác cho từng nhóm. Người Gaul đều được mộ từ các bộ tộc vùng Cisalpine sau khi Hannibal vào Ý; khá nhiều kỵ binh nặng của Hasdrubal là người Iberia. Không chia số |
+| Bài "Hasdrubal (quartermaster)" trên Wikipedia tiếng Anh | Hasdrubal khoảng 6 500 kỵ binh, Hanno 3 500 kỵ binh Numidia | Câu này không có chú thích. Không chia |
+| Bài về trận Cannae trên Ars Bellica (arsbellica.it) | Kỵ binh nặng Gaul và Iberia 6 500, kỵ binh Numidia 3 500 | Không dẫn nguồn. Không chia |
+
+Cách chia duy nhất tìm được là 2 000 Iberia và 4 000 Gaul, trên Wikipedia, không rõ của ai.
+
+**Đối chiếu với Polybius** (suy luận của tôi, không nguồn nào viết như vậy): Hannibal vào Ý với không quá 6 000 kỵ binh, gồm người Numidia và người Iberia, chưa có người Gaul (3.56). Cuối năm đó ở Trebia, kỵ binh kể cả người Celt hơn 10 000 (3.72), tức có chừng 4 000 kỵ binh Celt trở lên. Nếu ở Cannae có khoảng 4 000 kỵ binh Numidia như file này, thì kỵ binh Iberia nhiều lắm là khoảng 2 000. Cách chia của Wikipedia vì thế khớp với các con số của Polybius, nhưng khoảng sai rất rộng: hao hụt trong hai năm 218–217 TCN, người Gaul theo thêm sau Trebia, và chính số kỵ binh Numidia cũng là ước lượng.
+
+### Quyết định
+
+- **Loại lính** (`unit-types.json`; tên dùng chung với T-050 của lane 1):
+  - `iberian-gallic-cavalry` đổi thành `iberian-cavalry` ("Iberian cavalry", "Kỵ binh Iberia"), vẫn dùng file mô hình `iberian-gallic-cavalry`, vốn đã mặc đồ người Iberia (áo trắng viền tía, T-022).
+  - Thêm `gallic-cavalry` ("Gallic cavalry", "Kỵ binh Gaul"), mô hình `gallic-cavalry`. Tới khi T-050 gộp, cảnh vẽ hình tạm cho loại này; `npm run validate` vẫn qua.
+- **Quân số: 2 000 kỵ binh Iberia, 4 000 kỵ binh Gaul**, giả định theo con số Wikipedia nêu. Tổng cánh trái vẫn 6 000, kỵ binh Numidia vẫn 4 000, tổng kỵ binh vẫn 10 000 như Polybius và Livy. Không thêm 450 kỵ binh Libya-Phoenicia của bài Wikipedia: nguồn cổ chỉ cho tổng 10 000.
+- **Hai khối đứng cạnh nhau, không giữ hàng trước, hàng sau.** Lý do:
+  1. Polybius 3.115 và Livy 22.47.1 kể cả người Iberia lẫn người Gaul đụng kỵ binh La Mã bên sông. Nếu chia trước sau theo dân tộc, một dân tộc sẽ đứng chờ suốt giai đoạn 3, trái với cả hai nguồn và với lời dẫn của giai đoạn 3.
+  2. 2 000 và 4 000 không chia được thành hai khối trước sau ngang nhau; một khối 2 000 người đứng trước khối 4 000 người sẽ mỏng hẳn.
+  3. Cú vòng ra sau lưng vẫn dễ thấy: ở giai đoạn 4 hai khối đi nối nhau (khối Gaul trước, khối Iberia sau); ở giai đoạn 5–6 lại đứng cạnh nhau ở lưng các quân đoàn, như trước.
+- **Kỵ binh Iberia sát sông (phía tây), kỵ binh Gaul phía trong (phía đông).** Nguồn không nói. Chọn vậy để hai khối giữ thứ tự trái phải suốt trận, không cắt đường nhau: khối phía trong gần cánh bên kia hơn nên dẫn đầu cú vòng ở giai đoạn 4 và nhận chỗ phía đông ở lưng quân La Mã; khối sát sông theo sau và nhận chỗ phía tây. Trước T-049, khối hàng trước (khối đánh bên sông) cũng đi đầu và đứng phía đông.
+- **Bề ngang theo quân số:** mỗi khối một phần mặt trận tỉ lệ với số người (một phần ba và hai phần ba), cách nhau 4 m, cùng chiều sâu, nên hai khối dày như nhau. Chiều sâu 100 m từ đầu trận tới mốc 3 (trước: hai khối sâu 50–60 m, tâm cách nhau 70–80 m), 60 m ở mốc 5–6 như trước. Ở mốc 4, khi hai khối đi nối nhau, khối Gaul sâu 80 m, khối Iberia hẹp lại còn 240 m.
+- **Id và tên khối:** `hasdrubal-cavalry-front` thành `iberian-cavalry`, `hasdrubal-cavalry-rear` thành `gallic-cavalry`, theo kiểu `roman-cavalry`, `allied-cavalry`. Tên: "Iberian cavalry (Hasdrubal)" / "Kỵ binh Iberia (Hasdrubal)" và "Gallic cavalry (Hasdrubal)" / "Kỵ binh Gaul (Hasdrubal)". Mũi tên và lời dẫn không nhắc id khối.
+- **Lời dẫn không sửa.** Câu duy nhất nói kỵ binh Iberia và Gaul như một khối nằm ở giai đoạn 3 ("kỵ binh Iberia và Gaul của Hasdrubal đâm thẳng vào kỵ binh La Mã"). Với hai khối đứng cạnh nhau, cả hai cùng đâm vào, nên câu vẫn đúng. Các giai đoạn khác chỉ nói "Hasdrubal" hay "kỵ binh của Hasdrubal".
+- **Thương vong** (Polybius 3.117: 200 kỵ binh, không chia theo dân tộc). Kỵ binh Numidia vẫn mất 40 như trước; 160 người còn lại của cánh trái chia theo bề ngang đang chạm địch, làm tròn tới bội của 20 (một hình lính). Giai đoạn 3: Iberia 20, Gaul 60 (chạm kỵ binh La Mã khoảng 80 m và 225 m). Giai đoạn 6: Iberia 20, Gaul 60 (một phần ba và hai phần ba mặt trận đánh triarii). Iberia 2 000 → 1 980 → 1 960; Gaul 4 000 → 3 940 → 3 880. Trước T-049: hàng trước mất 80 rồi 20, hàng sau mất 60. Đây là giả định.
+
+### Vị trí
+
+Tâm (x, y), bề ngang × chiều sâu (m). Trước T-049, hàng trước đứng phía đông ở mốc 5–6.
+
+| Mốc | Trước: hàng trước / hàng sau, mỗi khối 3 000 | Sau: `iberian-cavalry` | Sau: `gallic-cavalry` |
+|---|---|---|---|
+| Đầu trận | (−2850, −635) / (−2850, −705); 210 × 50 | (−2967,7, −660); 68,8 × 100 | (−2790,7, −660); 138,8 × 100 |
+| 1 | (−1150, −255) / (−1150, −325); 350 × 50 | (−1267,7, −280); 114,7 × 100 | (−1090,7, −280); 231,3 × 100 |
+| 2 | (−1100, 14,3) / (−1100, −55); 400 × 50 | (−1234,3, −10,7); 131,3 × 100 | (−1032,3, −10,7); 264,7 × 100 |
+| 3 | (−1100, 89,3) `fight` / (−1100, 10) `advance`; 350 × 60 | (−1217,7, 69,3); 114,7 × 100; `fight` | (−1040,7, 69,3); 231,3 × 100; `fight` |
+| 4 | (300, 420) / (−50, 470); 350 × 60; hướng 95 | (−50, 470); 240 × 60; hướng 95 | (300, 420); 350 × 80; hướng 95 |
+| 5 | (87,7, −33,3) / (−209,7, −33,3); 293,3 × 60 | (−258,9, −33,3); 194,9 × 60 | (38,4, −33,3); 391,8 × 60 |
+| 6 | (43,5, −157,4) / (−163,5, −157,4); 202,9 × 60 | (−197,6, −157,4); 134,6 × 60 | (9,3, −157,4); 271,2 × 60 |
+
+- Đầu trận và mốc 1 sửa tay. Mốc 1 giữ đúng mặt trận cũ (x từ −1325 tới −975, mép trước ở y = −230). Đầu trận dời theo véc-tơ chung của quân Hannibal (−1700, −380) và hẹp còn 60% bề ngang, như mọi khối khác (mục 9), nên khối Iberia chìa ra phía tây 47 m so với trước; vẫn không đứng trong nước sông.
+- Mốc 2–6 do `scripts/battles/cannae-lines.mjs` dựng (hàm `horseSideBySide`, hằng `IBERIAN_HORSE`, `GALLIC_HORSE`).
+- Mũi tên của giai đoạn 5 dời theo tâm mới: điểm cuối (90, 20) thành (40, 20) và (−210, 20) thành (−260, 20). Các mũi tên khác vẽ đường đi của cả cánh, giữ nguyên.
+
+### Kiểm tra
+
+- `npm run validate` qua, không có cảnh báo. Kiểm tra `fight` qua ở giai đoạn 3 và 6 cho cả hai khối, ở mốc đầu lẫn mốc cuối, với ít nhất một nửa mặt trận chạm địch (dưới một nửa thì có cảnh báo).
+- `check-overlap.mjs --min 0.04`: in ra y hệt trước T-049; không cặp nào có hai khối kỵ binh này.
+- `check-facing.mjs`: thêm một dòng, khối Iberia ở giai đoạn 4 đi ngang 26% thời gian. Khối hàng sau trước đây 21%, dưới ngưỡng 25%; khối Iberia bắt đầu ở đầu sát sông, xa hơn về phía tây. Cùng kiểu với dòng đã có của khối dẫn đầu (Gaul 31%, trước 32%): đi về đông bắc trong khi quay mặt từ bắc sang đông (mục 10, "Còn đi xiên, có chủ ý"). Giai đoạn 1 như trước; giai đoạn 5 Iberia 75%, Gaul 82% (trước 68% và 77%).
+- Đo bằng code của cảnh (`main-tools/melee/pairs.mjs` của phiên chính), mỗi 1/4 giai đoạn, số người đầu hàng đang đánh trên số người đầu hàng:
+
+| Khối | Giai đoạn 3 | Giai đoạn 6 |
+|---|---|---|
+| Trước: hàng trước | 38/38, 37/38, 30/38, 25/38 | 30/30, 26/30, 28/30, 22/30, 15/30 |
+| Trước: hàng sau | (không đánh) | 25/25, 25/25, 22/25, 20/25, 15/25 |
+| Sau: kỵ binh Iberia | 12/12, 12/12, 11/12, 8/12 | 17/17, 17/17, 15/17, 14/17, 7/17 |
+| Sau: kỵ binh Gaul | 23/23, 23/23, 21/23, 16/23 | 40/40, 38/40, 36/40, 28/40, 22/40 |
+
+Giai đoạn 3: 35 người đầu hàng đánh kỵ binh La Mã (trước 38), giờ của cả hai dân tộc; kỵ binh La Mã không đổi (27/30, 24/30, 24/30, 15/30). Giai đoạn 6: 57 người (trước 55); triarii gần như không đổi.
+
+### Xem trong cảnh
+
+`/battle-lab`, dev server ở cổng 3149. Ảnh trước và sau ở `E:\World_History_Platform_assets\duyet\T-049\`, chụp bằng driver của phiên chính (`main-tools/drive/drive.mjs`, cổng 9362) với kịch bản `s-t049.mjs` (chép vào cùng thư mục), mỗi cặp cùng thời điểm và cùng góc nhìn:
+
+| Ảnh | Thời điểm | Góc |
+|---|---|---|
+| `01-dan-tran` | Cuối giai đoạn 1 | Cánh trái của Hannibal, từ phía bắc |
+| `02-giua-giai-doan-3` | Giữa giai đoạn 3 | Trận kỵ binh bên sông, từ phía đông nam |
+| `03-giua-giai-doan-3-can-canh` | Giữa giai đoạn 3 | Cận cảnh; khối Gaul là hình tạm |
+| `04-giua-giai-doan-4` | Giữa giai đoạn 4 | Hai khối vòng ra sau lưng quân La Mã |
+| `05-cuoi-tran` | Cuối giai đoạn 6 | Lưng các quân đoàn, từ phía bắc |
+
+Console không có lỗi. Khối Gaul vẽ hình tạm theo màu phe tới khi có `gallic-cavalry.glb` (T-050).
+
+### Còn lại
+
+- Con số 2 000 / 4 000 mới thấy trên Wikipedia, chưa đối chiếu được với sách nào. Nếu đọc được Daly (2002) hay Goldsworthy (2001), nên xem lại mục này cùng bảng chia quân ở mục 5.
+- Chỗ đứng (kỵ binh Iberia sát sông) là lựa chọn, không có nguồn.
+- Livy 22.48.5–6 đưa kỵ binh Iberia và Gaul tới hợp sức với lính châu Phi, còn Polybius 3.116 cho Hasdrubal đánh vào lưng các quân đoàn. Cảnh theo Polybius, như trước.
