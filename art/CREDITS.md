@@ -228,6 +228,7 @@ Chung cho cả ba (chi tiết ở `art/README.md`, mục "Kỵ binh"):
 - **Sửa:** kiếm cất vào bao.
 - **Ngựa:** vải lót yên nhuộm lại màu len xanh đen, viền vàng đất; đai bụng, dây cương; tay trái cầm cương.
 - **Hoạt hình:** `attack` là đâm giáo qua vai.
+- **T-050:** từ khi tách loại lính, mô hình này dùng cho kỵ binh Iberia (tên file giữ nguyên). Lớp trong của vạt áo (mặt trong của vải, bake ra màu xám) bị bỏ khỏi LOD0, LOD1, vì khi vạt áo rủ theo đùi nó lộ ra thành mảng xám ở sườn trái. Clip không đổi.
 
 ### `numidian-cavalry.glb`: kỵ binh Numidia
 
@@ -249,6 +250,46 @@ Link cho khung xem trận (`MODEL_CREDIT_LINKS`), thêm vào các link đã có:
 - "Horse" (Tarnyloo): https://blendswap.com/blend/17172
 - "Horse Rigged All Gaits" (fdoss001): https://blendswap.com/blend/28627
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
+
+## `gallic-cavalry.glb`: kỵ binh Gaul (T-050)
+
+**Người cưỡi** dựng trên mô hình nền của `gallic-infantry`: **"Celt - rigged for UE4/5"**, tác giả **Andywoodhead** (Sketchfab, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), link ở mục `gallic-infantry`). **Ngựa** là con ngựa của mục "Ngựa": lưới **"Horse"** của **Tarnyloo** (Blend Swap, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), bắt buộc nêu tên tác giả); khung xương và dáng đi từ **"Horse Rigged All Gaits"** của **fdoss001** (Blend Swap, CC0). Không có mô hình, ảnh hay vật liệu nào mới tải về: mọi thứ thêm vào đều dựng bằng script.
+
+### Những gì đã thay đổi
+
+1. **Như `gallic-infantry`:** xoá hình vẽ trên da, nhuộm lại quần (vàng đất và nâu đỏ), khép hai bàn tay; bỏ khiên tròn và kiếm ngắn của mô hình nền.
+2. **Thêm**, tự dựng bằng script, vật liệu tự tạo:
+   - **áo** (`celt_tunic.py`): tay tới khuỷu, vạt tới đầu đùi, mặc ngoài quần, len xanh lục, viền vàng ở cổ, tay và gấu; đai da ở eo. Đai lưng to của mô hình nền nằm dưới áo, không có trong LOD;
+   - **áo choàng** (`celt_cloak.py`): ngắn, nằm trên vai và rủ sau lưng, mở phía trước; len xanh chàm kẻ ô dày đỏ và vàng; khuy tròn bằng đồng ở trước vai phải;
+   - **tóc** (`celt_hair.py`): tóc dày vuốt ra sau, dựng từ những mặt có tóc của lưới đầu (đẩy ra như một lớp vỏ), và một mảng tóc rủ từ sau đầu xuống gáy, nằm lên cổ áo choàng; màu vàng;
+   - **khiên** bầu dục kiểu La Tène như của bộ binh Gaul, nhỏ cho người cưỡi (0,92 × 0,50 m), sơn xanh chàm, đeo ở cẳng tay trái;
+   - **kiếm** dài của bộ binh Gaul (lưỡi 0,78 m, đầu tròn), rút sẵn trong tay phải.
+3. **Ghép người và ngựa** như ba mô hình kỵ binh của T-022 (107 xương, một atlas, một vật liệu). Độ cao chỗ ngồi đo khi người đã ngồi, vì quần ống rộng của mô hình nền làm phép đo lúc đứng nhấc người lên cao hơn lưng ngựa khoảng 10 cm. Vạt áo kéo theo đùi khi ngồi như các kỵ binh khác.
+4. **Ngựa:** vải lót yên màu len mộc, viền đỏ; đai bụng, dây cương; tay trái cầm cương.
+5. **Hoạt hình:** như ba mô hình kỵ binh của T-022; riêng `attack` là nhát chém kiếm từ trên ngựa (tự dựng bằng IK theo các khung khoá, 1,333 s): giơ kiếm qua vai phải, chém tới qua bên phải đầu ngựa, rồi bổ xuống bên phải cổ ngựa.
+
+### Căn cứ của trang bị
+
+Nguồn cổ đọc trên bản dịch Loeb ở LacusCurtius (penelope.uchicago.edu, phạm vi công cộng), ngày 2026-11-19: Polybius (W. R. Paton), Diodorus Siculus (C. H. Oldfather), Strabo (H. L. Jones); Livy quyển 22 đọc trên bản dịch của Roberts (Wikisource). Không nguồn nào tả trang phục hay vũ khí của chính kỵ binh Gaul ở Cannae: Polybius 3.113, 3.115 và Livy 22.46–47 chỉ nói họ đứng ở cánh trái cùng kỵ binh Iberia và đánh giáp lá cà. Mỗi món dưới đây lấy từ những gì nguồn nói về người Gaul nói chung.
+
+| Món | Nguồn | Phần nào là lựa chọn |
+|---|---|---|
+| Quần (*bracae*) | Polybius 2.28.7 (người Insubres và Boii ở Telamon, 225 TCN, mặc quần và áo choàng nhẹ); Diodorus 5.30.1; Strabo 4.4.3 (quần bó) | Màu sọc: theo `gallic-infantry` |
+| Áo nhuộm màu có tay | Diodorus 5.30.1 (áo nhuộm và thêu nhiều màu), 5.30.3 (thắt đai); Strabo 4.4.3 (áo có tay, dài tới mông), 4.4.5 (người có địa vị mặc đồ nhuộm màu) | Màu xanh lục, viền vàng (thay cho phần thêu). Polybius 3.114 và Livy 22.46 nói người Gaul ở Cannae cởi trần, nhưng câu đó tả bộ binh; mặc áo là lựa chọn của người dùng cho kỵ binh quý tộc |
+| Áo choàng | Polybius 2.28.7; Diodorus 5.30.1 (áo choàng sọc, gài khuy ở vai, mỏng cho mùa hè, kẻ ô dày nhiều màu); Strabo 4.4.3 (*sagus*) | Dáng (ngắn để không chạm ngựa), màu xanh chàm với ô đỏ và vàng |
+| Vòng cổ *torc*, vòng tay vàng | Polybius 2.29.8, 2.31.5; Diodorus 5.27.3; Strabo 4.4.5 | Của mô hình nền |
+| Tóc vàng dài vuốt ra sau, ria mép | Diodorus 5.28.1–3 (người quý tộc cạo má, để ria che miệng); Strabo 4.4.3 | Độ dài tóc |
+| Không đội mũ | Diodorus 5.30.2 có tả mũ đồng của người Gaul | Bỏ mũ là lựa chọn, để thấy mái tóc vàng |
+| Khiên bầu dục dài | Polybius 3.114.2 và Livy 22.46.5 (giống khiên người Iberia); Strabo 4.4.3 | Cỡ cho người cưỡi, màu xanh chàm |
+| Kiếm dài, chỉ để chém | Polybius 2.30.8, 2.33.3–5, 3.114.3; Livy 22.46.5; Diodorus 5.30.3 và Strabo 4.4.3 (đeo bên phải) | Chọn kiếm thay vì giáo (Diodorus 5.30.4 cũng nói người Gaul có giáo *lancea*), vì trận kỵ binh ở Cannae đánh giáp lá cà và để khác kỵ binh Iberia, La Mã cầm giáo |
+| Chân trần | Không có nguồn | Theo mô hình nền |
+| Vải lót yên | Không có nguồn | Màu len mộc viền đỏ, để khác đỏ của La Mã và xanh đen của Iberia |
+
+Strabo 4.4.2 còn nói người Gaul đánh trên ngựa giỏi hơn đánh bộ, và kỵ binh tốt nhất của người La Mã là người Gaul.
+
+### Dòng ghi công
+
+Không đổi: dòng chung của các mô hình lính và ngựa (mục "Ba mô hình kỵ binh của T-022") đã gồm mô hình Celt và con ngựa.
 
 ## Ảnh chất liệu của cảnh (`public/battles/textures/`)
 
