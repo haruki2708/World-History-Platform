@@ -105,6 +105,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Người dùng duyệt gộp. Đợt J xong.
 - **2026-11-19:** Người dùng chọn việc kế tiếp: tách kỵ binh Iberia và Gaul, đồng thời phiên chính soạn đề xuất cho hướng lớn sau Cannae; phần gia sư chưa làm. Giao [T-049](tasks/T-049-cavalry-split.md) cho lane 2 và [T-050](tasks/T-050-gallic-cavalry.md) cho lane 1.
 - **2026-11-19:** Người dùng chọn hướng lớn: **trận 3D thứ hai, hồ Trasimene** (mục "Đợt K"), duyệt kế hoạch bốn chặng và giao chặng cảnh cho lane 3. Phiên chính làm phần của mình ở chặng 0: đọc Polybius 3.80–85 và Livy 22.3–7; thêm sự kiện `battle-of-lake-trasimene` (dữ liệu giờ có 60 sự kiện); thêm `BattleLake` (`terrain.lakes`) và `scenery.mist` vào hợp đồng; viết sẵn [T-051](tasks/T-051-trasimene-stage0.md) cho lane 2.
+- **2026-11-19:** Lane 2 xong [T-049](tasks/T-049-cavalry-split.md): kỵ binh cánh trái của Hasdrubal thành hai khối đứng cạnh nhau, 2 000 kỵ binh Iberia sát sông và 4 000 kỵ binh Gaul (cách chia do Wikipedia nêu, chưa đối chiếu được với sách; ghi rõ là ước lượng); diễn biến trận và lời dẫn giữ nguyên. Phiên chính review trên bản gộp thử: validate, lint, `tutor:check`, build qua; hồi quy lõi 17/17. Người dùng chọn **chờ T-050 rồi gộp cả hai cùng lúc** (mô hình kỵ binh Gaul chưa có, khối Gaul đang là hình tạm). Việc phải làm khi gộp: `src/app/battle-lab/duelBattle.ts` còn dùng tên loại lính cũ `iberian-gallic-cavalry`; thêm cặp thử cho `gallic-cavalry`; ghi công và ARCHITECTURE (bốn mô hình kỵ binh). Giao T-051 cho lane 2, trên nhánh nối tiếp T-049.
 
 ## Việc để giai đoạn 5
 
@@ -243,7 +244,7 @@ Người dùng duyệt 2026-11-19, sau đợt J. Phiên chính nêu ba ứng vi�
 
 | Chặng | Nội dung | Ai | Xong khi | Task | Trạng thái |
 |---|---|---|---|---|---|
-| 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Phần của phiên chính xong 2026-11-19 (sự kiện `battle-of-lake-trasimene`, `BattleLake`, `scenery.mist`). T-051 viết sẵn, giao lane 2 sau T-049 |
+| 0 | Tư liệu và hợp đồng: đọc nguồn, chọn vị trí (còn tranh cãi), bảng đơn vị, các giai đoạn; lưới độ cao; kiểu hồ và sương mù trong hợp đồng, kèm kiểm tra; sự kiện mới | Lane 2, phiên chính | Có `docs/data/battles/trasimene.md`; `npm run validate` hiểu hồ và sương mù | [T-051](tasks/T-051-trasimene-stage0.md) | Phần của phiên chính xong 2026-11-19 (sự kiện `battle-of-lake-trasimene`, `BattleLake`, `scenery.mist`). T-051 giao lane 2 ngày 2026-11-19 |
 | 1 | Dữ liệu trận: khối quân qua từng giai đoạn, lời dẫn song ngữ, cảnh vật kèm mức căn cứ | Lane 2 | Xem được trận ở `/battle-lab?battle=battle-of-lake-trasimene`, hồ còn là mặt đất phẳng | Chưa viết | Chưa bắt đầu |
 | 2 | Cảnh: mặt hồ và bờ hồ, lính lội xuống hồ, sương mù tan dần; hiệu năng | Lane 3 (người dùng chọn) | Ảnh trước và sau cho người dùng duyệt; từ 50 khung hình/giây | Chưa viết | Chưa bắt đầu |
 | 3 | Ghép vào app: đăng ký trận, nút xem trận ở sự kiện mới, bản đồ bay tới hồ; hộp thoại Giới thiệu và ghi công hết viết riêng cho Cannae (bốn khoá) | Phiên chính; lane 1 phần hộp thoại | Mở được cả hai trận từ app; hồi quy qua | Chưa viết | Chưa bắt đầu |

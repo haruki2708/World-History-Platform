@@ -1,8 +1,8 @@
 # T-051: Trận hồ Trasimene, chặng 0: tư liệu, địa hình, kiểm tra hồ và sương mù
 
-- **Lane:** 2 (giao sau khi T-049 gộp)
+- **Lane:** 2
 - **Model đề xuất:** Opus 5.5, effort `high`.
-- **Nhánh:** `lane2/T-051-trasimene-stage0` (phiên chính tạo từ `main` khi giao)
+- **Nhánh:** `lane2/T-051-trasimene-stage0` (phiên chính đã tạo sẵn trong worktree của bạn: nối tiếp nhánh `lane2/T-049-cavalry-split`, đã gộp `main` vào để có file này, sự kiện mới và phần hợp đồng hồ, sương mù)
 - **Phạm vi file:**
   - `docs/data/battles/` (file mới `trasimene.md`);
   - `scripts/battles/` (`build-terrain.mjs`, `validate-battles.mjs`);
@@ -10,6 +10,8 @@
   - Chưa viết file trận `src/data/battles/battle-of-lake-trasimene.json` ở chặng này (đó là chặng 1), trừ phần `terrain` nháp nếu bạn cần nó để chạy kiểm tra.
 
 ## Bối cảnh
+
+T-049 của bạn đã được phiên chính review và đạt; người dùng chọn **chờ T-050 (mô hình kỵ binh Gaul, lane 1) rồi gộp cả hai cùng lúc**, nên T-049 chưa vào `main`. Nhánh của task này vì thế chứa cả T-049. Đừng sửa thêm dữ liệu Cannae ở đây.
 
 Người dùng duyệt **đợt K: trận 3D thứ hai, hồ Trasimene (217 TCN)** (`docs/PLAN.md`, mục "Đợt K"). Lý do chọn: cùng hai đạo quân với Cannae một năm trước đó, nên **không dựng mô hình mới**; việc mới là dữ liệu, địa hình có hồ và đồi, sương mù. Đợt này thử xem trận thứ hai có đúng là chỉ thêm dữ liệu không.
 
