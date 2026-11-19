@@ -96,7 +96,8 @@ const en = {
     'Horses based on "{horse}" by Tarnyloo (Blend Swap, {ccBy3}), with the rig and gaits of "{rigged}" by fdoss001 (Blend Swap, CC0). Modified.',
   "about.credits.animations": "Animations from the {library} by Quaternius (CC0).",
   "about.credits.battleSources":
-    "Sources of the battle of Cannae: {polybius} and {livy}. Each battle lists its own sources in the “{tab}” tab of the battle view.",
+    "Each battle lists its own sources in the “{tab}” tab of the battle view. The main ones:",
+  "about.credits.battleSource": "{battle}: {sources}.",
   "about.tutor.heading": "About the AI tutor",
   "about.tutor.model": "The tutor uses Claude, an AI model made by Anthropic.",
   "about.tutor.context":
@@ -378,7 +379,8 @@ const vi: Record<MessageKey, string> = {
     'Ngựa dựa trên "{horse}" của Tarnyloo (Blend Swap, {ccBy3}), khung xương và dáng đi từ "{rigged}" của fdoss001 (Blend Swap, CC0). Đã sửa đổi.',
   "about.credits.animations": "Hoạt hình từ {library} của Quaternius (CC0).",
   "about.credits.battleSources":
-    "Nguồn của trận Cannae: {polybius} và {livy}. Mỗi trận ghi nguồn riêng ở tab “{tab}” trong khung xem trận.",
+    "Mỗi trận ghi nguồn riêng ở tab “{tab}” trong khung xem trận. Các nguồn chính:",
+  "about.credits.battleSource": "{battle}: {sources}.",
   "about.tutor.heading": "Về gia sư AI",
   "about.tutor.model": "Gia sư dùng Claude, mô hình AI của Anthropic.",
   "about.tutor.context":

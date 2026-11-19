@@ -18,7 +18,8 @@ import { Modal } from "./Modal";
  * Links in the credits. Every source, licence and citation here must match
  * README.md ("Data credits") and docs/data/SOURCES.md; the 3D battle ones
  * (in src/lib/credits.ts, shared with the battle viewer) also art/CREDITS.md,
- * and the battle sources the battle's own data (src/data/battles/). Change
+ * and the sources of each battle (BATTLE_NOTES) the sources of its event in
+ * src/data/events.json and of its battle file (src/data/battles/). Change
  * them together.
  */
 const LINKS = {
@@ -33,6 +34,12 @@ const LINKS = {
 const CLIOPATRIA_TITLE =
   "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE";
 
+/** A source with a link, as cited in the credits. */
+interface SourceLink {
+  label: string;
+  href: string;
+}
+
 /** What the About dialog says about one 3D battle in particular. */
 interface BattleNotes {
   /**
@@ -40,6 +47,8 @@ interface BattleNotes {
    * that hold for every battle. Each ends with ";" except the last, with ".".
    */
   accuracy: MessageKey[];
+  /** Its main ancient sources, one line in the credits; the battle view lists them all. */
+  sources: SourceLink[];
 }
 
 /**
@@ -57,12 +66,20 @@ const BATTLE_NOTES: Partial<Record<string, BattleNotes>> = {
       "about.accuracy.trasimene.ambush",
       "about.accuracy.trasimene.scenery",
     ],
+    sources: [
+      { label: "Polybius 3.80–85", href: LINKS.polybius },
+      { label: "Livy 22.3–7", href: LINKS.livy },
+    ],
   },
   "battle-of-cannae": {
     accuracy: [
       "about.accuracy.cannae.campGuard",
       "about.accuracy.cannae.scenery",
       "about.accuracy.cannae.dust",
+    ],
+    sources: [
+      { label: "Polybius 3.107–118", href: LINKS.polybius },
+      { label: "Livy 22.36–52", href: LINKS.livy },
     ],
   },
 };
@@ -281,11 +298,17 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                     })}
                   </li>
                   <li>
-                    {fill(t("about.credits.battleSources"), {
-                      polybius: <ExternalLink href={LINKS.polybius}>Polybius 3.107–118</ExternalLink>,
-                      livy: <ExternalLink href={LINKS.livy}>Livy 22.36–52</ExternalLink>,
-                      tab: infoTab,
-                    })}
+                    {fill(t("about.credits.battleSources"), { tab: infoTab })}
+                    <ul className="mt-1.5 list-[square] space-y-1.5 pl-5 marker:text-muted">
+                      {notedBattles.map(({ event, notes }) => (
+                        <li key={event.id}>
+                          {fill(t("about.credits.battleSource"), {
+                            battle: event.title[locale],
+                            sources: <LinkList links={notes.sources} />,
+                          })}
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 </ul>
               </li>
@@ -355,6 +378,28 @@ function ExternalLink({ href, children }: { href: string; children: ReactNode })
       <span className="sr-only"> ({t("about.newTab")})</span>
     </a>
   );
+}
+
+/** Links joined as a list in the current language ("A and B", "A và B"). */
+function LinkList({ links }: { links: SourceLink[] }) {
+  const { locale } = useT();
+  const parts = new Intl.ListFormat(locale, { type: "conjunction" }).formatToParts(
+    links.map((link) => link.label),
+  );
+  // The elements come back in the order given, one part per link.
+  const elementIndex = parts.map((_, index) =>
+    parts.slice(0, index).filter((part) => part.type === "element").length,
+  );
+  return parts.map((part, index) => {
+    const link = part.type === "element" ? links[elementIndex[index]] : undefined;
+    return link ? (
+      <ExternalLink key={index} href={link.href}>
+        {link.label}
+      </ExternalLink>
+    ) : (
+      <Fragment key={index}>{part.value}</Fragment>
+    );
+  });
 }
 
 /**
