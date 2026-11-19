@@ -33,8 +33,47 @@ const LINKS = {
 const CLIOPATRIA_TITLE =
   "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE";
 
+/** What the About dialog says about one 3D battle in particular. */
+interface BattleNotes {
+  /**
+   * Lines under the battle's name in "How far to trust it", after the lines
+   * that hold for every battle. Each ends with ";" except the last, with ".".
+   */
+  accuracy: MessageKey[];
+}
+
+/**
+ * Notes for each 3D battle, by event id. Adding a battle: add its group of
+ * `about.accuracy.<battle>.*` keys and an entry here; the layout follows.
+ * A battle is shown only while `hasBattle` is true for its event, in the
+ * order of the event list, under the event's own title.
+ */
+const BATTLE_NOTES: Partial<Record<string, BattleNotes>> = {
+  "battle-of-cannae": {
+    accuracy: [
+      "about.accuracy.cannae.campGuard",
+      "about.accuracy.cannae.scenery",
+      "about.accuracy.cannae.dust",
+    ],
+  },
+};
+
 /** Events that have a 3D battle scene, in the order of the event list. */
 const battleEvents = events.filter((event) => hasBattle(event.id));
+
+/** The 3D battles with notes of their own, with the notes. */
+const notedBattles = battleEvents.flatMap((event) => {
+  const notes = BATTLE_NOTES[event.id];
+  return notes ? [{ event, notes }] : [];
+});
+
+if (process.env.NODE_ENV !== "production") {
+  for (const event of battleEvents) {
+    if (!BATTLE_NOTES[event.id]) {
+      console.warn(`[about] The 3D battle "${event.id}" has no entry in BATTLE_NOTES (AboutDialog.tsx).`);
+    }
+  }
+}
 
 interface AboutDialogProps {
   open: boolean;
@@ -123,15 +162,24 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                 {t("about.accuracy.battle")}
                 <ul className="mt-1.5 list-[circle] space-y-1.5 pl-5 marker:text-muted">
                   <li>{fill(t("about.accuracy.battle.positions"), { tab: infoTab })}</li>
-                  <li>{t("about.accuracy.battle.campGuard")}</li>
                   <li>{fill(t("about.accuracy.battle.figures"), { men: MEN_PER_FIGURE })}</li>
                   <li>{t("about.accuracy.battle.duels")}</li>
                   <li>{t("about.accuracy.battle.time")}</li>
                   <li>{t("about.accuracy.battle.pulses")}</li>
-                  <li>{t("about.accuracy.battle.scenery")}</li>
-                  <li>{t("about.accuracy.battle.dust")}</li>
                   <li>{t("about.accuracy.battle.colours")}</li>
                 </ul>
+                {notedBattles.map(({ event, notes }) => (
+                  <div key={event.id} className="mt-2.5">
+                    <p className="font-medium">
+                      {fill(t("about.accuracy.battleName"), { battle: event.title[locale] })}
+                    </p>
+                    <ul className="mt-1 list-[circle] space-y-1.5 pl-5 marker:text-muted">
+                      {notes.accuracy.map((key) => (
+                        <li key={key}>{t(key)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </li>
             )}
           </Bullets>
