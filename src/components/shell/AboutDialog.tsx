@@ -49,6 +49,15 @@ interface BattleNotes {
  * order of the event list, under the event's own title.
  */
 const BATTLE_NOTES: Partial<Record<string, BattleNotes>> = {
+  "battle-of-lake-trasimene": {
+    accuracy: [
+      "about.accuracy.trasimene.site",
+      "about.accuracy.trasimene.lake",
+      "about.accuracy.trasimene.mist",
+      "about.accuracy.trasimene.ambush",
+      "about.accuracy.trasimene.scenery",
+    ],
+  },
   "battle-of-cannae": {
     accuracy: [
       "about.accuracy.cannae.campGuard",
