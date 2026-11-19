@@ -103,6 +103,7 @@ Quyết định đã chốt (2026-11-15): Next.js + TypeScript + MapLibre; MVP 5
   - Phiên chính kiểm tra trên bản gộp thử: validate, lint, `tutor:check`, build qua; hồi quy lõi 17/17; xen kẽ ba vòng với `main` (đã có bụi): không giai đoạn nào chậm hơn, góc nhìn mở nhanh hơn khoảng 13%.
   - Sửa khi gộp: ghi chú `strength` của Carthage không nêu tên Daly nữa (câu "8 000 người ở lại trại" có trên Wikipedia nhưng không xác nhận được trong sách Daly); hộp thoại Giới thiệu thêm câu về toán giữ trại (người dùng duyệt câu chữ); ARCHITECTURE ghi cách dựng LOD mới và nhát chém Gaul.
   - Người dùng duyệt gộp. Đợt J xong.
+- **2026-11-19:** Người dùng chọn việc kế tiếp: tách kỵ binh Iberia và Gaul, đồng thời phiên chính soạn đề xuất cho hướng lớn sau Cannae; phần gia sư chưa làm. Giao [T-049](tasks/T-049-cavalry-split.md) cho lane 2 và [T-050](tasks/T-050-gallic-cavalry.md) cho lane 1.
 
 ## Việc để giai đoạn 5
 
@@ -223,7 +224,7 @@ Ngày 2026-11-19, sau khi gộp đợt I, người dùng chọn làm nốt các 
 
 Không ai đụng file của người khác: lane 1 trong `art/` và `public/battles/models/`, lane 2 trong dữ liệu trận, phiên chính trong `src/components/battle/`. Lane 1 chạy Blender nhiều, nên mọi số đo hiệu năng của đợt này phải ghi điều kiện máy và đo xen kẽ với `main`.
 
-**Việc tiếp theo đã chọn, chưa giao:** tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (Polybius 3.114, Livy 22.46): lane 2 tách dữ liệu, lane 1 dựng mô hình kỵ binh Gaul riêng (quần, áo choàng sọc hay kẻ ô, torc, tóc dài và ria, khiên Celt) từ người Celt của `gallic-infantry`. Bản vá quần và torc lane 1 dựng thử ở `E:\World_History_Platform_assets\T-047\patch\`.
+**Việc tiếp theo, giao 2026-11-19:** [T-049](tasks/T-049-cavalry-split.md) (lane 2, dữ liệu) và [T-050](tasks/T-050-gallic-cavalry.md) (lane 1, mô hình kỵ binh Gaul), chạy song song. Tên chung: loại lính `iberian-cavalry` giữ mô hình `iberian-gallic-cavalry`; loại lính `gallic-cavalry` dùng mô hình mới `gallic-cavalry`. Nội dung: tách kỵ binh của Hasdrubal thành kỵ binh Iberia và kỵ binh Gaul (Polybius 3.114, Livy 22.46): lane 2 tách dữ liệu, lane 1 dựng mô hình kỵ binh Gaul riêng (quần, áo choàng sọc hay kẻ ô, torc, tóc dài và ria, khiên Celt) từ người Celt của `gallic-infantry`. Bản vá quần và torc lane 1 dựng thử ở `E:\World_History_Platform_assets\T-047\patch\`.
 
 **Còn thấy được sau đợt J:** một mảng xám nhỏ (mặt trong của vải) ở sườn trái vạt áo kỵ binh Iberia/Gaul nhìn từ trước; LOD1 của `gallic-infantry` còn 2,16 lần số vị trí; trại Carthage không có lối từ cổng vào giữa trại (đề nghị của lane 2 cho `structures.ts`); trại nhỏ còn 14,4% không có lều vì ba khối giãn đội hình lúc ra cổng.
 
