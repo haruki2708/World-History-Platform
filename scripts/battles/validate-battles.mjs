@@ -4,9 +4,10 @@
 // Run as part of `npm run validate`. Owned by lane 2 from T-016 on.
 //
 //   node scripts/battles/validate-battles.mjs
+//   node scripts/battles/validate-battles.mjs path/to/<event-id>.json ...   # these battle files instead
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -135,6 +136,74 @@ function outlineArea2(outline) {
   return sum;
 }
 
+/** True when the point lies inside the closed outline. */
+function insideOutline(p, outline) {
+  let inside = false;
+  for (let k = 0, j = outline.length - 1; k < outline.length; j = k++) {
+    const a = outline[k];
+    const b = outline[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+/** Distance from the point to the nearest side of a closed outline, metres. */
+function distanceToOutline(p, outline) {
+  let best = Infinity;
+  for (let k = 0; k < outline.length; k++) {
+    const a = outline[k];
+    const b = outline[(k + 1) % outline.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const s = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+    best = Math.min(best, Math.hypot(p.x - a.x - dx * s, p.y - a.y - dy * s));
+  }
+  return best;
+}
+
+/** Points over a rectangle from corners(): `across` × `ahead` of them, the corners included. */
+function samplePoints(r, across, ahead) {
+  const out = [];
+  for (let i = 0; i < across; i++) {
+    for (let j = 0; j < ahead; j++) {
+      const u = (i / (across - 1)) * 2 - 1;
+      const v = (j / (ahead - 1)) * 2 - 1;
+      out.push({ x: r.c.x + r.along.x * u * r.hw + r.ahead.x * v * r.hd, y: r.c.y + r.along.y * u * r.hw + r.ahead.y * v * r.hd });
+    }
+  }
+  return out;
+}
+
+/**
+ * BattleTerrain.lakes: standing water above sea level. Returns the lakes
+ * whose level and outline can be used by the checks that follow (nothing is
+ * built or named in a lake; units wade no farther than LAKE_WADE from the shore).
+ */
+function checkLakes(where, t) {
+  if (t.lakes === undefined) return [];
+  if (!Array.isArray(t.lakes)) {
+    fail(`${where}.lakes`, "must be a list (leave it out when there is no lake)");
+    return [];
+  }
+  const ids = new Set();
+  const usable = [];
+  for (const [i, lake] of t.lakes.entries()) {
+    const at = `${where}.lakes[${i}]`;
+    if (typeof lake?.id !== "string" || !KEBAB.test(lake.id)) fail(at, "id must be kebab-case");
+    else if (ids.has(lake.id)) fail(at, `id ${lake.id} is used twice`);
+    ids.add(lake?.id);
+    checkText(`${at}.name`, lake?.name);
+    if (!isNumber(lake?.level)) fail(at, "level must be a number: the height of the water, metres above sea level");
+    const outline = lake?.outline;
+    const points = Array.isArray(outline) && outline.length >= 3 && outline.every((p) => isNumber(p?.x) && isNumber(p?.y));
+    if (!points) fail(at, "outline needs at least three points, each with numbers x and y");
+    else if (Math.abs(outlineArea2(outline)) < 2) fail(at, "outline encloses no water");
+    checkEvidence(`${at}.evidence`, lake?.evidence);
+    if (points && isNumber(lake.level)) usable.push(lake);
+  }
+  return usable;
+}
+
 /**
  * BattleTerrain.scenery and the scenery fields of the rivers: what stands on
  * the ground besides the armies. See docs/ARCHITECTURE.md, "Phong cảnh".
@@ -238,6 +307,12 @@ function checkScenery(where, t, sides, inside) {
     if (!isNumber(scenery.dust?.level) || scenery.dust.level < 0 || scenery.dust.level > 1) fail(`${at}.dust`, "level must be from 0 to 1");
     checkEvidence(`${at}.dust.evidence`, scenery.dust?.evidence);
   }
+  // Mist: its hour of clearing is checked against the battle's hours with the phases.
+  if (scenery.mist !== undefined) {
+    if (!isNumber(scenery.mist?.level) || scenery.mist.level < 0 || scenery.mist.level > 1) fail(`${at}.mist`, "level must be from 0 to 1");
+    if (scenery.mist?.clearsAt !== undefined && !isNumber(scenery.mist.clearsAt)) fail(`${at}.mist`, "clearsAt must be an hour of the day");
+    checkEvidence(`${at}.mist.evidence`, scenery.mist?.evidence);
+  }
 }
 
 // --- Shared data ------------------------------------------------------------
@@ -258,10 +333,18 @@ for (const [i, type] of readJson(join(battlesDir, "unit-types.json")).entries())
 
 // --- Each battle ------------------------------------------------------------
 
-const battleFiles = readdirSync(battlesDir).filter((f) => f.endsWith(".json") && f !== "unit-types.json");
+// Battle files named on the command line are checked instead of the folder's (scripts/battles/test-lake-checks.mjs).
+const named = process.argv.slice(2).map((path) => resolve(path));
+const battlePaths =
+  named.length > 0
+    ? named
+    : readdirSync(battlesDir)
+        .filter((f) => f.endsWith(".json") && f !== "unit-types.json")
+        .map((f) => join(battlesDir, f));
 
-for (const file of battleFiles) {
-  const b = readJson(join(battlesDir, file));
+for (const path of battlePaths) {
+  const file = basename(path);
+  const b = readJson(path);
   const where = file;
 
   if (`${b.id}.json` !== file) fail(where, `id ${b.id} must match the file name`);
@@ -358,6 +441,7 @@ for (const file of battleFiles) {
     if (!inside(mark.point)) fail(at, "point must lie inside the terrain");
   }
   checkScenery(terrainWhere, t, sides, inside);
+  const lakes = checkLakes(terrainWhere, t);
 
   // Ground at or below sea level is drawn as sea: nothing stands or is built on it.
   const gridOk = t.file && existsSync(gridPath) && statSync(gridPath).size === t.width * t.height * 2;
@@ -417,9 +501,55 @@ for (const file of battleFiles) {
   }
   for (const [i, structure] of (t.scenery?.structures ?? []).entries()) {
     if (!isNumber(structure.width) || !isNumber(structure.depth) || !isNumber(structure.facing) || !inside(structure.center)) continue;
-    const share = seaShare(corners({ center: structure.center, frontage: structure.width, depth: structure.depth, facing: structure.facing }));
+    const rectangle = corners({ center: structure.center, frontage: structure.width, depth: structure.depth, facing: structure.facing });
+    const share = seaShare(rectangle);
     if (share > 0) fail(`${terrainWhere}.scenery.structures[${i}]`, `${Math.round(share * 100)}% of it lies in the sea`);
+    for (const lake of lakes) {
+      const points = samplePoints(rectangle, 9, 5);
+      const wet = points.filter((p) => insideOutline(p, lake.outline)).length;
+      if (wet > 0) fail(`${terrainWhere}.scenery.structures[${i}]`, `${Math.round((wet / points.length) * 100)}% of it lies in the lake ${lake.id}`);
+    }
   }
+
+  // Lakes: nothing is named in one, and the grid inside the shore lies at the
+  // water's level (Copernicus, a surface model, gives the water surface there).
+  for (const [i, mark] of (t.landmarks ?? []).entries()) {
+    for (const lake of lakes) {
+      if (isNumber(mark.point?.x) && isNumber(mark.point?.y) && insideOutline(mark.point, lake.outline)) {
+        fail(`${terrainWhere}.landmarks[${i}]`, `${mark.name?.en} lies in the lake ${lake.id}`);
+      }
+    }
+  }
+  if (grid) {
+    for (const lake of lakes) {
+      const heights = [];
+      for (let row = 0; row < t.height; row++) {
+        for (let col = 0; col < t.width; col++) {
+          if (insideOutline({ x: t.minX + col * cellX, y: t.maxY - row * cellY }, lake.outline)) heights.push(grid.readInt16LE((row * t.width + col) * 2) / 10);
+        }
+      }
+      if (heights.length === 0) {
+        warn(`${terrainWhere}.lakes`, `${lake.id} covers no point of the elevation grid`);
+        continue;
+      }
+      heights.sort((a, b) => a - b);
+      const median = heights[heights.length >> 1];
+      if (Math.abs(median - lake.level) > 1) {
+        warn(`${terrainWhere}.lakes`, `${lake.id}: the grid inside the shore lies at ${median} m (median), but level is ${lake.level} m`);
+      }
+    }
+  }
+  // Men driven into a lake wade out from the shore; LAKE_WADE metres out they
+  // would be swimming. Checked at the keys, as the sea is.
+  const LAKE_WADE = 150;
+  const lakeTooDeep = (r) => {
+    for (const lake of lakes) {
+      let far = 0;
+      for (const p of samplePoints(r, 9, 5)) if (insideOutline(p, lake.outline)) far = Math.max(far, distanceToOutline(p, lake.outline));
+      if (far > LAKE_WADE) return { lake, far };
+    }
+    return null;
+  };
 
   // States: the start and the end of every phase list every unit once.
   const lastMen = new Map([...units].map(([id, u]) => [id, u.men]));
@@ -439,6 +569,8 @@ for (const file of battleFiles) {
         // A unit may wade a river between two keys, but it does not halt in the water.
         const wet = riverShare(corners(f));
         if (wet > 0.05) fail(sw, `${Math.round(wet * 100)}% of the formation stands in a river`);
+        const deep = lakeTooDeep(corners(f));
+        if (deep) fail(sw, `part of the formation stands in the lake ${deep.lake.id} ${Math.round(deep.far)} m from the shore; men wade no farther out than ${LAKE_WADE} m`);
       }
       if (!(isNumber(f.frontage) && f.frontage > 0 && isNumber(f.depth) && f.depth > 0)) fail(sw, "frontage and depth must be positive");
       if (!(isNumber(f.facing) && f.facing >= 0 && f.facing < 360)) fail(sw, "facing must be in [0, 360)");
@@ -586,6 +718,11 @@ for (const file of battleFiles) {
       }
     }
   }
+  // The mist clears during the battle: after it begins, by the end of the last phase.
+  const clearsAt = t.scenery?.mist?.clearsAt;
+  if (isNumber(clearsAt) && isNumber(b.startHour) && (clearsAt <= b.startHour || clearsAt > hour)) {
+    fail(`${terrainWhere}.scenery.mist`, `clearsAt ${clearsAt} must fall within the battle: after ${b.startHour}, by ${hour}`);
+  }
 }
 
 // --- Model index (public/battles/models/index.json) -------------------------
@@ -615,4 +752,4 @@ if (errors.length > 0) {
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
-console.log(`Battle data is valid: ${battleFiles.length} battle(s), ${unitTypes.size} unit types.`);
+console.log(`Battle data is valid: ${battlePaths.length} battle(s), ${unitTypes.size} unit types.`);
