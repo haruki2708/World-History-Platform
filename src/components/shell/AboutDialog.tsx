@@ -18,7 +18,8 @@ import { Modal } from "./Modal";
  * Links in the credits. Every source, licence and citation here must match
  * README.md ("Data credits") and docs/data/SOURCES.md; the 3D battle ones
  * (in src/lib/credits.ts, shared with the battle viewer) also art/CREDITS.md,
- * and the battle sources the battle's own data (src/data/battles/). Change
+ * and the sources of each battle (BATTLE_NOTES) the sources of its event in
+ * src/data/events.json and of its battle file (src/data/battles/). Change
  * them together.
  */
 const LINKS = {
@@ -33,8 +34,72 @@ const LINKS = {
 const CLIOPATRIA_TITLE =
   "Cliopatria - A geospatial database of world-wide political entities from 3400BCE to 2024CE";
 
+/** A source with a link, as cited in the credits. */
+interface SourceLink {
+  label: string;
+  href: string;
+}
+
+/** What the About dialog says about one 3D battle in particular. */
+interface BattleNotes {
+  /**
+   * Lines under the battle's name in "How far to trust it", after the lines
+   * that hold for every battle. Each ends with ";" except the last, with ".".
+   */
+  accuracy: MessageKey[];
+  /** Its main ancient sources, one line in the credits; the battle view lists them all. */
+  sources: SourceLink[];
+}
+
+/**
+ * Notes for each 3D battle, by event id. Adding a battle: add its group of
+ * `about.accuracy.<battle>.*` keys and an entry here; the layout follows.
+ * A battle is shown only while `hasBattle` is true for its event, in the
+ * order of the event list, under the event's own title.
+ */
+const BATTLE_NOTES: Partial<Record<string, BattleNotes>> = {
+  "battle-of-lake-trasimene": {
+    accuracy: [
+      "about.accuracy.trasimene.site",
+      "about.accuracy.trasimene.lake",
+      "about.accuracy.trasimene.mist",
+      "about.accuracy.trasimene.ambush",
+      "about.accuracy.trasimene.scenery",
+    ],
+    sources: [
+      { label: "Polybius 3.80–85", href: LINKS.polybius },
+      { label: "Livy 22.3–7", href: LINKS.livy },
+    ],
+  },
+  "battle-of-cannae": {
+    accuracy: [
+      "about.accuracy.cannae.campGuard",
+      "about.accuracy.cannae.scenery",
+      "about.accuracy.cannae.dust",
+    ],
+    sources: [
+      { label: "Polybius 3.107–118", href: LINKS.polybius },
+      { label: "Livy 22.36–52", href: LINKS.livy },
+    ],
+  },
+};
+
 /** Events that have a 3D battle scene, in the order of the event list. */
 const battleEvents = events.filter((event) => hasBattle(event.id));
+
+/** The 3D battles with notes of their own, with the notes. */
+const notedBattles = battleEvents.flatMap((event) => {
+  const notes = BATTLE_NOTES[event.id];
+  return notes ? [{ event, notes }] : [];
+});
+
+if (process.env.NODE_ENV !== "production") {
+  for (const event of battleEvents) {
+    if (!BATTLE_NOTES[event.id]) {
+      console.warn(`[about] The 3D battle "${event.id}" has no entry in BATTLE_NOTES (AboutDialog.tsx).`);
+    }
+  }
+}
 
 interface AboutDialogProps {
   open: boolean;
@@ -123,15 +188,24 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                 {t("about.accuracy.battle")}
                 <ul className="mt-1.5 list-[circle] space-y-1.5 pl-5 marker:text-muted">
                   <li>{fill(t("about.accuracy.battle.positions"), { tab: infoTab })}</li>
-                  <li>{t("about.accuracy.battle.campGuard")}</li>
                   <li>{fill(t("about.accuracy.battle.figures"), { men: MEN_PER_FIGURE })}</li>
                   <li>{t("about.accuracy.battle.duels")}</li>
                   <li>{t("about.accuracy.battle.time")}</li>
                   <li>{t("about.accuracy.battle.pulses")}</li>
-                  <li>{t("about.accuracy.battle.scenery")}</li>
-                  <li>{t("about.accuracy.battle.dust")}</li>
                   <li>{t("about.accuracy.battle.colours")}</li>
                 </ul>
+                {notedBattles.map(({ event, notes }) => (
+                  <div key={event.id} className="mt-2.5">
+                    <p className="font-medium">
+                      {fill(t("about.accuracy.battleName"), { battle: event.title[locale] })}
+                    </p>
+                    <ul className="mt-1 list-[circle] space-y-1.5 pl-5 marker:text-muted">
+                      {notes.accuracy.map((key) => (
+                        <li key={key}>{t(key)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </li>
             )}
           </Bullets>
@@ -224,11 +298,17 @@ export function AboutDialog({ open, onClose, onShowShortcuts }: AboutDialogProps
                     })}
                   </li>
                   <li>
-                    {fill(t("about.credits.battleSources"), {
-                      polybius: <ExternalLink href={LINKS.polybius}>Polybius 3.107–118</ExternalLink>,
-                      livy: <ExternalLink href={LINKS.livy}>Livy 22.36–52</ExternalLink>,
-                      tab: infoTab,
-                    })}
+                    {fill(t("about.credits.battleSources"), { tab: infoTab })}
+                    <ul className="mt-1.5 list-[square] space-y-1.5 pl-5 marker:text-muted">
+                      {notedBattles.map(({ event, notes }) => (
+                        <li key={event.id}>
+                          {fill(t("about.credits.battleSource"), {
+                            battle: event.title[locale],
+                            sources: <LinkList links={notes.sources} />,
+                          })}
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 </ul>
               </li>
@@ -298,6 +378,28 @@ function ExternalLink({ href, children }: { href: string; children: ReactNode })
       <span className="sr-only"> ({t("about.newTab")})</span>
     </a>
   );
+}
+
+/** Links joined as a list in the current language ("A and B", "A và B"). */
+function LinkList({ links }: { links: SourceLink[] }) {
+  const { locale } = useT();
+  const parts = new Intl.ListFormat(locale, { type: "conjunction" }).formatToParts(
+    links.map((link) => link.label),
+  );
+  // The elements come back in the order given, one part per link.
+  const elementIndex = parts.map((_, index) =>
+    parts.slice(0, index).filter((part) => part.type === "element").length,
+  );
+  return parts.map((part, index) => {
+    const link = part.type === "element" ? links[elementIndex[index]] : undefined;
+    return link ? (
+      <ExternalLink key={index} href={link.href}>
+        {link.label}
+      </ExternalLink>
+    ) : (
+      <Fragment key={index}>{part.value}</Fragment>
+    );
+  });
 }
 
 /**
