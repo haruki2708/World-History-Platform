@@ -22,6 +22,7 @@ import {
   type UnitAction,
   type UnitState,
 } from "@/lib/battle";
+import { concealedKeys, concealedThrough } from "../unitState";
 import { createRng, hashString } from "./rng";
 
 const DEG = Math.PI / 180;
@@ -306,6 +307,8 @@ export class UnitTrack {
   readonly frontY: Float32Array;
   /** The unit is in a hand-to-hand fight at the time of the latest sample. */
   fighting = false;
+  /** Per keyframe: lying in ambush (UnitState.concealed). */
+  private readonly concealed: readonly boolean[];
   /** A fixed random number in [0, 1) per figure. */
   readonly seed: Float32Array;
 
@@ -346,6 +349,7 @@ export class UnitTrack {
 
     // One keyframe per phase boundary.
     this.keys = unitKeys(battle, unit);
+    this.concealed = concealedKeys(battle, unit.id);
     const start = this.keys[0];
     this.scratch = { ...start, center: { ...start.center } };
     const phases = this.keys.length - 1;
@@ -663,6 +667,15 @@ export class UnitTrack {
     if (time <= 0 || this.keys.length === 1) return this.keys[0].action;
     const phase = Math.min(Math.ceil(time), this.keys.length - 1);
     return this.keys[phase].action;
+  }
+
+  /**
+   * Whether the unit lies hidden through the phase under way at `time`:
+   * concealed at both of its keys. Its men are drawn; its name and the
+   * colour of its side on the ground are not.
+   */
+  hiddenAt(time: number): boolean {
+    return concealedThrough(this.concealed, time);
   }
 
   /**

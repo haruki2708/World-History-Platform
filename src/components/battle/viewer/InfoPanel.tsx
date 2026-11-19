@@ -166,7 +166,8 @@ function UnitList({ battle, side, hint, selectedUnit, onChoose }: UnitListProps)
       {hint && <p className="text-xs text-muted">{t("battle.info.units.hint")}</p>}
       <ul aria-labelledby={headingId} className="mt-1 -mx-1.5">
         {units.map((unit) => {
-          const men = roundMen(unitStateAt(battle, unit.id, time).men);
+          const moment = unitStateAt(battle, unit.id, time);
+          const men = roundMen(moment.men);
           const current = unit.id === selectedUnit;
           return (
             <li key={unit.id}>
@@ -178,7 +179,10 @@ function UnitList({ battle, side, hint, selectedUnit, onChoose }: UnitListProps)
                   current ? "bg-surface font-medium" : ""
                 }`}
               >
-                <span className="min-w-0">{unit.name[locale]}</span>
+                <span className="min-w-0">
+                  {unit.name[locale]}
+                  {moment.hidden && <span className="ml-1.5 text-xs text-muted">{t("battle.info.units.hidden")}</span>}
+                </span>
                 <span className="shrink-0 text-xs text-muted tabular-nums">
                   {t("battle.info.men").replace("{count}", formatCount(men, locale))}
                 </span>

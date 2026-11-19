@@ -31,6 +31,7 @@ import { Sky } from "./sky";
 import { makeStressBattle } from "./stress";
 import { installGrade } from "./grade";
 import { Dust } from "./dust";
+import { installMist, Mist } from "./mist";
 import { Grass } from "./grass";
 import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
@@ -54,6 +55,8 @@ export interface UnitView {
   id: string;
   /** Figures standing; 0 once the unit has no men left on the field. */
   standing: number;
+  /** Lying in ambush through the phase under way: no label (UnitState.concealed). */
+  hidden: boolean;
   /**
    * Where its label may stand, best first: points on screen just above the
    * block, over the middle of its front, then towards its left and right
@@ -199,6 +202,7 @@ export class BattleEngine {
   private vegetation: Vegetation | null = null;
   private grass: Grass | null = null;
   private dust: Dust | null = null;
+  private mist: Mist | null = null;
   private clock: BattleClock | null = null;
 
   private quality: Quality;
@@ -279,6 +283,7 @@ export class BattleEngine {
     canvas.addEventListener("webglcontextlost", this.onContextLost);
 
     installGrade();
+    installMist();
     this.renderer.toneMapping = CustomToneMapping;
     this.renderer.toneMappingExposure = 0.8;
     this.renderer.shadowMap.enabled = true;
@@ -409,12 +414,13 @@ export class BattleEngine {
       const block = blocks[b];
       let view = views[b];
       if (!view) {
-        view = { id: block.track.unit.id, standing: 0, anchors: UNIT_LABEL_SHARES.map(() => null), prominence: 0, box: null };
+        view = { id: block.track.unit.id, standing: 0, hidden: false, anchors: UNIT_LABEL_SHARES.map(() => null), prominence: 0, box: null };
         views[b] = view;
         this.anchorPoints[b] = UNIT_LABEL_SHARES.map(() => ({ x: 0, y: 0 }));
       }
       const own = this.occluderOwners[owner] === block ? this.occluders[owner++] : undefined;
       view.standing = block.standing;
+      view.hidden = block.track.hiddenAt(time);
       const f = block.track.formationAt(time);
       const lift = block.model.height * FIGURE_SCALE * LABEL_LIFT;
       const centerGround = heightAt(f.center.x, f.center.y);
@@ -575,6 +581,7 @@ export class BattleEngine {
     this.vegetation?.dispose();
     this.grass?.dispose();
     this.dust?.dispose();
+    this.mist?.dispose();
     this.terrain?.dispose();
     this.sky.dispose();
     this.scene.clear();
@@ -679,7 +686,7 @@ export class BattleEngine {
     this.structures = new Structures(battle, terrain.heightAt);
     this.scene.add(this.structures.group);
 
-    this.vegetation = new Vegetation(battle, terrain.heightAt);
+    this.vegetation = new Vegetation(battle, terrain.heightAt, terrain.lake?.wet);
     this.scene.add(this.vegetation.group);
 
     this.grass = new Grass(terrain.grassGround(), battle.terrain.scenery?.wind?.from);
@@ -693,8 +700,13 @@ export class BattleEngine {
       })),
       clock,
       terrain.heightAt,
+      terrain.lake ? (x, y) => terrain.lake!.wet(x, y) : undefined,
     );
     this.scene.add(this.dust.mesh);
+
+    // The mist lies thickest on the lake, or on the low ground of a battle without one.
+    const lakes = battle.terrain.lakes ?? [];
+    this.mist = new Mist(battle, lakes.length > 0 ? Math.min(...lakes.map((lake) => lake.level)) : terrain.lowGround);
 
     this.frameView();
     const view = this.options.startView;
@@ -869,6 +881,12 @@ export class BattleEngine {
     this.fog.color.copy(this.sky.haze);
     this.fog.near = distance * 2 + 3500;
     this.fog.far = distance * 4 + 70000;
+    if (this.mist) {
+      // From the battle clock, as the dust: a seek shows the mist of that moment.
+      this.mist.update(time, this.clock?.seconds(time) ?? 0, this.sky, this.fog.color);
+      this.sky.mistColor.copy(this.mist.screen);
+    }
+    this.sky.belowColor.copy(this.fog.color).convertLinearToSRGB();
 
     this.shared.uTime.value = seconds;
     terrain.update(seconds, this.sky);

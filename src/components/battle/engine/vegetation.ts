@@ -15,8 +15,9 @@
  * each plant. Plants are larger than life, as the figures are, and sway in
  * the wind.
  *
- * Nothing grows where a unit stands or passes, in a river, in the sea or on
- * the ground of a structure. Placing is seeded: the same battle always looks
+ * Nothing grows where a unit stands or passes, in a river, in the sea, in a
+ * lake (reeds stop at its edge, trees keep a little farther off) or on the
+ * ground of a structure. Placing is seeded: the same battle always looks
  * the same.
  */
 
@@ -39,6 +40,8 @@ import { createRng, hashString } from "./rng";
 import { occupancy } from "./structures";
 
 type HeightAt = (x: number, y: number) => number;
+/** True on the water of a lake, or within `margin` metres of it (LakeField.wet). */
+type Wet = (x: number, y: number, margin?: number) => boolean;
 type Rng = () => number;
 
 /**
@@ -418,7 +421,7 @@ export class Vegetation {
   private readonly time = { value: 0 };
   private readonly wind = { value: [1, 0] as [number, number] };
 
-  constructor(battle: Battle, heightAt: HeightAt) {
+  constructor(battle: Battle, heightAt: HeightAt, wet: Wet = () => false) {
     this.texture = loadPictures();
     this.material = this.leafMaterial();
     this.depthMaterial = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, map: this.texture, alphaTest: 0.45, side: DoubleSide });
@@ -437,11 +440,12 @@ export class Vegetation {
     const troops = occupancy(battle, 14);
     const structures = scenery.structures;
     const beds = rivers.map((river) => ({ river, half: river.level?.stage === "low" ? river.width * 0.95 : river.width * 0.54 }));
-    const dry = (x: number, y: number) => x > minX + 20 && x < maxX - 20 && y > minY + 20 && y < maxY - 20 && heightAt(x, y) > SEA_LEVEL + 0.4;
+    const dry = (x: number, y: number) =>
+      x > minX + 20 && x < maxX - 20 && y > minY + 20 && y < maxY - 20 && heightAt(x, y) > SEA_LEVEL + 0.4 && !wet(x, y, 1);
     const inBed = (x: number, y: number, margin: number) => beds.some(({ river, half }) => distanceToLine(x, y, river.points) < half + margin);
     const built = (x: number, y: number, margin: number) => structures.some((s) => insideStructure(x, y, s, margin));
     const slope = (x: number, y: number) => Math.hypot(heightAt(x + 8, y) - heightAt(x - 8, y), heightAt(x, y + 8) - heightAt(x, y - 8)) / 16;
-    const treeOk = (x: number, y: number) => dry(x, y) && !troopsWide(x, y) && !built(x, y, 12) && !inBed(x, y, 6);
+    const treeOk = (x: number, y: number) => dry(x, y) && !troopsWide(x, y) && !built(x, y, 12) && !inBed(x, y, 6) && !wet(x, y, 10);
     const lowOk = (x: number, y: number) => dry(x, y) && !troops(x, y) && !built(x, y, 4);
 
     // Trees apart from the low growth: only the trees cast shadows.
