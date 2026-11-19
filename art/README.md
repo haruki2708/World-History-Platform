@@ -211,13 +211,15 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
   - mỗi mảnh chia thành vài vùng (`chart_unwrap`): vùng lớn dần từ mặt lớn nhất, luôn lấy mặt có pháp tuyến gần pháp tuyến trung bình của vùng nhất, trong nón 90°, và giữ vùng là một đĩa (không thủng); đường nối nằm ở ranh giới các vùng; trải UV theo góc (`ANGLE_BASED`);
   - các mảnh LOD1 xếp chung atlas với LOD0, mật độ điểm ảnh bằng 0,25 lần LOD0 (`LOD1_DENSITY`): ở tầm LOD1 (17–58 điểm ảnh) vẫn hơn độ phân giải màn hình;
   - không bake: mỗi điểm ảnh của mảnh LOD1 lấy màu (đã nhân AO), độ nhám và kim loại của điểm gần nhất trên phần LOD0 của nó trong atlas đã ghép (`transfer`); ảnh pháp tuyến phẳng ở đó (ở tầm LOD1, ảnh pháp tuyến của LOD0 cũng đã mờ hết);
-  - kết quả: số đỉnh còn 1,5–1,7 lần số vị trí (trước là 2,3–3,4 lần).
+  - mảnh rời dưới 3 mặt (vụn của phép giảm tam giác, trong đầu, dưới tóc) bị bỏ: một vùng một tam giác trải UV thành điểm, và pháp tuyến, tangent của nó ra khác nhau giữa các lần dựng;
+  - kết quả: số đỉnh còn 1,55–1,76 lần số vị trí (trước là 2,3–3,4 lần); riêng `gallic-infantry` 2,16 lần (trước 3,42): lưới Celt khép kín, pháp tuyến lổn nhổn sau khi giảm, vùng nhỏ.
 - **LOD2.** Thân người dựng lại bằng các ống và elip đặt theo khung xương (`whp_proxy.py`). Mũ, lông, khiên, kiếm, *pilum* vẫn giảm từ phần của chúng. Mỗi tam giác một màu phẳng (`whp_lod.flat_colour_uvs`), rồi (T-047, `whp_palette.py`):
   - màu các tam giác gom thành một bảng màu nhỏ (thường 12–20 màu): gộp hai màu gần nhau dưới 0,04 (khoảng cách OKLab, trung bình theo diện tích);
   - một tam giác được lấy màu của tam giác kề nếu đổi màu không quá 0,12 và bớt được đỉnh tách (mỗi góc chung đáng 0,03);
   - mỗi màu là một ô 32×32 điểm ảnh một màu trong atlas, thẳng hàng với khối 16×16 của JPEG; ảnh pháp tuyến phẳng và ảnh độ nhám/kim loại mang giá trị của màu đó ở ô tương ứng. Mọi góc của tam giác trỏ vào giữa ô, nên UV không đổi trên tam giác và GPU đọc ảnh ở độ phân giải đủ;
   - chỗ cho các ô: một hình chữ nhật xếp chung với các mảnh của atlas rồi bỏ đi (`whp_lod.unwrap_atlas`, tham số `room`);
-  - kết quả: số đỉnh còn 1,2–1,6 lần số vị trí (trước là 3,1–3,6 lần). Tam giác cùng màu dùng chung đỉnh.
+  - kết quả: số đỉnh còn 1,19–1,46 lần số vị trí (trước là 3,1–3,6 lần). Tam giác cùng màu dùng chung đỉnh.
+- **Cảnh đo tầm đánh trên LOD2** (`UnitModel.strike` lấy mức cuối): đỉnh của LOD2 gộp lại không làm đổi số đo nào (kiểm bằng cách đọc lại trong trang cho cả 11 mô hình).
 - **Trọng số.** Tối đa 4 xương mỗi đỉnh.
 - **Thuộc tính phụ.** Thuộc tính màu (dùng để đánh dấu viền áo cho bake) và các thuộc tính `whp_*` bị xoá khỏi LOD trước khi xuất; bước kiểm tra báo lỗi nếu file có `COLOR_n` (three.js sẽ nhân màu đỉnh vào vật liệu).
 - **Không có váy.** Mô hình mặc quần (người Gaul) đặt `LOD2["skirt"] = None`.
@@ -636,7 +638,7 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - không có bàn đạp (chưa có vào năm 216 TCN).
 
   Log ghi bao nhiêu đỉnh của chân lọt vào trong thân ngựa ở `idle` khung 0: 12 trên 6 722 đỉnh, sâu nhất 1 mm.
-- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy dưới hông vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo sát vào chân: phần cách chân quá 2 cm chỉ giữ lại 15%, độ dời làm mượt dọc các cạnh của lưới để vải không gấp; vạt áo rủ theo đùi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi.
+- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo vào đùi ở đúng chỗ đùi nằm khi người ngồi (clip `idle`, khung 0): dưới hông, phần cách chân quá 1,2 cm chỉ giữ lại 5%; độ dời làm mượt dọc các cạnh của lưới để vải không gấp; sau đó không đỉnh nào nằm trong chân (cách da tối thiểu 8 mm, vì làm mượt kéo một ít vào trong); lớp giáp lưới nằm ngoài lớp áo thêm 1,2 cm. Vị trí mới đổi ngược về tư thế đứng qua ma trận skin của từng đỉnh, nên các clip khác (người vẫn ngồi) cũng thấy vạt áo rủ theo đùi. Độ dời được giữ thành thuộc tính `whp_drape` và chỉ áp vào LOD0, LOD1 của người cưỡi sau khi bake atlas (`apply_drape`): đổi ngược về tư thế đứng, mặt vải không còn trơn ở chỗ đỉnh pha trộn giữa đùi và hông, tia bake xuyên qua tới mặt trong và để lại các tam giác xám trên vạt áo. Đẩy vải ra khỏi chân cũng được làm mượt qua các đỉnh kề (4 lượt), vì đẩy từng đỉnh thì mặt vải lổn nhổn. Kéo ở tư thế đứng (bản đầu của T-047) gần như không đổi gì khi ngồi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi.
 - **Thân theo nhịp ngựa** (`LEAN`):
   - mỗi clip một độ ngả ra trước: `walk` 2°, `jog` 4°, `run` 13°;
   - thân lấy lại một phần độ xoay của xương yên để giữ gần thẳng đứng: `walk` 50%, `jog` 70%, `run` 60%;
