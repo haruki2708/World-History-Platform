@@ -35,12 +35,13 @@ export const MEN_PER_FIGURE = 20;
  *   loop, lasts KNOCKDOWN_SECONDS at most, and the horse strikes him
  *   REACTION_IMPACT seconds in. He goes over backwards: the scene turns him
  *   to face the horse first. A model without it flinches (hit) instead.
- * - ridedown, for mounted models: the gallop of `run` with the rider
- *   striking down at the men on foot beside him. It is a whole number of
- *   cycles of `run` (two, as a rule), the horse moving exactly as in `run`,
- *   and it loops: the scene plays it by the ground covered, in step with
- *   `run`, and fades between the two. A model without it gallops through
- *   without striking.
+ * - ridedown, for mounted models: the rider strikes down at a man on foot
+ *   beside his horse, to his weapon side. It is played once, like attack,
+ *   on the rider alone: the scene keeps the horse at its gallop under him
+ *   (the vertices skinned to the bones named horse_*), so the horse of the
+ *   clip may stand as it does in attack. It starts and ends seated as in
+ *   `run`, lasts RIDEDOWN_SECONDS at most, and the blow lands
+ *   RIDEDOWN_IMPACT seconds in. A model without it strikes with attack.
  */
 export const UNIT_CLIPS = [
   "idle",
@@ -68,6 +69,14 @@ export const REACTION_IMPACT = 0.3;
  * is on his feet again before the next horse may bowl him over.
  */
 export const KNOCKDOWN_SECONDS = 4;
+
+/**
+ * The clip ridedown: the blow lands this many seconds in, and the clip
+ * lasts no longer than RIDEDOWN_SECONDS. The scene starts it so that the
+ * blow lands as the rider passes the man.
+ */
+export const RIDEDOWN_IMPACT = 0.4;
+export const RIDEDOWN_SECONDS = 1.2;
 
 /** Mesh names inside a unit model, from most to least detailed. */
 export const UNIT_LODS = ["LOD0", "LOD1", "LOD2"] as const;

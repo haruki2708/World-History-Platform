@@ -48,7 +48,7 @@ const LOOPING: Record<UnitClip, boolean> = {
   block: false,
   hit: false,
   knockdown: false,
-  ridedown: true,
+  ridedown: false,
 };
 
 /** Frames per second baked into the texture. */
@@ -115,6 +115,10 @@ export interface UnitModel {
   strike: Strike;
   /** Length of the clips block and hit, seconds; 0 for a clip the model does not have. */
   reaction: { block: number; hit: number };
+  /** Length of the clip knockdown (bowled over by a horse, then up again), seconds; 0 for a model without. */
+  knockdown: number;
+  /** Length of the clip ridedown (a rider striking down as his horse gallops), seconds; 0 for a model without. */
+  ridedown: number;
   /**
    * What the figure carries besides its weapon and its shield and puts away
    * to fight hand to hand (the spare javelins of a hastatus), or null: the
@@ -247,8 +251,8 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     hit: byName.get("hit") ?? null,
     // Bowled over by a horse: without it the man flinches (hit) or does not move.
     knockdown: byName.get("knockdown") ?? null,
-    // Never chosen by the scene without a clip of its own.
-    ridedown: byName.get("ridedown") ?? byName.get("run") ?? walk,
+    // Striking down from a galloping horse: without it the rider strikes with attack.
+    ridedown: byName.get("ridedown") ?? null,
   };
 
   // Bake each distinct clip once. Without any clip, bake the rest pose.
@@ -393,6 +397,8 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
     gait: { walk: gaitOf("walk"), run: gaitOf("run"), jog: gaitOf("jog") },
     strike,
     reaction: { block: chosen.block?.duration ?? 0, hit: chosen.hit?.duration ?? 0 },
+    knockdown: chosen.knockdown?.duration ?? 0,
+    ridedown: chosen.ridedown?.duration ?? 0,
     stow,
     height,
     map: source.map,
@@ -674,6 +680,24 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
   }
   geometry.setAttribute("aBoneIndex", boneIndex);
   geometry.setAttribute("aBoneWeight", boneWeight);
+
+  // How much of each vertex is skinned to the horse (the bones named
+  // horse_*): the horse keeps its gallop under a rider who strikes
+  // (material.ts).
+  const mount = new BufferAttribute(new Float32Array(count), 1);
+  const horse = mesh.skeleton.bones.map((bone) => (bone.name.toLowerCase().startsWith("horse_") ? 1 : 0));
+  if (horse.some((flag) => flag === 1)) {
+    for (let i = 0; i < count; i++) {
+      mount.setX(
+        i,
+        boneWeight.getX(i) * (horse[skinIndex.getX(i)] ?? 0) +
+          boneWeight.getY(i) * (horse[skinIndex.getY(i)] ?? 0) +
+          boneWeight.getZ(i) * (horse[skinIndex.getZ(i)] ?? 0) +
+          boneWeight.getW(i) * (horse[skinIndex.getW(i)] ?? 0),
+      );
+    }
+  }
+  geometry.setAttribute("aMount", mount);
 
   if (source.index) {
     geometry.setIndex(new BufferAttribute(source.index.array.slice(), 1));

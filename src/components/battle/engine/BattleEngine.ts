@@ -19,7 +19,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { MapControls } from "three/addons/controls/MapControls.js";
-import { type Battle, type FieldPoint, hourAt, phaseAt, type UnitType } from "@/lib/battle";
+import { type Battle, type BattleUnit, type FieldPoint, hourAt, phaseAt, type UnitType } from "@/lib/battle";
 import { ArrowLayer } from "./arrows";
 import { loadModelIndex, loadModelSource } from "./figures/loader";
 import { createFigureMaterials, type FigureMaterials, type FigureShared } from "./figures/material";
@@ -36,7 +36,8 @@ import { Grass } from "./grass";
 import { Structures } from "./structures";
 import { loadFarHeights, loadHeights, Terrain } from "./terrain";
 import { Vegetation } from "./vegetation";
-import { BattleClock, formationPoint, opposition, UnitTrack } from "./timeline";
+import { Ride, trampling } from "./overrun";
+import { BattleClock, formationPoint, opposition, unitKeys, UnitTrack } from "./timeline";
 import { Crowd, FIGURE_SCALE, type LodSettings, SHADOW_LAYER, UnitBlock } from "./units";
 
 export type Quality = "high" | "low";
@@ -694,8 +695,33 @@ export class BattleEngine {
     const clock = new BattleClock(battle);
     this.clock = clock;
     const materialCache = new Map<string, FigureMaterials>();
+    const modelOf = (unit: BattleUnit) => modelByKey.get(modelKeyOf.get(unit.id) ?? "") ?? placeholderFor(false);
+
+    // Horsemen who ride through foot (UnitAction "overrun"; overrun.ts):
+    // their tracks first, then the loops of their riders, then the tracks of
+    // the foot, which ask the loops which of their men the horses run into.
+    const mounted = new Set(this.options.unitTypes.filter((type) => type.mounted).map((type) => type.id));
+    const tracks = new Map<string, UnitTrack>();
+    const rides = new Map<string, Ride>();
+    const riders = battle.units.filter(
+      (unit) => mounted.has(unit.type) && battle.phases.some((phase) => phase.units.some((s) => s.unit === unit.id && s.action === "overrun")),
+    );
+    for (const unit of riders) {
+      const track = new UnitTrack(battle, unit, clock, opposition(battle, unit));
+      tracks.set(unit.id, track);
+      if (track.count === 0) continue;
+      const foot = battle.units
+        .filter((other) => other.side !== unit.side && !mounted.has(other.type))
+        .map((other) => unitKeys(battle, other));
+      const model = modelOf(unit);
+      const run = model.gait.run;
+      // From one blow of a rider to the next: his clip, and a breath.
+      const strikeEvery = (model.ridedown > 0 ? model.ridedown : model.strike.seconds) + 0.5;
+      rides.set(unit.id, new Ride(track, clock, foot, (run.metres / run.seconds) * FIGURE_SCALE, strikeEvery));
+    }
+
     for (const unit of battle.units) {
-      const model = modelByKey.get(modelKeyOf.get(unit.id) ?? "") ?? placeholderFor(false);
+      const model = modelOf(unit);
       const color = colorOfSide(unit.side);
       const cacheKey = `${model.name}/${color.getHexString()}`;
       let materials = materialCache.get(cacheKey);
@@ -704,11 +730,23 @@ export class BattleEngine {
         materialCache.set(cacheKey, materials);
         this.materials.push(materials);
       }
-      const track = new UnitTrack(battle, unit, clock, opposition(battle, unit));
+      let track = tracks.get(unit.id);
+      if (!track) {
+        // On foot: which enemy horsemen ride through it.
+        const enemies = mounted.has(unit.type)
+          ? []
+          : riders.filter((other) => other.side !== unit.side).flatMap((other) => rides.get(other.id) ?? []);
+        const trampled = trampling(unitKeys(battle, unit), enemies);
+        track = new UnitTrack(battle, unit, clock, opposition(battle, unit), trampled ?? undefined);
+      }
       if (track.count === 0) continue;
       const side = battle.sides.findIndex((s) => s.id === unit.side);
-      this.crowd.add(new UnitBlock(track, model, materials, color, this.crowd.group, side));
+      const block = new UnitBlock(track, model, materials, color, this.crowd.group, side);
+      block.ride = rides.get(unit.id) ?? null;
+      this.crowd.add(block);
     }
+    // The blows of the riders are known once every unit on foot is laid out.
+    for (const ride of rides.values()) ride.seal();
     this.crowd.engage();
     this.step("units");
 

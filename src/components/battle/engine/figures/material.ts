@@ -10,10 +10,13 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
- *   iStrike  x: seconds into the clip for a figure fighting hand to hand;
- *            y: how far it has put away what its model stows to fight, 0..1
- *            (attack, block or hit; engine/melee.ts times the blows), or
- *            negative: attack then loops on the clock like idle
+ *   iStrike  x: seconds into the clip for a figure fighting hand to hand
+ *            (attack, block or hit; engine/melee.ts times the blows) or bowled
+ *            over by a horse (knockdown; engine/overrun.ts), or negative:
+ *            attack then loops on the clock like idle;
+ *            y: how far it has put away what its model stows to fight, 0..1;
+ *            plus 2 when the clip on top is for the rider alone: his horse
+ *            keeps the clip below (its gallop)
  *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
@@ -77,6 +80,8 @@ attribute vec2 iStrike;
 attribute vec4 aBoneIndex;
 attribute vec4 aBoneWeight;
 attribute float aTeam;
+// How much of the vertex is skinned to the horse of a mounted figure.
+attribute float aMount;
 uniform highp sampler2D uBoneTex;
 uniform vec4 uClips[${UNIT_CLIPS.length}];
 // Ground covered by one cycle of walk, run and jog, metres.
@@ -105,8 +110,9 @@ float figFrame(float clip) {
     float stride =
       (index == ${CLIP_INDEX.walk} ? uStride.x : index == ${CLIP_INDEX.run} ? uStride.y : uStride.z) * figSize;
     frame = fract(iAnim.w / stride + iSeed * 23.0) * info.y;
-  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit}) && iStrike.x >= 0.0) {
-    // A blow struck or taken, timed by the fight: played once, from the moment given.
+  } else if ((index == ${CLIP_INDEX.attack} || index == ${CLIP_INDEX.block} || index == ${CLIP_INDEX.hit} || index == ${CLIP_INDEX.knockdown} || index == ${CLIP_INDEX.ridedown} || index == ${CLIP_INDEX.die}) && iStrike.x >= 0.0) {
+    // A blow struck or taken, timed by the fight, or a man bowled over by a
+    // horse: played once, from the moment given.
     frame = min(iStrike.x * info.z, info.y - 1.0);
   } else if (info.w > 0.5) {
     float seconds = uTime * (0.88 + 0.24 * fract(iSeed * 7.31)) + iSeed * 23.0;
@@ -148,17 +154,20 @@ void figureTransform(vec3 p, vec3 n) {
     vec4 s1;
     vec4 s2;
     figBones(figFrame(iAnim.y), s0, s1, s2);
-    figR0 = mix(figR0, s0, iAnim.z);
-    figR1 = mix(figR1, s1, iAnim.z);
-    figR2 = mix(figR2, s2, iAnim.z);
+    // A clip for the rider alone leaves his horse to the clip below.
+    float share = iAnim.z * (1.0 - step(1.5, iStrike.y) * aMount);
+    figR0 = mix(figR0, s0, share);
+    figR1 = mix(figR1, s1, share);
+    figR2 = mix(figR2, s2, share);
   }
-  if (uStow.w >= 0.0 && iStrike.y > 0.0) {
+  float stowed = iStrike.y - 2.0 * step(1.5, iStrike.y);
+  if (uStow.w >= 0.0 && stowed > 0.0) {
     // Put away: the vertices of that bone shrink into the hand that held them.
     float held = 0.0;
     for (int k = 0; k < 4; k++) {
       if (abs(aBoneIndex[k] - uStow.w) < 0.5) held += aBoneWeight[k];
     }
-    if (held > 0.5) p = mix(p, uStow.xyz, iStrike.y);
+    if (held > 0.5) p = mix(p, uStow.xyz, stowed);
   }
   vec4 p4 = vec4(p, 1.0);
   vec3 sp = vec3(dot(figR0, p4), dot(figR1, p4), dot(figR2, p4)) * figSize;

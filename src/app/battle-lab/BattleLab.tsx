@@ -6,6 +6,7 @@ import { loadBattle, unitTypes } from "@/data";
 import { type Battle, hourAt, phaseAt } from "@/lib/battle";
 import { useAppStore } from "@/store/useAppStore";
 import { makeDuelBattle } from "./duelBattle";
+import { withOverrun } from "./overrunPreview";
 
 // three.js runs only in the browser, and only once the lab opens.
 const BattleScene = dynamic(
@@ -17,7 +18,11 @@ const DEFAULT_BATTLE = "battle-of-cannae";
 
 const noSubscribe = () => () => {};
 
-/** ?battle=<event id>&stats=1&stress=<figures>&duel=1&lang=vi&t=<battle time>&cam=x,y,distance,elevation,azimuth */
+/**
+ * ?battle=<event id>&stats=1&stress=<figures>&duel=1&pair=<n>&overrun=1&lang=vi&t=<battle time>&cam=x,y,distance,elevation,azimuth
+ * pair: with duel, only that pair of blocks (8: horse riding through foot).
+ * overrun: the battle with its horsemen riding through the foot they fight (see overrunPreview.ts).
+ */
 function useLabParams() {
   const search = useSyncExternalStore(
     noSubscribe,
@@ -31,6 +36,8 @@ function useLabParams() {
     showStats: params.get("stats") === "1",
     stressFigures: Number.isInteger(stress) && stress > 0 ? stress : undefined,
     duel: params.get("duel") === "1",
+    pair: Number(params.get("pair")) || undefined,
+    overrun: params.get("overrun") === "1",
     startTime: Number(params.get("t")),
     locale: params.get("lang") === "vi" ? ("vi" as const) : ("en" as const),
   };
@@ -44,7 +51,7 @@ function formatHour(hour: number): string {
 }
 
 export function BattleLab() {
-  const { battleId, showStats, stressFigures, duel, locale, startTime } = useLabParams();
+  const { battleId, showStats, stressFigures, duel, pair, overrun, locale, startTime } = useLabParams();
   const setLocale = useAppStore((s) => s.setLocale);
   useEffect(() => setLocale(locale), [locale, setLocale]);
   const [battle, setBattle] = useState<Battle | null>(null);
@@ -62,7 +69,7 @@ export function BattleLab() {
       if (!alive) return;
       // ?duel=1: a few pairs of blocks that fight hand to hand, on the ground of the battle.
       if (loaded) {
-        setBattle(duel ? makeDuelBattle(loaded, unitTypes) : loaded);
+        setBattle(duel ? makeDuelBattle(loaded, unitTypes, pair) : overrun ? withOverrun(loaded, unitTypes) : loaded);
         // ?t=: open at that time of the battle.
         if (Number.isFinite(startTime) && startTime > 0) setTime(Math.min(startTime, loaded.phases.length));
       } else setMissing(true);
@@ -71,7 +78,7 @@ export function BattleLab() {
       alive = false;
       closeBattle();
     };
-  }, [battleId, duel, openBattle, closeBattle, startTime, setTime]);
+  }, [battleId, duel, pair, overrun, openBattle, closeBattle, startTime, setTime]);
 
   // Playback: each phase takes its own playSeconds.
   useEffect(() => {
