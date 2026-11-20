@@ -61,7 +61,7 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-### Phần 1: `roman-legionary` (2026-11-20, chờ người dùng duyệt ảnh)
+### Phần 1: `roman-legionary` (2026-11-20, người dùng đã duyệt nguyên)
 
 **Clip `knockdown`** (`whp_clips.KNOCK`, `Builder.knockdown`): 3,50 s (105 khung), không lặp. Gốc là ba clip của thư viện Quaternius (CC0) đang dùng: `Idle_Loop` (bản 1), `Hit_Knockback` và `LayToIdle` (bản 2). Không thêm nguồn mới.
 
@@ -124,6 +124,89 @@ Commit sau mỗi phần việc lớn.
 
 Không có đề nghị thay đổi ngoài phạm vi.
 
-### Phần 2
+### Phần 2: bảy mô hình còn lại (2026-11-20)
 
-(Chưa làm: chờ người dùng duyệt phần 1.)
+Cả tám mô hình bộ binh có `knockdown` và đều được dựng bằng code đã commit trên nhánh. `roman-legionary` cũng được dựng lại, vì code đổi sau phần 1 (xem "Khác bản đã duyệt" bên dưới). Gốc vẫn là ba clip của thư viện Quaternius như phần 1: `Idle_Loop` (bản 1), `Hit_Knockback` và `LayToIdle` (bản 2). Không thêm nguồn mới.
+
+**Riêng từng mô hình**
+
+- `roman-hastatus`: hai cây *pilum* ở nguyên trong tay trái suốt clip, không thu nhỏ.
+  - Lúc nằm, đầu pilum ra xa chỗ đứng tới 1,61 m, vượt ngưỡng 1,5 m của bước kiểm tra. Giờ bước kiểm tra chỉ xét ngưỡng này cho thân người. Thứ hai tay cầm vẫn được đo và ghi vào log, nhưng không xét ngưỡng.
+- `roman-triarii` (giáo dài 2,4 m):
+  - Cách cũ: cánh tay luôn bị kéo về thế cầm giáo đứng. Lúc nằm, cẳng tay vì thế bị ép xuống đất, cả người bị nâng 28 cm; ngọn giáo cũng xoay theo cẳng tay nên quét vòng qua chân.
+  - Bây giờ: cánh tay chỉ về thế cầm giáo khi người đã đứng lên. Lúc nằm và lúc chống tay dậy, cánh tay theo đúng clip của thư viện. Giáo nằm ngang dọc bên phải người, giữ một hướng cố định, rồi dựng dần lên khi đứng dậy.
+- `balearic-slinger`:
+  - Không có khiên. Tay trái theo đúng clip của thư viện; lúc dậy, tay trái chống lên gối.
+  - Lúc người ngã xuống thấp, túi đá văng sang bên phải người rồi nằm dọc mặt đất. Trước đó túi rủ thẳng xuống từ nắm tay, xuyên qua ngực.
+- `roman-velites`: ngã cùng tấm khiên tròn nhỏ, như các mô hình có khiên khác.
+- `gallic-infantry`: lần dựng đầu, kiếm chìm 16,6 cm dưới đất (khung 87).
+  - Nguyên nhân: ống chân của người Gaul đi theo xương xoắn của bắp chân (`calf_twist_01_*`). Mình chưa đưa hai xương này vào nhóm chân, nên ống chân bị tính là thân.
+  - Hệ quả: nâng hông không bao giờ đưa được "thân" lên khỏi đất (thân bị nâng tới 22,9 cm), nên vòng lặp không bao giờ tới lượt nâng hai tay.
+  - Cách sửa:
+    - đưa hai xương xoắn vào nhóm chân (`LEG_ENDS`);
+    - chỉ nâng riêng thân và chân trong tối đa năm lượt (`KNOCK_BODY_PASSES`); các lượt sau nâng mọi phần còn chìm;
+    - tổng số lượt tăng từ sáu lên tối đa mười (`KNOCK_PASSES`).
+  - Kết quả: thân giờ chỉ nâng 12,1 cm; kiếm và khiên đều được nâng khỏi đất.
+- `libyan-infantry`, `iberian-infantry`: như `roman-legionary`.
+
+**Số đo** (bước kiểm tra `whp_export.check_knockdown` trên LOD0 của file đã xuất, ở mọi khung; số nâng lấy từ log của bước `anim`).
+
+- Cả tám clip đều dài 3,50 s.
+- Khung đầu và khung cuối trùng khung đầu của `idle` (lệch 0,0 mm), nên hai chân về đúng chỗ cũ.
+- Điểm thấp nhất luôn là giày. Nó rơi vào khung 77 (lúc quỳ dậy) hoặc khung 10 (vừa bị chạm, hai chân còn trên đất).
+- Cột "nắm tay phải lúc chống đất" đo các đỉnh đi theo `hand_r` trong vòng 15 cm quanh cổ tay lúc nghỉ (nắm tay và chuôi vũ khí), lấy điểm thấp nhất ở khung 71–73 (2,37–2,43 s). Ở cả tám mô hình, nắm tay chạm đất (từ −0,1 tới +0,2 cm), không chìm, không lơ lửng.
+
+| Mô hình | Kích thước (byte): `main` → nhánh | Nâng tối đa (cm): thân / chân / tay trái / tay phải | Thấp nhất (cm, khung) | Thân xa chỗ đứng nhất (m) | Thứ cầm xa nhất (m) | Nắm tay phải lúc chống đất (cm) |
+|---|---|---|---|---|---|---|
+| `roman-legionary` | 2 271 180 → 2 332 636 (2,17 → 2,22 MB) | 14,4 / 5,0 / 15,6 / 2,3 | −2,5 (77) | 1,40 | 1,38 | 0,0 |
+| `roman-hastatus` | 1 994 060 → 2 058 532 (1,90 → 1,96 MB) | 14,2 / 5,0 / 15,6 / 2,3 | −2,5 (77) | 1,40 | 1,61 | 0,0 |
+| `roman-triarii` | 2 279 400 → 2 340 860 (2,17 → 2,23 MB) | 14,4 / 5,0 / 15,6 / 20,2 | −2,5 (77) | 1,40 | 1,60 | 0,0 |
+| `roman-velites` | 1 791 660 → 1 852 856 (1,71 → 1,77 MB) | 14,2 / 5,0 / 4,3 / 2,3 | −2,5 (10) | 1,03 | 1,37 | 0,0 |
+| `libyan-infantry` | 2 273 808 → 2 335 264 (2,17 → 2,23 MB) | 14,4 / 5,0 / 15,6 / 2,3 | −2,5 (77) | 1,02 | 1,38 | 0,0 |
+| `iberian-infantry` | 1 824 072 → 1 885 528 (1,74 → 1,80 MB) | 14,2 / 5,0 / 9,0 / 2,3 | −2,5 (10) | 0,98 | 1,38 | 0,0 |
+| `gallic-infantry` | 1 920 088 → 1 981 344 (1,83 → 1,89 MB) | 12,1 / 5,7 / 9,4 / 16,6 | −2,6 (77) | 0,98 | 1,62 | −0,1 |
+| `balearic-slinger` | 1 722 992 → 1 787 368 (1,64 → 1,70 MB) | 14,5 / 5,0 / 1,7 / 2,5 | −2,5 (10) | 0,97 | 1,31 | +0,2 |
+
+Mỗi file nặng thêm 60–63 KB; file lớn nhất là `roman-triarii`, 2,23 MB.
+
+**Kiểm tra**
+
+- Các clip cũ của cả tám file **giống hệt từng byte** so với `main` (so từng kênh như phần 1): tám clip ở sáu mô hình đánh gần, sáu clip ở `roman-velites` và `balearic-slinger`. Lưới, khung xương, ảnh, vật liệu và các nút cũng giống hệt.
+- `build_model.py --check` qua cho cả tám file trên đĩa: chín clip ở sáu mô hình đánh gần, bảy clip ở hai mô hình đánh từ xa. Bốn file kỵ binh không xuất lại và không đổi.
+- Bảy file khác `gallic-infantry` lúc đầu được dựng bằng code trước bản sửa cho người Gaul. Mình đã dựng lại cả bảy từ bước `anim` bằng code đã commit, từng mô hình một, và commit các file mới (`5d79f06`).
+  - So với bản commit trước, chỉ clip `knockdown` khác (15–17 trên 201 kênh). Khác là do code ở `e6d2adb` đổi nhóm chân và các lượt nâng. Có lẽ chủ yếu vì tay giờ được nâng cả ở những lượt mà code cũ chỉ nâng thân; các góc xoay khác nhiều nhất đều ở cánh tay.
+  - Mình kiểm lại cả bảy file mới như bản cũ: bước kiểm tra qua, số đo như bảng trên. Ngoài ra đo thêm tay phải lúc chống đất. Không mô hình nào kém hơn bản cũ.
+- `npm run validate`, `npm run lint`, `npm run build` qua.
+- **Trong cảnh:** đã mở `/battle-lab?duel=1&pair=8&t=1.3` (bản dev, Chrome không giao diện) với file `roman-hastatus.glb` thật của nhánh (bản trước khi dựng lại). Người bị ngựa xô ngã rồi gượng dậy đúng. Console chỉ có hai cảnh báo WebGL như ở phần 1.
+  - Mình **không mở lại cảnh với bảy file dựng lại**, vì máy thiếu bộ nhớ và phiên chính bảo tắt dev server. Bảy file mới cùng cấu trúc với bản cũ: cùng tên clip, cùng 201 kênh, cùng độ dài.
+
+**Khác bản đã duyệt** (`roman-legionary`)
+
+- Bản sửa cho người Gaul đổi cách nâng tay ở mọi mô hình. Vì vậy `knockdown` của `roman-legionary` khác bản người dùng đã duyệt ở 15 kênh.
+- Khác nhiều nhất là quanh 2,47 s, lúc nắm tay phải vừa chống xuống đất rồi nhấc lên:
+  - cẳng tay phải xoay khoảng 15° quanh trục của nó; hông dời 7 mm;
+  - nắm tay phải vẫn chạm đất: ở khung 73 (khung 72 cách đất 3 mm), so với khung 72–73 ở bản cũ. Ở mấy khung đang hạ tay, nắm tay chỉ cao hơn bản cũ tối đa 0,5 cm.
+- Nhìn bằng mắt gần như không thấy khác: xem cặp ảnh `roman-legionary-knockdown-2,47s-A-truoc.jpg` và `...-B-sau.jpg` nêu dưới.
+- `balearic-slinger` khác bản trước nhiều nhất ở hai chỗ:
+  - **Túi đá** (`ik_hand_gun`) quanh 3,0 s, lúc người đứng dậy, dời tới 3,3 cm: túi treo cách đất 4,2 cm thay vì 1,7 cm.
+  - **Tay trái** quanh 0,73 s, lúc nắm tay trái đập xuống đất khi ngã, xoay nhẹ: nắm tay giờ ở −0,0 cm thay vì −0,2 cm.
+
+**Ảnh duyệt**
+
+- `art/renders/<id>/knockdown.jpg` cho cả tám mô hình. Ảnh render từ file `.glb` đã commit, cùng mười một khung và hai dải như phần 1.
+- Chép đè vào `E:\World_History_Platform_assets\duyet\T-057\<id>-knockdown.jpg`.
+- Thêm một cặp ảnh cho `roman-legionary`, cùng khung 2,47 s và cùng khung hình, nhìn từ bên phải và chếch từ trước:
+  - `roman-legionary-knockdown-2,47s-A-truoc.jpg`: bản đã duyệt (commit `9e75675`);
+  - `roman-legionary-knockdown-2,47s-B-sau.jpg`: bản mới.
+
+**Code** (chỉ trong `art/`, thêm so với phần 1):
+
+- `whp_clips.py`:
+  - `_knock_weapon`: cách cầm giáo của triarii lúc nằm (`lie_flat`);
+  - `_knock_sling`: túi đá;
+  - `LEG_ENDS`: thêm hai xương xoắn của bắp chân;
+  - `KNOCK_BODY_PASSES`, `KNOCK_PASSES`; thứ tự nâng các phần cố định.
+- `whp_export.py`: `HELD`, `_held`. Ngưỡng 1,5 m chỉ xét thân; thứ hai tay cầm được ghi riêng.
+- `art/README.md`: giáo, *pilum*, dây ném, các lượt nâng, bước kiểm tra, ảnh duyệt của tám mô hình.
+
+Không có đề nghị thay đổi ngoài phạm vi.
