@@ -1,6 +1,6 @@
 # Trận Cannae (216 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-19 (T-049, kỵ binh của Hasdrubal tách thành kỵ binh Iberia và kỵ binh Gaul: mục 18; T-045, quân giữ trại của Hannibal và đường ra vào trại: mục 17; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
+Cập nhật: 2026-11-20 (T-059, kỵ binh Hasdrubal xông qua lưng các quân đoàn ở giai đoạn 6: mục 19; T-049, kỵ binh của Hasdrubal tách thành kỵ binh Iberia và kỵ binh Gaul: mục 18; T-045, quân giữ trại của Hannibal và đường ra vào trại: mục 17; lập ở T-016). Từ T-032, bố cục các khối đánh giáp lá cà ở mục 9 và 10 được thay bằng mục 11. File dữ liệu: `src/data/battles/battle-of-cannae.json`. Lưới độ cao: `public/data/terrain/battle-of-cannae.bin`, dựng bằng `scripts/battles/build-terrain.mjs`.
 
 Tài liệu này ghi nguồn đã đọc, các giả thuyết đã chọn và lý do, để người sau kiểm tra hoặc sửa.
 
@@ -316,7 +316,7 @@ Từ đợt G, cảnh cho người đầu mỗi hàng dọc đấu với ngườ
 - **Hàng ba:** lính nhẹ lui qua hàng ngũ ở giai đoạn 3 rồi đứng sau hàng hai; triarii đứng sau cùng.
 - **Giai đoạn 5–6, quân La Mã là một cái hộp.** Mặt trước nằm trên cung; principes ở sườn tây và bộ binh đồng minh hàng sau ở sườn đông, quay mặt ra ngoài; triarii quay đầu, khép mặt sau; lính nhẹ ở bên trong. Hộp ở mốc 5 rộng khoảng 600 m, sâu khoảng 430 m ở giữa; ở mốc 6 rộng khoảng 410 m, sâu khoảng 320 m.
 - **Lính Libya** đứng yên tới hết giai đoạn 4, quay vào trong ở giai đoạn 5 và chạm sườn ở mốc 5. Ở mốc 5 họ đứng lệch về bắc 45 m so với sườn mà họ đánh, vì phải đi vòng ngoài đầu mút của lưỡi liềm. Không lệch nhiều hơn được: người chỉ ngã ở hàng dọc có địch trước mặt, nên một sườn chỉ bị che một nửa sẽ mất hết người ở nửa đó và không mất ai ở nửa kia (đã thử với 90 m: principes còn 0 trên 9 người đầu hàng có đối thủ ở 3/4 giai đoạn 6).
-- **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau. Từ T-049 hai khối là kỵ binh Iberia và kỵ binh Gaul, đứng cạnh nhau cả ở mốc 2 và 3, nên cả hai cùng đánh kỵ binh La Mã (mục 18).
+- **Kỵ binh Hasdrubal:** mốc 2 chạm kỵ binh La Mã ở y = 40; mốc 3 ở y = 120; mốc 4 đang ở sau lưng quân La Mã, (300, 420) và (−50, 470); mốc 5 và 6 chạm hàng triarii, hai khối đứng cạnh nhau. Từ T-049 hai khối là kỵ binh Iberia và kỵ binh Gaul, đứng cạnh nhau cả ở mốc 2 và 3, nên cả hai cùng đánh kỵ binh La Mã (mục 18). Từ T-059, ở giai đoạn 6 hai khối xông qua hàng triarii thay vì đứng đấu từng cặp (mục 19).
 - **Cổng trại Hannibal** (T-045, mục 17): lực lượng ở trại lớn và toán giữ trại đứng hai bên một đường bắc–nam là mặt trước (phía đông) của trại, x = −3475, cổng ở y = −500; bề ngang 200 m. Mốc 2 và 3 đường này nằm đúng ở cổng, mốc 4 lùi vào trong trại 10 m, mốc 5 lùi 40 m. Mốc 6: chỗ lực lượng ở trại lớn đứng sau cổng trại lớn (rút về theo đường thẳng qua cổng) và đoạn toán giữ trại đuổi theo cũng do script tính.
 
 ### Quân số
@@ -766,3 +766,73 @@ Console không có lỗi. Khối Gaul vẽ hình tạm theo màu phe tới khi c
 - Con số 2 000 / 4 000 mới thấy trên Wikipedia, chưa đối chiếu được với sách nào. Nếu đọc được Daly (2002) hay Goldsworthy (2001), nên xem lại mục này cùng bảng chia quân ở mục 5.
 - Chỗ đứng (kỵ binh Iberia sát sông) là lựa chọn, không có nguồn.
 - Livy 22.48.5–6 đưa kỵ binh Iberia và Gaul tới hợp sức với lính châu Phi, còn Polybius 3.116 cho Hasdrubal đánh vào lưng các quân đoàn. Cảnh theo Polybius, như trước.
+
+## 19. Kỵ binh Hasdrubal xông qua lưng các quân đoàn (T-059, đợt L)
+
+Từ đợt L, kỵ binh gặp bộ binh có thể phi xuyên qua thay vì dừng lại đấu từng cặp (hành động `overrun`; `docs/ARCHITECTURE.md`, mục "Kỵ binh xông qua"). Trong trận này chỉ có một chỗ kỵ binh đánh giáp lá cà với bộ binh: kỵ binh Iberia và kỵ binh Gaul của Hasdrubal đánh hàng triarii ở giai đoạn 6. Các trận kỵ binh khác đều là ngựa đấu ngựa (giai đoạn 3, bên sông) hay đánh từ xa (kỵ binh Numidia, giai đoạn 3–4), nên giữ nguyên.
+
+### Nguồn đã đọc lại (2026-11-20)
+
+| Nguồn | Đọc ở đâu | Nói gì |
+|---|---|---|
+| Polybius 3.116 | Bản Paton, LacusCurtius (mục 1) | Hasdrubal thấy kỵ binh Numidia đủ sức lo kỵ binh đồng minh, liền giao việc đó cho họ, rồi dẫn các đội kỵ binh của ông tới chỗ bộ binh đang đánh để giúp lính châu Phi. Ông đánh vào lưng các quân đoàn, **xung phong nhiều lượt, ở nhiều chỗ cùng một lúc**; lính châu Phi phấn chấn, quân La Mã nao núng. Sau đó các hàng ngoài cứ ngã dần, số còn lại bị dồn vào giữa, bị vây, và bị giết tại chỗ |
+| Polybius 3.115; Livy 22.47 | Như mục 18 | Trận kỵ binh bên sông: không có chỗ xoay trở, hai bên xuống ngựa đánh bộ. Ngựa đấu ngựa, không thuộc phần này |
+| Livy 22.48 | Bản Latin, The Latin Library; bản Roberts | Hasdrubal sai kỵ binh Numidia đuổi người chạy trốn, còn người Iberia và người Gaul thì đưa tới hợp sức với lính châu Phi (bản chép tay ghi bộ binh, *pedites*; mục 18). Livy không tả họ đánh thế nào. 500 kỵ binh Numidia giả hàng rồi đánh vào lưng hàng quân La Mã cũng ở chương này (mục 6: không vẽ) |
+| Livy 22.49 | Như trên | Paullus ngồi trên ngựa tới khi kiệt sức, rồi quân hộ vệ xuống ngựa đánh bộ. Không chỗ nào tả người cưỡi phi xuyên qua bộ binh |
+
+Tóm lại: chỉ Polybius tả cách kỵ binh Hasdrubal đánh: **xung phong nhiều lượt, ở nhiều chỗ cùng lúc**, vào lưng các quân đoàn. Không nguồn nào nói kỵ binh dừng lại đấu với hàng sau của quân La Mã, và cũng không nguồn nào nói họ phi xuyên qua hàng ngũ. Cảnh vẽ `overrun` thành những vòng phi vào, quay lại, phi vào lần nữa, nên gần lời Polybius hơn `fight` (đứng tại chỗ đấu từng cặp). Phần "xuyên qua" là cách cảnh vẽ, như ARCHITECTURE đã nói: tư liệu chỉ nói kỵ binh đánh vào đâu.
+
+### Đã đổi
+
+| Giai đoạn | Khối | Trước | Sau | Lý do |
+|---|---|---|---|---|
+| 6 | `iberian-cavalry`, `gallic-cavalry` | `fight` | `overrun` | Polybius 3.116, như trên |
+| 6 | `triarii` | `fight` | `stand` | Mặt trước của triarii (mặt sau của cái hộp, mục 11) chỉ nhìn ra hai khối kỵ binh này. Kỵ binh không đứng lại đấu, nên `fight` không còn đối thủ, và `npm run validate` sẽ báo lỗi. `stand` là đứng giữ hàng, mặt quay ra phía kỵ binh, hợp với lời Polybius: quân La Mã chống cự tới khi các hàng ngoài ngã. Không chọn `retreat` hay `rout`, vì Polybius nói họ bị giết tại chỗ |
+
+Không đổi: vị trí, quân số, thương vong, mũi tên và lời dẫn. Lời dẫn giai đoạn 6 vốn đã viết kỵ binh của Hasdrubal "liên tục xung phong vào lưng quân La Mã". Hai khối ở hai sườn (principes, bộ binh đồng minh hàng sau) vẫn `fight` với lính Libya. Ngựa chạy vào đầu phía trong của hai khối này thì xô ngã người, rồi người đó gượng dậy; người chết vẫn là người đầu hàng dọc đấu với lính Libya.
+
+**Không khựng:** giai đoạn 5 kết thúc bằng `charge` tới lưng quân La Mã. Đường đi trong giai đoạn 5 lệch hướng mặt ở mốc 5 là 22° (kỵ binh Iberia) và 30° (kỵ binh Gaul), dưới ngưỡng 45° của cảnh. Vì vậy sang giai đoạn 6, người cưỡi phi tiếp vào hàng triarii với tốc độ đang có (khoảng 21–22 m mỗi giây phát), rồi tăng dần lên tốc độ phi.
+
+### Kiểm tra
+
+- `npm run validate`: qua, không cảnh báo. Ở cả mốc 5 lẫn mốc 6, 21 trên 21 điểm của mép trước mỗi khối kỵ binh có triarii ngay phía trước (đo bằng `frontOnFoot` của cảnh, cùng phép thử với validate).
+- Engine của cảnh chạy bằng Node (`overrun.ts`, `timeline.ts`; script `tools/check-data.mjs` trong thư mục ảnh, sửa từ `main-tools/overrun/check.mjs` của phiên chính để đọc file trận như đang có):
+  - Kỵ binh Iberia: 99 trên 100 hình phi vòng (hình còn lại đã ngã ở giai đoạn 3), mỗi người khoảng 3,2 vòng. Kỵ binh Gaul: 197 trên 200 (3 hình đã ngã ở giai đoạn 3), 3,3 vòng. Không người cưỡi nào còn sống mà đứng yên.
+  - Mọi người cưỡi phi tiếp từ cú xung phong của giai đoạn 5 (21,8 và 20,9 m mỗi giây phát); không ai xuất phát từ chỗ đứng.
+  - Tốc độ phi tối đa 32 m mỗi giây phát (clip phi nước đại: 38,2); đoạn thẳng dài nhất 141 m; bộ binh phía trước sâu tới 90 m. Bước lớn nhất giữa hai khung hình (60 khung/giây) là 34 m/s, tức không ai nhảy chỗ; hai người cưỡi ngã giữa vòng thì nằm lại chỗ ngã.
+  - Cả 195 hình triarii ngã trong giai đoạn 6 đều ngã lúc có ngựa trong vòng 4,5 m: người chết của triarii là người bị ngựa xô. Triarii bị xô ngã 395 lần và bị chém lúc đang đứng 157 lần, trên 170 trong 210 hình.
+  - Ngựa còn xô ngã người ở đầu phía trong của hai sườn (principes 101 lần, bộ binh đồng minh hàng sau 173) và lính nhẹ trong lòng hộp (lính nhẹ La Mã 30, lính nhẹ đồng minh 28). Trước đây lính nhẹ chết ngẫu nhiên, không ai đánh (mục 11, "Còn lại"); nay 54 trên 185 hình lính nhẹ La Mã và 41 trên 150 hình lính nhẹ đồng minh ngã lúc có ngựa ở gần.
+- Giáp lá cà của các khối khác không đổi (`tools/pairs.mjs`, sửa từ `main-tools/melee/pairs.mjs`: số người đầu hàng dọc có đối thủ, mỗi 1/4 giai đoạn 6). Giống hệt trước, trừ lính Libya phải ở đầu giai đoạn (25/29 thành 24/29). Triarii và hai khối kỵ binh không còn trong bảng vì không `fight`.
+- Xem trong cảnh (`/battle-lab?battle=battle-of-cannae`, dev server): người cưỡi phi vòng qua hàng triarii; triarii ngã khi ngựa tới, người không đến lượt chết thì gượng dậy; không khối nào đánh vào khoảng không; không người cưỡi nào đứng yên.
+- Ảnh trước (A) và sau (B) ở `E:\World_History_Platform_assets\duyet\T-059\`, chụp bằng driver của phiên chính (`main-tools/drive/drive.mjs`, cổng 9362) với kịch bản `tools/s-t059.mjs`, mỗi cặp cùng thời điểm và cùng góc nhìn:
+
+| Ảnh | Thời điểm | Góc |
+|---|---|---|
+| `01-cannae-dau-giai-doan-6` | Đầu giai đoạn 6 (12:38) | Lưng quân La Mã, từ phía bắc |
+| `02-cannae-giua-giai-doan-6` | 14:18 | Như trên |
+| `03-cannae-can-canh` | 14:23 | Cận cảnh triarii và lính nhẹ |
+| `04-cannae-dang-phat-00` tới `-05` | Đang phát, từ ngay trước mốc 5 | Kỵ binh đi tiếp từ cú xung phong vào hàng triarii |
+
+- **Khung hình/giây** (`tools/s-t059-fps.mjs`): trang thử ở 1280×800, GPU rời, góc nhìn rộng 400 m từ phía bắc. Mỗi lượt phát 5 giây từ t = 5,02 (đầu giai đoạn 6) và từ t = 5,5 (giữa giai đoạn). Khung được đếm với một lệnh `readPixels` mỗi khung, để mỗi khung phải chờ GPU; p99 tính theo đồng hồ thật. Hai bản (trước, sau) chạy xen kẽ trên cùng máy, cùng một dev server. Blender của một phiên khác chạy từng đợt trên máy; cột Blender ghi nó có đang chạy lúc lượt đo kết thúc hay không. Lượt 5 chỉ có bản sau: Claude Code dừng lượt đo vì máy thiếu bộ nhớ.
+
+| Lượt | Bản | Blender | Đầu giai đoạn 6: khung/giây (p99) | Giữa giai đoạn 6 |
+|---|---|---|---|---|
+| 1 | sau | có | 54,8 (24,2 ms) | 56,8 (21,4 ms) |
+| 1 | trước | không | 60,4 (20,9 ms) | 62,4 (18,7 ms) |
+| 2 | sau | không | 59,0 (22,8 ms) | 62,5 (19,8 ms) |
+| 2 | trước | có | 56,3 (21,9 ms) | 56,1 (21,1 ms) |
+| 3 | sau | có | 40,3 (50,1 ms) | 43,3 (54,8 ms) |
+| 3 | trước | không | 57,6 (22,8 ms) | 62,4 (19,8 ms) |
+| 4 | sau | có | 42,6 (47,3 ms) | 32,9 (64,4 ms) |
+| 4 | trước | có | 54,8 (23,0 ms) | 54,8 (21,3 ms) |
+| 5 | sau | có | 54,2 (24,7 ms) | 54,7 (22,5 ms) |
+
+  - Khi không có Blender, hai bản như nhau: bản sau 59,0 và 62,5; bản trước 57,6–60,4 và 62,4.
+  - Khi có Blender: hai lượt bản sau (1, 5) ngang hai lượt bản trước (54–57). Hai lượt bản sau khác (3, 4) chỉ còn 33–43, p99 47–64 ms.
+  - Tôi không tách được phần do Blender (lúc nặng lúc nhẹ) và phần có thể do bản mới. Nên đo lại khi máy rảnh.
+
+### Còn lại
+
+- `scripts/battles/cannae-lines.mjs` vẫn ghi `fight` cho ba khối này ở mốc 6. Chạy lại script với `--write` sẽ xoá thay đổi này. Đề nghị sửa bảng `STATES` của script (ngoài phạm vi T-059, ghi ở file task).
+- Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
+- Người cưỡi đi sâu tới 90 m (giới hạn của cảnh), qua hàng triarii (sâu 40 m) vào cả đám lính nhẹ trong lòng hộp. Nguồn không nói kỵ binh vào sâu tới đâu.

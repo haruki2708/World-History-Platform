@@ -77,4 +77,48 @@ Phiên chính sẽ nói thêm về kỵ binh xông qua trong câu về giáp lá
 
 ## Kết quả
 
-(Lane 2 điền khi xong.)
+Lane 2, 2026-11-20. Ba commit trên `lane2/T-059-overrun-data`: hai commit dữ liệu (mỗi trận một commit), một commit ghi chép và kết quả.
+
+### Đã làm
+
+**Cannae** (`cannae.md` mục 19):
+
+- Giai đoạn 6: `iberian-cavalry` và `gallic-cavalry` từ `fight` sang `overrun`. Căn cứ: Polybius 3.116 (bản Paton) tả Hasdrubal đánh vào lưng các quân đoàn, xung phong nhiều lượt, ở nhiều chỗ cùng một lúc. Không nguồn nào nói kỵ binh dừng lại đấu với hàng sau của quân La Mã. Livy 22.48–49 không tả cách đánh (và bản chép tay của 22.48 ghi bộ binh, mục 18).
+- `triarii` (giai đoạn 6) từ `fight` sang `stand`: mặt trước của khối chỉ nhìn ra hai khối kỵ binh đó. Không chọn `retreat` hay `rout`, vì Polybius nói quân La Mã bị giết tại chỗ. Hai khối ở hai sườn vẫn `fight` với lính Libya.
+- Không đổi vị trí, quân số, thương vong, lời dẫn, mũi tên. Giai đoạn 5 kết thúc bằng `charge` (lệch hướng mặt 22° và 30°), nên trong cảnh người cưỡi phi thẳng vào hàng triarii với tốc độ đang có (21–22 m mỗi giây phát), không khựng.
+
+**Hồ Trasimene** (`trasimene.md` mục 13):
+
+- **Kỵ binh Gaul**, giai đoạn 3–4: từ `fight` sang `overrun`. Căn cứ: Livy 22.6.3–4, Ducarius thúc ngựa xông qua chỗ quân địch dày đặc nhất (*per confertissimam hostium turbam*) tới chỗ Flaminius. `velites-2`, vốn chỉ đấu với kỵ binh Gaul, từ `fight` sang `stand`.
+- **Phải dời hai khối** (mốc 2, 3, 4). Trong file cũ, 150 trên 310 m mặt trận của kỵ binh Gaul chạm kỵ binh La Mã cùng Flaminius, không phải bộ binh. Nếu chỉ đổi hành động thì 126 trên 200 người cưỡi đứng yên, và kỵ binh La Mã không còn ai đấu (`validate` báo lỗi).
+  - Kỵ binh Gaul thu về đúng mặt trận của `velites-2`: 120 × 134 m, cùng diện tích (trước 310 × 52).
+  - `gauls-2` kéo dài từ principes quân đoàn I tới kỵ binh La Mã và đánh cả kỵ binh La Mã: 430 × 16 m, cùng diện tích (trước 240 × 28).
+  - Điểm cuối mũi tên xung phong của kỵ binh Gaul ở giai đoạn 2 dời theo.
+  - Mốc 5–6 giữ nguyên.
+  - Quanh Flaminius nay có bộ binh Gaul đánh nhóm kỵ binh của ông (Polybius 3.84.6: một nhóm người Celt), còn kỵ binh Gaul phi qua đám lính đi bộ ngay cạnh (Livy).
+- **Kỵ binh đồng minh cánh phải** (phía La Mã) đấu với `iberians-2`: giữ `fight`. Không nguồn nào nói kỵ binh La Mã xông vào bộ binh: Livy 22.4–7 và Polybius 3.82–85 không cho kỵ binh La Mã làm gì trong trận. Đoàn quân bị đánh úp khi còn đi hàng dọc, chưa kịp dàn trận (Polybius 3.84.3–4, Livy 22.5). Trong file, khối này vừa quay tại chỗ sang hàng ngang thì bị đánh, không có đà.
+- **Kỵ binh Numidia** đấu với kỵ binh đồng minh cánh trái: ngựa đấu ngựa, giữ `fight`.
+- Không đổi quân số, thương vong, lời dẫn (lời dẫn giai đoạn 4 đã viết Ducarius "phi qua hàng ngũ La Mã").
+
+### Đã kiểm tra
+
+- `npm run validate`: qua, không cảnh báo (trước cũng không có). Mọi khối `overrun` có 21/21 điểm mép trước nhìn thẳng vào bộ binh địch ở cả hai mốc.
+- `npm run lint`, `npm run build`: qua.
+- Engine của cảnh chạy bằng Node trên dữ liệu mới: mọi người cưỡi còn sống đều phi vòng, không ai đứng yên, không ai nhảy chỗ. Mọi người cưỡi phi tiếp từ cú xung phong của giai đoạn trước. Cả 195 hình triarii chết ở giai đoạn 6 và cả 34 hình `velites-2` chết ở giai đoạn 3–4 đều ngã lúc có ngựa trong vòng 4,5 m. Ở cả hai trận, giáp lá cà của các khối khác không đổi (lệch một hình ở lính Libya phải, Cannae).
+- `check-overlap.mjs`, `check-facing.mjs` (Trasimene): không có dòng mới. Cặp `velites-2` và kỵ binh Gaul chạm mép 7% không còn trong danh sách chồng lấn; `check-facing` bớt một dòng (kỵ binh Gaul truy đuổi ở giai đoạn 5).
+- Xem trong cảnh (`/battle-lab`, dev server cổng 3159) cả hai trận: người cưỡi phi vòng qua bộ binh; bộ binh ngã khi ngựa tới (clip `knockdown` chưa có nên ngã theo `die` rồi dậy); không khối nào đánh vào khoảng không; không người cưỡi nào đứng yên.
+- Ảnh trước (A) và sau (B): `E:\World_History_Platform_assets\duyet\T-059\` (`01`–`04` Cannae, `05`–`10` Trasimene; `04` và `10` là sáu ảnh lúc đang phát qua mốc có `charge`). Kịch bản chụp và các script kiểm bằng Node ở `tools/` trong cùng thư mục.
+- **Khung hình/giây** (1280×800, GPU rời, góc nhìn rộng; bảng đầy đủ ở hai file ghi chép). Hai bản chạy xen kẽ trên cùng máy. Blender của một phiên khác chạy từng đợt, nên tôi ghi từng lượt có Blender hay không.
+  - Khi không có Blender: Cannae giai đoạn 6 như nhau (bản sau 59,0 và 62,5; bản trước 57,6–60,4 và 62,4). Trasimene giai đoạn 3–4: bản sau chậm hơn khoảng 3–4 khung/giây (khoảng 4%), vẫn trên 74.
+  - Khi có Blender: số dao động mạnh. Hai lượt bản sau ở Cannae chỉ còn 33–43 khung/giây, và một lượt ở Trasimene còn 46. Hai lượt bản sau khác, cùng có Blender, ngang bản trước (54–57).
+  - Tôi không tách được phần do Blender và phần có thể do bản mới. Lượt đo thứ ba (chỉ đo khi Blender tắt) và dev server đã bị Claude Code dừng vì máy thiếu bộ nhớ, sau một lượt đo. Theo lưu ý của hệ thống, tôi không tự chạy lại. **Đề nghị đo lại Cannae giai đoạn 6 khi máy rảnh** (kịch bản `tools/s-t059-fps.mjs`, `tools/fps-run3.sh`).
+
+### Còn lại
+
+- `velites-2` (Trasimene) bị xô ngã liên tục: 200 hình kỵ binh qua một dải 120 × 16 m, trung bình 7–8 lần mỗi hình trong 50 giây phát. Tôi giữ nguyên quân số và chỗ đứng.
+- Cú xung phong của kỵ binh Gaul ở giai đoạn 2 (Trasimene) nhanh khoảng 78 m mỗi giây phát, quá trần phi (57). Người cưỡi mang tốc độ đó vào giai đoạn 3 trong khoảng một giây đầu, nên móng trượt. Có từ T-052; tôi không sửa.
+
+### Đề nghị ngoài phạm vi
+
+- `scripts/battles/cannae-lines.mjs` (vùng của lane 2, ngoài phạm vi task này) vẫn ghi `fight` cho `iberian-cavalry`, `gallic-cavalry` và `triarii` ở mốc 6. Chạy lại script với `--write` sẽ xoá thay đổi này. Đề nghị đổi ba dòng trong bảng `STATES` (mốc 6) sang `overrun`, `overrun`, `stand`, ở một task sau hoặc khi gộp.
+- Chế độ xem trước `?overrun=1` (`src/app/battle-lab/overrunPreview.ts`) đổi mọi khối kỵ binh có bộ binh trước mặt, kể cả khối chỉ có một phần mặt trận trước bộ binh, và không đổi khối kỵ binh đối diện. Sau khi gộp, dữ liệu hai trận đã ghi `overrun` nên chế độ này chỉ còn để thử. Không cần sửa.

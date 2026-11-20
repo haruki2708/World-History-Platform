@@ -1,6 +1,6 @@
 # Trận hồ Trasimene (217 TCN): căn cứ dữ liệu
 
-Cập nhật: 2026-11-19 (T-051, chặng 0 của đợt K; T-052, chặng 1). File trận: `src/data/battles/battle-of-lake-trasimene.json` (T-052; khối `terrain` nháp `trasimene-terrain.json` của T-051 đã xoá, file trận thay nó). Cách đặt khối quân trong file trận: mục 12. Lưới độ cao: `public/data/terrain/battle-of-lake-trasimene.bin` và `battle-of-lake-trasimene-far.bin`, dựng bằng `scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene`.
+Cập nhật: 2026-11-20 (T-059, kỵ binh Gaul xông qua velites quân đoàn II ở giai đoạn 3–4: mục 13; T-051, chặng 0 của đợt K; T-052, chặng 1). File trận: `src/data/battles/battle-of-lake-trasimene.json` (T-052; khối `terrain` nháp `trasimene-terrain.json` của T-051 đã xoá, file trận thay nó). Cách đặt khối quân trong file trận: mục 12. Lưới độ cao: `public/data/terrain/battle-of-lake-trasimene.bin` và `battle-of-lake-trasimene-far.bin`, dựng bằng `scripts/battles/build-terrain.mjs --battle battle-of-lake-trasimene`.
 
 Tài liệu này ghi nguồn đã đọc, vị trí đã chọn và lý do, bảng đơn vị và các giai đoạn đề nghị cho chặng 1, cảnh vật kèm mức căn cứ, và những gì hợp đồng (`src/lib/battle.ts`) chưa tả được. Cách trình bày theo `cannae.md`.
 
@@ -382,8 +382,8 @@ Mỗi khối phục kích đánh một hay hai khối La Mã nằm trên một �
 | Libya (2 khối) | hai khối đi đầu | trước trại, nhìn thấy được | cuối giai đoạn 1 |
 | Iberia phía bắc, phía nam | cánh phải đồng minh phần sau; kỵ binh đồng minh | đứng ở phía đông đầu đoàn, nhìn thấy được | cuối giai đoạn 2 |
 | Gaul dưới đồi Tuoro | velites và hastati quân đoàn I | (800, 1 250), chân phía tây đồi Tuoro | cuối giai đoạn 2 |
-| Gaul ở cửa thung lũng Sanguineto | principes và triarii quân đoàn I | (300, 1 050) | cuối giai đoạn 2 |
-| Kỵ binh Gaul | kỵ binh La Mã cùng Flaminius, velites quân đoàn II | (−150, 750) | cuối giai đoạn 2 |
+| Gaul ở cửa thung lũng Sanguineto | principes và triarii quân đoàn I; từ T-059 cả kỵ binh La Mã cùng Flaminius (mục 13) | (300, 1 050) | cuối giai đoạn 2 |
+| Kỵ binh Gaul | kỵ binh La Mã cùng Flaminius, velites quân đoàn II; từ T-059 chỉ velites quân đoàn II, và xông qua (mục 13) | (−150, 750) | cuối giai đoạn 2 |
 | Gaul dưới núi Gualandro (bắc) | hastati và principes quân đoàn II | (−380, 320) | cuối giai đoạn 2 |
 | Gaul dưới núi Gualandro (nam) | triarii quân đoàn II, cánh trái đồng minh phần đầu | (−420, −120) | cuối giai đoạn 2 |
 | Gaul trên lối hẹp | cánh trái đồng minh phần sau | (−430, −560), sườn đông mỏm núi | cuối giai đoạn 2 |
@@ -411,3 +411,103 @@ Kỵ binh Gaul đánh đúng chỗ Flaminius đi (Livy 22.6.3–4: Ducarius là 
 - `node scripts/battles/check-overlap.mjs battle-of-lake-trasimene --min 0.05`: các cặp đánh nhau chạm mép 7% (mặt trận trùng khít); không có chồng lấn nào khác từ 5% trở lên, kể cả giữa các mốc.
 - `node scripts/battles/test-lake-checks.mjs`: 45 trên 45 ca đúng.
 - Xem trong cảnh ở `/battle-lab?battle=battle-of-lake-trasimene` qua cả sáu giai đoạn (cảnh chưa vẽ hồ, sương và quân nấp: chặng 2 của lane 3). Ảnh duyệt ở `E:\World_History_Platform_assets\duyet\T-052\`: `0`–`6-phac-giai-doan-*.jpg` (ảnh phác từng mốc, `build-terrain.mjs --preview --phase n`, có tên địa danh tiếng Việt) và `7`–`16-canh-*.jpg` (ảnh chụp cảnh: qua lối hẹp, toàn cảnh lúc 6:00, phục binh lao xuống, giáp mặt, kỵ binh trong lối hẹp, chỗ Flaminius, phá vây, bị dồn xuống hồ, cuối giai đoạn 5, rút về làng).
+
+## 13. Kỵ binh xông qua (T-059, đợt L)
+
+Từ đợt L, kỵ binh gặp bộ binh có thể phi xuyên qua thay vì dừng lại đấu từng cặp (hành động `overrun`; `docs/ARCHITECTURE.md`, mục "Kỵ binh xông qua"). Ở giai đoạn 2–5 của file trận có ba chỗ kỵ binh đánh giáp lá cà, cả ba ở giai đoạn 3–4. Giai đoạn 2 chỉ có xung phong (`charge`) và đứng yên; giai đoạn 5 chỉ có tan chạy và truy đuổi.
+
+| Kỵ binh | Đấu với (trước T-059) |
+|---|---|
+| Kỵ binh Gaul | Kỵ binh La Mã cùng Flaminius (kỵ binh) và velites quân đoàn II (bộ binh) |
+| Kỵ binh đồng minh cánh phải (`allied-cavalry-right`, phía La Mã) | Lính Iberia phía nam (`iberians-2`, bộ binh) |
+| Kỵ binh Numidia (giai đoạn 4) | Kỵ binh đồng minh cánh trái (kỵ binh) |
+
+### Nguồn đã đọc lại (2026-11-20)
+
+Cùng các bản như mục 1.
+
+| Nguồn | Nói gì về kỵ binh |
+|---|---|
+| Livy 22.6.1–4 (bản Latin; đối chiếu bản Roberts) | Đánh nhau gần ba giờ. Flaminius có những người khoẻ nhất trong quân đi theo; Livy không nói họ đi bộ hay cưỡi ngựa. Ducarius, kỵ sĩ người Insubres, nhận ra mặt chấp chính quan, thúc ngựa **xông qua chỗ quân địch dày đặc nhất** (*per confertissimam hostium turbam*), giết người mang giáp vừa lao ra chắn đường, rồi đâm giáo xuyên người Flaminius. Các triarii giơ khiên che thi thể, không cho hắn lột giáp |
+| Polybius 3.83.4; 3.84.6 | Kỵ binh và người Celt cùng dàn liền một dải dưới các đồi bên trái. Flaminius bị một nhóm người Celt đánh và giết; Polybius không nói họ cưỡi ngựa hay đi bộ |
+| Polybius 3.84.3–4 | Quân La Mã bị đánh cùng lúc từ phía trước, phía sau và hai bên, phần lớn bị giết khi vẫn còn trong đội hình hành quân. Không nêu tên kỵ binh |
+| Livy 22.4.6–7; 22.5 | Quân La Mã không kịp dàn hàng, mỗi người đánh ở chỗ mình đứng. Không nhắc kỵ binh của bên nào trong lúc đánh |
+| Livy 22.3; Polybius 3.82.4 | Kỵ binh La Mã chỉ có trong lời bàn trước trận (dùng kỵ binh chặn quân địch cướp phá) và trong lời can Flaminius coi chừng kỵ binh đông của địch |
+| Polybius 3.84.9–10; Livy 22.6.7 | Kỵ binh Carthage phi xuống nước giết những người chạy ra hồ. Đây là giai đoạn 5, ghi `pursue`, không thuộc phần này |
+
+Tóm lại: chỉ có một chỗ nguồn tả người cưỡi ở giữa đám bộ binh: Ducarius phi qua hàng ngũ La Mã tới chỗ Flaminius (Livy). Không nguồn nào nói kỵ binh La Mã hay kỵ binh đồng minh xông vào bộ binh địch.
+
+### Quyết định
+
+- **Kỵ binh Gaul, giai đoạn 3–4: `fight` → `overrun`** (Livy 22.6.3–4). Lời dẫn giai đoạn 4 đã viết Ducarius "phi qua hàng ngũ La Mã"; không sửa.
+- **Velites quân đoàn II (`velites-2`), giai đoạn 3–4: `fight` → `stand`.** Đối thủ giáp lá cà duy nhất của họ là kỵ binh Gaul. Người chết của khối (1 200 → 840 → 504, không đổi) nay là người ngã dưới vó ngựa.
+- **Kỵ binh đồng minh cánh phải: giữ `fight`.** Không nguồn nào nói kỵ binh La Mã xông vào bộ binh. Họ là bên bị đánh úp: Polybius 3.84.3–4 và Livy 22.5 tả đoàn quân bị đánh khi còn đang đi hàng dọc, chưa kịp dàn trận. Trong file trận, khối này vừa quay tại chỗ từ hàng dọc sang hàng ngang (giai đoạn 2, `stand`) thì lính Iberia đã tới; không có đà và chỗ để xông. Đứng đánh tại chỗ hợp với nguồn hơn. Chế độ xem trước của trang thử (`?overrun=1`) đổi khối này sang `overrun` chỉ vì nó là kỵ binh có bộ binh địch trước mặt.
+- **Kỵ binh Numidia và kỵ binh đồng minh cánh trái: giữ `fight`** (ngựa đấu ngựa).
+
+### Dời hai khối ở mốc 2, 3, 4
+
+Trong file trận cũ, mặt trận kỵ binh Gaul (310 m) chạm kỵ binh La Mã cùng Flaminius trên 150 m và velites quân đoàn II trên 120 m. `overrun` chỉ phi qua bộ binh, nên nếu chỉ đổi hành động:
+
+- người cưỡi ở trước mặt kỵ binh La Mã đứng yên: 126 trên 200 hình ở giai đoạn 3, 120 ở giai đoạn 4 (đo với chế độ xem trước của trang thử);
+- kỵ binh La Mã không còn ai đấu với mình, vì kỵ binh Gaul không còn `fight`; `npm run validate` báo lỗi.
+
+Vì vậy tôi dời hai khối, ở cả ba mốc 2, 3, 4. Mốc 2 là mốc đầu của giai đoạn 3, nên điểm tới của cú xung phong ở giai đoạn 2 cũng đổi theo.
+
+| Khối | Trước | Sau |
+|---|---|---|
+| Kỵ binh Gaul | 310 × 52 m; tâm (604, −581), (631, −594), (658, −607) | 120 × 134 m, cùng diện tích (khoảng 4 m² mỗi người, như mục 12); mép trước trùng mép trước của velites quân đoàn II; tâm (525, −649), (552, −662), (579, −675) |
+| Bộ binh Gaul ở cửa thung lũng Sanguineto (`gauls-2`) | 240 × 28 m; tâm (751, −301), (778, −314), (805, −327) | 430 × 16 m, cùng diện tích; mép trước chạy từ đầu đông bắc của principes quân đoàn I tới đầu tây nam của kỵ binh La Mã; tâm (715, −390), (742, −403), (769, −416) |
+
+- Hai khối vẫn dời 30 m về phía hồ mỗi giai đoạn, cùng với quân La Mã, như mục 12.
+- `gauls-2` nay đánh principes, triarii quân đoàn I và kỵ binh La Mã cùng Flaminius.
+- Mũi tên xung phong của kỵ binh Gaul ở giai đoạn 2 kết thúc sau chỗ đứng mới: điểm cuối (540, −520) thành (447, −611).
+- Mốc 5 (truy đuổi) và mốc 6 giữ nguyên: trong giai đoạn 5 kỵ binh Gaul dàn rộng lại thành 310 × 52 m, còn `gauls-2` thu về 240 × 28 m.
+- Không đổi quân số, thương vong và lời dẫn.
+
+Như vậy quanh Flaminius có cả hai điều nguồn nói tới: bộ binh Gaul đánh nhóm kỵ binh của ông (Polybius: một nhóm người Celt), còn kỵ binh Gaul phi qua đám lính đi bộ ngay bên cạnh (Livy: Ducarius phi qua chỗ quân địch dày nhất). Vị trí của từng khối vẫn là phỏng dựng, như mục 12.
+
+**Không khựng:** kỵ binh Gaul xung phong ở giai đoạn 2. Đường đi lệch hướng mặt ở mốc 2 là 39° (trước khi dời: 35°), dưới ngưỡng 45° của cảnh, nên sang giai đoạn 3 người cưỡi phi tiếp vào velites với tốc độ đang có.
+
+### Kiểm tra
+
+- `npm run validate`: qua, không cảnh báo. Ở mốc 2, 3, 4, 21 trên 21 điểm của mép trước kỵ binh Gaul có velites quân đoàn II ngay phía trước. Kỵ binh La Mã vẫn qua kiểm tra `fight`, nay với `gauls-2`.
+- `check-overlap.mjs battle-of-lake-trasimene --min 0.05`: không thêm chồng lấn nào. Cặp velites quân đoàn II và kỵ binh Gaul (chạm mép 7%, mục 12) không còn trong danh sách: sau khi làm tròn toạ độ, hai mép trước nằm sát nhau mà không chồng lên nhau.
+- `check-facing.mjs`: bớt một dòng. Trong giai đoạn 5, kỵ binh Gaul không còn đi xiên quá ngưỡng; `gauls-2` đi 218 m, lệch 52° (trước: 302 m, 63°).
+- Engine của cảnh chạy bằng Node (`tools/check-data.mjs` trong thư mục ảnh, như ở `cannae.md` mục 19):
+  - Kỵ binh Gaul: 200 trên 200 hình phi vòng ở giai đoạn 3 (3,1 vòng mỗi người), 196 trên 200 ở giai đoạn 4 (4 hình đã ngã); không ai đứng yên. Mọi người cưỡi phi tiếp từ cú xung phong của giai đoạn 2, không khựng. Đoạn thẳng dài nhất 165 m (người cưỡi ở cuối khối sâu 134 m).
+  - Velites quân đoàn II: 18 hình ngã ở giai đoạn 3 và 16 ở giai đoạn 4, tất cả lúc có ngựa trong vòng 4,5 m. Họ bị xô ngã 360 lần, bị chém lúc đang đứng 102 lần, trên 57 trong 60 hình.
+  - Để so: với chế độ xem trước của trang thử trên file cũ, chỉ 74 trên 200 người cưỡi phi vòng ở giai đoạn 3, còn 126 đứng yên.
+- Giáp lá cà (`tools/pairs.mjs`: người đầu hàng dọc có đối thủ trên số người đầu hàng, mỗi 1/4 giai đoạn 3–4). Kỵ binh La Mã 15/15, 15/15, 15/15, 15/15, 21/21, 19/19, 17/17, 15/15, như trước; nay đối thủ là bộ binh Gaul. Principes và triarii quân đoàn I như trước. `gauls-2` 67/80 tới 62/77 (trước: 35/40 tới 35/39): khoảng 80 m trong 430 m mặt trận là hai khoảng trống giữa ba khối La Mã.
+- Xem trong cảnh (`/battle-lab?battle=battle-of-lake-trasimene`, dev server): người cưỡi phi vòng qua velites, ra phía bờ hồ rồi quay lại; velites ngã khi ngựa tới, người không đến lượt chết thì gượng dậy; không khối nào đánh vào khoảng không; không người cưỡi nào đứng yên. Sương mù của giai đoạn 3–4 làm ảnh chụp xa bị mờ.
+- Ảnh trước (A) và sau (B) ở `E:\World_History_Platform_assets\duyet\T-059\`, chụp như ở `cannae.md` mục 19:
+
+| Ảnh | Thời điểm | Góc |
+|---|---|---|
+| `05-trasimene-dau-giai-doan-3` | Đầu giai đoạn 3 (6:18) | Velites quân đoàn II, từ phía bờ hồ (đông nam) |
+| `06-trasimene-giua-giai-doan-3` | 6:51 | Như trên |
+| `07-trasimene-giua-giai-doan-4` | 8:22 | Như trên |
+| `08-trasimene-can-canh` | 8:24 | Cận cảnh |
+| `09-trasimene-toan-canh` | 8:08 | Từ trên cao: kỵ binh Gaul, velites, kỵ binh La Mã và `gauls-2` |
+| `10-trasimene-dang-phat-00` tới `-05` | Đang phát, từ ngay trước mốc 2 | Kỵ binh đi tiếp từ cú xung phong vào velites |
+
+- **Khung hình/giây**: đo như ở `cannae.md` mục 19, góc nhìn rộng 400 m từ phía bờ hồ; phát 5 giây từ t = 2,05 (đầu giai đoạn 3) và từ t = 3,05 (đầu giai đoạn 4). Hai bản chạy xen kẽ trên cùng máy. Blender của một phiên khác chạy từng đợt; cột Blender ghi nó có đang chạy lúc lượt đo kết thúc hay không.
+
+| Lượt | Bản | Blender | Giai đoạn 3: khung/giây (p99) | Giai đoạn 4 |
+|---|---|---|---|---|
+| 1 | sau | có | 71,4 (19,0 ms) | 74,3 (17,1 ms) |
+| 1 | trước | không | 83,0 (16,1 ms) | 85,4 (15,0 ms) |
+| 2 | sau | không | 80,5 (15,5 ms) | 81,4 (15,9 ms) |
+| 2 | trước | có | 73,0 (17,5 ms) | 74,9 (17,6 ms) |
+| 3 | sau | có | 46,1 (33,2 ms) | 66,2 (20,8 ms) |
+| 3 | trước | không | 80,0 (16,6 ms) | 84,3 (14,6 ms) |
+| 4 | sau | không | 74,8 (19,3 ms) | 81,5 (15,6 ms) |
+| 4 | trước | có | 74,2 (17,1 ms) | 75,6 (17,2 ms) |
+
+  - Khi không có Blender, bản sau chậm hơn khoảng 3–4 khung/giây (khoảng 4%): 74,8–80,5 và 81,4–81,5, so với 80,0–83,0 và 84,3–85,4. p99 cao hơn 0–3 ms. Mọi lượt không có Blender đều trên 74 khung/giây.
+  - Khi có Blender: lượt 1 của bản sau ngang bản trước (71–74 so với 73–76); lượt 3 tụt còn 46 ở giai đoạn 3.
+
+### Còn lại
+
+- Velites quân đoàn II bị xô ngã liên tục: 200 hình kỵ binh phi qua một dải bộ binh 120 × 16 m, nên trung bình mỗi hình lính bị xô hay bị chém 7–8 lần trong 50 giây phát (mỗi lần nằm tới 4 giây, rồi được yên 5 giây). Muốn thưa hơn thì phải đổi quân số hay chỗ đứng của các khối; tôi giữ nguyên.
+- Cú xung phong của kỵ binh Gaul ở giai đoạn 2 nhanh khoảng 78 m mỗi giây phát (T-052: 76), quá trần phi của ngựa (khoảng 57 m/s, `docs/ARCHITECTURE.md`, mục "Kỵ binh"). Người cưỡi mang tốc độ đó vào giai đoạn 3, rồi chậm dần về tốc độ phi trong 1,2 giây, nên móng ngựa trượt trong giây đầu. Có từ trước T-059 (cả cú xung phong đã như vậy). Muốn bớt thì phải kéo dài giai đoạn 2 hay dời chỗ nấp, ngoài phạm vi task này.
+- Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
