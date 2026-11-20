@@ -62,6 +62,47 @@ Commit sau mỗi phần việc lớn.
   - `s-overrun-play.mjs`: chụp lúc đang phát. Tham số như trên, nhưng tham số cuối là số mili giây giữa hai ảnh.
 - **Khung hình/giây:** đo ở các giai đoạn đã đổi, trước và sau, xen kẽ hai bản trên cùng máy. Ghi máy có đang chạy Blender không.
 
+### 5. Thời lượng các giai đoạn đi quá nhanh, và script của Cannae (thêm sau review, 2026-11-20)
+
+Phiên chính đã review phần 1–4: đạt. Đã kiểm lại:
+- `validate` qua.
+- **Cannae:** cả 195 hình triarii chết ở giai đoạn 6 đều ngã khi có ngựa sát bên.
+- **Hồ Trasimene:** 34 trên 34 hình velites-2 chết ở giai đoạn 3–4 cũng vậy. Không người cưỡi nào đang sống bị giật vị trí.
+- **Giáp lá cà ở Cannae:** 91% người ngã có đòn chạm đúng lúc.
+
+Làm tiếp mục này trên cùng nhánh, rồi T-059 gộp một lượt.
+
+**Trước khi làm:**
+- Worktree của bạn còn hai file trận chưa commit. Đó là bản "trước khi sửa" bạn dựng tạm để đo khung hình/giây (triarii và hai khối kỵ binh ở Cannae về lại `fight`, v.v.). Bản đã commit mới là đúng: bỏ hai file đó bằng `git restore src/data/battles/`.
+- Gộp `main` vào nhánh (`git merge main`): có mục này.
+
+**a) Thời lượng.** Người dùng chọn sửa chân trượt khi chạy (việc B2 trong `docs/PLAN.md`, mục "Đợt L") bằng hai cách cùng lúc:
+- Phiên chính cho clip chạy của bộ binh phát tới 2,2 lần tốc độ của nó (nhánh `batch-l/gait-cap`, gộp cùng T-059).
+- Kéo dài các giai đoạn mà các khối đi quá nhanh: sửa `playSeconds` như sau.
+
+| Trận | Giai đoạn | `playSeconds` cũ | mới | Khối nhanh nhất lúc này |
+|---|---|---|---|---|
+| Cannae | 1 | 25 | 45 | quân Carthage dàn trận, khoảng 70 m/giây |
+| Cannae | 6 | 30 | 39 | `camp-force`, khoảng 77 m/giây |
+| Hồ Trasimene | 1 | 25 | 34 | đoàn quân hành quân, khoảng 52 m/giây |
+| Hồ Trasimene | 2 | 20 | 37 | quân phục kích xung phong, 60–76 m/giây |
+| Hồ Trasimene | 5 | 20 | 34 | quân La Mã tháo chạy, tới 87 m/giây |
+| Hồ Trasimene | 6 | 15 | 26 | toán đầu rút về làng, khoảng 67 m/giây |
+
+- Không đổi `endHour`, vị trí, hành động hay quân số. Sửa cột thời lượng trong bảng các giai đoạn của `cannae.md` và `trasimene.md`.
+- **Số đo của phiên chính:** `E:\World_History_Platform_assets\main-tools\gait\slide.mjs`. Script mô phỏng đúng cách cảnh chọn dáng đi; cách chạy ghi ở đầu file; sải chân đo từ cảnh nằm ở `main-tools\gait-cannae.json` và `gait-trasimene.json`.
+  - Với tuỳ chọn `run=2.2 runHorse=1.5` và các thời lượng mới, chân trượt hơn 5% còn khoảng 3% thời gian di chuyển ở Cannae, 1% ở Trasimene (trước khi sửa: 20% và 29%).
+  - Chạy lại script trên dữ liệu của bạn và ghi số vào "Kết quả". Không cần tuỳ chọn `slow=`, vì thời lượng đã nằm trong file.
+- Ở Trasimene giai đoạn 3, kỵ binh Gaul lao vào velites với tốc độ xung phong của giai đoạn 2 (khoảng 80 m/giây trong giây đầu, nhanh hơn nhịp phi của ngựa). Giai đoạn 2 dài ra thì tốc độ này còn khoảng 40 m/giây.
+
+**b) `scripts/battles/cannae-lines.mjs`** (ngoại lệ phạm vi cho mục này): sửa bảng `STATES` cho giai đoạn 6 khớp với file trận (triarii `stand`, kỵ binh Iberia và Gaul `overrun`). Chạy `node scripts/battles/cannae-lines.mjs` (không `--write`) phải báo 0 dòng sẽ đổi.
+
+**c) Tuỳ chọn: `camp-force` ở Cannae.** Ở giai đoạn 2, khối này đi khoảng 2,2 km trong 15 giây (tới 145 m/giây), nên phương án nào cũng còn trượt chân. Xét theo nguồn: nó có thể xuất phát sớm hơn (từ giai đoạn 1), hay đi đường ngắn hơn không? Được thì sửa, cả trong `cannae-lines.mjs` nếu script đặt khối này; không thì ghi lý do.
+
+**d) Khung hình/giây:** đo lại Cannae giai đoạn 6 và Trasimene giai đoạn 3, trước và sau, khi máy không chạy Blender. Lane 1 đang dựng mô hình bằng Blender (T-057 phần 2). Nếu máy chưa rảnh thì ghi lại; phiên chính sẽ đo khi gộp.
+
+**e)** `npm run validate`, `npm run lint`, `npm run build` qua. Điền mục 5 vào "Kết quả", commit, rồi báo.
+
 ## Ràng buộc
 
 - Chỉ sửa file trong phạm vi: không sửa cảnh, hợp đồng hay chuỗi giao diện.
