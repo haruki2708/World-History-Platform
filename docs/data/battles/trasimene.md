@@ -217,14 +217,14 @@ Bảng dưới là đề nghị của T-051, người dùng đã duyệt. **T-05
 | Giai đoạn | Bắt đầu – kết thúc | Phát (giây) | Diễn ra | Căn cứ |
 |---|---|---|---|---|
 | Lúc bắt đầu (`initial`) | 4:30 | | Đoàn quân La Mã đang hành quân dọc hồ: đầu đoàn đã qua lối hẹp và ở giữa đồng bằng, cuối đoàn ở ngoài cửa tây lối hẹp (T-051 đề nghị: đầu đoàn vừa ra khỏi trại). Quân Hannibal đã ở chỗ nấp | Polybius 3.83.5: dàn quân phục kích trong đêm. Polybius 3.83.7; Livy 22.4.4: qua lối hẹp khi trời còn chưa sáng rõ |
-| 1. Vào lối hẹp | 4:30 – 6:00 | 25 | Đoàn quân đi dọc hồ, qua Malpasso, dàn rộng ra ở đồng bằng; đầu đoàn tới chân đồi Tuoro, chạm toán Libya và Iberia ở cuối giai đoạn. Phần lớn đoàn quân đã vào trong. Phục binh đứng yên | Polybius 3.84.1; Livy 22.4.4. Đầu đoàn đi khoảng 4,5 km trong 1,5 giờ |
-| 2. Hiệu lệnh | 6:00 – 6:15 | 20 (T-051: 12) | Hannibal ra hiệu; mọi toán phục binh lao xuống cùng lúc và tới sát đoàn quân ở cuối giai đoạn; kỵ binh bịt lối hẹp sau lưng. Các khối La Mã quay về phía tiếng hò (đổi từ hàng dọc sang hàng ngang). Đầu đoàn và toán Libya, Iberia đã chạm nhau từ đầu giai đoạn nên đánh ngay (`fight`) | Polybius 3.84.1–3; Livy 22.4.6–7, 22.5.1 |
+| 1. Vào lối hẹp | 4:30 – 6:00 | 34 (T-052: 25) | Đoàn quân đi dọc hồ, qua Malpasso, dàn rộng ra ở đồng bằng; đầu đoàn tới chân đồi Tuoro, chạm toán Libya và Iberia ở cuối giai đoạn. Phần lớn đoàn quân đã vào trong. Phục binh đứng yên | Polybius 3.84.1; Livy 22.4.4. Đầu đoàn đi khoảng 4,5 km trong 1,5 giờ |
+| 2. Hiệu lệnh | 6:00 – 6:15 | 37 (T-051: 12; T-052: 20) | Hannibal ra hiệu; mọi toán phục binh lao xuống cùng lúc và tới sát đoàn quân ở cuối giai đoạn; kỵ binh bịt lối hẹp sau lưng. Các khối La Mã quay về phía tiếng hò (đổi từ hàng dọc sang hàng ngang). Đầu đoàn và toán Libya, Iberia đã chạm nhau từ đầu giai đoạn nên đánh ngay (`fight`) | Polybius 3.84.1–3; Livy 22.4.6–7, 22.5.1 |
 | 3. Đánh trong sương | 6:15 – 7:45 | 25 | Đánh khắp nơi (`fight`); quân La Mã bị đánh từ trước, sau và hai bên, phần lớn chưa kịp dàn trận | Polybius 3.84.3–5; Livy 22.5.2–7 |
 | 4. Flaminius tử trận | 7:45 – 9:00 | 25 | Vẫn đánh (`fight`). Toán 6 000 người ở đầu mở được đường, đi lên đồi (`advance`). Cuối giai đoạn Flaminius bị kỵ sĩ Ducarius giết | Livy 22.6.1–4 (gần ba giờ, tính từ 6:00); Polybius 3.84.6, 3.84.11–12 |
-| 5. Bị dồn xuống hồ | 9:00 – 9:45 | 20 | Quân La Mã tan chạy (`rout`); nhiều khối bị dồn xuống hồ, đứng trong nước; kỵ binh đuổi xuống nước (`pursue`) | Polybius 3.84.8–10; Livy 22.6.5–7 |
-| 6. Sương tan | 9:45 – 10:30 | 15 | Toán 6 000 người trên đỉnh đồi thấy đạo quân đã thua, rút về làng Etruria; quân Hannibal làm chủ chiến trường | Polybius 3.84.12–13; Livy 22.6.8–10 |
+| 5. Bị dồn xuống hồ | 9:00 – 9:45 | 34 (T-052: 20) | Quân La Mã tan chạy (`rout`); nhiều khối bị dồn xuống hồ, đứng trong nước; kỵ binh đuổi xuống nước (`pursue`) | Polybius 3.84.8–10; Livy 22.6.5–7 |
+| 6. Sương tan | 9:45 – 10:30 | 26 (T-052: 15) | Toán 6 000 người trên đỉnh đồi thấy đạo quân đã thua, rút về làng Etruria; quân Hannibal làm chủ chiến trường | Polybius 3.84.12–13; Livy 22.6.8–10 |
 
-Tổng 130 giây phát (T-051: 122). Không vẽ thành chuyển động riêng: động đất (Livy 22.5.8, lời dẫn nói), Maharbal vây làng và toán 6 000 người đầu hàng hôm sau (Polybius 3.84.14, Livy 22.6.11, lời dẫn nói).
+Tổng 181 giây phát (T-051: 122; T-052: 130). Từ T-059 (mục 13, "Thời lượng"), giai đoạn 1, 2, 5, 6 phát lâu hơn để các khối đi nhanh nhất không trượt chân; mốc giờ không đổi. Không vẽ thành chuyển động riêng: động đất (Livy 22.5.8, lời dẫn nói), Maharbal vây làng và toán 6 000 người đầu hàng hôm sau (Polybius 3.84.14, Livy 22.6.11, lời dẫn nói).
 
 **Quân số qua các giai đoạn:** 15 000 người chết chia cho các khối ngoài toán đi đầu (19 000 người), dồn vào giai đoạn 3–5; toán đi đầu mất vài trăm khi phá vây. Phía Hannibal mất 1 500–2 500, phần lớn là bộ binh Gaul. Cuối trận còn khoảng 4 000 người La Mã ngoài toán đi đầu, tượng trưng cho những người bị bắt hay chạy thoát; như ở Cannae, số "còn lại" chỉ để cảnh biết vẽ bao nhiêu hình lính.
 
@@ -398,7 +398,7 @@ Kỵ binh Gaul đánh đúng chỗ Flaminius đi (Livy 22.6.3–4: Ducarius là 
 - **Giai đoạn 4:** hai khối đi đầu chuyển sang hàng dọc và phá vây về phía đông bắc, đi sát góc đông nam trại của Hannibal (khối gần nhất cách mép trại 3 m, đo cả lúc đang đổi đội hình), tới thung lũng sau đồi Tuoro; lính Libya dạt sang hai bên. Hết giai đoạn, kỵ binh La Mã cùng Flaminius còn 42% người.
 - **Giai đoạn 5:** mỗi khối La Mã quay lưng về phía địch ngay tại chỗ (quay đầu, không xoay cả khối) và chạy thẳng ra hồ: phần ven con đường theo hướng 157°, phần trên đường K–H chạy về phía nam và toả ra dọc bờ theo thứ tự đang đứng; dừng khi tâm khối ở 45 m ngoài bờ (điểm xa bờ nhất của một khối ở một mốc là 95 m, dưới giới hạn 150 m). Quân Gaul ở phần gần bờ theo sát sau lưng tới mép nước; ở phần xa bờ chỉ theo 40% quãng đường (Iberia 25%), để hai bên không chạy song song đè lên nhau. Toán đầu lên chỗ cao quanh (2 650, 2 250), 420–440 m trên mặt biển, 160–180 m trên mặt hồ.
 - **Giai đoạn 6:** toán đầu rút về làng Etruria, dừng ngay dưới làng; mọi khối khác đứng yên.
-- **Tốc độ trên sân** (mét mỗi giây phát): giai đoạn 1 khoảng 50; quân phục kích xung phong ở giai đoạn 2 từ 47 tới 76 (kỵ binh Gaul); tan chạy ở giai đoạn 5 tới 87; toán đầu lên chỗ cao ở giai đoạn 5 và rút về làng ở giai đoạn 6, 60–67. Cannae có 30–70. Giai đoạn 2 vì thế dài 20 giây thay vì 12: với 12 giây, quân Gaul phải chạy 110–130 m/s.
+- **Tốc độ trên sân** (mét mỗi giây phát): giai đoạn 1 khoảng 50; quân phục kích xung phong ở giai đoạn 2 từ 47 tới 76 (kỵ binh Gaul); tan chạy ở giai đoạn 5 tới 87; toán đầu lên chỗ cao ở giai đoạn 5 và rút về làng ở giai đoạn 6, 60–67. Cannae có 30–70. Giai đoạn 2 vì thế dài 20 giây thay vì 12: với 12 giây, quân Gaul phải chạy 110–130 m/s. Từ T-059 (mục 13, "Thời lượng") bốn giai đoạn này dài hơn, nên các tốc độ trên còn khoảng 37 (giai đoạn 1), 25–41 (giai đoạn 2), 51 (giai đoạn 5) và 35–39 (giai đoạn 6).
 
 ### Quân số
 
@@ -511,3 +511,27 @@ Như vậy quanh Flaminius có cả hai điều nguồn nói tới: bộ binh Ga
 - Velites quân đoàn II bị xô ngã liên tục: 200 hình kỵ binh phi qua một dải bộ binh 120 × 16 m, nên trung bình mỗi hình lính bị xô hay bị chém 7–8 lần trong 50 giây phát (mỗi lần nằm tới 4 giây, rồi được yên 5 giây). Muốn thưa hơn thì phải đổi quân số hay chỗ đứng của các khối; tôi giữ nguyên.
 - Cú xung phong của kỵ binh Gaul ở giai đoạn 2 nhanh khoảng 78 m mỗi giây phát (T-052: 76), quá trần phi của ngựa (khoảng 57 m/s, `docs/ARCHITECTURE.md`, mục "Kỵ binh"). Người cưỡi mang tốc độ đó vào giai đoạn 3, rồi chậm dần về tốc độ phi trong 1,2 giây, nên móng ngựa trượt trong giây đầu. Có từ trước T-059 (cả cú xung phong đã như vậy). Muốn bớt thì phải kéo dài giai đoạn 2 hay dời chỗ nấp, ngoài phạm vi task này.
 - Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
+
+### Thời lượng (sau review, 2026-11-20)
+
+Như ở `cannae.md` mục 19 ("Thời lượng"): người dùng chọn sửa chân trượt bằng cách cho clip chạy của bộ binh phát tới 2,2 lần tốc độ của nó (phiên chính), và cho các giai đoạn đi quá nhanh phát lâu hơn. Không đổi `endHour`, vị trí, hành động hay quân số.
+
+| Giai đoạn | `playSeconds` cũ | mới | Khối nhanh nhất | Tốc độ trên sân, cũ → mới (m mỗi giây phát) |
+|---|---|---|---|---|
+| 1. Vào lối hẹp | 25 | 34 | Đoàn quân hành quân | khoảng 50 → 37 |
+| 2. Hiệu lệnh | 20 | 37 | Quân phục kích xung phong (`gauls-2` 75, kỵ binh Gaul 78) | 47–78 → 25–42 |
+| 5. Bị dồn xuống hồ | 20 | 34 | Quân La Mã tháo chạy | tới 87 → 51 |
+| 6. Sương tan | 15 | 26 | Toán đầu rút về làng | khoảng 67 → 39 |
+
+`gauls-2` xung phong ở giai đoạn 2 nhanh hơn trước một chút (75 thay vì 71 m/s), vì nay nó tới chỗ dài hơn (phần "Dời hai khối" ở trên).
+
+Đo bằng `main-tools/gait/slide.mjs` của phiên chính (sải chân trong `main-tools/gait-trasimene.json`). Con số là phần thời gian di chuyển mà chân trượt hơn 5%:
+
+| | Trần cũ (clip chạy tới 1,5 lần) | `run=2.2 runHorse=1.5` |
+|---|---|---|
+| Thời lượng cũ | 29,1% | 19,8% |
+| Thời lượng mới | 24,7% | 1,0% |
+
+Với trần mới và thời lượng mới, chỗ còn trượt nhiều nhất là bộ binh đồng minh cánh phải phần sau tháo chạy ở giai đoạn 5 (51 m/s, trượt 25%).
+
+Kỵ binh Gaul nay lao vào velites ở đầu giai đoạn 3 với tốc độ khoảng 42 m mỗi giây phát (trước: 78), dưới trần phi của ngựa, nên hết trượt móng trong giây đầu (mục "Còn lại" ở trên). Mọi thứ khác của phần xông qua như cũ (Node): 200 trên 200 hình phi vòng ở giai đoạn 3, 196 trên 200 ở giai đoạn 4; 34 trên 34 hình velites quân đoàn II chết ở giai đoạn 3–4 ngã lúc có ngựa trong vòng 4,5 m.

@@ -480,7 +480,7 @@
         "vi": "Trời vừa hửng sáng, đoàn quân La Mã đã hành quân dọc hồ, không cho trinh sát đi trước. Đầu đoàn đã qua lối hẹp dưới núi Gualandro và đang băng qua đồng bằng về phía đồi Tuoro, nơi trại của Hannibal cùng lính Libya và Iberia đứng lộ rõ. Sương mù dày phủ mặt hồ và đồng bằng, nên không ai thấy quân Gaul, kỵ binh và lính nhẹ đang chờ trong các nếp đồi xung quanh. Đến sáu giờ, đầu đoàn tới chân đồi, còn cuối đoàn vẫn ở trong lối hẹp."
       },
       "endHour": 6,
-      "playSeconds": 25,
+      "playSeconds": 34,
       "units": [
         {
           "unit": "extraordinarii",
@@ -693,7 +693,7 @@
         "vi": "Hannibal ra hiệu, và mọi toán phục binh cùng lúc lao xuống từ các ngọn đồi. Quân Gaul và kỵ binh Gaul đánh vào sườn trái đoàn quân, lính Iberia đánh vào phần đầu, còn lính nhẹ từ sau đồi Tuoro tràn ra chặn đường về phía đông; sau lưng đoàn quân, kỵ binh Numidia và Iberia phi xuống bịt lối hẹp. Quân La Mã nghe tiếng hò hét trước khi kịp thấy ai, và mỗi khối quay về phía tiếng động ngay tại chỗ, vẫn trong đội hình hành quân. Ở đầu đoàn, toán tiền quân đã giáp lá cà với lính Libya."
       },
       "endHour": 6.25,
-      "playSeconds": 20,
+      "playSeconds": 37,
       "units": [
         {
           "unit": "extraordinarii",
@@ -1280,7 +1280,7 @@
         "vi": "Quân La Mã tan vỡ và bỏ chạy, nhiều người chạy về phía duy nhất còn trống là mặt hồ. Họ lội qua chỗ nước nông của bờ đầm, tới khi nước ngập tới cổ, tới vai; có người cố bơi khi còn mặc giáp và chết đuối. Kỵ binh phi xuống nước đuổi theo, và những người giơ tay xin tha vẫn bị chém. Trong lối hẹp, toán đi cuối bị dồn xuống hồ. Trên đồi, sáu nghìn người của toán đầu dừng lại trên chỗ đất cao, qua màn sương vẫn chưa thấy gì."
       },
       "endHour": 9.75,
-      "playSeconds": 20,
+      "playSeconds": 34,
       "units": [
         {
           "unit": "extraordinarii",
@@ -1477,7 +1477,7 @@
         "vi": "Gần mười giờ, nắng làm tan sương. Từ trên cao, sáu nghìn người thấy đạo quân đã bị tiêu diệt bên dưới và rút về một làng Etruria gần đó, còn Hannibal làm chủ chiến trường: khoảng mười lăm nghìn người La Mã nằm lại, và hàng nghìn người khác bị bắt. Hôm sau quân của Maharbal vây làng, và sáu nghìn người nộp vũ khí với lời hứa được tha mạng. Hannibal đáp rằng Maharbal không có quyền hứa như vậy: theo Polybius, ông giữ người La Mã làm tù binh và cho các đồng minh người Ý về nhà, còn theo Livy thì tất cả đều bị xiềng."
       },
       "endHour": 10.5,
-      "playSeconds": 15,
+      "playSeconds": 26,
       "units": [
         {
           "unit": "extraordinarii",

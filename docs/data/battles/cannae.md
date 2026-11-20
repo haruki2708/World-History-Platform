@@ -125,12 +125,14 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 | Giai đoạn | Kết thúc | Phát (giây) | Căn cứ |
 |---|---|---|---|
 | Lúc bắt đầu (`initial`) | 5:30 | | Mỗi đạo quân là một khối đang khép hàng, lùi về phía nơi nó đến: quân La Mã lùi 760 m về phía bắc (hai trại và chỗ lội), quân Hannibal lùi 1,7 km về phía tây (trại và hai chỗ vượt sông của ông). Xem mục 9 |
-| 1. Dàn trận | 8:00 | 25 | Polybius 3.113: thứ tự hai bên như mục 5. Hai chiến tuyến cách nhau khoảng 450 m, lính nhẹ đứng trước. Lưỡi liềm lồi khoảng 90 m về phía quân La Mã |
+| 1. Dàn trận | 8:00 | 45 (trước T-059: 25) | Polybius 3.113: thứ tự hai bên như mục 5. Hai chiến tuyến cách nhau khoảng 450 m, lính nhẹ đứng trước. Lưỡi liềm lồi khoảng 90 m về phía quân La Mã |
 | 2. Lính nhẹ đụng độ | 9:00 | 15 | Polybius 3.115: lính nhẹ giao chiến trước, chưa bên nào hơn. Livy 22.49: Paullus trúng đá ném ngay đầu trận. Livy 22.46: gió Volturnus thổi bụi vào mặt quân La Mã. Polybius 3.117: lực lượng ở trại lớn đánh trại Hannibal khi trận bắt đầu |
 | 3. Kỵ binh bên sông | 9:45 | 20 | Polybius 3.115 và Livy 22.47: chỗ hẹp, không xoay trở được, kỵ binh xuống ngựa đánh bộ; kỵ binh La Mã bị đánh tan và bị đuổi dọc bờ sông. Lính nhẹ lui về, bộ binh nặng tiến lên (Polybius 3.115). Kỵ binh Numidia cầm chân kỵ binh đồng minh (Polybius 3.116) |
 | 4. Lưỡi liềm bị đẩy lõm | 11:00 | 25 | Polybius 3.115 và Livy 22.47: lính Gaul và Iberia trụ một lúc rồi lùi; lưỡi liềm lõm vào; quân La Mã dồn từ hai cánh vào giữa. Mặt trận La Mã được đặt cách mép lưỡi liềm 6 m, xoay và phình theo đúng chỗ lõm (mục 9) |
 | 5. Cái bẫy sập | 12:30 | 25 | Polybius 3.115: lính châu Phi hai bên quay vào đánh sườn. Polybius 3.116: Hasdrubal vòng sang giúp kỵ binh Numidia, kỵ binh đồng minh bỏ chạy, ông để Numidia đuổi theo |
-| 6. Vòng vây khép lại | 17:00 | 30 | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
+| 6. Vòng vây khép lại | 17:00 | 39 (trước T-059: 30) | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
+
+**Từ T-059 (mục 19, "Thời lượng")** giai đoạn 1 và 6 phát lâu hơn, để các khối đi nhanh nhất không trượt chân; mốc giờ không đổi.
 
 **Từ T-032 (mục 11)** các mốc giờ và căn cứ trên không đổi, nhưng một số chuyển động được vẽ sớm hơn một giai đoạn, để hai bên đã chạm nhau ở đầu giai đoạn chúng đánh nhau:
 
@@ -836,3 +838,25 @@ Không đổi: vị trí, quân số, thương vong, mũi tên và lời dẫn. 
 - `scripts/battles/cannae-lines.mjs` vẫn ghi `fight` cho ba khối này ở mốc 6. Chạy lại script với `--write` sẽ xoá thay đổi này. Đề nghị sửa bảng `STATES` của script (ngoài phạm vi T-059, ghi ở file task).
 - Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
 - Người cưỡi đi sâu tới 90 m (giới hạn của cảnh), qua hàng triarii (sâu 40 m) vào cả đám lính nhẹ trong lòng hộp. Nguồn không nói kỵ binh vào sâu tới đâu.
+
+### Thời lượng (sau review, 2026-11-20)
+
+Người dùng chọn sửa chân trượt khi chạy (việc B2 của đợt L, `docs/PLAN.md`) bằng hai cách cùng lúc: clip chạy của bộ binh được phát tới 2,2 lần tốc độ của nó (nhánh `batch-l/gait-cap` của phiên chính), và các giai đoạn mà các khối đi quá nhanh được phát lâu hơn. Không đổi `endHour`, vị trí, hành động hay quân số.
+
+| Giai đoạn | `playSeconds` cũ | mới | Khối nhanh nhất | Tốc độ trên sân, cũ → mới (m mỗi giây phát) |
+|---|---|---|---|---|
+| 1. Dàn trận | 25 | 45 | Quân Carthage dàn trận | khoảng 70 → 39 |
+| 6. Vòng vây khép lại | 30 | 39 | Lực lượng ở trại lớn (`camp-force`) rút về trại | 77,5 → 59,6 |
+
+Đo bằng `main-tools/gait/slide.mjs` của phiên chính (mô phỏng cách cảnh chọn dáng đi, sải chân đo từ cảnh trong `main-tools/gait-cannae.json`). Con số là phần thời gian di chuyển mà chân trượt hơn 5%:
+
+| | Trần cũ (clip chạy tới 1,5 lần) | `run=2.2 runHorse=1.5` |
+|---|---|---|
+| Thời lượng cũ | 20,2% | 11,0% |
+| Thời lượng mới | 12,3% | 2,6% |
+
+Với trần mới và thời lượng mới, chỗ còn trượt nhiều là `camp-force`: giai đoạn 2 (tới 145 m mỗi giây phát, trượt 73%) và giai đoạn 6 (59,6 m/s, trượt 35%).
+
+Kỵ binh xông qua ở giai đoạn 6 vẫn như phần trên, chỉ nhiều vòng hơn (Node, `tools/check-data.mjs`):
+- Kỵ binh Iberia 99 trên 100 hình phi vòng, 4,2 vòng mỗi người; kỵ binh Gaul 197 trên 200, 4,3 vòng. Không ai đứng yên, không ai nhảy chỗ (bước lớn nhất 32 m/s).
+- Cả 195 hình triarii chết ở giai đoạn 6 vẫn ngã lúc có ngựa trong vòng 4,5 m. Triarii bị xô ngã 555 lần, bị chém lúc đang đứng 229 lần, trên 180 trong 210 hình.
