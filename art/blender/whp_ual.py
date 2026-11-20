@@ -252,6 +252,92 @@ class Pack:
     def head(self, matrices, name):
         return matrices[self.index[name]][:3, 3]
 
+    # -- poses as local transforms (for clips pieced together from several) --
+
+    def local(self, name, frame):
+        """Local (translation, rotation, scale) of every bone at a frame of
+        a clip, as `sample` takes them (frames past either end hold it)."""
+        clip = self.clip(name)
+        return [tuple(trs) for trs in self._local(clip, min(max(frame / FPS, 0.0), clip.duration))]
+
+    def world(self, local):
+        """World matrices (bones, 4, 4) of a pose given as local transforms."""
+        return self._world(local)
+
+    def mix(self, a, b, weight):
+        """Local transforms going from pose a (0) to pose b (1) by
+        weight(bone name), or by `weight` if it is a number; as `blend`
+        does, quaternions taking the short way and normalised."""
+        local = []
+        for i, (ta, tb) in enumerate(zip(a, b)):
+            w = weight(self.bone_names[i]) if callable(weight) else weight
+            trs = []
+            for slot in range(3):
+                x, y = ta[slot], tb[slot]
+                if slot == 1:
+                    if np.dot(x, y) < 0.0:
+                        y = -y
+                    v = x + (y - x) * w
+                    trs.append(v / np.linalg.norm(v))
+                else:
+                    trs.append(x + (y - x) * w)
+            local.append(tuple(trs))
+        return local
+
+    def mirrored(self, local):
+        """The same pose seen in a mirror: left and right change places
+        (the figure's X is turned round), each bone taking the turn from
+        rest of its counterpart on the other side."""
+        world = self._world(local)
+        flip = np.diag((-1.0, 1.0, 1.0))
+        out = np.empty_like(world)
+        for i, name in enumerate(self.bone_names):
+            j = self.index[mirror_name(name)]
+            turn = _orthonormal(world[j][:3, :3]) @ _orthonormal(self.rest[j][:3, :3]).T
+            out[i] = np.eye(4)
+            out[i][:3, :3] = flip @ turn @ flip @ self.rest[i][:3, :3]
+            out[i][:3, 3] = flip @ world[j][:3, 3]
+        mirrored = []
+        for i in range(len(self.bone_names)):
+            parent = self.bone_parent[i]
+            m = np.linalg.inv(out[parent] if parent is not None else self.above) @ out[i]
+            scale = np.linalg.norm(m[:3, :3], axis=0)
+            mirrored.append((m[:3, 3].copy(), matrix_to_quat(m[:3, :3] / scale), scale))
+        return mirrored
+
+
+def mirror_name(name):
+    """The bone on the other side ("hand_l" <-> "hand_r"), or the bone itself."""
+    for a, b in (("_l", "_r"), ("_r", "_l")):
+        if name.endswith(a):
+            return name[:-len(a)] + b
+    return name
+
+
+def _orthonormal(m):
+    u, _s, vt = np.linalg.svd(m)
+    return u @ vt
+
+
+def matrix_to_quat(m):
+    """glTF quaternion (x, y, z, w) of a 3x3 rotation."""
+    m = np.asarray(m, dtype=np.float64)
+    trace = m[0, 0] + m[1, 1] + m[2, 2]
+    if trace > 0.0:
+        s = 2.0 * np.sqrt(trace + 1.0)
+        q = ((m[2, 1] - m[1, 2]) / s, (m[0, 2] - m[2, 0]) / s, (m[1, 0] - m[0, 1]) / s, 0.25 * s)
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[0, 0] - m[1, 1] - m[2, 2])
+        q = (0.25 * s, (m[0, 1] + m[1, 0]) / s, (m[0, 2] + m[2, 0]) / s, (m[2, 1] - m[1, 2]) / s)
+    elif m[1, 1] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[1, 1] - m[0, 0] - m[2, 2])
+        q = ((m[0, 1] + m[1, 0]) / s, 0.25 * s, (m[1, 2] + m[2, 1]) / s, (m[0, 2] - m[2, 0]) / s)
+    else:
+        s = 2.0 * np.sqrt(1.0 + m[2, 2] - m[0, 0] - m[1, 1])
+        q = ((m[0, 2] + m[2, 0]) / s, (m[1, 2] + m[2, 1]) / s, 0.25 * s, (m[1, 0] - m[0, 1]) / s)
+    q = np.array(q)
+    return q / np.linalg.norm(q)
+
 
 _PACKS = {}
 

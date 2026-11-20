@@ -77,6 +77,9 @@ $blender = "D:\Tools\Blender\5.2.2\blender.exe"
 & $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --model roman-hastatus
 & $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --model roman-hastatus --only animations closeups
 
+# Clip knockdown (bị ngựa xô ngã rồi gượng dậy) thành hai dải: art/renders/<id>/knockdown.jpg
+& $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --model roman-legionary --knockdown
+
 # Tám mô hình bộ binh đứng thành hàng: art/renders/infantry-lineup.jpg
 & $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --lineup
 
@@ -94,7 +97,7 @@ Tham số của `build_model.py`, đặt sau dấu `--`:
 | `--preview` | Render ảnh xem thử sau mỗi giai đoạn vào `art/build/<id>/preview-*.png`: trước, nghiêng, sau; thêm ba tư thế thử sau `rig` và vài khung hình mỗi clip sau `anim`. |
 | `--check` | Chỉ đọc lại file `.glb` đã xuất và kiểm tra theo hợp đồng. |
 
-Tham số của `render_review.py`: `--model <id>`, `--only <ảnh> ...` (tên trong danh sách `REVIEW` của mô hình: `views`, `three-quarter`, `head`, `formation`, `lods`, `animations`, `metal`, `compare`, `closeups`, `beside`, `test-poses`; với kỵ binh còn `beside-cavalry`, `far-cavalry`, T-050), `--lineup`, `--attack-styles`.
+Tham số của `render_review.py`: `--model <id>`, `--only <ảnh> ...` (tên trong danh sách `REVIEW` của mô hình: `views`, `three-quarter`, `head`, `formation`, `lods`, `animations`, `metal`, `compare`, `closeups`, `beside`, `test-poses`; với kỵ binh còn `beside-cavalry`, `far-cavalry`, T-050), `--lineup`, `--attack-styles`, `--knockdown` (T-057).
 
 Đổi chỗ để file gốc:
 
@@ -113,7 +116,7 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `source` | Tạo cảnh trống | `build_source()`: nhập mô hình nền, bỏ phần không hợp thời kỳ |
 | `kit` | | `build_kit()`: dựng trang bị, mỗi món thêm một bản ít tam giác (`.low`) cho LOD |
 | `rig` | Nhập khung xương Celt; đưa thân về tư thế chữ A và tỉ lệ của khung; chuyển trọng số theo điểm gần nhất, làm mượt; đưa về dạng chuẩn | `fit()`, `RIGID`, `SHARED`, `SMOOTHING`, `MERGE_FINGERS`, `rig_extras()` |
-| `anim` | Sáu clip từ thư viện hoạt hình (`whp_clips.py`) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
+| `anim` | Các clip từ thư viện hoạt hình (`whp_clips.py`): sáu clip chuẩn, `block` và `hit` (bộ binh đánh gần), `knockdown` (mọi bộ binh) | `KIT`: có khiên không, kiểu tấn công, cách cầm vũ khí, dây ném |
 | `lod` | Phần ít tam giác, atlas, bake, một vật liệu, LOD0..2 (`whp_unit_lod.py`) | `PARTS` (các phần và ngân sách tam giác), `LOD2` |
 | `export` | Xuất `.glb`, thêm id vào `public/battles/models/index.json`, kiểm tra | `GROUND_CHECKS` nếu khác mặc định (giáo dựng đứng cao hơn người) |
 
@@ -157,8 +160,31 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 | `die` | `Death01` (UAL 1) | 2,4 s (72 khung) | Ngã ngửa, nằm yên từ khoảng khung 50. **Không lặp**: cảnh giữ khung cuối. |
 | `block` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Đỡ đòn bằng khiên: nâng khiên và đẩy ra trước, khiên bị dội về ngực lúc đòn chạm (khung 9), rồi hồi lại. Thân nhận 35% cú giật của `Hit_Chest`. **Không lặp.** |
 | `hit` | `Idle_Loop` và `Hit_Chest` (UAL 1) | 1,0 s (30 khung) | Đợt G. Trúng đòn: đứng như `idle` tới khung 9, rồi cả cú giật `Hit_Chest`, tay khiên bị bật ra; hồi lại. **Không lặp.** |
+| `knockdown` | `Idle_Loop` (UAL 1), `Hit_Knockback` và `LayToIdle` soi gương (UAL 2) | 3,5 s (105 khung) | Đợt L, T-057. Bị ngựa xô ngã: co người, giơ khiên; ngựa chạm ở khung 9; bật ngửa, nằm, lăn sang phải chống nắm tay phải, gượng dậy, thế thủ, về thế đứng của `idle`. **Không lặp.** Xem dưới. |
 
 **`block` và `hit`** (đợt G, `whp_clips.REACT`, `Builder.block`, `Builder.hit`): cảnh phát hai clip này đè lên `idle` khi đòn của địch chạm vào hình lính. Đòn chạm ở khung 9 (0,3 s), trùng với `REACTION_IMPACT` trong `src/lib/battle.ts`; đổi số này là đổi hợp đồng. Hai clip dựng sau `jog`, nên sáu clip trước giống hệt từng byte. Có ở sáu mô hình bộ binh đánh gần và ba mô hình kỵ binh (mục "Kỵ binh"); hai mô hình bộ binh đánh từ xa (kiểu tấn công trong `whp_clips.THROWN`: `roman-velites`, `balearic-slinger`) giữ sáu clip, file không đổi (`whp_build.clips_of`). Ảnh hai mô hình đối mặt quanh lúc đòn chạm: `render_review.py -- --model A --duel B`, ra `art/renders/duel-A-B.jpg`.
+
+**`knockdown`** (đợt L, T-057, `whp_clips.KNOCK`, `Builder.knockdown`): cảnh phát clip này đè lên việc người lính đang làm khi một con ngựa phi xuyên qua khối quân xô vào anh ta (`docs/ARCHITECTURE.md`, mục "Kỵ binh xông qua"). Mọi mô hình bộ binh đều có, kể cả hai mô hình đánh từ xa. Cảnh xoay người lính quay mặt về phía ngựa trước khi ngựa tới, nên clip chỉ ngã một hướng: ngửa ra sau (+Y trong Blender, −Z trong file `.glb`).
+
+| Khung | Giây | Việc |
+|---|---|---|
+| 0–9 | 0–0,30 | Đứng như `idle`, co người lại (15% tư thế đầu của `Hit_Knockback`), khiên giơ lên trước người (`SHIELD_CARRY["block"]`). |
+| 9 | 0,30 | Ngựa chạm (`REACT["impact"]`, trùng `REACTION_IMPACT`); đổi số này là đổi hợp đồng. |
+| 9–35 | 0,30–1,17 | `Hit_Knockback` từ khung 3 (chậm lại còn 0,64 lần tới lúc chạm đất ở khung 20, rồi đúng nhịp): bị hất lên, hai chân bị quét khỏi mặt đất, ngã ngửa, nảy nhẹ. Khiên bị dội về ngực (`jolt`) rồi nằm trên ngực và bụng (`lying`). |
+| 35–52 | 1,17–1,73 | Nằm, trôi dần sang tư thế đầu của `LayToIdle`. Người ở dưới đất từ khoảng khung 18 tới khung 62 (1,5 s), nằm ngửa yên khoảng 1 s. |
+| 52–98 | 1,73–3,27 | `LayToIdle` soi gương: ngồi dậy, xoay người sang phải, chống nắm tay phải (vẫn cầm kiếm, lưỡi kiếm nằm ngang trên mặt đất), quỳ một gối, đứng lên. Khiên nằm trên đùi khi ngồi (`seated`, như `die`), lên thế thủ (`guard`) khi đứng. |
+| 98–105 | 3,27–3,50 | Trôi về khung đầu của `idle`, khiên về thế nghỉ. Khung cuối trùng khung đầu của `idle`. |
+
+- **Soi gương** (`whp_ual.Pack.mirrored`): người của thư viện chống tay trái để dậy, mà tay trái lính ta cầm khiên. Tư thế được lật qua mặt phẳng giữa người (đổi trái và phải, mỗi xương lấy góc xoay so với tư thế nghỉ của xương đối xứng), rồi mới đổi đích như mọi clip. Các tư thế của nhiều clip được ghép ở dạng biến đổi cục bộ (`Pack.local`, `Pack.mix`, `Pack.world`); hai bản của thư viện cùng một khung xương nên ghép được với nhau.
+- **Không chìm xuống đất** (`whp_clips.Skin`, `KNOCK_GROUND`): người mặc giáp nằm cao hơn hình nộm, khiên to hơn mọi thứ hình nộm cầm. Clip được dựng thử nhiều lượt; mỗi lượt đo điểm thấp nhất của bốn phần (thân; bàn chân và ống chân, `LEG_ENDS`, kể cả xương xoắn của bắp chân vì ống chân của người Gaul đi theo chúng; thứ tay trái cầm; thứ tay phải cầm), chia theo xương mà đỉnh đi theo, skin bằng numpy như cảnh. Phần nào thấp hơn mặt đất thì được nâng lên ở khung đó, mượt qua các khung kề: thân bằng hông (`Retargeter.hips_shift`), chân bằng mắt cá (`Retargeter.ankle_lift`, mới ở T-057), khiên và vũ khí bằng cổ tay (IK, bàn tay giữ hướng). Lượt nào thân hay chân còn chìm thì chỉ nâng thân và chân, vì nâng thân là nâng luôn hai tay; tối đa năm lượt như thế (`KNOCK_BODY_PASSES`). Các lượt khác nâng mọi phần còn chìm; tổng cộng tối đa mười lượt (`KNOCK_PASSES`). Không nâng ở khung đầu và khung cuối. Với `roman-legionary`: thân nâng tối đa 14 cm khi nằm, khiên 16 cm khi quỳ dậy, chân 5 cm, tay phải 2 cm.
+- **Vũ khí** (`Builder._knock_weapon`): cầm như khi đứng; khi người đã xuống thấp thì nằm ngang theo cẳng tay (như `die`), để không cắm xuống đất hay dựng đứng khỏi người nằm.
+  - Giáo dài của triarii (`SPEAR_CARRY`, `lie_flat`): cánh tay chỉ bị giải IK về thế cầm giáo đứng khi người đã đứng lên; lúc nằm và lúc chống tay dậy, cánh tay là của thư viện. Giáo nằm ngang dọc bên phải người, chĩa về phía chân và chếch ra ngoài, giữ một hướng dù cẳng tay xoay (theo cẳng tay thì ngọn giáo 2,4 m quét vòng qua chân), rồi dựng dần lên phía trước bên phải khi đứng dậy.
+  - Hai cây *pilum* của hastatus ở nguyên trong tay trái suốt clip (`knockdown` không nằm trong `SPARE_GONE`).
+- **Dây ném** (`Builder._knock_sling`, `balearic-slinger`): túi đá rủ từ nắm tay khi người còn đứng; khi đã xuống thấp thì văng sang bên phải người, không rủ thẳng xuống xuyên qua ngực, rồi nằm dọc mặt đất bên cạnh (`SlingCord.place`). Không có khiên: tay trái là của thư viện (lúc dậy chống lên gối).
+- **Không có chuyển động gốc**: hông của `Hit_Knockback` chỉ lùi 0,23 m; nằm thì đầu cách chỗ đứng 0,77 m, mọi điểm của người trong vòng 1,40 m.
+- **Kiểm tra** (`whp_export.check_knockdown`, khi đọc lại file đã xuất, trên LOD0 ở mọi khung): dài tối đa 4 s; không điểm nào thấp hơn −3 cm; không điểm nào của thân xa chỗ đứng quá 1,5 m; khung đầu và khung cuối lệch khung đầu của `idle` dưới 5 mm. Thứ hai tay cầm (đỉnh đi theo `hand_l`, `hand_r`, `ik_hand_l`, `ik_hand_gun`) được đo và ghi riêng, không xét ngưỡng 1,5 m: *pilum* nằm quá đầu tới khoảng 1,6 m, giáo của triarii nằm dọc người. Số đo của từng mô hình ghi trong log của bước kiểm tra và trong mục "Kết quả" của T-057.
+- Dựng sau mọi clip khác, nên các clip trước giống hệt từng byte. File nặng thêm khoảng 60 KB.
+- Ảnh duyệt: `render_review.py -- --model <id> --knockdown`, ra `art/renders/<id>/knockdown.jpg`: một dải nhìn từ bên phải người lính (anh ta ngã về bên trái ảnh), một dải nhìn chếch từ trước bên phải và từ trên xuống; mỗi khung ghi giây; khung 0,30 s (ngựa chạm) có viền đỏ.
 
 **Quãng đường một vòng** đo như cảnh đo (`plantedStride` trong `src/components/battle/engine/figures/model.ts`): đỉnh đế bàn chân nào nằm trong 2 cm trên điểm thấp nhất của clip ở hai khung liền nhau thì đang chạm đất, và lùi về sau đúng bằng tốc độ hình lính đi. Lấy trung vị các tốc độ đó, nhân với độ dài clip. Log của giai đoạn `anim` đo trên lưới chi tiết; `art/tools/gait_check.py` đo trên LOD0 của file `.glb` (hai số chênh nhau dưới 0,01 m). Số ở bảng là của mô hình La Mã; các mô hình khác chênh dưới 0,02 m.
 
@@ -288,9 +314,9 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `whp_skeleton.py` | Khung xương chung (lấy từ mô hình Celt), đưa về dạng chuẩn, gắn lưới, tạo tư thế. |
 | `whp_skin.py` | Chuyển trọng số theo điểm gần nhất, làm mượt, giới hạn số xương, skinning bằng numpy. |
 | `whp_anim.py` | `Poser`: dựng tư thế theo trục của người lính (xoay, ngắm, đặt hướng xương, IK hai đoạn) và ghi keyframe. |
-| `whp_ual.py` | Đọc file `.glb` của thư viện hoạt hình bằng numpy, lấy mẫu clip. |
+| `whp_ual.py` | Đọc file `.glb` của thư viện hoạt hình bằng numpy, lấy mẫu clip; ghép và soi gương tư thế (`local`, `mix`, `mirrored`, `world`). |
 | `whp_retarget.py` | Đổi đích tư thế từ thư viện sang khung xương chung. |
-| `whp_clips.py` | Sáu clip chuẩn, tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử. |
+| `whp_clips.py` | Các clip (sáu clip chuẩn, `block`, `hit`, `knockdown`), tay cầm khiên, vũ khí, các kiểu tấn công, tư thế thử; đo điểm thấp nhất của từng phần người (`Skin`). |
 | `whp_lod.py` | Phần ít tam giác, atlas UV, bake, xử lý ảnh, vật liệu cuối. |
 | `whp_unit_lod.py` | Giai đoạn `lod` chung: các phần, bake, ghép ảnh, LOD0..2. |
 | `whp_proxy.py` | Hình người đơn giản theo khung xương cho LOD2. |
@@ -336,6 +362,7 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `13-compare-source.jpg` | Mô hình gốc 07 như khi tải về; mô hình mới ở tư thế gốc; mô hình mới đứng. |
 | `14-test-poses.jpg` | Tư thế thử khung xương: giơ tay, bước dài, cúi người. |
 | `16-foot-slip-before-after.jpg` | Biểu đồ (T-024, `art/tools/gait_check.py`): độ trượt của chân trụ trong từng khung `walk` và `run`, trước (nét đứt) và sau khi khoá chân. |
+| `knockdown.jpg` | Clip `knockdown` (T-057): mười một khung từ 0 tới 3,50 s, nhìn từ bên phải và chếch từ trước; khung 0,30 s (ngựa chạm) viền đỏ. Tám mô hình bộ binh đều có ảnh này trong thư mục của mình. |
 
 ### `art/renders/roman-hastatus/`
 

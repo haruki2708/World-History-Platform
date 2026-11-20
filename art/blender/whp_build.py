@@ -63,6 +63,7 @@ LODS = ("LOD0", "LOD1", "LOD2")
 CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
 REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models that fight
                                     # hand to hand, and the horsemen
+OVERRUN = ("knockdown",)            # bowled over by a horse (whp_clips.KNOCK): every foot model
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 # The "hi" ladder (--hi): a more detailed model for the figure seen close,
 # and better ones for the middle distance; its last level is the game
@@ -80,9 +81,11 @@ INDEX = os.path.join(MODELS_DIR, "index.json")
 
 def clips_of(unit):
     """The clips a model carries, in the order of UNIT_CLIPS in src/lib/battle.ts."""
-    if not hasattr(unit, "HORSE") and unit.KIT.attack in whp_clips.THROWN:
-        return CLIPS
-    return CLIPS + REACTIONS
+    if hasattr(unit, "HORSE"):
+        return CLIPS + REACTIONS
+    if unit.KIT.attack in whp_clips.THROWN:
+        return CLIPS + OVERRUN
+    return CLIPS + REACTIONS + OVERRUN
 
 
 # --------------------------------------------------------------------------
@@ -210,6 +213,9 @@ def stage_anim(unit):
         log(f"{clip}: {metres:.3f} m per loop; planted feet slip at most {before * 100:.0f}% of the "
             f"ground's step before the lock, {after * 100:.0f}% after (ankles moved up to {shift * 100:.1f} cm)")
     log(f"die: lifted {builder.lying_lift * 100:.1f} cm when lying")
+    log("knockdown: raised at most " + ", ".join(f"{part} {cm * 100:.1f} cm" for part, cm in builder.knock_lift.items())
+        + "; then lowest " + ", ".join(f"{part} {cm * 100:.1f} cm" for part, cm in builder.knock_lowest.items()
+                                       if cm is not None))
     scene.frame_set(0)
 
 
