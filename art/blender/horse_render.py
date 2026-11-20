@@ -8,7 +8,7 @@ exported on its own, so these show the game meshes (LOD0..2, the baked
 material) in the .blend that T-022 starts from.
 
 --only renders some of the images: views, tack, lods, anim, beside, extra,
-gallop (see IMAGES).
+gallop, walk (see IMAGES).
 """
 
 import argparse
@@ -33,7 +33,7 @@ OUT = os.path.join(RENDER_DIR, "horse")
 TMP = os.path.join(BUILD_DIR, "horse", "render-tmp")
 PANEL = (640, 520)
 STRIP_PANEL = (300, 230)     # one frame of the gallop strip
-IMAGES = ("views", "tack", "lods", "anim", "beside", "extra", "gallop")
+IMAGES = ("views", "tack", "lods", "anim", "beside", "extra", "gallop", "walk")
 MAX_BYTES = 400 * 1024
 RIG = "horse-rig"
 TACK = {
@@ -129,6 +129,50 @@ def gallop_strip(scene, wide):
     R.setup_render(scene, *PANEL, samples=32)
 
 
+def _ground_line(scene):
+    """A dark band from 2 to 8 mm under the ground, across the horse's
+    path; seen edge-on from the side it marks where the ground is."""
+    mesh = bpy.data.meshes.new("whp-ground-line")
+    corners = [(x, y, z) for x in (-0.7, 0.7) for y in (-3.0, 3.0) for z in (-0.008, -0.002)]
+    faces = [(0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)]
+    mesh.from_pydata(corners, [], faces)
+    obj = bpy.data.objects.new("whp-ground-line", mesh)
+    scene.collection.objects.link(obj)
+    mat = bpy.data.materials.new("whp-ground-line")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.04, 0.04, 0.04, 1.0)
+    mesh.materials.append(mat)
+    return obj
+
+
+def walk_strip(scene, wide):
+    """12-walk-before-after.jpg: every other frame of the source's walk (the
+    walk before T-058, top two rows) and of the walk (bottom two rows), seen
+    from the left, over a dark band just under the ground: a hoof that sinks
+    hides the band."""
+    arm = bpy.data.objects[RIG]
+    rest = {b.name: np.array(b.matrix_local) for b in arm.data.bones}
+    data = dict(np.load(NPZ))
+    rig.key_clip(arm, "walk-before", horse_clips.gait(data, rig.Frame(data), "walk", rest), loop=True)
+    R.setup_render(scene, *STRIP_PANEL, samples=32)
+    line = _ground_line(scene)
+    lo, hi = HORSE_BOX
+    box = (Vector((lo.x, lo.y, -0.03)), hi)
+    rows = []
+    for clip in ("walk-before", "walk"):
+        count = int(bpy.data.actions[clip].frame_end)
+        cells = []
+        for f in range(0, count, 2):
+            pose(clip, f)
+            cells.append(panel(f"strip-{clip}-{f:02d}", *box, "left"))
+        half = (len(cells) + 1) // 2
+        rows += [cells[:half], cells[half:]]
+    combine(rows, os.path.join(OUT, "12-walk-before-after.jpg"), quality=80)
+    bpy.data.objects.remove(line, do_unlink=True)
+    bpy.data.actions.remove(bpy.data.actions["walk-before"])
+    R.setup_render(scene, *PANEL, samples=32)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(prog="horse_render.py")
     parser.add_argument("--only", nargs="+", choices=IMAGES, default=list(IMAGES))
@@ -189,6 +233,9 @@ def main(argv):
     if "gallop" in only:
         show(0)
         gallop_strip(scene, wide)
+    if "walk" in only:
+        show(0)
+        walk_strip(scene, wide)
 
 
 def beside(scene):

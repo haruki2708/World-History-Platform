@@ -12,7 +12,8 @@ alone with --from):
              -> 1-rig.blend
     anim     idle, walk, run, die (+ trot, canter)           (horse_clips;
              run rebuilt with a full stride and trot's hooves
-             locked: horse_gallop)
+             locked: horse_gallop; walk's hooves set down flat
+             and rolled over the toe: horse_walk)
              -> 2-anim.blend
     lod      LOD0..2 per group, atlas, bakes, one material   (horse_lod)
              -> 3-lod.blend
@@ -39,6 +40,7 @@ import horse_kit  # noqa: E402
 import horse_lod  # noqa: E402
 import horse_rig as rig  # noqa: E402
 import horse_source  # noqa: E402
+import horse_walk  # noqa: E402
 import whp_export  # noqa: E402
 from whp_common import BUILD_DIR, ensure_dir, log, open_blend, reset_scene, save_blend, script_args  # noqa: E402
 
@@ -151,6 +153,8 @@ def stage_anim():
         source_m, source_slip = horse_gallop.stride(basis, rest, hooves)
         if name == "run":
             basis = horse_gallop.gallop(basis, rest, hooves)          # T-030: a full stride
+        elif name == "walk":
+            basis = horse_walk.walk(basis, rest, hooves)              # T-058: planted hooves flat, rolled over the toe
         elif name in horse_gallop.LOCKED:
             basis, _speed = horse_gallop.lock(basis, rest, hooves)    # T-030: planted hooves locked
         scene_m, slip = horse_gallop.stride(basis, rest, hooves)

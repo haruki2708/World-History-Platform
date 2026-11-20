@@ -465,7 +465,7 @@ Các giai đoạn, mỗi giai đoạn lưu một file trong `art/build/horse/`:
 |---|---|---|
 | `source` | Mở file gốc và lấy ra:<br>• lưới, trọng số của 80 xương biến dạng;<br>• ma trận các xương đó qua từng dáng đi, lấy mẫu 30 khung/giây; trước mỗi action, rig được đưa về tư thế nghỉ.<br>So lưới với file của Tarnyloo. | `source.npz` |
 | `rig` | Dựng trong cảnh trống:<br>• khung xương 40 xương, thân ngựa;<br>• màu lông (thuộc tính màu đỉnh `whp_color`), bờm, đuôi, trang bị. | `1-rig.blend` |
-| `anim` | Clip `idle`, `walk`, `run`, `die`, thêm `trot`, `canter`. `run` dựng lại cho sải đủ dài, móng trụ của `trot` được khoá (T-030, `horse_gallop.py`). Đo quãng đường một vòng như cảnh đo, độ trượt và độ cao yên. | `2-anim.blend`, `horse-info.json` |
+| `anim` | Clip `idle`, `walk`, `run`, `die`, thêm `trot`, `canter`. `run` dựng lại cho sải đủ dài, móng trụ của `trot` được khoá (T-030, `horse_gallop.py`); `walk` đặt móng phẳng và lăn qua mũi lúc nhấc (T-058, `horse_walk.py`). Đo quãng đường một vòng như cảnh đo, độ trượt và độ cao yên. | `2-anim.blend`, `horse-info.json` |
 | `lod` | Ba mức chi tiết cho từng nhóm lưới, một atlas, bake màu, pháp tuyến, độ nhám và AO. | `3-lod.blend` |
 | `finish` | • Xếp vào hai collection: `horse` (khung xương và lưới game), `detailed` (lưới chi tiết, ẩn).<br>• Lưu `horse.blend`.<br>• Xuất thử `horse-test.glb` (ngựa trần, 4 clip) và kiểm tra bằng `whp_export.check_glb` và `reimport`. | `horse.blend`, `horse-test.glb` |
 
@@ -547,7 +547,7 @@ Ngựa Numidia (thân và dây quàng cổ) có 3 036, 651 và 111 tam giác. C�
 | Clip | Nguồn | Độ dài | Một vòng, cảnh đo | Móng trụ trượt | Ghi chú |
 |---|---|---|---|---|---|
 | `idle` | tư thế nghỉ, cộng `horse.head.shake` và `horse.tail.flick.*` | 4,967 s (149 khung) | | | Đứng bốn chân; thở; lắc đầu ở khung 24–66; vẫy đuôi ở khung 86 và 118. Lặp. |
-| `walk` | `horse.walk` | 1,667 s (50 khung) | 0,99 m (0,60 m/s) | 102% | Lặp; đuôi được khép vòng trong 12 khung cuối. Móng trước lún tối đa 3,2 cm xuống đất trong vài khung (có từ file gốc). Để nguyên, xem "Khoá móng trụ" dưới đây. |
+| `walk` | `horse.walk`, dựng lại hai đầu của mỗi lần chạm đất (T-058) | 1,667 s (50 khung) | **1,20 m** (0,72 m/s) | **1%** | Đi bước bốn nhịp, lúc nào cũng có ít nhất hai móng chạm đất. Lặp; đuôi được khép vòng trong 12 khung cuối. Xem "Clip đi bước" dưới đây. Trước T-058: clip gốc, 0,99 m, trượt 102%, móng trước lún tới 3,2 cm. |
 | `run` | `horse.gallop` (nước đại), dựng lại (T-030) | 0,433 s (13 khung) | **5,51 m** (12,7 m/s) | **1%** | Nước đại bốn nhịp. Lặp. Xem "Clip phi" dưới đây. Trước T-030: clip gốc, 12 khung, 1,09 m, trượt 270%. |
 | `die` | tự làm | 1,967 s (59 khung) | | | Khuỵu hai gối trước (khung 18), lăn sang sườn phải, nằm yên từ khung 48. Mọi khung đều chạm đất; khung cuối cao 0..0,70 m. **Không lặp.** |
 | `trot` (thêm) | `horse.trot`, khoá móng trụ (T-030) | 0,833 s (25 khung) | 1,82 m (2,19 m/s) | **1%** | Nước kiệu. Lặp. Trước T-030 trượt 88%, sải như nay. |
@@ -582,11 +582,28 @@ Clip phi của file gốc đúng thứ tự chân, nhưng mỗi móng chỉ lùi
 `horse_gallop.lock` giữ nguyên dáng đi của file gốc, chỉ dời các móng đang chạm đất (tối đa 5 cm) để mỗi móng lùi đều với một tốc độ, bằng IK như trên (`LOCKED`). Cách làm giống `whp_clips.lock_shifts` của lane 1: dời cố định trong pha chạm đất, chuyển mượt trong pha bay.
 
 - **`trot`:** khoá được. Trượt từ 88% còn 1%, sải giữ nguyên 1,82 m. Kỵ binh dùng nó làm `jog`.
-- **`walk`: để nguyên** (trượt 102%). Khi đi bước, móng lăn từ gót tới mũi lúc chạm đất: điểm thấp nhất chạy dọc móng. Khoá theo điểm thấp nhất thì sải cảnh đọc ngắn đi 8% mà vẫn trượt 31%. Muốn sửa thật phải dựng lại cả cách móng lăn, ngoài phạm vi T-030.
+- **`walk`: không khoá** (thử ở T-030: khoá theo điểm thấp nhất thì sải cảnh đọc ngắn đi 8% mà vẫn trượt 31%, vì móng lăn ở hai đầu mỗi lần chạm đất). Từ T-058 dựng lại hai đầu đó: mục "Clip đi bước" dưới đây.
+
+### Clip đi bước (T-058)
+
+Clip đi bước của file gốc đúng nhịp bốn tiếng, và ở giữa mỗi lần chạm đất móng đã nằm phẳng, lùi đều 2,4 cm mỗi khung (1,20 m mỗi vòng); lúc nào cũng có ít nhất hai móng chạm đất. Lỗi nằm ở hai đầu mỗi lần chạm: móng hạ xuống bằng mũi rồi xoay phẳng trong khi vẫn trôi tới, và nhấc lên bằng cách xoay quanh đỉnh móng, nên mũi cắm xuống đất (móng trước tới 3,2 cm) và trượt tới. Cảnh coi mọi đế trong 2 cm trên mặt đất là đang chạm, nên đọc ra trượt 102% và sải 0,99 m (LOD0 1,08 m).
+
+`horse_walk.walk` giữ thân, cổ, đầu, đuôi của clip gốc (đầu gật theo bước như cũ) và giữ chân lúc móng nằm phẳng. Quanh mỗi lần chạm đất:
+
+- **Lúc chạm đất:** móng nằm phẳng (hướng lúc nghỉ), lùi đều đúng 2,4 cm mỗi khung (đo từ clip gốc, nên sải là 1,20 m).
+- **Lúc nhấc** (`ROLL_TO`): móng lăn qua mép trước của đế, xoay theo đúng góc của móng trong clip gốc cho tới khi góc đó tới 45°; mép trước nằm yên trên đất, lùi cùng mặt đất. Chân sau lăn 1 khung (31°), chân trước 2 khung (12°, 33°); khung sau móng đã rời đất. Lăn tới 60° (thêm khung 56° của chân trước) thì trên LOD0 trượt 2,5%: mép trước của LOD0 nằm trước mép của lưới chi tiết khoảng 3 mm, nên khi móng xoay mạnh quanh mép của lưới chi tiết, nó lệch theo; dừng ở 45° thì còn dưới 1%.
+- **Lúc đặt** (`SET_DOWN`, `SET_HEIGHT`): ba khung trước mỗi lần chạm, móng đã nằm phẳng và lùi cùng mặt đất, hạ dần từ 3 cm xuống.
+- **Trên không:** đường của clip gốc, cộng một độ lệch chuyển mượt từ chỗ móng rời đất tới chỗ bắt đầu đặt (cả góc móng, nên móng phẳng dần trước khi đặt), như clip phi. Điểm thấp nhất của móng cao hơn đất ít nhất 3 cm (`horse_gallop.CLEAR`).
+- **Cổ chân:** lúc móng được đặt (chạm đất, lăn, đặt), xương cổ chân (`pastern`) giữ góc lúc nghỉ với móng, chân phía trên với tới nó bằng IK phẳng (`_Upper`). Gần ba phần tư số đỉnh thấp nhất của móng trên lưới chi tiết (874 trên 1 218) gắn một phần vào xương cổ chân (tới 37% trọng số); nếu cổ chân xoay trên móng khi chân quét, các đỉnh ấy trượt trên đất tới 6% tốc độ mặt đất.
+
+Kết quả trên lưới chi tiết: sải 1,20 m (0,72 m/s ở cỡ thật), trượt lớn nhất 0,6%, không đỉnh nào xuống dưới mặt đất (trước: 3,2 cm), mọi khung có hai hay ba móng chạm đất. Độ cao yên không đổi (1,353..1,364 m). Bốn clip còn lại của ngựa giống hệt từng byte.
+
+**Ảnh so sánh:** `art/renders/horse/12-walk-before-after.jpg`.
 
 **Lưu ý cho cảnh (lane 3):**
 - `run` tự nhiên ở 12,7 m/s cỡ thật, tức **38,1 m/s trên sân** (×3). Với `MAX_RATE` 1,5 thì trần phi là **57,2 m/s trên sân** (Numidia 54,4 m/s), trước là 12,3 m/s.
 - Nước kiệu giờ phải gánh khoảng tốc độ rộng hơn trước (từ chỗ đổi với `walk` tới chỗ đổi với `run`). Khi gộp T-030, trần `jog` của cảnh nâng từ 1,8 lên 2,7 lần, đủ tới chỗ đổi sang `run` (17,4 m/s trên sân), nên kiệu nhanh không trượt móng.
+- `walk` (từ T-058) tự nhiên ở 0,72 m/s cỡ thật, tức **2,17 m/s trên sân** (Numidia 2,06); trước 0,65 m/s (1,95 m/s trên sân). Cảnh đổi `walk` sang `jog` ở trung bình nhân của hai tốc độ: nay khoảng 3,77 m/s trên sân, trước 3,57.
 
 **Không có `attack`.** T-022 dựng `attack` của kỵ binh bằng clip đánh của người, cộng `idle` (hoặc `walk`) của ngựa lặp lại.
 
@@ -605,9 +622,10 @@ Render từ `horse.blend` (lưới game, vật liệu đã bake), không phải 
 | `08-beside-roman-legionary.jpg` | Ngựa cạnh `roman-legionary` đứng (`idle`): nhìn nghiêng, rồi nhìn chéch. |
 | `09-extra-trot-canter.jpg` | Hai khung `trot` (đã khoá móng từ T-030), hai khung `canter`. |
 | `10-run-before-after.jpg` | Mọi khung của clip phi, nhìn từ bên trái: hàng trên là clip của file gốc (trước T-030, 12 khung), hàng dưới là `run` mới (13 khung). |
+| `12-walk-before-after.jpg` | Mỗi khung chẵn của clip đi bước, nhìn từ bên trái, trên một dải tối ngay dưới mặt đất (móng lún thì che dải): hai hàng trên là clip của file gốc (trước T-058), hai hàng dưới là `walk` mới. |
 | `11-scene-cannae.jpg` | Chụp trong cảnh (`/battle-lab?battle=battle-of-cannae`, T-030): trái, kỵ binh đồng minh phi ở giai đoạn 1; phải, kỵ binh La Mã phi ở giai đoạn 3. |
 
-`horse_render.py -- --only ...` chọn ảnh cần render, trong `views tack lods anim beside extra gallop`; không có `--only` thì render tất cả. Ảnh 11 chụp từ cảnh, không do script render.
+`horse_render.py -- --only ...` chọn ảnh cần render, trong `views tack lods anim beside extra gallop walk`; không có `--only` thì render tất cả. Ảnh 11 chụp từ cảnh, không do script render.
 
 ### Các file script của ngựa
 
@@ -619,6 +637,7 @@ Render từ `horse.blend` (lưới game, vật liệu đã bake), không phải 
 | `horse_kit.py` | Màu lông, bờm, đuôi, vải lót yên và đai bụng, dây cương, dây quàng cổ, chỗ ngồi. |
 | `horse_clips.py` | `idle`, `die`, lấy dáng đi, đo một vòng. |
 | `horse_gallop.py` | Clip phi dựng lại với sải đủ dài, khoá móng trụ của `trot`, IK phẳng cho chân ngựa, đo sải như cảnh (T-030). |
+| `horse_walk.py` | Clip đi bước: móng đặt phẳng suốt lúc chạm đất, lăn qua mũi lúc nhấc, hạ phẳng lúc đặt; cổ chân giữ góc nghỉ với móng lúc móng được đặt (T-058). |
 | `horse_lod.py` | LOD0..2 theo nhóm, atlas, bake (dùng `whp_lod`, `whp_unit_lod`, `whp_proxy`), hình thay thế cho LOD2. |
 | `horse_render.py` | Ảnh duyệt. |
 
@@ -723,11 +742,11 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 
 | Clip | Một vòng | Tốc độ ở cỡ thật | Trượt lớn nhất của móng trụ trong một khung |
 |---|---|---|---|
-| `walk` | 1,08 m / 1,667 s | 0,65 m/s | 101% |
+| `walk` | 1,20 m / 1,667 s | 0,72 m/s | 1% (trước T-058: 1,08 m, 0,65 m/s, 101%; móng lún tới 3,4 cm) |
 | `jog` | 1,82 m / 0,833 s | 2,19 m/s | 1% (trước T-030: 88%) |
 | `run` | 5,51 m / 0,433 s | 12,7 m/s | 1% (trước T-030: 1,09 m / 0,400 s, 269%) |
 
-`walk` là dáng đi của file gốc (lane 2 lấy mẫu lại); độ trượt có sẵn trong file gốc, ở vài khung lúc móng chạm và rời đất. `run` dựng lại và `jog` khoá móng ở T-030 (mục "Clip phi" ở trên). Ngựa Numidia nhỏ hơn nên sải ngắn hơn 5%.
+`walk` là dáng đi của file gốc, dựng lại hai đầu mỗi lần chạm đất ở T-058 (mục "Clip đi bước" ở trên); trước đó độ trượt có sẵn trong file gốc, ở vài khung lúc móng chạm và rời đất. `run` dựng lại và `jog` khoá móng ở T-030 (mục "Clip phi" ở trên). Ngựa Numidia nhỏ hơn nên sải ngắn hơn 5%.
 
 ### Giai đoạn `lod`
 

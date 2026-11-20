@@ -3,7 +3,8 @@
 walk, trot, canter and run (the gallop) are the source's gaits, sampled at
 30 fps (horse_source). Since T-030 the run is the source's gallop rebuilt
 with a full stride, and the trot's planted hooves are locked to the ground
-(horse_gallop; horse_build calls it). The source has no idle and no fall:
+(horse_gallop); since T-058 the walk's hooves are set down flat and rolled
+over the toe as they lift (horse_walk). horse_build calls both. The source has no idle and no fall:
 idle is a standing pose with breathing and the source's head shake and
 tail flicks laid in; die is keyframed here. No clip moves the horse along
 the ground: the source's gaits are in place, and die falls where it stands.
