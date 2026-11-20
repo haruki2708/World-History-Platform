@@ -108,7 +108,8 @@ KNOCK = dict(
 # allows 3 cm into the ground), by part (Skin); his boots go a little into
 # it already standing as in idle (1.7 cm: the soles flatten).
 KNOCK_GROUND = {"body": 0.0, "feet": -0.025, "left": 0.0, "right": 0.0}
-KNOCK_PASSES = 6
+KNOCK_PASSES = 10                       # rounds of measuring and raising in all
+KNOCK_BODY_PASSES = 5                   # of which at most this many raise the body and feet alone
 
 # jog: a steady run of about 3 m/s, for a body of men keeping its order. The
 # library has a walk (1 m/s) and a fast run (5.8 m/s: long bounds, each foot
@@ -470,7 +471,8 @@ class Soles:
         return out
 
 
-LEG_ENDS = ("calf_l", "foot_l", "ball_l", "calf_r", "foot_r", "ball_r")
+# The shins and feet (the Celt's shins follow the calves' twist bones).
+LEG_ENDS = ("calf_l", "calf_twist_01_l", "foot_l", "ball_l", "calf_r", "calf_twist_01_r", "foot_r", "ball_r")
 
 
 class Skin:
@@ -1053,6 +1055,7 @@ class Builder:
         # None at the first and last frames, which are idle's.
         taper = np.array([min(smooth(f / 3.0), smooth((frames - f) / 4.0)) for f in range(frames + 1)])
         skin = Skin(self.armature)
+        body_rounds = 0
         for round_ in range(KNOCK_PASSES + 1):
             lows = []
             for frame in range(frames + 1):
@@ -1064,7 +1067,9 @@ class Builder:
             if round_ == KNOCK_PASSES or not low:
                 break
             # The body first: raising it raises what the hands hold.
-            for part in (low & {"body", "feet"}) or low:
+            first = low & {"body", "feet"} if body_rounds < KNOCK_BODY_PASSES else set()
+            body_rounds += bool(first)
+            for part in sorted(first or low, key=list(KNOCK_GROUND).index):
                 need = needs[part]
                 need[need < 0.003] = 0.0
                 # Raised a little early and let down a little late.
