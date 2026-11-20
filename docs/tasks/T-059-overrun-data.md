@@ -103,6 +103,22 @@ Làm tiếp mục này trên cùng nhánh, rồi T-059 gộp một lượt.
 
 **e)** `npm run validate`, `npm run lint`, `npm run build` qua. Điền mục 5 vào "Kết quả", commit, rồi báo.
 
+### 6. Kéo dài thêm hai giai đoạn (thêm khi gộp, 2026-11-20)
+
+T-059 đã gộp vào `main` cùng T-057 và B2; người dùng xem bản thử và duyệt. Phiên chính đo lại khung hình/giây lúc máy rảnh, hai vòng xen kẽ: không giảm (Cannae giai đoạn 6 60,7 → 59,8; Trasimene giai đoạn 3–4 82,1 → 80,6; trong mức nhiễu).
+
+Còn hai khối trượt chân. Người dùng chọn kéo dài hai giai đoạn đó cho hết:
+
+| Trận | Giai đoạn | `playSeconds` hiện tại | mới | Khối còn trượt |
+|---|---|---|---|---|
+| Cannae | 6 | 39 | 60 | `camp-force` rút về trại lớn, 2,3 km (59,6 m/giây, trượt 35%) |
+| Hồ Trasimene | 5 | 34 | 45 | `allied-right-rear` tháo chạy (51 m/giây, trượt 25%) |
+
+- Gộp `main` vào nhánh trước (`git merge main`), rồi làm trên cùng nhánh `lane2/T-059-overrun-data`.
+- Không đổi gì khác. Sửa cột thời lượng và các câu về tốc độ trong `cannae.md`, `trasimene.md`.
+- Chạy lại `slide.mjs` (`run=2.2 runHorse=1.5`): hai khối này phải ra khỏi danh sách trượt; ghi số mới vào "Kết quả". Chạy lại `main-tools/overrun/check.mjs` cho Cannae: người cưỡi ở giai đoạn 6 vẫn không giật chỗ, triarii chết vẫn ngã dưới vó ngựa. Giai đoạn dài hơn thì mỗi người cưỡi chạy nhiều vòng hơn.
+- `npm run validate`, `npm run lint`, `npm run build` qua. Ghi "Mục 6" vào "Kết quả", commit, rồi báo. Xong thì làm T-058.
+
 ## Ràng buộc
 
 - Chỉ sửa file trong phạm vi: không sửa cảnh, hợp đồng hay chuỗi giao diện.
