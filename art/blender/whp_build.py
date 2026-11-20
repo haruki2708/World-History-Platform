@@ -64,6 +64,7 @@ CLIPS = ("idle", "walk", "run", "attack", "die", "jog")
 REACTIONS = ("block", "hit")        # taking a blow hand to hand (whp_clips.REACT): the foot models that fight
                                     # hand to hand, and the horsemen
 OVERRUN = ("knockdown",)            # bowled over by a horse (whp_clips.KNOCK): every foot model
+RIDEDOWN = ("ridedown",)            # a horseman strikes down at a man on foot as he rides by (whp_cavalry)
 LIMITS = (8000, 1500, 300)          # triangles per LOD (docs/ARCHITECTURE.md)
 # The "hi" ladder (--hi): a more detailed model for the figure seen close,
 # and better ones for the middle distance; its last level is the game
@@ -82,7 +83,7 @@ INDEX = os.path.join(MODELS_DIR, "index.json")
 def clips_of(unit):
     """The clips a model carries, in the order of UNIT_CLIPS in src/lib/battle.ts."""
     if hasattr(unit, "HORSE"):
-        return CLIPS + REACTIONS
+        return CLIPS + REACTIONS + RIDEDOWN
     if unit.KIT.attack in whp_clips.THROWN:
         return CLIPS + OVERRUN
     return CLIPS + REACTIONS + OVERRUN
