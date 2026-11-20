@@ -79,10 +79,11 @@ export const SHADOW_LAYER = 1;
  *   a jog: 7.2 m/s), with GAIT_SLACK either way so a block on a threshold
  *   does not flicker (run above 8.0 m/s, walk again below 6.5 m/s).
  * - The clips play at the speed that matches the ground covered, up to
- *   MAX_RATE times their own (walk 8.9 m/s, run 26.6 m/s). A battle is
- *   shown many times faster than it was fought, so blocks can move faster
- *   than that; the legs then keep the fastest pace that still looks like
- *   running, and the feet slide.
+ *   MAX_RATE times their own (walk 8.9 m/s, run 26.6 m/s); the run of men
+ *   on foot up to RUN_RATE_FOOT (38.6 m/s). A battle is shown many times
+ *   faster than it was fought, so blocks can move faster than that; the
+ *   legs then keep the fastest pace that still looks like running, and the
+ *   feet slide.
  */
 const MOVE_START = 0.12;
 const MOVE_STOP = 0.06;
@@ -117,6 +118,16 @@ const DIE = CLIP_INDEX.die;
  * this cap.
  */
 const MAX_RATE: Record<number, number> = { [WALK]: 3, [JOG]: 2.7, [RUN]: 1.5 };
+/**
+ * Men on foot may run faster than that (batch L, B2; the user chose it with
+ * longer phases in the data, 2026-11-20): at 2.2 times its own speed the run
+ * clip (a sprint) takes about 4.7 steps a second, near the cadence of a
+ * sprinter. With the longer phases the feet slide in 1-3% of the time on
+ * the move, against 20-29% before (main-tools/gait/slide.mjs). The gallop
+ * stays at MAX_RATE: a horse already strides faster there than any horse
+ * does.
+ */
+const RUN_RATE_FOOT = 2.2;
 
 /**
  * Marching askew. The clips step straight ahead (or straight back), never
@@ -753,7 +764,7 @@ export class UnitBlock {
     // frame would clip steps that are within the pace on average.
     const stepping = march.step > 0 && this.placed;
     const current = this.gaits.find((g) => g.clip === this.gait) ?? this.gaits[0];
-    const pace = current.speed * MAX_RATE[current.clip];
+    const pace = current.speed * (current.clip === RUN && !this.mounted ? RUN_RATE_FOOT : MAX_RATE[current.clip]);
     const reach = this.speed > pace ? pace / this.speed : 1;
     const { lastX, lastY, walked, velocityX, velocityY, turn, back, groundX, groundY, groundH } = this;
     // Marching askew (see TURN_FROM). While the clock stands still the men
