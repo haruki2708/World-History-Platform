@@ -148,8 +148,8 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 
 | Giai đoạn | Thêm hay đổi |
 |---|---|
-| Lúc bắt đầu | Lực lượng ở trại lớn và kỵ binh La Mã đứng ngay sau cổng chính của trại lớn; ba khối đồng minh đứng thành cột sau cổng trại nhỏ. Toán giữ trại của Hannibal đứng ở cổng trại của ông |
-| 1 | Các khối này ra khỏi trại qua cổng. Lực lượng ở trại lớn dàn hàng ngay ngoài cổng |
+| Lúc bắt đầu | Lực lượng ở trại lớn và kỵ binh La Mã đứng ngay sau cổng chính của trại lớn (từ T-059: lực lượng ở trại lớn đứng ngay ngoài cổng, mục 19); ba khối đồng minh đứng thành cột sau cổng trại nhỏ. Toán giữ trại của Hannibal đứng ở cổng trại của ông |
+| 1 | Các khối này ra khỏi trại qua cổng. Lực lượng ở trại lớn dàn hàng ngay ngoài cổng (từ T-059: lực lượng ở trại lớn đi ba phần tư đường tới trại Hannibal, mục 19) |
 | 2 | Lực lượng ở trại lớn tới cổng trại Hannibal ở cuối giai đoạn |
 | 3–5 | Đánh giáp lá cà với toán giữ trại ở cổng (trước đây là đánh từ xa vào một trại không người). Toán giữ trại trụ được ở giai đoạn 3–4, bị đẩy lùi 40 m vào trong trại ở giai đoạn 5 |
 | 4–5 | Kỵ binh La Mã tháo chạy lên phía bắc giữa trại lớn và sông, không chạy qua trại |
@@ -599,8 +599,8 @@ Các khối đánh nhau ở cổng do `scripts/battles/cannae-lines.mjs` dựng 
 
 | Khối | Mốc | Trước | Sau |
 |---|---|---|---|
-| `camp-force` | đầu trận | (−1600, 1250), 220 × 220, hướng 180 | (−1600, 975), 140 × 110, hướng 180, sau cổng trại lớn |
-| | 1 | như đầu trận, `stand` | (−1600, 680), hướng 225, ngay ngoài cổng, `advance` |
+| `camp-force` | đầu trận | (−1600, 1250), 220 × 220, hướng 180 | (−1600, 975), 140 × 110, hướng 180, sau cổng trại lớn. Từ T-059 (mục 19): (−1600, 680), hướng 237, ngay ngoài cổng |
+| | 1 | như đầu trận, `stand` | (−1600, 680), hướng 225, ngay ngoài cổng, `advance`. Từ T-059 (mục 19): (−2964,4, −205), hướng 237, cách cổng trại Hannibal 542 m |
 | | 2 | (−2900, 0), `advance` | (−3419,2, −500), 200 × 110, hướng 270, ở cổng trại Hannibal |
 | | 3, 4, 5 | (−3250, −260) rồi (−3300, −300), `skirmish`, 9 500, 9 000, 8 500 | Ở cổng, lùi 0, 10, 40 m vào trong trại; `fight`, 9 800, 9 600, 9 400 |
 | | 6 | (−1700, 1050), 300 × 200, hướng 45, 8 000 | (−1542,3, 814,6), 120 × 120, hướng 55,6, ngay sau cổng trại lớn; 7 400 |
@@ -860,3 +860,34 @@ Với trần mới và thời lượng mới, chỗ còn trượt nhiều là `c
 Kỵ binh xông qua ở giai đoạn 6 vẫn như phần trên, chỉ nhiều vòng hơn (Node, `tools/check-data.mjs`):
 - Kỵ binh Iberia 99 trên 100 hình phi vòng, 4,2 vòng mỗi người; kỵ binh Gaul 197 trên 200, 4,3 vòng. Không ai đứng yên, không ai nhảy chỗ (bước lớn nhất 32 m/s).
 - Cả 195 hình triarii chết ở giai đoạn 6 vẫn ngã lúc có ngựa trong vòng 4,5 m. Triarii bị xô ngã 555 lần, bị chém lúc đang đứng 229 lần, trên 180 trong 210 hình.
+
+### Đường đi của lực lượng ở trại lớn (sau review, 2026-11-20)
+
+Phiên chính hỏi thêm (mục 5c của task, tuỳ chọn): ở giai đoạn 2, `camp-force` đi 2 168 m trong 15 giây phát (145 m mỗi giây phát), nên với trần chạy nào chân cũng trượt. Nó có thể xuất phát sớm hơn, hay đi đường ngắn hơn không?
+
+**Theo nguồn.** Polybius 3.117 (mục 17): Paullus để 10 000 người ở trại lớn, để nếu Hannibal dồn hết quân ra trận thì họ vào trại ông lấy hành lý; khi trận bắt đầu, họ đánh vào trại Hannibal như đã được lệnh. Polybius không nói họ ra khỏi trại lúc nào hay ra cổng nào. Muốn đánh "khi trận bắt đầu" vào một trại cách 2,2 km thì họ phải lên đường trong lúc hai bên còn dàn trận, sau khi thấy quân Hannibal kéo ra khỏi trại. Vì vậy xuất phát từ giai đoạn 1 hợp với nguồn; đây là suy luận, nguồn không viết. Không có đường ngắn hơn: từ trại lớn tới cổng trại Hannibal là khoảng 2,2 km đường thẳng, ra cổng chính hay cổng bên phía tây cũng vậy, và đường thẳng không cắt sông.
+
+**Vì sao khối đứng sẵn ngoài cổng lúc 5:30.** Cảnh dời khối theo đường thẳng giữa hai mốc. Nếu khối vẫn bắt đầu sau cổng trại lớn (như T-045) rồi đi một mạch về phía trại Hannibal, nó phải ra cổng chéo từ phía đông bắc và cắt ngang đường của kỵ binh La Mã, khối cũng ra cổng đó nhưng đi về phía đông nam. Vì vậy lúc bắt đầu (5:30) khối đứng ngay ngoài cổng, đúng chỗ của mốc 1 cũ. Lời dẫn giai đoạn 1 cũ cũng đã cho khối dàn hàng ở đó.
+
+**Đã đổi:**
+
+| Mốc | Trước | Sau |
+|---|---|---|
+| Đầu trận | (−1600, 975), sau cổng trại lớn, hướng 180, `stand` | (−1600, 680), ngay ngoài cổng, hướng 237 (hướng tới trại Hannibal), `stand` |
+| 1 | (−1600, 680), ngay ngoài cổng, hướng 225, `advance` | (−2964,4, −205), ba phần tư đường tới cổng trại Hannibal, hướng 237, `advance` |
+| 2 trở đi | | Không đổi (do `cannae-lines.mjs` dựng) |
+
+- Giai đoạn 1 đi 1 626 m, giai đoạn 2 đi 542 m: cả hai 36,1 m mỗi giây phát, dưới trần chạy mới (38,7). Theo giờ trận: 0,18 và 0,15 m/s.
+- Mũi tên: thêm một mũi tên cho khối ở giai đoạn 1; mũi tên của giai đoạn 2 nay bắt đầu từ chỗ mốc 1 mới.
+- Lời dẫn giai đoạn 1 (`en` và `vi`): thay "kéo ra dàn hàng trước cổng trại, chờ đánh vào trại của ông" bằng "trong lúc hai bên dàn trận, họ từ cổng trại tiến về phía trại của ông … để đánh vào đó khi trận bắt đầu". Lời dẫn giai đoạn 2 vẫn đúng.
+- Không đổi quân số, hành động ở các mốc sau, `cannae-lines.mjs` (script chỉ dựng khối này từ mốc 2; chạy không có `--write` vẫn báo 0 dòng sẽ đổi).
+
+**Kiểm tra:**
+
+- `npm run validate` qua, không cảnh báo.
+- `check-overlap.mjs --min 0.04` và `check-facing.mjs`: in đúng như trước. Với ngưỡng 0,01%, không cặp nào có `camp-force` hay kỵ binh La Mã chồng lên nhau suốt trận.
+- Đường đi của tâm khối không cắt sông ở giai đoạn nào.
+- Phần đất trại lớn không dựng lều (`camp-occupancy.mjs` của T-045): 6,1% còn 3,8%, vì khối không còn đứng trong trại lúc đầu trận.
+- `main-tools/gait/slide.mjs` với `run=2.2 runHorse=1.5`: chân trượt hơn 5% còn 1,8% thời gian di chuyển (với thời lượng mới mà chưa đổi đường đi: 2,6%). Với trần cũ: 14,7%.
+
+**Còn lại:** khối rút về trại lớn ở giai đoạn 6, 2 324 m trong 39 giây phát (59,6 m/s), là chỗ trượt chân duy nhất còn lại ở Cannae (35%). Polybius cho Hannibal dồn họ về tận trại, nên mốc 6 phải ở trại lớn. Muốn hết trượt thì giai đoạn 6 phải phát ít nhất khoảng 60 giây; tôi để phiên chính quyết.
