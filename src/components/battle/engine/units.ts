@@ -162,7 +162,8 @@ const VELOCITY_SMOOTHING = 0.25;
  *   melee.ts wants it, and goes back when the enemy is gone, at CLOSE_SPEED
  *   in real time. After a jump it stands there at once.
  * - It turns to face its enemy, at most FIGHT_TURN from the facing of its
- *   block, at TURN_RATE like any other turn.
+ *   block (FIGHT_TURN_FOOT on foot, where the melee turns pairs every way),
+ *   at TURN_RATE like any other turn.
  * - Its blows are timed by the battle clock, not by the wall clock: the
  *   attack clip plays once every STRIKE_PERIOD seconds of playback, placed so
  *   that the blow lands on the beat of the enemy (the moment he falls, if he
@@ -177,8 +178,10 @@ const VELOCITY_SMOOTHING = 0.25;
  * - The clip on top fades in over STRIKE_IN and out over STRIKE_OUT seconds
  *   on top of what the legs do.
  * - A figure that falls lies where it fought: it keeps the place it had left
- *   its file for. (After a jump the fallen lie in their files, a few metres
- *   off: where a man stood to fight is not known without playing up to it.)
+ *   its file for. After a jump, where a man stood to fight is not known
+ *   without playing up to it: the fallen of a fight on foot lie scattered
+ *   about their places in the files, up to SCATTER metres forward or back
+ *   and half that to the side; the others lie in their files.
  * - In a block that stands still, a figure that moves (to close with an
  *   enemy, to step up behind a man who fell) walks: between STEP_FROM and
  *   STEP_FULL times the walking speed its legs go from idle to the walk.
@@ -191,6 +194,8 @@ const VELOCITY_SMOOTHING = 0.25;
  */
 const CLOSE_SPEED = 6;
 const FIGHT_TURN = (80 * Math.PI) / 180;
+const FIGHT_TURN_FOOT = (135 * Math.PI) / 180;
+const SCATTER = 4;
 const STRIKE_IN = 0.15;
 const STRIKE_OUT = 0.25;
 const STEP_FROM = 0.12;
@@ -250,6 +255,11 @@ const RIDEDOWN = CLIP_INDEX.ridedown;
  *   From the fourth rank back a thrust is a javelin thrown over the heads of
  *   the ranks in front (PRESS_THROWS of his turns; foot only).
  *
+ * - On foot (batch L, A4) the files loosen as well: each man stands up to
+ *   LOOSE_SHARE of his room off his place, his own way (LOOSE_MAX metres at
+ *   most), and keeps clear of the fighters, who no longer stand in a line
+ *   (Melee.clear in melee.ts).
+ *
  * All of it follows from the battle clock and the figure's fixed random
  * number, so a seek shows what playing up to that moment shows. It is drawn
  * to look like a fight, not taken from a source.
@@ -259,6 +269,8 @@ const PRESS_MAX = 2.4;
 const PRESS_TURN = 0.55;
 const PRESS_RANKS = [0.5, 1, 1, 0.85, 0.7, 0.55, 0.45, 0.4];
 const PRESS_PERIOD = 5;
+const LOOSE_SHARE = 0.4;
+const LOOSE_MAX = 2.6;
 const PRESS_PERIOD_SPAN = 6;
 /**
  * Of his turns, how many a man spends on a thrust, by the men before him: the
@@ -587,6 +599,12 @@ export class UnitBlock {
   range = RANGE_DEFAULT;
   /** The loops of its riders when it rides through the enemy (overrun.ts), or null: foot, and horse that never does. */
   ride: Ride | null = null;
+  /** Horsemen: their fights hand to hand stay in lines (melee.ts). Set when the block is made. */
+  mounted = false;
+  /** Where the fighters stand, for the press to keep clear of them (Melee.clear); set by Crowd.engage. */
+  clearance: Melee | null = null;
+  /** Scratch of the press: how far a man gives way to the fighters. */
+  private readonly giveWay = { x: 0, y: 0 };
   /** Scratch: where a rider is on his loop. */
   private readonly riding: Riding = blankRiding();
   /** Per figure that fell on its loop: 1 once where it lies has been worked out. */
@@ -774,6 +792,12 @@ export class UnitBlock {
       room = Math.sqrt((key.frontage * key.depth) / this.standing);
       press = Math.min(room * PRESS_SHARE, PRESS_MAX);
     }
+    // Foot in a melee (see FIGHT_TURN_FOOT, LOOSE_SHARE): the turn towards an enemy, how far the files loosen, and the fighters to keep clear of.
+    const onFoot = !this.mounted;
+    const fightTurn = onFoot ? FIGHT_TURN_FOOT : FIGHT_TURN;
+    const loose = onFoot && press > 0 ? Math.min(room * LOOSE_SHARE, LOOSE_MAX) : 0;
+    const clearance = onFoot && figures !== null ? this.clearance : null;
+    const giveWay = this.giveWay;
     const ahead = track.before;
     // Missiles (see MISSILE_SPEED).
     const strikeSeconds = model.strike.seconds;
@@ -852,6 +876,16 @@ export class UnitBlock {
             const span = press * restless;
             wantX = span * (0.62 * Math.sin(a) + 0.38 * sway);
             wantY = span * (0.62 * Math.sin(a * 1.31 + 2) + 0.38 * Math.sin(b * 0.71 + 4));
+            // On foot the files loosen, and the men keep clear of the fighters.
+            if (loose > 0) {
+              wantX += loose * (2 * fract(s * 41.17) - 1);
+              wantY += loose * (2 * fract(s * 73.91) - 1);
+            }
+            if (clearance !== null) {
+              clearance.clear(track.x[i] + wantX, track.y[i] + wantY, giveWay);
+              wantX += giveWay.x;
+              wantY += giveWay.y;
+            }
           }
         }
         let ox = offX[i];
@@ -880,7 +914,16 @@ export class UnitBlock {
             wantY = oy;
           }
         }
-        // The fallen lie where they fought; after a jump, in their files.
+        // After a jump the fallen of a fight on foot lie scattered about their places (see SCATTER).
+        if (status === DYING && snap && onFoot && ride === null && track.actionAt(track.deathTime[i]) === "fight") {
+          const s = track.seed[i];
+          const h = track.heading[i];
+          const forward = SCATTER * (2 * fract(s * 17.13) - 1);
+          const across = SCATTER * 0.5 * (2 * fract(s * 29.71) - 1);
+          wantX = Math.sin(h) * forward + Math.cos(h) * across;
+          wantY = Math.cos(h) * forward - Math.sin(h) * across;
+        }
+        // The fallen lie where they fought; after a jump, in their files (or scattered, above).
         if ((ox !== wantX || oy !== wantY) && (status !== DYING || snap) && fell[i] === 0) {
           const dx = wantX - ox;
           const dy = wantY - oy;
@@ -907,10 +950,10 @@ export class UnitBlock {
         }
         const o = n * 4;
         if (model.stow !== null) {
-          // At the head of a file in a fight hand to hand: put away. The fallen keep what they had.
+          // At the head of a file in a fight hand to hand, or fighting from the second rank: put away. The fallen keep what they had.
           let away = stowed[i];
           if (status !== DYING) {
-            const want = stows && track.head[i] === 1 ? 1 : 0;
+            const want = stows && (track.head[i] === 1 || opponent !== -1) ? 1 : 0;
             if (away !== want) {
               if (snap) away = want;
               else away = want > away ? Math.min(away + stowStep, want) : Math.max(away - stowStep, want);
@@ -986,7 +1029,7 @@ export class UnitBlock {
             target = t;
           } else if (opponent !== -1 && figures !== null) {
             // Hand to hand: facing his enemy.
-            target = Math.min(Math.max(angleDelta(heading, figures.bearing[i]), -FIGHT_TURN), FIGHT_TURN);
+            target = Math.min(Math.max(angleDelta(heading, figures.bearing[i]), -fightTurn), fightTurn);
             back[i] = 0;
             if (snap) {
               t = target;
@@ -1430,6 +1473,7 @@ export class Crowd {
         side: block.side,
         reach: block.model.strike.reach * FIGURE_SCALE,
         front: block.model.strike.front * FIGURE_SCALE,
+        mounted: block.mounted,
       })),
     );
     const blows = new Blows(
@@ -1446,6 +1490,7 @@ export class Crowd {
     this.blocks.forEach((block, b) => {
       block.fight = melee.figures[b];
       block.blows = blows.figures[b];
+      block.clearance = melee;
     });
   }
 

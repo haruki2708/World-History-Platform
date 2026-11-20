@@ -743,6 +743,7 @@ export class BattleEngine {
       const side = battle.sides.findIndex((s) => s.id === unit.side);
       const block = new UnitBlock(track, model, materials, color, this.crowd.group, side);
       block.ride = rides.get(unit.id) ?? null;
+      block.mounted = mounted.has(unit.type);
       this.crowd.add(block);
     }
     // The blows of the riders are known once every unit on foot is laid out.
