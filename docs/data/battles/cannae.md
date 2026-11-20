@@ -835,7 +835,7 @@ Không đổi: vị trí, quân số, thương vong, mũi tên và lời dẫn. 
 
 ### Còn lại
 
-- `scripts/battles/cannae-lines.mjs` vẫn ghi `fight` cho ba khối này ở mốc 6. Chạy lại script với `--write` sẽ xoá thay đổi này. Đề nghị sửa bảng `STATES` của script (ngoài phạm vi T-059, ghi ở file task).
+- `scripts/battles/cannae-lines.mjs`: bảng `STATES` của mốc 6 đã sửa theo (triarii `stand`, hai khối kỵ binh `overrun`; mục 5 của task, sau review). Chạy script không có `--write` báo 0 dòng sẽ đổi.
 - Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
 - Người cưỡi đi sâu tới 90 m (giới hạn của cảnh), qua hàng triarii (sâu 40 m) vào cả đám lính nhẹ trong lòng hộp. Nguồn không nói kỵ binh vào sâu tới đâu.
 
