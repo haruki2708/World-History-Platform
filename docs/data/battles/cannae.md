@@ -891,3 +891,23 @@ Phiên chính hỏi thêm (mục 5c của task, tuỳ chọn): ở giai đoạn 
 - `main-tools/gait/slide.mjs` với `run=2.2 runHorse=1.5`: chân trượt hơn 5% còn 1,8% thời gian di chuyển (với thời lượng mới mà chưa đổi đường đi: 2,6%). Với trần cũ: 14,7%.
 
 **Còn lại:** khối rút về trại lớn ở giai đoạn 6, 2 324 m trong 39 giây phát (59,6 m/s), là chỗ trượt chân duy nhất còn lại ở Cannae (35%). Polybius cho Hannibal dồn họ về tận trại, nên mốc 6 phải ở trại lớn. Muốn hết trượt thì giai đoạn 6 phải phát ít nhất khoảng 60 giây; tôi để phiên chính quyết.
+
+### Khung hình/giây đo lại (sau review, 2026-11-20)
+
+Mục 5d của task: đo lại Cannae giai đoạn 6 và Trasimene giai đoạn 3, trước và sau, khi máy không chạy Blender. Suốt buổi chiều máy không rảnh: Blender của lane 1 (T-057) chạy từng đợt, có lúc thêm Godot. Mỗi lượt đo đã chờ tới 150 giây cho Blender tắt, và một tiến trình phụ cứ 2 giây ghi lại Blender có chạy không. Không lượt nào sạch hoàn toàn. Kịch bản và nhật ký: `tools/fps-run4.sh`, `tools/fps-4.txt`, `tools/s-t059-cpu.mjs`, `tools/cpu-*.txt` trong thư mục ảnh.
+
+- **Khung hình/giây** (như phần "Kiểm tra" ở trên, Cannae t = 5,02 và 5,5): bản sau 42,1 và 49,4 (Blender chạy trong 7 lần lấy mẫu); bản trước 59,4 và 57,1 (4 lần lấy mẫu). Cả hai lượt có Blender và Godot.
+- **Thời gian CPU của luồng chính** (hồ sơ CPU của Chrome, phát 4 giây; "bận" là mọi thứ trừ lúc rảnh; khoảng 9–12 ms mỗi khung là `readPixels`, tức chờ GPU):
+
+| Trận | Lượt | Bản | Blender | Khung/giây | Bận mỗi khung | Trừ `readPixels` |
+|---|---|---|---|---|---|---|
+| Cannae, t = 5,06 | 1 | sau | có | 49,1 | 20,3 ms | 10,9 ms |
+| | 1 | trước | không | 53,5 | 18,7 ms | 9,1 ms |
+| | 2 | sau | không | 55,6 | 18,0 ms | 8,7 ms |
+| | 2 | trước | có | 50,7 | 19,7 ms | 10,1 ms |
+| Trasimene, t = 2,1 | 1 | sau | có | 33,1 | 30,2 ms | 18,4 ms |
+| | 1 | trước | có | 37,0 | 27,0 ms | 16,4 ms |
+| | 2 | sau | có | 44,0 | 22,7 ms | 12,0 ms |
+| | 2 | trước | có | 43,1 | 23,1 ms | 12,7 ms |
+
+Godot chạy suốt các lượt này. Ở cả hai trận, phần việc JS mỗi khung của hai bản như nhau. Nó tăng giảm theo việc Blender có chạy hay không, không theo bản. Không hàm nào của phần xông qua lọt vào nhóm tốn nhiều nhất; các hàng đầu là `update` của `units.ts`, `heightAt` và `sample` của `timeline.ts`, ở cả hai bản. Như vậy những lần bản sau tụt xuống 33–43 khung/giây (ở đây và ở phần "Kiểm tra") nhiều khả năng là do máy bận, không do kỵ binh xông qua. Nhưng đây chưa phải số đo trên máy rảnh, nên phiên chính đo lại khi gộp.

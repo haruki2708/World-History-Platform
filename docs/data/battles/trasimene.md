@@ -535,3 +535,5 @@ Như ở `cannae.md` mục 19 ("Thời lượng"): người dùng chọn sửa c
 Với trần mới và thời lượng mới, chỗ còn trượt nhiều nhất là bộ binh đồng minh cánh phải phần sau tháo chạy ở giai đoạn 5 (51 m/s, trượt 25%).
 
 Kỵ binh Gaul nay lao vào velites ở đầu giai đoạn 3 với tốc độ khoảng 42 m mỗi giây phát (trước: 78), dưới trần phi của ngựa, nên hết trượt móng trong giây đầu (mục "Còn lại" ở trên). Mọi thứ khác của phần xông qua như cũ (Node): 200 trên 200 hình phi vòng ở giai đoạn 3, 196 trên 200 ở giai đoạn 4; 34 trên 34 hình velites quân đoàn II chết ở giai đoạn 3–4 ngã lúc có ngựa trong vòng 4,5 m.
+
+Đo lại khung hình/giây và thời gian CPU sau review: xem `cannae.md` mục 19, phần "Khung hình/giây đo lại". Máy chưa rảnh (Blender, Godot); hai bản không khác nhau rõ.
