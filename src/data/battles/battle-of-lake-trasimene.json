@@ -823,7 +823,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 751, "y": -301 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 715, "y": -390 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "charge",
           "men": 3200
         },
@@ -847,7 +847,7 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 604, "y": -581 }, "frontage": 310, "depth": 52, "facing": 115.6 },
+          "formation": { "center": { "x": 525, "y": -649 }, "frontage": 120, "depth": 134, "facing": 115.6 },
           "action": "charge",
           "men": 4000
         },
@@ -878,7 +878,7 @@
       ],
       "arrows": [
         { "side": "carthage", "points": [{ "x": 850, "y": 1080 }, { "x": 900, "y": 90 }] },
-        { "side": "carthage", "points": [{ "x": -150, "y": 690 }, { "x": 540, "y": -520 }] },
+        { "side": "carthage", "points": [{ "x": -150, "y": 690 }, { "x": 447, "y": -611 }] },
         { "side": "carthage", "points": [{ "x": -380, "y": 270 }, { "x": 340, "y": -760 }] },
         { "side": "carthage", "points": [{ "x": -1240, "y": -1010 }, { "x": -1070, "y": -1370 }] },
         { "side": "carthage", "points": [{ "x": 1870, "y": 1100 }, { "x": 1600, "y": 110 }] }
@@ -951,7 +951,7 @@
         {
           "unit": "velites-2",
           "formation": { "center": { "x": 620, "y": -694 }, "frontage": 120, "depth": 16, "facing": 295.6 },
-          "action": "fight",
+          "action": "stand",
           "men": 840
         },
         {
@@ -1022,7 +1022,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 778, "y": -314 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 742, "y": -403 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "fight",
           "men": 3080
         },
@@ -1046,8 +1046,8 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 631, "y": -594 }, "frontage": 310, "depth": 52, "facing": 115.6 },
-          "action": "fight",
+          "formation": { "center": { "x": 552, "y": -662 }, "frontage": 120, "depth": 134, "facing": 115.6 },
+          "action": "overrun",
           "men": 3920
         },
         {
@@ -1144,7 +1144,7 @@
         {
           "unit": "velites-2",
           "formation": { "center": { "x": 647, "y": -707 }, "frontage": 120, "depth": 16, "facing": 295.6 },
-          "action": "fight",
+          "action": "stand",
           "men": 504
         },
         {
@@ -1215,7 +1215,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 805, "y": -327 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 769, "y": -416 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "fight",
           "men": 2980
         },
@@ -1239,8 +1239,8 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 658, "y": -607 }, "frontage": 310, "depth": 52, "facing": 115.6 },
-          "action": "fight",
+          "formation": { "center": { "x": 579, "y": -675 }, "frontage": 120, "depth": 134, "facing": 115.6 },
+          "action": "overrun",
           "men": 3820
         },
         {
