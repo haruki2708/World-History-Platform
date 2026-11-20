@@ -61,4 +61,69 @@ Commit sau mỗi phần việc lớn.
 
 ## Kết quả
 
-(Lane 1 điền khi xong.)
+### Phần 1: `roman-legionary` (2026-11-20, chờ người dùng duyệt ảnh)
+
+**Clip `knockdown`** (`whp_clips.KNOCK`, `Builder.knockdown`): 3,50 s (105 khung), không lặp. Gốc là ba clip của thư viện Quaternius (CC0) đang dùng: `Idle_Loop` (bản 1), `Hit_Knockback` và `LayToIdle` (bản 2). Không thêm nguồn mới.
+
+| Giây | Việc |
+|---|---|
+| 0–0,30 | Đứng như `idle`, co người lại (15% tư thế đầu của `Hit_Knockback`), khiên giơ lên trước người. |
+| 0,30 (khung 9) | Ngựa chạm (`REACTION_IMPACT`). |
+| 0,30–1,17 | `Hit_Knockback` từ khung 3, chậm còn 0,64 lần tới lúc lưng chạm đất (0,67 s), rồi đúng nhịp: bị hất lên, hai chân bị quét khỏi mặt đất, ngã ngửa, nảy nhẹ. Khiên bị dội về ngực, rồi nằm trên ngực và bụng. |
+| 0,67–1,73 | Nằm ngửa yên khoảng 1 s. |
+| 1,73–3,27 | `LayToIdle` **soi gương**: ngồi dậy, lăn người sang phải, chống nắm tay phải (vẫn cầm kiếm, lưỡi kiếm nằm ngang trên đất), quỳ một gối, đứng lên, khiên lên thế thủ. Soi gương vì người của thư viện chống tay trái, mà tay trái lính ta cầm khiên. |
+| 3,27–3,50 | Về khung đầu của `idle`, khiên về thế nghỉ. |
+
+- **Không chìm xuống đất:** người mặc giáp nằm cao hơn hình nộm của thư viện, khiên lại to. Script dựng clip thử vài lượt, mỗi lượt đo điểm thấp nhất của bốn phần (thân; bàn chân và ống chân; thứ tay trái cầm; thứ tay phải cầm) ở từng khung, rồi nâng phần nào bị chìm, mượt qua các khung kề: thân bằng hông, chân bằng mắt cá, khiên và kiếm bằng cổ tay. Với `roman-legionary`: thân nâng tối đa 14 cm lúc nằm, khiên 16 cm lúc quỳ dậy, chân 5 cm, tay phải 2 cm.
+- **Số đo trên LOD0 của file đã xuất**, ở mọi khung (bước kiểm tra mới `whp_export.check_knockdown`, chạy khi đọc lại file):
+  - dài 3,50 s;
+  - điểm thấp nhất −2,5 cm (giày, khung 77, lúc quỳ dậy; đứng như `idle` thì giày đã ở −1,8 cm);
+  - mọi điểm trong vòng 1,40 m quanh chỗ đứng; lúc nằm, đầu cách chỗ đứng 0,77 m;
+  - khung đầu và khung cuối trùng khung đầu của `idle` (lệch 0,0 mm), nên hai chân về đúng chỗ cũ.
+- Khiên và kiếm ở trong tay suốt clip.
+
+**Kiểm tra**
+
+- Trước khi sửa script: dựng lại `roman-legionary` từ đầu, ra đúng file đã commit từng byte.
+- Tám clip cũ (`idle`, `walk`, `run`, `attack`, `die`, `jog`, `block`, `hit`) **giống hệt từng byte** so với `main`: so từng kênh (nút đích, nội suy, byte của thời điểm và của giá trị). Lưới, khung xương, ảnh, vật liệu và các nút cũng giống hệt.
+- Dựng hai lần với script mới ra cùng một file từng byte.
+- Kích thước: 2 271 180 → 2 332 636 byte (2,17 → 2,22 MB, +60 KB).
+- `build_model.py` kiểm tra chín clip cho sáu mô hình bộ binh đánh gần, bảy clip cho `roman-velites` và `balearic-slinger` (sáu clip cũ và `knockdown`, vì hai mô hình này không có `block`, `hit`), tám clip cho kỵ binh như cũ (`whp_build.clips_of`). Bước kiểm tra qua cho `roman-legionary`. **Lưu ý:** cho tới khi phần 2 dựng lại bảy mô hình còn lại, `build_model.py --check` sẽ báo thiếu `knockdown` ở bảy file đó (nội dung của chúng chưa đổi).
+- `npm run validate`, `npm run lint`, `npm run build` qua.
+- **Trong cảnh:** chặng A1 đã có trong `main` từ trước khi tạo nhánh, nên cảnh đã phát `knockdown` khi mô hình có clip. Mở `/battle-lab?duel=1&pair=8` (bản dev của worktree, Chrome không giao diện) với `t=1.3`. Cặp này dùng hastati, mà `roman-hastatus` chưa có clip, nên mình tạm chép `roman-legionary.glb` đè lên `roman-hastatus.glb` để xem, rồi trả lại bằng git, không commit.
+  - Người bị ngựa xô nằm ngửa, khiên trên người, rồi quỳ sau khiên và đứng dậy.
+  - Console chỉ có hai cảnh báo WebGL của Chrome không giao diện (`KHR_parallel_shader_compile`, `GPU stall due to ReadPixels`). Trước khi chép đè, lúc cặp này chưa dùng file nào đã đổi, trang cũng có đúng hai cảnh báo này.
+
+**Ảnh duyệt**
+
+- `art/renders/roman-legionary/knockdown.jpg`, render từ file `.glb` đã xuất (`render_review.py -- --model roman-legionary --knockdown`).
+  - Dải trên nhìn từ bên phải người lính: anh ta ngã về bên trái ảnh. Dải dưới nhìn chếch từ trước bên phải, từ trên xuống.
+  - Mười một khung: 0; 0,30; 0,43; 0,60; 1,20; 1,93; 2,20; 2,47; 2,80; 3,13; 3,50 s.
+  - Mỗi khung ghi giây; khung 0,30 s viền đỏ.
+- Chép thêm vào `E:\World_History_Platform_assets\duyet\T-057\`:
+  - `roman-legionary-knockdown.jpg`;
+  - `roman-legionary-trong-canh-pair8.png`: ảnh trong cảnh nói trên.
+
+**Hai chỗ nhờ người dùng xem**
+
+- Ở 0,43 s, hai chân bị hất lên khá cao (giữ nguyên `Hit_Knockback`). Nếu thấy quá tay thì giảm được.
+- Lúc nằm, khiên úp trên ngực và bụng như trong `die`.
+
+**Code** (chỉ trong `art/`):
+
+- `whp_ual.py`: ghép tư thế của nhiều clip ở dạng biến đổi cục bộ (`local`, `mix`, `world`), soi gương tư thế (`mirrored`).
+- `whp_retarget.py`: `ankle_lift`, để nâng mắt cá.
+- `whp_clips.py`:
+  - `KNOCK`, `Builder.knockdown`;
+  - `Skin`: đo điểm thấp nhất theo phần người;
+  - thế khiên `lying`.
+- `whp_build.py`: `clips_of`, dòng log.
+- `whp_export.py`: `check_knockdown`.
+- `render_review.py`: `--knockdown`.
+- `art/README.md` (bảng clip, mục `knockdown`, lệnh, ảnh duyệt, bảng script), `art/CREDITS.md` (thêm hai clip của thư viện).
+
+Không có đề nghị thay đổi ngoài phạm vi.
+
+### Phần 2
+
+(Chưa làm: chờ người dùng duyệt phần 1.)

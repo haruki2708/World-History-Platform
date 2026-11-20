@@ -53,7 +53,7 @@ BASE = {
     "die": ("ual1", "Death01"),
 }
 LOOPS = {"idle": True, "walk": True, "run": True, "die": False, "attack": True, "jog": True,
-         "block": False, "hit": False}
+         "block": False, "hit": False, "knockdown": False}
 
 # Taking a blow hand to hand (batch G): two clips the scene lays over idle
 # when an enemy's blow lands on the man.
@@ -71,6 +71,44 @@ REACT = dict(frames=30, impact=9, stand=("ual1", "Idle_Loop"), flinch=("ual1", "
 # The models that fight at a distance (the scene's "skirmish") do not carry
 # them: their files stay as they were.
 THROWN = ("javelin-throw", "sling")
+
+# Bowled over by a horse (batch L, "Kỵ binh xông qua" in docs/ARCHITECTURE.md):
+# the scene lays this clip over what a man on foot is doing when a horse
+# riding through his body of men strikes him. Every model on foot carries it.
+#
+#     0 .. impact    he braces: hunches a little, the shield comes up
+#     impact         the horse strikes him (REACT["impact"], the scene's
+#                    REACTION_IMPACT), and he goes over backwards
+#                    (Hit_Knockback, UAL 2: flung up, his legs swept
+#                    from under him, flat on his back; `keys`)
+#     .. lie         he lies a moment
+#     lie ..         he rolls onto his right side, pushes himself up on his
+#                    right fist and stands (LayToIdle, UAL 2, seen in a
+#                    mirror: the library's man pushes on his left hand, where
+#                    ours holds the shield), the shield up in guard
+#     last `settle`  into the first pose of idle
+#
+# The scene turns the man to face the horse before it strikes, so he only
+# ever falls one way: backwards (+Y here, -Z in the model's file). The clip
+# starts and ends as idle does, does not loop and is at most
+# KNOCKDOWN_SECONDS (src/lib/battle.ts) long; nothing of him goes into the
+# ground (`lift`, Builder.knockdown).
+KNOCK = dict(
+    frames=105,                         # 3.5 s
+    impact=REACT["impact"],
+    stand=("ual1", "Idle_Loop"),
+    fall=("ual2", "Hit_Knockback"),
+    rise=("ual2", "LayToIdle"),
+    brace=0.15,                         # share of the fall clip's first pose (doubled up) he braces with
+    keys=((9, 3.0), (20, 10.0), (35, 25.0)),    # (frame, frame of the fall clip): on his back at frame 20
+    lie=52,                             # he starts to get up: the rise clip's first frame
+    settle=8,
+)
+# While he is down nothing of him goes lower than this, metres (the contract
+# allows 3 cm into the ground), by part (Skin); his boots go a little into
+# it already standing as in idle (1.7 cm: the soles flatten).
+KNOCK_GROUND = {"body": 0.0, "feet": -0.025, "left": 0.0, "right": 0.0}
+KNOCK_PASSES = 6
 
 # jog: a steady run of about 3 m/s, for a body of men keeping its order. The
 # library has a walk (1 m/s) and a fast run (5.8 m/s: long bounds, each foot
@@ -174,6 +212,9 @@ SHIELD_CARRY = {
     # Falling: the shield goes down with the chest and ends lying on him.
     "fall": dict(wrist=(0.21, -0.36, -0.30), down=(0.0, -0.12, -1.0), out=(0.26, -1.0, 0.0),
                  elbow=(1.0, 0.25, -0.5), follow=1.0),
+    # Lying on his back (knockdown): the board on his chest and belly, face up.
+    "lying": dict(wrist=(0.20, -0.22, -0.33), down=(0.0, -0.05, -1.0), out=(0.15, -1.0, 0.0),
+                  elbow=(1.0, 0.25, -0.5), follow=1.0),
     # Down on the ground with the chest still up: the board lies forwards
     # over the thighs instead of standing in the ground.
     "seated": dict(wrist=(0.22, -0.40, -0.10), down=(0.0, -0.8, -0.6), out=(0.2, -0.6, 0.8),
@@ -429,6 +470,69 @@ class Soles:
         return out
 
 
+LEG_ENDS = ("calf_l", "foot_l", "ball_l", "calf_r", "foot_r", "ball_r")
+
+
+class Skin:
+    """Every vertex of the meshes skinned to the rig that renders show,
+    with its four heaviest weights, skinned as the scene does (as Soles),
+    in groups by the bones it mostly follows: `lowest` gives the lowest
+    point of each in the poser's current pose."""
+
+    def __init__(self, armature):
+        import bpy
+
+        names = {b.name for b in armature.data.bones}
+        to_rig = armature.matrix_world.inverted()
+        points, rows, bones = [], [], {}
+        for obj in sorted(bpy.data.objects, key=lambda o: o.name):
+            if obj.type != "MESH" or obj.parent is not armature or obj.hide_render or not obj.vertex_groups:
+                continue
+            mesh = obj.data
+            co = np.empty(len(mesh.vertices) * 3)
+            mesh.vertices.foreach_get("co", co)
+            m = np.array(to_rig @ obj.matrix_world)
+            co = co.reshape(-1, 3) @ m[:3, :3].T + m[:3, 3]
+            group = {g.index: g.name for g in obj.vertex_groups}
+            for i, v in enumerate(mesh.vertices):
+                weights = sorted(((group.get(g.group), g.weight) for g in v.groups
+                                  if g.weight > 0.0 and group.get(g.group) in names), key=lambda bw: -bw[1])[:4]
+                total = sum(w for _b, w in weights)
+                if total <= 0.0:
+                    continue
+                points.append(co[i])
+                rows.append([(bones.setdefault(b, len(bones)), w / total) for b, w in weights])
+        self.bones = sorted(bones, key=bones.get)
+        self.rest = np.array(points)
+        self.weights = np.zeros((len(points), len(self.bones)))
+        for k, row in enumerate(rows):
+            for b, w in row:
+                self.weights[k, b] = w
+        def share(names):
+            return self.weights[:, [bones[b] for b in names if b in bones]].sum(axis=1)
+
+        feet = share(LEG_ENDS) >= 0.5
+        left = ~feet & (share(("hand_l", SPARE_BONE)) >= 0.5)
+        right = ~feet & ~left & (share(("hand_r", SLING_BONE)) >= 0.5)
+        self.groups = {"feet": feet, "left": left, "right": right, "body": ~(feet | left | right)}
+
+    def at(self, poser):
+        p = np.c_[self.rest, np.ones(len(self.rest))]
+        out = np.zeros((len(self.rest), 3))
+        for k, bone in enumerate(self.bones):
+            used = self.weights[:, k] > 0.0
+            skin = np.array(poser.matrix[bone] @ poser.rest[bone].inverted())
+            out[used] += self.weights[used, k:k + 1] * (p[used] @ skin[:3, :].T)
+        return out
+
+    def lowest(self, poser):
+        """Lowest point (metres) of each group: "feet" (and shins), "left"
+        (what the left hand holds: the shield, the hastatus's pila), "right"
+        (the weapon, the sling), "body" (the rest); None for an empty one."""
+        z = self.at(poser)[:, 2]
+        return {name: (float(z[mask].min()) if mask.any() else None) for name, mask in self.groups.items()}
+
+
 def planted(track, left):
     """What the scene reads off a gait clip played on the spot. `track`
     holds the sole vertices in every frame of a loop (frames, n, 3), `left`
@@ -520,6 +624,9 @@ class Builder:
         self.slips = {}             # clip -> worst slip of a planted foot (share of the ground's step) before
                                     # and after the lock, and the largest ankle shift it took (metres)
         self.lying_lift = 0.0       # how much "die" was lifted at the end
+        self.knock_lift = {}        # most "knockdown" raised each part (KNOCK_GROUND), and the lowest
+        self.knock_lowest = {}      # point each part then has (metres)
+        self._down = 0.0            # in knockdown: 0 while the library's man stands, 1 as he lies
         self._soles = None
         self.sling = None
         self.keyed, self.located, self.scaled = list(KEYED), ("pelvis",), ()
@@ -790,6 +897,150 @@ class Builder:
 
         return self.react("hit", 1.0, shield)
 
+    def knock_source(self, frame, spec=KNOCK):
+        """The library's pose at a frame of knockdown (see KNOCK): world
+        matrices of UAL 2's skeleton (UAL 1's is the same)."""
+        standing, stand = whp_ual.pack(spec["stand"][0]), spec["stand"][1]
+        pk, fall = whp_ual.pack(spec["fall"][0]), spec["fall"][1]
+        rise = spec["rise"][1]
+        impact, keys, lie = spec["impact"], spec["keys"], spec["lie"]
+
+        def braced(f):
+            return pk.mix(standing.local(stand, f), pk.local(fall, 0.0), spec["brace"] * smooth(f / impact))
+
+        if frame <= impact:
+            local = braced(frame)
+        elif frame < lie:
+            at = float(np.interp(frame, [k[0] for k in keys], [k[1] for k in keys]))
+            local = pk.mix(braced(impact), pk.local(fall, at), smooth((frame - impact) / 3.0))
+            down = keys[-1][0]
+            if frame > down:
+                local = pk.mix(local, pk.mirrored(pk.local(rise, 0.0)), smooth((frame - down) / (lie - down)))
+        else:
+            local = pk.mirrored(pk.local(rise, frame - lie))
+        end = spec["frames"] - spec["settle"]
+        if frame > end:
+            local = pk.mix(local, standing.local(stand, 0.0), smooth((frame - end) / spec["settle"]))
+        return pk.world(local)
+
+    def _knock_shield(self, frame, frames, spec=KNOCK):
+        """The shield in knockdown: up to meet the horse, driven back on
+        him, lying on his chest and belly while he is down, over his thighs
+        while he sits up (as in die), up in guard once he is on his feet,
+        as in idle at the end."""
+        carry = SHIELD_CARRY
+        impact, lie = spec["impact"], spec["lie"]
+        land = spec["keys"][1][0]
+        if frame <= impact - 2:
+            return blend_carry(carry["rest"], carry["block"], smooth(frame / (impact - 2)))
+        if frame <= impact:
+            return carry["block"]
+        if frame <= impact + 3:
+            return blend_carry(carry["block"], carry["jolt"], smooth((frame - impact) / 3.0))
+        shield = blend_carry(carry["jolt"], carry["fall"], smooth((frame - impact - 3) / (land - impact - 3)))
+        shield = blend_carry(shield, carry["lying"], smooth((frame - land + 4) / 8.0))
+        if frame >= land:
+            chest_up = max(0.0, (self.poser.turned("spine_03") @ Vector((0.0, 0.0, 1.0))).z)
+            shield = blend_carry(shield, carry["seated"], smooth(self._down * 3.0) * smooth((chest_up - 0.3) / 0.4))
+        if frame >= lie:
+            shield = blend_carry(shield, carry["guard"], smooth((0.6 - self._down) / 0.4))
+        end = frames - spec["settle"]
+        if frame > end:
+            shield = blend_carry(shield, carry["rest"], smooth((frame - end) / spec["settle"]))
+        return shield
+
+    def _knock_weapon(self, frame, frames):
+        """The weapon in knockdown: carried while he stands; lying level
+        in line with the forearm while he is down (it would go into the
+        ground, or stand up out of him, if it were carried)."""
+        p = self.p
+        self.arms.hold(self.kit.carry)
+        t = smooth((self._down - 0.15) / 0.5)
+        if t <= 0.0 or self.arms.weapon_axis is None:
+            return
+        before = p.matrix["hand_r"].to_3x3()
+        along = p.direction("lowerarm_r", "hand_r")
+        level = Vector((along.x, along.y, 0.0))
+        if level.length < 0.3:
+            ahead = p.turned("spine_03") @ Vector((0.0, -1.0, 0.0))
+            level = level + Vector((ahead.x, ahead.y, 0.0)) * (0.3 - level.length)
+        p.orient("hand_r", (self.arms.weapon_axis, self.arms.back_r), (level.normalized(), Vector((0.0, 0.0, 1.0))))
+        after = p.matrix["hand_r"].to_3x3()
+        p.set_rotation("hand_r", before.to_quaternion().slerp(after.to_quaternion(), t).to_matrix())
+        self.arms._twist("r")
+
+    def _raise_hand(self, side, height):
+        """Raise a wrist by `height` (IK, the elbow bending the way it
+        did), the hand keeping its turn."""
+        p = self.p
+        hand, lower, upper = f"hand_{side}", f"lowerarm_{side}", f"upperarm_{side}"
+        turn = p.matrix[hand].to_3x3()
+        p.limb(upper, lower, hand, p.head(hand) + Vector((0.0, 0.0, height)), p.head(lower) - p.head(upper))
+        p.set_rotation(hand, turn)
+        self.arms._twist(side)
+
+    def knockdown(self, spec=KNOCK):
+        """Bowled over by a horse, and up again (KNOCK). A man in armour
+        lies higher than the library's mannequin, and his shield is bigger
+        than anything the mannequin holds: the clip is posed a few times
+        over (KNOCK_PASSES), measuring the lowest point of each part of him
+        in each frame (Skin), and wherever one would go into the ground
+        that part is raised, smoothly from frame to frame: the body by the
+        hips, the feet and shins by the ankles, what a hand holds by the
+        wrist."""
+        rt = self.retarget(spec["fall"][0])
+        frames = spec["frames"]
+        sources = [self.knock_source(f, spec) for f in range(frames + 1)]
+        lift = {part: np.zeros(frames + 1) for part in KNOCK_GROUND}
+
+        def pose_at(frame):
+            source = sources[frame]
+            rt.hips_shift = np.array((0.0, 0.0, lift["body"][frame]))
+            rt.ankle_lift = lift["feet"][frame]
+            try:
+                rt.pose(source)
+            finally:
+                rt.hips_shift = rt.ankle_lift = None
+            self._down = 1.0 - rt.upright(source)
+            if self.kit.shield:
+                self.arms.shield(self._knock_shield(frame, frames, spec))
+            self._knock_weapon(frame, frames)
+            for side, part in (("l", "left"), ("r", "right")):
+                if lift[part][frame] > 0.0:
+                    self._raise_hand(side, lift[part][frame])
+            if self.sling is not None:
+                self.sling.hang(self.p.turned("spine_03") @ Vector((0.0, -1.0, 0.0)))
+            if self.kit.spare:
+                self.spare()
+
+        # None at the first and last frames, which are idle's.
+        taper = np.array([min(smooth(f / 3.0), smooth((frames - f) / 4.0)) for f in range(frames + 1)])
+        skin = Skin(self.armature)
+        for round_ in range(KNOCK_PASSES + 1):
+            lows = []
+            for frame in range(frames + 1):
+                pose_at(frame)
+                lows.append(skin.lowest(self.poser))
+            needs = {part: np.array([max(ground - low[part], 0.0) if low[part] is not None else 0.0 for low in lows])
+                     for part, ground in KNOCK_GROUND.items()}
+            low = {part for part, need in needs.items() if (need >= 0.003).any()}
+            if round_ == KNOCK_PASSES or not low:
+                break
+            # The body first: raising it raises what the hands hold.
+            for part in (low & {"body", "feet"}) or low:
+                need = needs[part]
+                need[need < 0.003] = 0.0
+                # Raised a little early and let down a little late.
+                wide = np.array([need[max(f - 3, 0):f + 4].max() for f in range(frames + 1)])
+                kernel = np.array((1.0, 2.0, 3.0, 2.0, 1.0)) / 9.0
+                lift[part] += np.maximum(np.convolve(np.pad(wide, 2, mode="edge"), kernel, mode="valid"), need) * taper
+        self.knock_lift = {part: float(v.max()) for part, v in lift.items()}
+        self.knock_lowest = {part: min((low[part] for low in lows if low[part] is not None), default=None)
+                             for part in KNOCK_GROUND}
+        self.knock_lows = lows
+        self.knock_lifts = lift
+        return self.clip("knockdown", frames, pose_at, loop=LOOPS["knockdown"])
+
     def build(self):
         actions = [
             self.base("idle", "rest"),
@@ -801,6 +1052,7 @@ class Builder:
         ]
         if self.kit.attack not in THROWN:
             actions += [self.block(), self.hit()]       # and so do the six before these two
+        actions.append(self.knockdown())                # and every clip before this one
         self.armature.animation_data.action = None
         return actions
 

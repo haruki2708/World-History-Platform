@@ -7,6 +7,7 @@
     blender ... --python art/blender/render_review.py -- --lineup [--cavalry]
     blender ... --python art/blender/render_review.py -- --model MODEL --jog NN-NAME.jpg
     blender ... --python art/blender/render_review.py -- --model MODEL --duel OTHER
+    blender ... --python art/blender/render_review.py -- --model MODEL --knockdown
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -22,6 +23,11 @@ a horse: the figures further apart, the clips seen from the side.
 
 --jog renders the run and the jog of a foot model one above the other (what
 the scene played at a steady pace before the jog clip, and what it plays now).
+
+--knockdown renders the clip knockdown of a foot model (bowled over by a horse,
+and up again) in two strips, from his right and from in front of him, each
+frame labelled with its second, the one where the horse strikes him framed:
+art/renders/<model>/knockdown.jpg.
 
 --duel renders two models (two on foot, or two horsemen) face to face, as far apart as the scene
 stands them when they fight hand to hand, around the moment a blow lands:
@@ -724,6 +730,91 @@ def duel_image(model, other):
 
 
 # --------------------------------------------------------------------------
+# Bowled over by a horse: the clip knockdown
+# --------------------------------------------------------------------------
+
+# Frames of knockdown shown (whp_clips.KNOCK): standing, the horse strikes
+# (REACT["impact"], marked), flung back, down, lying, sitting up, rolling
+# onto his right fist, kneeling, rising, in guard, as in idle.
+KNOCKDOWN_FRAMES = (0, 9, 13, 18, 36, 58, 66, 74, 84, 94, 105)
+MARK = (0.85, 0.22, 0.08)               # the frame the horse strikes him
+INK = (0.12, 0.12, 0.12)
+
+# A 5 x 7 bitmap font for the labels (seconds, with a decimal comma).
+GLYPHS = {
+    "0": ("01110", "10001", "10011", "10101", "11001", "10001", "01110"),
+    "1": ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
+    "2": ("01110", "10001", "00001", "00010", "00100", "01000", "11111"),
+    "3": ("11110", "00001", "00001", "01110", "00001", "00001", "11110"),
+    "4": ("00010", "00110", "01010", "10010", "11111", "00010", "00010"),
+    "5": ("11111", "10000", "11110", "00001", "00001", "10001", "01110"),
+    "6": ("00110", "01000", "10000", "11110", "10001", "10001", "01110"),
+    "7": ("11111", "00001", "00010", "00100", "01000", "01000", "01000"),
+    "8": ("01110", "10001", "10001", "01110", "10001", "10001", "01110"),
+    "9": ("01110", "10001", "10001", "01111", "00001", "00010", "01100"),
+    ",": ("00000", "00000", "00000", "00000", "01100", "00100", "01000"),
+    "s": ("00000", "00000", "01111", "10000", "01110", "00001", "11110"),
+    " ": ("00000",) * 7,
+}
+
+
+def write_label(pixels, text, color, scale=3, margin=10):
+    """Draw `text` into the top left corner of a panel (pixels as
+    render_panel gives them: rows from the bottom up)."""
+    h = pixels.shape[0]
+    x = margin
+    for ch in text:
+        for row, bits in enumerate(GLYPHS[ch]):
+            for col, bit in enumerate(bits):
+                if bit == "1":
+                    y = h - margin - (row + 1) * scale
+                    pixels[y:y + scale, x + col * scale:x + (col + 1) * scale, :3] = color
+        x += 6 * scale
+
+
+def frame_panel(pixels, color, width=5):
+    pixels[:width, :, :3] = color
+    pixels[-width:, :, :3] = color
+    pixels[:, :width, :3] = color
+    pixels[:, -width:, :3] = color
+
+
+def knockdown_image(model):
+    """The clip knockdown in two strips, every panel at the same scale:
+    seen from the man's right (the way he falls is to the left), and from
+    in front of him to his right, from above. Each panel is labelled with
+    its second; the one where the horse strikes him is framed. Into
+    art/renders/<model>/knockdown.jpg."""
+    reset_scene()
+    template = import_model(whp_build.glb_path(model))
+    scene = stage(290, 330, ground=True, samples=32)
+    impact = whp_clips.REACT["impact"]
+    views = (
+        (Vector((-1.0, 0.0, 0.0)), 4, (Vector((-0.9, -1.05, -0.05)), Vector((0.9, 1.55, 2.3)))),
+        (Vector((-0.75, -1.0, 0.0)), 24, (Vector((-1.0, -1.0, -0.05)), Vector((1.0, 1.5, 2.1)))),
+    )
+    rows = []
+    for direction, elevation, box in views:
+        row = []
+        for frame in KNOCKDOWN_FRAMES:
+            f = place(template)
+            play(f, "knockdown", frame)
+            scene.frame_set(FRAME)
+            aim_camera(scene, *box, direction, ortho=True, margin=1.0, elevation=elevation)
+            pixels = render_panel(scene)
+            seconds = f"{frame / whp_anim.FPS:.2f}".replace(".", ",") + " s"
+            write_label(pixels, seconds, MARK if frame == impact else INK)
+            if frame == impact:
+                frame_panel(pixels, MARK)
+            row.append(pixels)
+            clear_figures([template.armature, *template.meshes.values()])
+        rows.append(row)
+    path = os.path.join(RENDER_DIR, model, "knockdown.jpg")
+    save_panels(scene, rows, path)
+    log("knockdown:", path)
+
+
+# --------------------------------------------------------------------------
 # The library's other attacks, on a model's build file
 # --------------------------------------------------------------------------
 
@@ -866,6 +957,8 @@ def main():
     parser.add_argument("--jog", metavar="NN-NAME.jpg", help="a foot model's run and jog, into art/renders/<model>/")
     parser.add_argument("--duel", metavar="OTHER", choices=whp_build.unit_ids(),
                         help="the model and another one face to face around a blow, into art/renders/")
+    parser.add_argument("--knockdown", action="store_true",
+                        help="the clip knockdown in two strips, into art/renders/<model>/knockdown.jpg")
     parser.add_argument("--before", help="an older .glb of the model, to compare with (see --compare)")
     parser.add_argument("--compare", choices=sorted(COMPARE), help="what to show before and after")
     parser.add_argument("--out", help="file name of the comparison in art/renders/<model>/")
@@ -878,6 +971,8 @@ def main():
         jog_image(args.model, args.jog)
     elif args.duel:
         duel_image(args.model, args.duel)
+    elif args.knockdown:
+        knockdown_image(args.model)
     elif args.attack_styles:
         attack_styles(args.model)
     else:

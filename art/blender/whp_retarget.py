@@ -132,6 +132,10 @@ class Retargeter:
         # (whp_clips) takes some of the bounce out of its hips this way;
         # the legs' IK then bends the knees a little more or less.
         self.hips_shift = None
+        # A height (metres) added to both ankles in the next pose, or None:
+        # whp_clips raises the feet of a man on the ground this way, where
+        # they would go into it (Builder.knockdown).
+        self.ankle_lift = None
         # Forearm axes at rest, for the twist bones.
         self.forearm = {s: (t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) /
                         np.linalg.norm(t_head(f"hand_{s}") - t_head(f"lowerarm_{s}")) for s in ("l", "r")}
@@ -192,6 +196,8 @@ class Retargeter:
         ankle[2] = self.ankle_t + k * (ankle_s[2] - self.ankle_s) + lift
         if self.ankle_shift is not None:
             ankle[:2] += self.ankle_shift[side]
+        if self.ankle_lift is not None:
+            ankle[2] += self.ankle_lift
         line = ankle_s - hip_s
         line /= np.linalg.norm(line)
         pole = (knee_s - hip_s) - np.dot(knee_s - hip_s, line) * line
