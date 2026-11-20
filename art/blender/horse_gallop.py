@@ -387,9 +387,10 @@ LOCK_PASSES = 4
 # The source gaits whose planted hooves are locked. The trot's hooves slide
 # 7% on one diagonal and 88% for a frame where the diagonals change; locked,
 # they slip 1% and its stride stays 1.82 m, the hooves moved 5 cm at most.
-# The walk is left as it is: its hooves roll from heel to toe through the
+# The walk is not locked here: its hooves roll through the ends of each
 # stance, so locking the lowest point leaves the rest of the sole within the
 # scene's 2 cm still sliding (31%), and the stride the scene reads drops 8%.
+# Since T-058 horse_walk rebuilds those ends instead.
 LOCKED = ("trot",)
 
 
