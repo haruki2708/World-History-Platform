@@ -130,6 +130,8 @@ class Rider:
         self.carry = carry or {"default": SPEAR_UP, "run": SPEAR_FORWARD}
         self.shield_carry = shield_carry or RIDE_SHIELD
         self.lean = dict(LEAN, **(lean or {}))
+        # ridedown (batch L) leans as the run, without the bob: its horse holds one frame of the run.
+        self.lean["ridedown"] = (self.lean["run"][0], self.lean["run"][1], 0.0)
         self.thigh = thigh            # direction of the left thigh from the hip (the right one mirrored)
         self.calf = calf              # direction of the left shin from the knee
         self.foot = foot              # toes down and out, degrees
@@ -168,6 +170,19 @@ LEAN = {
     "hit": (0.0, 0.0, 0.0),
 }
 PELVIS_TILT = 8.0           # degrees the pelvis tips back from upright (seated on the seat bones)
+# The legs in the gaits (batch L, B3). With no stirrups (216 BCE) the lower
+# legs hang from the knees: as the horse's back is thrown up and falls away
+# they flap (back, the knees bending, while it is thrown up; forwards while
+# it falls), and at the walk they go with the barrel as it rolls from side
+# to side, one back as the other comes forwards; a little late on the
+# saddle. Before T-060 they were held still in the saddle's frame and
+# looked stiff.
+LEG_GAITS = ("walk", "jog", "run")
+LEG_FLAP = 0.8              # degrees back per m/s^2 the saddle rises with (smoothed over 3 frames)
+LEG_SWAY = 8.0              # degrees per degree of the saddle's roll, opposite on the two sides
+LEG_LAG = 2                 # frames the legs lag behind the saddle
+LEG_THIGH = 0.25            # share of the swing taken at the hip, the rest at the knee
+LEG_SWING_MAX = 12.0        # degrees
 SEAT_CLEAR = 0.004          # the seat of the breeches this far above the seat point
 SEATED_DEPTH = 0.30         # metres below the hips at rest: the seat, measured seated (RiderPoser._find_seated_height)
 
@@ -475,6 +490,7 @@ class RiderPoser:
         self.seat_z = None
         self.spare_ref = None
         self.strides = {}
+        self._pitches = {}
         self.meshes = [o for o in bpy.data.objects if o.type == "MESH" and o.parent is self.armature
                        and not o.hide_render and not o.name.startswith("horse")]
         self.shield_centre = None
@@ -552,6 +568,35 @@ class RiderPoser:
         log(f"seat (seated): {len(skin)} vertices of the seat; pelvis bone at {z:.3f} m (seat point {seat[2]:.3f} m)")
         p.reset()
         return z
+
+    def leg_swing(self, clip, f, horse_pose):
+        """Degrees each leg (left, right) swings back against the saddle at
+        frame f of a gait (LEG_GAITS): flapping with the saddle's rise and
+        swaying with its roll, LEG_LAG frames before."""
+        if clip not in LEG_GAITS:
+            return 0.0, 0.0
+        if clip not in self._pitches:
+            rest = np.array(self.saddle_rest)
+            frames = len(horse_pose[SADDLE]) - 1
+            z, roll = [], []
+            for k in range(frames):
+                m = np.array(horse_pose[SADDLE][k])
+                rel = m[:3, :3] @ rest[:3, :3].T
+                z.append(m[2, 3])
+                roll.append(math.degrees(math.atan2(-rel[2, 0], rel[0, 0])))
+            z, roll = np.array(z), np.array(roll)
+            rise = (np.roll(z, -1) - 2.0 * z + np.roll(z, 1)) * FPS * FPS
+            rise = (np.roll(rise, -1) + rise + np.roll(rise, 1)) / 3.0
+            flap = LEG_FLAP * rise
+            sway = LEG_SWAY * (roll - roll.mean())
+            self._pitches[clip] = (np.clip(flap + sway, -LEG_SWING_MAX, LEG_SWING_MAX),
+                                   np.clip(flap - sway, -LEG_SWING_MAX, LEG_SWING_MAX))
+            left, right = self._pitches[clip]
+            log(f"{clip}: the saddle rises {rise.min():+.1f}..{rise.max():+.1f} m/s^2 and rolls {roll.min():+.1f}..{roll.max():+.1f} "
+                f"degrees; the legs swing {left.min():+.1f}..{left.max():+.1f} degrees")
+        left, right = self._pitches[clip]
+        k = (f - LEG_LAG) % len(left)
+        return float(left[k]), float(right[k])
 
     def bend(self, degrees, axis="X"):
         """Turn the trunk about an axis through the spine, spread over the
@@ -640,6 +685,10 @@ class RiderPoser:
         carry_saddle = hm[SADDLE] @ self.saddle_rest.inverted()
         turn = carry_saddle.to_3x3()
         self.seat()
+        for side, swing in zip(("l", "r"), self.leg_swing(clip, f, horse_pose)):
+            if swing:
+                p.rotate(f"thigh_{side}", "X", swing * LEG_THIGH)
+                p.rotate(f"calf_{side}", "X", swing * (1.0 - LEG_THIGH))
         lean, keep, bob = self.rider.lean[clip]
         # The trunk takes back some of the saddle's turn (keeps nearer upright).
         if keep:
@@ -789,6 +838,84 @@ SLASH_KEYS = [(0.0, "carry"), (0.18, "raised"), (0.26, "raised"), (0.36, "level"
               (0.58, "down"), (1.0, "carry")]
 SLASH_TWIST = [(0.0, -4.0), (0.18, -20.0), (0.26, -22.0), (0.36, 14.0), (0.46, 18.0), (0.58, 14.0), (1.0, -4.0)]
 SLASH_LEAN = [(0.0, 0.0), (0.18, -4.0), (0.26, -5.0), (0.36, 14.0), (0.46, 15.0), (0.58, 10.0), (1.0, 0.0)]
+
+
+# Riding a man down (batch L, A2; docs/ARCHITECTURE.md, "Kỵ binh xông qua"):
+# the clip ridedown. At the gallop the rider strikes once at a man on foot
+# beside the horse on his weapon side (his right): from the run's carry he
+# lifts the weapon over his right shoulder, drives it down and out to his
+# right (the blow lands RIDEDOWN_IMPACT frames in), on through, and back to
+# the carry; his trunk turns and leans to the right with the blow, and he
+# looks down at the man. The scene plays the clip on the rider alone, the
+# horse galloping under him (src/lib/battle.ts); the horse of the clip holds
+# the frame of its run whose saddle is nearest the run's middle height, so
+# the man sits, on average, where he sits at the gallop.
+RIDEDOWN_FRAMES = 36        # RIDEDOWN_SECONDS (1.2 s) at 30 fps
+RIDEDOWN_IMPACT = 12        # RIDEDOWN_IMPACT (0.4 s)
+RIDE_FOLLOW = 0.35          # how much of the chest's turn the striking hand's frame takes (as _stroke)
+# Spear or javelin, overarm: the point down and out to the right, a little forwards.
+RIDE_THRUST = {
+    "raised": dict(wrist=(-0.30, 0.08, 0.28), elbow=(-1.0, 0.5, 0.25), aim=(-0.55, -0.35, -0.76), up=(-0.6, 0.2, 0.75)),
+    "strike": dict(wrist=(-0.58, -0.22, -0.16), elbow=(-1.0, 0.25, -0.1), aim=(-0.82, -0.25, -0.51), up=(-0.5, 0.0, 0.85)),
+    "through": dict(wrist=(-0.55, -0.02, -0.28), elbow=(-1.0, 0.35, -0.25), aim=(-0.80, 0.05, -0.60), up=(-0.55, 0.1, 0.8)),
+}
+# Long sword: raised over the right shoulder, cut down past the horse's right shoulder.
+RIDE_SLASH = {
+    "raised": dict(wrist=(-0.24, 0.06, 0.32), elbow=(-1.0, 0.2, 0.5), aim=(-0.30, 0.50, 0.81), up=(-1.0, 0.0, 0.1)),
+    "strike": dict(wrist=(-0.50, -0.30, -0.08), elbow=(-1.0, 0.3, -0.2), aim=(-0.60, -0.45, -0.66), up=(-0.8, 0.0, 0.5)),
+    "through": dict(wrist=(-0.46, -0.02, -0.30), elbow=(-1.0, 0.4, -0.45), aim=(-0.50, 0.40, -0.77), up=(-0.8, 0.1, 0.4)),
+}
+_RIDE_HIT = RIDEDOWN_IMPACT / RIDEDOWN_FRAMES
+RIDE_KEYS = [(0.0, "carry"), (0.20, "raised"), (_RIDE_HIT, "strike"), (0.45, "through"), (0.55, "through"), (1.0, "carry")]
+# The trunk, degrees: turned (Z, to his left), leaned forwards (X) and to his
+# left (Y); and the head turned (Z) and bowed (X) to look at the man.
+RIDE_TWIST = [(0.0, 0.0), (0.20, 10.0), (_RIDE_HIT, -16.0), (0.45, -18.0), (0.55, -14.0), (1.0, 0.0)]
+RIDE_LEAN = [(0.0, 0.0), (0.20, -3.0), (_RIDE_HIT, 10.0), (0.45, 12.0), (0.55, 9.0), (1.0, 0.0)]
+RIDE_SIDE = [(0.0, 0.0), (0.20, 2.0), (_RIDE_HIT, -18.0), (0.45, -20.0), (0.55, -15.0), (1.0, 0.0)]
+RIDE_LOOK = [(0.0, 0.0), (0.20, -6.0), (_RIDE_HIT, -14.0), (0.55, -12.0), (1.0, 0.0)]
+RIDE_BOW = [(0.0, 0.0), (0.20, 4.0), (_RIDE_HIT, 14.0), (0.55, 12.0), (1.0, 0.0)]
+
+
+def _still_gallop(mount, frames):
+    """The horse of ridedown: the frame of its run whose saddle is nearest
+    the run's middle height, held `frames` + 1 frames. Returns the pose,
+    that frame and the run's saddle heights."""
+    run = mount.clips[HORSE_CLIP["run"]]
+    z = np.array([run[SADDLE][k][2, 3] for k in range(len(run[SADDLE]) - 1)])
+    k = int(np.argmin(np.abs(z - z.mean())))
+    return {n: [run[n][k]] * (frames + 1) for n in mount.horse_names}, k, z
+
+
+def _ride_stroke(rider, table):
+    """The stroke of ridedown: returns (extra, right) for RiderPoser.clip.
+    It starts and ends at the run's carry, its hand's frame taking as much
+    of the chest's turn as the carry's does."""
+    carry = dict(rider.carry.get("run", rider.carry["default"]))
+    poses = {"carry": carry}
+    for name, pose in table.items():
+        poses[name] = dict(pose, follow=RIDE_FOLLOW)
+    keys = [(u, poses[name]) for u, name in RIDE_KEYS]
+
+    def extra(rp, f):
+        u = f / RIDEDOWN_FRAMES
+        twist, lean, side = _keyframes(RIDE_TWIST, u), _keyframes(RIDE_LEAN, u), _keyframes(RIDE_SIDE, u)
+        rp.bend(twist, "Z")
+        rp.bend(lean)
+        rp.bend(side, "Y")
+        rp.level_head(lean)
+        look, bow = _keyframes(RIDE_LOOK, u), _keyframes(RIDE_BOW, u)
+        rp.p.rotate("neck_01", "Z", -twist * 0.3 + look * 0.4)
+        rp.p.rotate("head", "Z", -twist * 0.3 + look * 0.6)
+        rp.p.rotate("neck_01", "X", bow * 0.5)
+        rp.p.rotate("head", "X", bow * 0.5)
+
+    def right(rp, f):
+        hand = _keyframes(keys, f / RIDEDOWN_FRAMES)
+        turn, origin = rp.arms.chest(hand["follow"])
+        rp.arms.hand("r", origin + turn @ Vector(hand["wrist"]), turn @ Vector(hand["elbow"]),
+                     turn @ Vector(hand["aim"]).normalized(), turn @ Vector(hand["up"]).normalized())
+
+    return extra, right
 
 
 def _stroke(table, keys, twist, lean, frames):
@@ -974,6 +1101,18 @@ def rider_death(rider, unit):
     return pose
 
 
+# The rider's fall (batch L, B3): he stays in the seat while the horse goes
+# down on its knees, is thrown off at THROWN towards the side it rolls to,
+# flies, and lands at LANDS. In the air his pelvis keeps its speed across
+# the ground and falls under gravity (rising a little first: he is thrown),
+# and he turns at an even rate from the seat to the way he will lie; his
+# limbs go from the seated pose to the foot soldier's fall from SHAPE_FROM.
+# Before T-060 he slid down to the ground along a straight line, slowing as
+# he got there.
+THROWN, LANDS, SHAPE_FROM = 18, 36, 12
+GRAVITY = 9.81
+
+
 def die_clip(rp, death):
     """The horse's die, the rider going down with it, thrown off towards
     the side it rolls onto (its right, -X) and lying beside it."""
@@ -984,11 +1123,11 @@ def die_clip(rp, death):
     order = names
     parents = {n: (rp.armature.data.bones[n].parent.name if rp.armature.data.bones[n].parent else None) for n in names}
     last = len(death["pelvis"]) - 1
-    start, end, lying = 12, 40, 46                     # the blend to the fall, and when he lies still
+    lying = 46                                          # when the foot soldier's fall has him lying still
     turn = Matrix.Rotation(math.radians(90.0), 4, "Z")    # faces the horse (+X), falls away from it (-X)
 
     def death_at(f):
-        t = 16.0 + (f - start) * (last - 16.0) / (lying - start)
+        t = 16.0 + (f - SHAPE_FROM) * (last - 16.0) / (lying - SHAPE_FROM)
         k = min(max(t, 0.0), float(last))
         i = int(math.floor(k))
         j = min(i + 1, last)
@@ -998,29 +1137,55 @@ def die_clip(rp, death):
     # Where he lies: beside the horse's back in its last frame, clear of it.
     place = _death_place(rp, death, turn, horse_pose)
     ground = Matrix.Translation(place) @ turn
+    flight = (LANDS - THROWN) / FPS
+    held = {}
 
     def pose(rp_, f):
         rp_.frame("die", f, horse_pose)
-        w = smooth((f - start) / (end - start))
+        p = rp_.p
+        if f == THROWN:
+            held["seat"] = p.matrix["pelvis"].copy()
+            held["lands"] = ground @ death_at(LANDS)["pelvis"]
+        w = smooth((f - SHAPE_FROM) / (LANDS - SHAPE_FROM))
         if w <= 0.0:
             return
-        p = rp_.p
         seated = {n: p.matrix[n].copy() for n in names}
         fallen = {n: ground @ mat for n, mat in death_at(f).items()}
+        if f <= THROWN:
+            root = seated["pelvis"]
+        elif f >= LANDS:
+            root = fallen["pelvis"]
+        else:
+            a, b = held["seat"], held["lands"]
+            u = (f - THROWN) / (LANDS - THROWN)
+            t = u * flight
+            z0, z1 = a.translation.z, b.translation.z
+            rise = (z1 - z0 + 0.5 * GRAVITY * flight * flight) / flight
+            root = _slerp_matrix(a, b, u)
+            root.translation.z = z0 + rise * t - 0.5 * GRAVITY * t * t
         for n in order:
             parent = parents[n]
             if n in ("ik_foot_root", "ik_hand_root"):
                 continue                # not keyed: they stay where Blender puts them, under the saddle
-            if n in RIDER_ROOTS or parent not in names:
+            if n == "pelvis":
+                p.matrix[n] = root
+            elif n in RIDER_ROOTS or parent not in names:
                 p.matrix[n] = _slerp_matrix(seated[n], fallen[n], w)
             else:
                 a = seated[parent].inverted() @ seated[n]
                 b = fallen[parent].inverted() @ fallen[n]
                 p.matrix[n] = p.matrix[parent] @ _slerp_matrix(a, b, w)
         if rp_.rider.shield == "forearm":
-            _spare_falls(rp_, f, seated, w)
+            # On the forearm until he lands, then flat on the ground beside the hand.
+            _spare_falls(rp_, f, seated, 0.55 + 0.45 * min(max((f - LANDS + 3) / 9.0, 0.0), 1.0))
 
-    return rp.clip("die", horse_pose, frames=frames, loop=False, pose=pose)
+    action = rp.clip("die", horse_pose, frames=frames, loop=False, pose=pose)
+    a, b = held["seat"], held["lands"]
+    rise = (b.translation.z - a.translation.z + 0.5 * GRAVITY * flight * flight) / flight
+    log(f"die: thrown at frame {THROWN} from {a.translation.z:.2f} m, lands at frame {LANDS} {b.translation.z:.2f} m up "
+        f"and {(b.translation.xy - a.translation.xy).length:.2f} m away; rising at {rise:.2f} m/s as he leaves, "
+        f"at most {max(0.0, rise) ** 2 / (2 * GRAVITY) * 100:.0f} cm")
+    return action
 
 
 def _death_place(rp, death, turn, horse_pose):
@@ -1091,8 +1256,10 @@ def _spare_falls(rp, f, seated, w):
 # is left inside the legs (smoothing carries some of it in), SKIRT_OUTSIDE;
 # each skirt lies SKIRT_LAYER further out than the one under it. The new
 # places go back to the standing man through each vertex's own blend of
-# bone matrices. Behind the rider the skirt is left as it hangs and follows
-# the pelvis instead, down over the horse's back.
+# bone matrices. Behind the rider the skirt follows the pelvis instead,
+# down over the horse's back; since T-060 it is drawn in towards him there
+# too (SKIRT_NARROW), the more the lower: left as it hung standing, it stood
+# out round his seat like a lampshade, wider than his hips.
 #
 # The shift is kept as an attribute (DRAPE) and the cloth moved only once
 # the atlas is baked (apply_drape): taken back to the standing man the
@@ -1106,6 +1273,7 @@ SKIRT_OUTSIDE = 0.008       # metres: the least the cloth below the hip stays of
 SKIRT_LAYER = 0.012         # metres: each skirt further out than the one under it
 SKIRT_DROP = (0.01, 0.15)   # below the hip joints: from no change to all of it
 SKIRT_SMOOTH = 30           # passes of smoothing the shift over the mesh's edges
+SKIRT_NARROW = 0.55         # behind him: what is left, at the hem, of the skirt's reach out sideways from his middle
 SKIRT_PUSH_SMOOTH = 10      # and of the push out of the legs,
 SKIRT_PUSH_ROUNDS = 4       # this many times over
 DRAPE = "whp_drape"         # point attribute: the shift of each vertex at rest
@@ -1194,6 +1362,9 @@ def drape_skirts(armature, skirts=SKIRTS, legs="New_legs"):
         # neighbours drawn to different points of the legs would fold the cloth.
         clear = SKIRT_CLEAR + layer * SKIRT_LAYER
         shift = np.zeros_like(co)
+        # Behind him: drawn in sideways towards his middle, the more the lower.
+        middle = armature.pose.bones["pelvis"].head.x
+        shift[:, 0] = (posed[:, 0] - middle) * (SKIRT_NARROW - 1.0) * below * behind
         for i, b in enumerate(below * (1.0 - behind)):
             if b <= 0.0:
                 continue
@@ -1202,7 +1373,7 @@ def drape_skirts(armature, skirts=SKIRTS, legs="New_legs"):
             if hit is None or distance <= clear:
                 continue
             target = hit + (p - hit).normalized() * (clear + (distance - clear) * SKIRT_KEEP)
-            shift[i] = (np.array(target) - posed[i]) * b
+            shift[i] = shift[i] + (np.array(target) - posed[i] - shift[i]) * b
         edges = np.array([e.vertices for e in mesh.edges])
         shift = _smooth_over(shift, edges, SKIRT_SMOOTH)
         shift *= np.minimum(below * 4.0, 1.0)[:, None]          # nothing above the hip
@@ -1324,6 +1495,12 @@ def stage_anim(unit):
         extra, left, toss = _reaction(unit.RIDER, name)
         actions.append(rp.clip(name, _stance(m, frames, toss=toss), extra=extra, left=left, frames=frames,
                                loop=whp_clips.LOOPS[name]))
+    # Last again (batch L): riding a man down. The first eight come out as they did without it.
+    still, held, heights = _still_gallop(m, RIDEDOWN_FRAMES)
+    extra, right = _ride_stroke(unit.RIDER, RIDE_SLASH if unit.RIDER.attack == "sword-slash" else RIDE_THRUST)
+    actions.append(rp.clip("ridedown", still, extra=extra, right=right, frames=RIDEDOWN_FRAMES, loop=False))
+    log(f"ridedown: the horse holds frame {held} of its run (saddle {heights[held]:.3f} m; "
+        f"the run's from {heights.min():.3f} to {heights.max():.3f} m)")
     for action in actions:
         log(f"clip {action.name}: {int(action.frame_end)} frames at {FPS} fps")
     rider.animation_data.action = None

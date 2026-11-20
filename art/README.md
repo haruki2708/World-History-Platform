@@ -80,6 +80,9 @@ $blender = "D:\Tools\Blender\5.2.2\blender.exe"
 # Clip knockdown (bị ngựa xô ngã rồi gượng dậy) thành hai dải: art/renders/<id>/knockdown.jpg
 & $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --model roman-legionary --knockdown
 
+# Clip ridedown của kỵ binh (đánh xuống người đi bộ lúc phi ngang) thành hai dải: art/renders/<id>/ridedown.jpg
+& $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --model roman-cavalry --ridedown
+
 # Tám mô hình bộ binh đứng thành hàng: art/renders/infantry-lineup.jpg
 & $blender --background --factory-startup --disable-autoexec --python art/blender/render_review.py -- --lineup
 
@@ -363,6 +366,7 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `14-test-poses.jpg` | Tư thế thử khung xương: giơ tay, bước dài, cúi người. |
 | `16-foot-slip-before-after.jpg` | Biểu đồ (T-024, `art/tools/gait_check.py`): độ trượt của chân trụ trong từng khung `walk` và `run`, trước (nét đứt) và sau khi khoá chân. |
 | `knockdown.jpg` | Clip `knockdown` (T-057): mười một khung từ 0 tới 3,50 s, nhìn từ bên phải và chếch từ trước; khung 0,30 s (ngựa chạm) viền đỏ. Tám mô hình bộ binh đều có ảnh này trong thư mục của mình. |
+| `ridedown.jpg` | Clip `ridedown` (T-060): mười một khung từ 0 tới 1,20 s, nhìn từ trước (bên phải người cưỡi ở bên trái ảnh) và chếch từ trước bên phải, từ trên cao; một hastatus đứng ở chỗ người bị đánh; khung 0,40 s (đòn chạm) viền đỏ. Con ngựa giữ một khung của `run` như trong clip; trong cảnh ngựa vẫn phi. Bốn mô hình kỵ binh đều có ảnh này. |
 
 ### `art/renders/roman-hastatus/`
 
@@ -690,12 +694,17 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
   - không có bàn đạp (chưa có vào năm 216 TCN).
 
   Log ghi bao nhiêu đỉnh của chân lọt vào trong thân ngựa ở `idle` khung 0: 12 trên 6 722 đỉnh, sâu nhất 1 mm.
-- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo vào đùi ở đúng chỗ đùi nằm khi người ngồi (clip `idle`, khung 0): dưới hông, phần cách chân quá 1,2 cm chỉ giữ lại 5%; độ dời làm mượt dọc các cạnh của lưới để vải không gấp; sau đó không đỉnh nào nằm trong chân (cách da tối thiểu 8 mm, vì làm mượt kéo một ít vào trong); lớp giáp lưới nằm ngoài lớp áo thêm 1,2 cm. Vị trí mới đổi ngược về tư thế đứng qua ma trận skin của từng đỉnh, nên các clip khác (người vẫn ngồi) cũng thấy vạt áo rủ theo đùi. Độ dời được giữ thành thuộc tính `whp_drape` và chỉ áp vào LOD0, LOD1 của người cưỡi sau khi bake atlas (`apply_drape`): đổi ngược về tư thế đứng, mặt vải không còn trơn ở chỗ đỉnh pha trộn giữa đùi và hông, tia bake xuyên qua tới mặt trong và để lại các tam giác xám trên vạt áo. Đẩy vải ra khỏi chân cũng được làm mượt qua các đỉnh kề (4 lượt), vì đẩy từng đỉnh thì mặt vải lổn nhổn. Kéo ở tư thế đứng (bản đầu của T-047) gần như không đổi gì khi ngồi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi.
+- **Áo** (T-047, `whp_cavalry.drape_skirts`): ở tư thế gốc người đứng, vạt áo xoè ra từ hông; khi ngồi, đùi gập lên kéo vạt áo theo và phần xoè chìa ngang ra hai bên. Vì vậy vạt áo (và vạt giáp lưới của kỵ binh La Mã) được kéo vào đùi ở đúng chỗ đùi nằm khi người ngồi (clip `idle`, khung 0): dưới hông, phần cách chân quá 1,2 cm chỉ giữ lại 5%; độ dời làm mượt dọc các cạnh của lưới để vải không gấp; sau đó không đỉnh nào nằm trong chân (cách da tối thiểu 8 mm, vì làm mượt kéo một ít vào trong); lớp giáp lưới nằm ngoài lớp áo thêm 1,2 cm. Vị trí mới đổi ngược về tư thế đứng qua ma trận skin của từng đỉnh, nên các clip khác (người vẫn ngồi) cũng thấy vạt áo rủ theo đùi. Độ dời được giữ thành thuộc tính `whp_drape` và chỉ áp vào LOD0, LOD1 của người cưỡi sau khi bake atlas (`apply_drape`): đổi ngược về tư thế đứng, mặt vải không còn trơn ở chỗ đỉnh pha trộn giữa đùi và hông, tia bake xuyên qua tới mặt trong và để lại các tam giác xám trên vạt áo. Đẩy vải ra khỏi chân cũng được làm mượt qua các đỉnh kề (4 lượt), vì đẩy từng đỉnh thì mặt vải lổn nhổn. Kéo ở tư thế đứng (bản đầu của T-047) gần như không đổi gì khi ngồi. Vạt sau giữ nguyên hình và đi theo hông, rủ thẳng xuống lưng ngựa. Làm sau khi dựng xong các clip, nên clip không đổi. **Từ T-060, phía sau người** vạt áo cũng được kéo vào phía giữa người theo chiều ngang, càng xuống thấp càng nhiều: ở gấu chỉ còn 55% độ chìa ngang (`SKIRT_NARROW`). Trước đó phần sau giữ dáng lúc đứng và loe ra quanh chỗ ngồi như cái chụp đèn, rộng hơn hông (rõ nhất ở áo trắng của kỵ binh Iberia).
 - **Thân theo nhịp ngựa** (`LEAN`):
   - mỗi clip một độ ngả ra trước: `walk` 2°, `jog` 4°, `run` 13°;
   - thân lấy lại một phần độ xoay của xương yên để giữ gần thẳng đứng: `walk` 50%, `jog` 70%, `run` 60%;
   - thân gập thêm theo độ lên xuống của yên, trễ một khung. Ngồi nước kiệu, không nhổm (chưa có bàn đạp);
   - đầu ngẩng lại một phần để mắt nhìn ngang.
+- **Chân theo nhịp ngựa** (T-060, `LEG_*`, `RiderPoser.leg_swing`): không có bàn đạp, cẳng chân buông từ đầu gối, nên trong `walk`, `jog`, `run` chân đung đưa theo lưng ngựa thay vì đứng yên trong khung của yên:
+  - khi lưng ngựa bị hất lên, cẳng chân lùi về sau (đầu gối gập thêm); khi lưng hạ xuống, chân đưa ra trước: 0,8° cho mỗi m/s² gia tốc lên xuống của yên (làm mượt qua ba khung);
+  - khi đi bước, lưng ngựa lắc ngang ±0,5°: hai chân đung đưa ngược nhau, 8° cho mỗi độ lắc;
+  - trễ hai khung so với yên; một phần tư độ đung đưa ở hông, ba phần tư ở đầu gối; tối đa 12°;
+  - biên độ: `walk` khoảng ±4°, `jog` từ −6° tới +4°, `run` từ −12° tới +7°.
 - **Tay trái cầm cương** (La Mã, Iberia/Gaul): mỗi khung, nắm tay trái được giải IK tới giữa hai đầu dây cương của lane 2. Đầu dây đi theo cổ ngựa, nên dây cương luôn nằm trong nắm tay.
 - **Tay phải mang vũ khí:**
   - giáo dựng chếch ra trước khi đứng, đi, chạy chậm (`SPEAR_UP`);
@@ -710,13 +719,14 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 | Clip | Ngựa | Người | Độ dài |
 |---|---|---|---|
 | `idle` | `idle` của ngựa | ngồi, thở, quay đầu nhìn sang trái rồi trở lại | 4,967 s (149 khung) |
-| `walk` | `walk` | ngồi, đung đưa theo ngựa | 1,667 s (50 khung) |
-| `jog` | `trot` (nước kiệu) | ngồi nước kiệu, thân đỡ nhịp | 0,833 s (25 khung) |
-| `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo (kiếm) chĩa ra trước | 0,433 s (13 khung) |
+| `walk` | `walk` (dựng lại hai đầu mỗi lần chạm đất ở T-058) | ngồi, đung đưa theo ngựa; hai chân đung đưa ngược nhau theo lưng ngựa lắc ngang (T-060) | 1,667 s (50 khung) |
+| `jog` | `trot` (nước kiệu) | ngồi nước kiệu, thân đỡ nhịp; cẳng chân nảy theo nhịp (T-060) | 0,833 s (25 khung) |
+| `run` | `run` (phi, dựng lại ở T-030) | ngả ra trước, giáo (kiếm) chĩa ra trước; cẳng chân đung đưa theo nhịp phi (T-060) | 0,433 s (13 khung) |
 | `attack` | đứng bốn chân (tư thế gốc của ngựa), thở và gật đầu theo nhịp đánh | đâm giáo qua vai, phóng lao, hoặc chém kiếm (Gaul) | 1,0 s (30 khung) hoặc 1,333 s (40 khung) |
-| `die` | `die` của ngựa | ngã theo ngựa, rồi văng khỏi lưng, nằm yên | 1,967 s (59 khung), không lặp |
+| `die` | `die` của ngựa | ngã theo ngựa, bị hất khỏi lưng ở khung 18, bay rồi chạm đất ở khung 36 (T-060), nằm yên | 1,967 s (59 khung), không lặp |
 | `block` | đứng bốn chân như `attack`, hất đầu nhẹ lúc đòn chạm | đưa khiên ra trước người đỡ đòn, khiên bị dội lại, rồi ngồi lại như cũ | 1,0 s (30 khung), không lặp |
 | `hit` | đứng bốn chân như `attack`, hất đầu lúc đòn chạm | bật ngửa và xoay người trên lưng ngựa, đầu gục tới, rồi ngồi lại | 1,0 s (30 khung), không lặp |
+| `ridedown` | giữ một khung của `run` (khung có yên cao gần bằng độ cao giữa của cả clip) | đánh xuống người đi bộ bên phải ngựa, một lần, rồi về thế cầm vũ khí lúc phi (T-060) | 1,2 s (36 khung), không lặp; đòn chạm ở khung 12 |
 
 - **Đâm giáo** (La Mã, Iberia/Gaul):
   - giáo giơ trên vai phải, chĩa ra trước và xuống; kéo về sau, đâm tới qua bên phải đầu ngựa, giữ một nhịp, rồi về;
@@ -726,10 +736,17 @@ Có `HORSE` thì `whp_build` gọi giai đoạn `anim` và `lod` của `whp_cava
 - **Chém kiếm** (Gaul, T-050, `SLASH`, kiểu `sword-slash`, 1,333 s): từ tư thế cầm kiếm dựng chếch ra ngoài bên phải (`SWORD_UP`), giơ kiếm qua vai phải, lưỡi chĩa lên và ra sau (khung 7–10); chém tới qua bên phải đầu ngựa, vươn xa nhất khi lưỡi kiếm gần nằm ngang (khung 15, 0,500 s: cảnh lấy lúc này làm lúc đòn chạm); bổ xuống bên phải cổ ngựa (khung 18–23), rồi về. Thân xoay 22° ra sau rồi 18° ra trước, ngả tới 15° lúc chém. Khi phi, kiếm chĩa lên và ra trước, lệch sang phải để không chạm tai ngựa (`SWORD_FORWARD`).
 - **Ngã:**
   - ngựa khuỵu gối rồi lăn sang sườn phải (−X);
-  - từ khung 12 tới khung 40, người được trộn dần từ tư thế ngồi trên yên sang cú ngã ngửa `Death01` của thư viện (từng xương: góc quay theo xương cha; xương gốc theo vị trí trong không gian);
+  - từ khung 12 tới khung 36, dáng người (góc các xương theo xương cha) được trộn dần từ tư thế ngồi trên yên sang cú ngã ngửa `Death01` của thư viện;
   - cú ngã ấy đặt trên mặt đất phía ngựa lăn sang, mặt hướng về ngựa: người văng qua lưng ngựa và ngã ngửa ra xa nó. Chỗ nằm tính từ khung cuối: phía người gần ngựa cách thân ngựa 6 cm;
+  - **đường bay** (T-060, `THROWN`, `LANDS`): người ngồi trên yên tới khung 18 (ngựa đã khuỵu gối), rồi bị hất khỏi yên; xương chậu đi đều theo chiều ngang tới chỗ nằm, và rơi theo trọng lực (9,81 m/s²), lúc rời yên còn bay lên một chút (khoảng 4–5 cm, tốc độ đi lên khoảng 1 m/s); người xoay đều từ thế ngồi sang thế nằm; chạm đất ở khung 36. Trước T-060, người trượt theo đường thẳng từ yên xuống đất từ khung 12 tới 40, chậm dần lúc gần đất, như lơ lửng;
   - từ khung 46 người nằm yên;
-  - khiên đeo cẳng tay đi theo tay rồi nằm phẳng xuống đất cạnh tay trái; giáo nằm ngang.
+  - khiên đeo cẳng tay đi theo tay tới lúc người chạm đất, rồi nằm phẳng xuống đất cạnh tay trái (T-060: trước đó khiên rơi xuống trước người); giáo nằm ngang.
+- **Đánh xuống lúc phi ngang** (`ridedown`, đợt L, T-060; hợp đồng: `docs/ARCHITECTURE.md`, mục "Kỵ binh xông qua"):
+  - người cưỡi từ thế cầm vũ khí lúc phi (`Rider.carry["run"]`) giơ vũ khí qua vai phải (khung 7), đánh xuống và ra phía phải (đòn chạm ở khung 12, 0,4 s), đi tiếp qua (tới khung 20), rồi về thế cầm lúc phi ở khung 36;
+  - giáo của người La Mã và Iberia, lao của người Numidia: đâm chếch xuống ra ngoài (`RIDE_THRUST`), mũi giáo tới chỗ một người đứng cách đường giữa ngựa khoảng 1,25 m; kiếm dài của người Gaul: chém chéo xuống (`RIDE_SLASH`);
+  - thân xoay sang phải 16°, nghiêng sang phải 18°, chồm tới 10°; đầu quay sang phải và cúi xuống nhìn người bị đánh;
+  - con ngựa trong clip giữ một khung của `run` (`_still_gallop`: khung có yên gần độ cao giữa của cả clip, 1,346 m), vì cảnh chỉ phát clip này trên người cưỡi, ngựa vẫn phi theo `run` bên dưới; người cưỡi ngả ra trước như trong `run`;
+  - thêm sau mọi clip cũ, nên tám clip trước không đổi vì nó.
 - **Đỡ đòn và trúng đòn** (đợt G, `_reaction`, cùng hợp đồng với bộ binh: `whp_clips.REACT`, đòn chạm ở khung 9):
   - `block`, người đeo khiên ở cẳng tay (La Mã, Iberia/Gaul): tay trái rời dây cương, cẳng tay đưa ngang trước ngực cho mặt khiên quay ra trước (`SHIELD_UP`); thân xoay bên khiên về phía đòn 14°, chồm tới 6°. Đòn chạm thì khiên bị dội về ngực, thân bật ngửa 5°; nửa sau clip tay trở lại dây cương. Dây cương là lưới của ngựa nên vẫn nằm ở cổ ngựa lúc tay rời ra;
   - `block`, người cầm khiên trong tay (Numidia): đẩy khiên ra trước rồi bị dội lại, như lính bộ binh (`RIDE_SHIELD_REACT`);

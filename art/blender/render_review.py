@@ -8,6 +8,7 @@
     blender ... --python art/blender/render_review.py -- --model MODEL --jog NN-NAME.jpg
     blender ... --python art/blender/render_review.py -- --model MODEL --duel OTHER
     blender ... --python art/blender/render_review.py -- --model MODEL --knockdown
+    blender ... --python art/blender/render_review.py -- --model MODEL --ridedown
 
 Writes JPEGs of at most 400 KB to art/renders/<model>/, numbered in the
 order of the unit module's REVIEW list. Everything is rendered from
@@ -28,6 +29,13 @@ the scene played at a steady pace before the jog clip, and what it plays now).
 and up again) in two strips, from his right and from in front of him, each
 frame labelled with its second, the one where the horse strikes him framed:
 art/renders/<model>/knockdown.jpg.
+
+--ridedown renders the clip ridedown of a cavalry model (the rider strikes
+down at a man on foot as he rides by) in two strips, from in front of him
+and from in front of him to his right, from above, a hastatus standing where
+the man would be; each frame labelled with its second, the blow framed:
+art/renders/<model>/ridedown.jpg. (The horse holds one frame of its run, as
+the clip has it: the scene keeps the horse galloping under the rider.)
 
 --duel renders two models (two on foot, or two horsemen) face to face, as far apart as the scene
 stands them when they fight hand to hand, around the moment a blow lands:
@@ -53,6 +61,7 @@ from mathutils import Vector  # noqa: E402
 
 import whp_anim  # noqa: E402
 import whp_build  # noqa: E402
+import whp_cavalry  # noqa: E402
 import whp_clips  # noqa: E402
 import whp_skeleton  # noqa: E402
 from whp_common import BUILD_DIR, MODELS_DIR, RENDER_DIR, log, open_blend, reset_scene, script_args, world_bounds  # noqa: E402
@@ -814,6 +823,49 @@ def knockdown_image(model):
     log("knockdown:", path)
 
 
+RIDEDOWN_FRAMES = (0, 4, 7, 10, 12, 14, 17, 21, 26, 31, 36)
+RIDEDOWN_MAN = ((-1.25, -0.45, 0.0), 90.0)    # where the man on foot stands, turned to face the horse
+
+
+def ridedown_image(model):
+    """The clip ridedown in two strips, every panel at the same scale: seen
+    from in front of him (his weapon side, his right, on the left), and from
+    in front of him to his right, from above; a hastatus stands where the man
+    he strikes at would.
+    Each panel is labelled with its second; the blow is framed. Into
+    art/renders/<model>/ridedown.jpg."""
+    reset_scene()
+    template = import_model(whp_build.glb_path(model))
+    man = import_model(whp_build.glb_path("roman-hastatus"))
+    scene = stage(300, 330, ground=True, samples=32)
+    impact = whp_cavalry.RIDEDOWN_IMPACT
+    views = (
+        (Vector((-0.2, -1.0, 0.0)), 5, (Vector((-1.75, -1.9, -0.05)), Vector((0.75, 1.3, 2.8)))),
+        (Vector((-0.75, -1.0, 0.0)), 24, (Vector((-1.75, -1.9, -0.05)), Vector((0.75, 1.3, 2.6)))),
+    )
+    rows = []
+    for direction, elevation, box in views:
+        row = []
+        for frame in RIDEDOWN_FRAMES:
+            f = place(template)
+            play(f, "ridedown", frame)
+            m = place(man, *RIDEDOWN_MAN)
+            play(m, "idle", 0)
+            scene.frame_set(FRAME)
+            aim_camera(scene, *box, direction, ortho=True, margin=1.0, elevation=elevation)
+            pixels = render_panel(scene)
+            seconds = f"{frame / whp_anim.FPS:.2f}".replace(".", ",") + " s"
+            write_label(pixels, seconds, MARK if frame == impact else INK)
+            if frame == impact:
+                frame_panel(pixels, MARK)
+            row.append(pixels)
+            clear_figures([template.armature, *template.meshes.values(), man.armature, *man.meshes.values()])
+        rows.append(row)
+    path = os.path.join(RENDER_DIR, model, "ridedown.jpg")
+    save_panels(scene, rows, path)
+    log("ridedown:", path)
+
+
 # --------------------------------------------------------------------------
 # The library's other attacks, on a model's build file
 # --------------------------------------------------------------------------
@@ -959,6 +1011,8 @@ def main():
                         help="the model and another one face to face around a blow, into art/renders/")
     parser.add_argument("--knockdown", action="store_true",
                         help="the clip knockdown in two strips, into art/renders/<model>/knockdown.jpg")
+    parser.add_argument("--ridedown", action="store_true",
+                        help="the clip ridedown in two strips, into art/renders/<model>/ridedown.jpg")
     parser.add_argument("--before", help="an older .glb of the model, to compare with (see --compare)")
     parser.add_argument("--compare", choices=sorted(COMPARE), help="what to show before and after")
     parser.add_argument("--out", help="file name of the comparison in art/renders/<model>/")
@@ -973,6 +1027,8 @@ def main():
         duel_image(args.model, args.duel)
     elif args.knockdown:
         knockdown_image(args.model)
+    elif args.ridedown:
+        ridedown_image(args.model)
     elif args.attack_styles:
         attack_styles(args.model)
     else:
