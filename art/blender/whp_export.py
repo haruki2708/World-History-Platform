@@ -297,11 +297,25 @@ def _pose_bounds(armature, mesh, clip, frame):
 
 # The clip knockdown (whp_clips.KNOCK, docs/ARCHITECTURE.md "Mô hình lính"),
 # checked on LOD0 at every frame: no longer than `seconds`; nothing more
-# than `ground` into the ground; nothing further than `reach` from where he
-# stands (the scene keeps the figure in place); the first and the last
-# frame within `same` of idle's first (he starts and ends standing as in
-# idle, his feet where they were).
+# than `ground` into the ground; nothing of his body further than `reach`
+# from where he stands (the scene keeps the figure in place; what his hands
+# hold, a spear or the hastatus's pila lying beyond his head, is measured
+# and logged, not held to it); the first and the last frame within `same`
+# of idle's first (he starts and ends standing as in idle, his feet where
+# they were).
 KNOCKDOWN_CHECK = dict(seconds=4.0, ground=-0.03, reach=1.5, same=0.005)
+HELD = ("hand_l", "hand_r", "ik_hand_l", "ik_hand_gun")     # bones of what the hands hold (and the fists)
+
+
+def _held(mesh):
+    """Which vertices of a mesh mostly follow HELD (their weights there sum to half or more)."""
+    names = {g.index: g.name for g in mesh.vertex_groups}
+    held = np.zeros(len(mesh.data.vertices), dtype=bool)
+    for i, v in enumerate(mesh.data.vertices):
+        total = sum(g.weight for g in v.groups)
+        share = sum(g.weight for g in v.groups if names.get(g.group) in HELD)
+        held[i] = total > 0.0 and share >= 0.5 * total
+    return held
 
 
 def check_knockdown(armature, mesh, limits=KNOCKDOWN_CHECK):
@@ -311,22 +325,26 @@ def check_knockdown(armature, mesh, limits=KNOCKDOWN_CHECK):
     problems = []
     last = int(round(bpy.data.actions["knockdown"].frame_range[1]))
     seconds = last / bpy.context.scene.render.fps
-    lows, reach = [], []
+    held = _held(mesh)
+    lows, reach, held_reach = [], [], []
     for frame in range(last + 1):
         co = _posed(armature, mesh, "knockdown", frame)
         lows.append(float(co[:, 2].min()))
-        reach.append(float(np.hypot(co[:, 0], co[:, 1]).max()))
+        far = np.hypot(co[:, 0], co[:, 1])
+        reach.append(float(far[~held].max()))
+        held_reach.append(float(far[held].max()) if held.any() else 0.0)
     idle = _posed(armature, mesh, "idle", 0)
     ends = [float(np.linalg.norm(_posed(armature, mesh, "knockdown", f) - idle, axis=1).max()) for f in (0, last)]
     low = int(np.argmin(lows))
-    log(f"  knockdown: {seconds:.2f} s, lowest {lows[low]:.3f} m (frame {low}), reaches {max(reach):.2f} m "
-        f"from where he stands; first and last frame {ends[0] * 1000:.1f} and {ends[1] * 1000:.1f} mm from idle's first")
+    log(f"  knockdown: {seconds:.2f} s, lowest {lows[low]:.3f} m (frame {low}); his body reaches {max(reach):.2f} m "
+        f"from where he stands, what he holds {max(held_reach):.2f} m; first and last frame "
+        f"{ends[0] * 1000:.1f} and {ends[1] * 1000:.1f} mm from idle's first")
     if seconds > limits["seconds"] + 1e-6:
         problems.append(f"knockdown lasts {seconds:.2f} s, over {limits['seconds']} s")
     if lows[low] < limits["ground"]:
         problems.append(f"knockdown frame {low}: lowest point {lows[low]:.3f} m, below {limits['ground']} m")
     if max(reach) > limits["reach"]:
-        problems.append(f"knockdown reaches {max(reach):.2f} m from where he stands, over {limits['reach']} m")
+        problems.append(f"knockdown: his body reaches {max(reach):.2f} m from where he stands, over {limits['reach']} m")
     if max(ends) > limits["same"]:
         problems.append(f"knockdown does not start and end as idle's first frame ({max(ends) * 1000:.1f} mm off)")
     return problems

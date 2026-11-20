@@ -177,9 +177,12 @@ Mọi mô hình đi qua cùng sáu giai đoạn (`whp_build.py`). Mỗi giai đo
 
 - **Soi gương** (`whp_ual.Pack.mirrored`): người của thư viện chống tay trái để dậy, mà tay trái lính ta cầm khiên. Tư thế được lật qua mặt phẳng giữa người (đổi trái và phải, mỗi xương lấy góc xoay so với tư thế nghỉ của xương đối xứng), rồi mới đổi đích như mọi clip. Các tư thế của nhiều clip được ghép ở dạng biến đổi cục bộ (`Pack.local`, `Pack.mix`, `Pack.world`); hai bản của thư viện cùng một khung xương nên ghép được với nhau.
 - **Không chìm xuống đất** (`whp_clips.Skin`, `KNOCK_GROUND`): người mặc giáp nằm cao hơn hình nộm, khiên to hơn mọi thứ hình nộm cầm. Clip được dựng thử nhiều lượt; mỗi lượt đo điểm thấp nhất của bốn phần (thân; bàn chân và ống chân; thứ tay trái cầm; thứ tay phải cầm), chia theo xương mà đỉnh đi theo, skin bằng numpy như cảnh. Phần nào thấp hơn mặt đất thì được nâng lên ở khung đó, mượt qua các khung kề: thân bằng hông (`Retargeter.hips_shift`), chân bằng mắt cá (`Retargeter.ankle_lift`, mới ở T-057), khiên và vũ khí bằng cổ tay (IK, bàn tay giữ hướng). Nâng thân trước, vì nâng thân là nâng luôn hai tay. Không nâng ở khung đầu và khung cuối. Với `roman-legionary`: thân nâng tối đa 14 cm khi nằm, khiên 16 cm khi quỳ dậy, chân 5 cm, tay phải 2 cm.
-- **Vũ khí**: cầm như khi đứng; khi người đã xuống thấp thì nằm ngang theo cẳng tay (như `die`), để không cắm xuống đất hay dựng đứng khỏi người nằm.
+- **Vũ khí** (`Builder._knock_weapon`): cầm như khi đứng; khi người đã xuống thấp thì nằm ngang theo cẳng tay (như `die`), để không cắm xuống đất hay dựng đứng khỏi người nằm.
+  - Giáo dài của triarii (`SPEAR_CARRY`, `lie_flat`): cánh tay chỉ bị giải IK về thế cầm giáo đứng khi người đã đứng lên; lúc nằm và lúc chống tay dậy, cánh tay là của thư viện. Giáo nằm ngang dọc bên phải người, chĩa về phía chân và chếch ra ngoài, giữ một hướng dù cẳng tay xoay (theo cẳng tay thì ngọn giáo 2,4 m quét vòng qua chân), rồi dựng dần lên phía trước bên phải khi đứng dậy.
+  - Hai cây *pilum* của hastatus ở nguyên trong tay trái suốt clip (`knockdown` không nằm trong `SPARE_GONE`).
+- **Dây ném** (`Builder._knock_sling`, `balearic-slinger`): túi đá rủ từ nắm tay khi người còn đứng; khi đã xuống thấp thì văng sang bên phải người, không rủ thẳng xuống xuyên qua ngực, rồi nằm dọc mặt đất bên cạnh (`SlingCord.place`). Không có khiên: tay trái là của thư viện (lúc dậy chống lên gối).
 - **Không có chuyển động gốc**: hông của `Hit_Knockback` chỉ lùi 0,23 m; nằm thì đầu cách chỗ đứng 0,77 m, mọi điểm của người trong vòng 1,40 m.
-- **Kiểm tra** (`whp_export.check_knockdown`, khi đọc lại file đã xuất, trên LOD0 ở mọi khung): dài tối đa 4 s; không điểm nào thấp hơn −3 cm; không điểm nào xa chỗ đứng quá 1,5 m; khung đầu và khung cuối lệch khung đầu của `idle` dưới 5 mm. Số đo của từng mô hình ghi trong log của bước kiểm tra.
+- **Kiểm tra** (`whp_export.check_knockdown`, khi đọc lại file đã xuất, trên LOD0 ở mọi khung): dài tối đa 4 s; không điểm nào thấp hơn −3 cm; không điểm nào của thân xa chỗ đứng quá 1,5 m; khung đầu và khung cuối lệch khung đầu của `idle` dưới 5 mm. Thứ hai tay cầm (đỉnh đi theo `hand_l`, `hand_r`, `ik_hand_l`, `ik_hand_gun`) được đo và ghi riêng, không xét ngưỡng 1,5 m: *pilum* nằm quá đầu tới khoảng 1,6 m, giáo của triarii nằm dọc người. Số đo của từng mô hình ghi trong log của bước kiểm tra và trong mục "Kết quả" của T-057.
 - Dựng sau mọi clip khác, nên các clip trước giống hệt từng byte. File nặng thêm khoảng 60 KB.
 - Ảnh duyệt: `render_review.py -- --model <id> --knockdown`, ra `art/renders/<id>/knockdown.jpg`: một dải nhìn từ bên phải người lính (anh ta ngã về bên trái ảnh), một dải nhìn chếch từ trước bên phải và từ trên xuống; mỗi khung ghi giây; khung 0,30 s (ngựa chạm) có viền đỏ.
 
@@ -359,7 +362,7 @@ Tất cả render từ file `.glb` đã xuất, tức đúng thứ cảnh 3D nh�
 | `13-compare-source.jpg` | Mô hình gốc 07 như khi tải về; mô hình mới ở tư thế gốc; mô hình mới đứng. |
 | `14-test-poses.jpg` | Tư thế thử khung xương: giơ tay, bước dài, cúi người. |
 | `16-foot-slip-before-after.jpg` | Biểu đồ (T-024, `art/tools/gait_check.py`): độ trượt của chân trụ trong từng khung `walk` và `run`, trước (nét đứt) và sau khi khoá chân. |
-| `knockdown.jpg` | Clip `knockdown` (T-057): mười một khung từ 0 tới 3,50 s, nhìn từ bên phải và chếch từ trước; khung 0,30 s (ngựa chạm) viền đỏ. |
+| `knockdown.jpg` | Clip `knockdown` (T-057): mười một khung từ 0 tới 3,50 s, nhìn từ bên phải và chếch từ trước; khung 0,30 s (ngựa chạm) viền đỏ. Tám mô hình bộ binh đều có ảnh này trong thư mục của mình. |
 
 ### `art/renders/roman-hastatus/`
 

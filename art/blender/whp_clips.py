@@ -952,22 +952,59 @@ class Builder:
     def _knock_weapon(self, frame, frames):
         """The weapon in knockdown: carried while he stands; lying level
         in line with the forearm while he is down (it would go into the
-        ground, or stand up out of him, if it were carried)."""
+        ground, or stand up out of him, if it were carried). A carry that
+        puts the wrist somewhere (a long spear held upright: SPEAR_CARRY)
+        does so only as he stands: down, the arm is the library's, pushing
+        on the ground."""
         p = self.p
-        self.arms.hold(self.kit.carry)
+        carry = self.kit.carry
         t = smooth((self._down - 0.15) / 0.5)
+        if "wrist" in carry and self.arms.weapon_axis is not None:
+            if t < 1.0:
+                turn, origin = self.arms.chest(carry["follow"])
+                shoulder = p.head("upperarm_r")
+                wrist = p.head("hand_r").lerp(origin + turn @ _vec(carry["wrist"]), 1.0 - t)
+                elbow = (p.head("lowerarm_r") - shoulder).lerp(turn @ _vec(carry["elbow"]), 1.0 - t)
+                self.arms.hand("r", wrist, elbow, turn @ _vec(carry["aim"]).normalized(),
+                               turn @ _vec(carry["up"]).normalized())
+        else:
+            self.arms.hold(carry)
         if t <= 0.0 or self.arms.weapon_axis is None:
             return
         before = p.matrix["hand_r"].to_3x3()
-        along = p.direction("lowerarm_r", "hand_r")
-        level = Vector((along.x, along.y, 0.0))
-        if level.length < 0.3:
-            ahead = p.turned("spine_03") @ Vector((0.0, -1.0, 0.0))
-            level = level + Vector((ahead.x, ahead.y, 0.0)) * (0.3 - level.length)
+        if self.kit.lie_flat:
+            # A long spear: lying along his right side towards his feet (and
+            # forwards as he gets up), whichever way the forearm turns, or it
+            # would sweep round through his legs.
+            level = Vector((-0.35, -1.0, 0.0))
+        else:
+            along = p.direction("lowerarm_r", "hand_r")
+            level = Vector((along.x, along.y, 0.0))
+            if level.length < 0.3:
+                ahead = p.turned("spine_03") @ Vector((0.0, -1.0, 0.0))
+                level = level + Vector((ahead.x, ahead.y, 0.0)) * (0.3 - level.length)
         p.orient("hand_r", (self.arms.weapon_axis, self.arms.back_r), (level.normalized(), Vector((0.0, 0.0, 1.0))))
         after = p.matrix["hand_r"].to_3x3()
         p.set_rotation("hand_r", before.to_quaternion().slerp(after.to_quaternion(), t).to_matrix())
         self.arms._twist("r")
+
+    def _knock_sling(self):
+        """The pouch of the sling (SlingCord) hangs from the fist while he
+        stands; while he is down it falls away to his right side, not
+        straight down through his chest, and lies along the ground beside
+        him."""
+        turn = self.p.turned("spine_03")
+        ahead = turn @ Vector((0.0, -1.0, 0.0))
+        t = smooth((self._down - 0.1) / 0.4)
+        if t <= 0.0:
+            self.sling.hang(ahead)
+            return
+        right = turn @ Vector((-1.0, 0.0, 0.0))
+        down = Vector((0.0, 0.0, -1.0))
+        side = Vector((right.x, right.y, 0.0))
+        side = side.normalized() if side.length > 1e-6 else right
+        hang = (down * 0.98 + ahead * 0.2).normalized()
+        self.sling.place(slerp_direction(hang, (side + down * 0.5).normalized(), t))
 
     def _raise_hand(self, side, height):
         """Raise a wrist by `height` (IK, the elbow bending the way it
@@ -1009,7 +1046,7 @@ class Builder:
                 if lift[part][frame] > 0.0:
                     self._raise_hand(side, lift[part][frame])
             if self.sling is not None:
-                self.sling.hang(self.p.turned("spine_03") @ Vector((0.0, -1.0, 0.0)))
+                self._knock_sling()
             if self.kit.spare:
                 self.spare()
 
