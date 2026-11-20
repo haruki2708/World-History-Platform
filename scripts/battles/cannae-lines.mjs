@@ -357,7 +357,8 @@ const STATES = {
     "allied-infantry-front": ["fight", 500],
     principes: ["fight", 500],
     "allied-infantry-rear": ["fight", 600],
-    triarii: ["fight", 300],
+    // The triarii face only Hasdrubal's horse, which rides through them (T-059): they stand.
+    triarii: ["stand", 300],
     "roman-velites": ["stand", 3300],
     "allied-light-infantry": ["stand", 3300],
     "gauls-left": ["advance", 4000],
@@ -367,9 +368,10 @@ const STATES = {
     "gauls-right": ["advance", 4000],
     "libyans-left": ["fight", 3750],
     "libyans-right": ["fight", 3750],
-    // 80 more against the triarii, by length of front (a third and two thirds).
-    "iberian-cavalry": ["fight", 1960],
-    "gallic-cavalry": ["fight", 3880],
+    // Polybius 3.116: repeated charges on the rear of the legions, so they ride
+    // through the triarii (T-059). 80 more fall, by length of front (a third and two thirds).
+    "iberian-cavalry": ["overrun", 1960],
+    "gallic-cavalry": ["overrun", 3880],
     // Polybius 3.117: Hannibal kills two thousand of them.
     "camp-force": ["retreat", 7400],
     "camp-guard": ["pursue", 6700],

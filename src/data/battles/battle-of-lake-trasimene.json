@@ -480,7 +480,7 @@
         "vi": "Trời vừa hửng sáng, đoàn quân La Mã đã hành quân dọc hồ, không cho trinh sát đi trước. Đầu đoàn đã qua lối hẹp dưới núi Gualandro và đang băng qua đồng bằng về phía đồi Tuoro, nơi trại của Hannibal cùng lính Libya và Iberia đứng lộ rõ. Sương mù dày phủ mặt hồ và đồng bằng, nên không ai thấy quân Gaul, kỵ binh và lính nhẹ đang chờ trong các nếp đồi xung quanh. Đến sáu giờ, đầu đoàn tới chân đồi, còn cuối đoàn vẫn ở trong lối hẹp."
       },
       "endHour": 6,
-      "playSeconds": 25,
+      "playSeconds": 34,
       "units": [
         {
           "unit": "extraordinarii",
@@ -693,7 +693,7 @@
         "vi": "Hannibal ra hiệu, và mọi toán phục binh cùng lúc lao xuống từ các ngọn đồi. Quân Gaul và kỵ binh Gaul đánh vào sườn trái đoàn quân, lính Iberia đánh vào phần đầu, còn lính nhẹ từ sau đồi Tuoro tràn ra chặn đường về phía đông; sau lưng đoàn quân, kỵ binh Numidia và Iberia phi xuống bịt lối hẹp. Quân La Mã nghe tiếng hò hét trước khi kịp thấy ai, và mỗi khối quay về phía tiếng động ngay tại chỗ, vẫn trong đội hình hành quân. Ở đầu đoàn, toán tiền quân đã giáp lá cà với lính Libya."
       },
       "endHour": 6.25,
-      "playSeconds": 20,
+      "playSeconds": 37,
       "units": [
         {
           "unit": "extraordinarii",
@@ -823,7 +823,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 751, "y": -301 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 715, "y": -390 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "charge",
           "men": 3200
         },
@@ -847,7 +847,7 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 604, "y": -581 }, "frontage": 310, "depth": 52, "facing": 115.6 },
+          "formation": { "center": { "x": 525, "y": -649 }, "frontage": 120, "depth": 134, "facing": 115.6 },
           "action": "charge",
           "men": 4000
         },
@@ -878,7 +878,7 @@
       ],
       "arrows": [
         { "side": "carthage", "points": [{ "x": 850, "y": 1080 }, { "x": 900, "y": 90 }] },
-        { "side": "carthage", "points": [{ "x": -150, "y": 690 }, { "x": 540, "y": -520 }] },
+        { "side": "carthage", "points": [{ "x": -150, "y": 690 }, { "x": 447, "y": -611 }] },
         { "side": "carthage", "points": [{ "x": -380, "y": 270 }, { "x": 340, "y": -760 }] },
         { "side": "carthage", "points": [{ "x": -1240, "y": -1010 }, { "x": -1070, "y": -1370 }] },
         { "side": "carthage", "points": [{ "x": 1870, "y": 1100 }, { "x": 1600, "y": 110 }] }
@@ -951,7 +951,7 @@
         {
           "unit": "velites-2",
           "formation": { "center": { "x": 620, "y": -694 }, "frontage": 120, "depth": 16, "facing": 295.6 },
-          "action": "fight",
+          "action": "stand",
           "men": 840
         },
         {
@@ -1022,7 +1022,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 778, "y": -314 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 742, "y": -403 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "fight",
           "men": 3080
         },
@@ -1046,8 +1046,8 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 631, "y": -594 }, "frontage": 310, "depth": 52, "facing": 115.6 },
-          "action": "fight",
+          "formation": { "center": { "x": 552, "y": -662 }, "frontage": 120, "depth": 134, "facing": 115.6 },
+          "action": "overrun",
           "men": 3920
         },
         {
@@ -1144,7 +1144,7 @@
         {
           "unit": "velites-2",
           "formation": { "center": { "x": 647, "y": -707 }, "frontage": 120, "depth": 16, "facing": 295.6 },
-          "action": "fight",
+          "action": "stand",
           "men": 504
         },
         {
@@ -1215,7 +1215,7 @@
         },
         {
           "unit": "gauls-2",
-          "formation": { "center": { "x": 805, "y": -327 }, "frontage": 240, "depth": 28, "facing": 115.6 },
+          "formation": { "center": { "x": 769, "y": -416 }, "frontage": 430, "depth": 16, "facing": 115.6 },
           "action": "fight",
           "men": 2980
         },
@@ -1239,8 +1239,8 @@
         },
         {
           "unit": "gallic-cavalry",
-          "formation": { "center": { "x": 658, "y": -607 }, "frontage": 310, "depth": 52, "facing": 115.6 },
-          "action": "fight",
+          "formation": { "center": { "x": 579, "y": -675 }, "frontage": 120, "depth": 134, "facing": 115.6 },
+          "action": "overrun",
           "men": 3820
         },
         {
@@ -1280,7 +1280,7 @@
         "vi": "Quân La Mã tan vỡ và bỏ chạy, nhiều người chạy về phía duy nhất còn trống là mặt hồ. Họ lội qua chỗ nước nông của bờ đầm, tới khi nước ngập tới cổ, tới vai; có người cố bơi khi còn mặc giáp và chết đuối. Kỵ binh phi xuống nước đuổi theo, và những người giơ tay xin tha vẫn bị chém. Trong lối hẹp, toán đi cuối bị dồn xuống hồ. Trên đồi, sáu nghìn người của toán đầu dừng lại trên chỗ đất cao, qua màn sương vẫn chưa thấy gì."
       },
       "endHour": 9.75,
-      "playSeconds": 20,
+      "playSeconds": 34,
       "units": [
         {
           "unit": "extraordinarii",
@@ -1477,7 +1477,7 @@
         "vi": "Gần mười giờ, nắng làm tan sương. Từ trên cao, sáu nghìn người thấy đạo quân đã bị tiêu diệt bên dưới và rút về một làng Etruria gần đó, còn Hannibal làm chủ chiến trường: khoảng mười lăm nghìn người La Mã nằm lại, và hàng nghìn người khác bị bắt. Hôm sau quân của Maharbal vây làng, và sáu nghìn người nộp vũ khí với lời hứa được tha mạng. Hannibal đáp rằng Maharbal không có quyền hứa như vậy: theo Polybius, ông giữ người La Mã làm tù binh và cho các đồng minh người Ý về nhà, còn theo Livy thì tất cả đều bị xiềng."
       },
       "endHour": 10.5,
-      "playSeconds": 15,
+      "playSeconds": 26,
       "units": [
         {
           "unit": "extraordinarii",

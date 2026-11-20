@@ -271,7 +271,7 @@
     },
     {
       "unit": "camp-force",
-      "formation": { "center": { "x": -1600, "y": 975 }, "frontage": 140, "depth": 110, "facing": 180 },
+      "formation": { "center": { "x": -1600, "y": 680 }, "frontage": 140, "depth": 110, "facing": 237 },
       "action": "stand",
       "men": 10000
     },
@@ -359,11 +359,11 @@
       "id": "deployment",
       "title": { "en": "The armies deploy", "vi": "Hai bên dàn trận" },
       "narration": {
-        "en": "Just after sunrise the consul Varro, in command that day, leads the army from the large camp across the Aufidus and joins it to the troops of the small camp. The line faces south, with the Roman horse against the river on the right and the allied horse on the open left. Hannibal crosses at two places and forms opposite, facing north, then pushes the middle of his Gauls and Iberians forward into a crescent. Ten thousand Romans stay behind in the large camp and form up outside its gate, ready to fall on his camp, where he has left a guard.",
-        "vi": "Ngay sau khi mặt trời mọc, chấp chính quan Varro, người cầm quân hôm ấy, dẫn đạo quân từ trại lớn vượt sông Aufidus và nhập với quân của trại nhỏ. Chiến tuyến quay mặt về phía nam, kỵ binh La Mã tựa vào sông ở cánh phải, kỵ binh đồng minh ở cánh trái trống trải. Hannibal vượt sông ở hai chỗ, dàn quân đối diện, mặt quay về phía bắc, rồi đẩy phần giữa của lính Gaul và Iberia lên trước thành hình lưỡi liềm. Mười nghìn lính La Mã ở lại trại lớn, kéo ra dàn hàng trước cổng trại, chờ đánh vào trại của ông, nơi ông để lại một toán quân canh giữ."
+        "en": "Just after sunrise the consul Varro, in command that day, leads the army from the large camp across the Aufidus and joins it to the troops of the small camp. The line faces south, with the Roman horse against the river on the right and the allied horse on the open left. Hannibal crosses at two places and forms opposite, facing north, then pushes the middle of his Gauls and Iberians forward into a crescent. Ten thousand Romans stay behind at the large camp. While the armies form up, they march from its gate towards his camp, where he has left a guard, to fall on it once the fighting begins.",
+        "vi": "Ngay sau khi mặt trời mọc, chấp chính quan Varro, người cầm quân hôm ấy, dẫn đạo quân từ trại lớn vượt sông Aufidus và nhập với quân của trại nhỏ. Chiến tuyến quay mặt về phía nam, kỵ binh La Mã tựa vào sông ở cánh phải, kỵ binh đồng minh ở cánh trái trống trải. Hannibal vượt sông ở hai chỗ, dàn quân đối diện, mặt quay về phía bắc, rồi đẩy phần giữa của lính Gaul và Iberia lên trước thành hình lưỡi liềm. Mười nghìn lính La Mã ở lại trại lớn. Trong lúc hai bên dàn trận, họ từ cổng trại tiến về phía trại của ông, nơi ông để lại một toán quân canh giữ, để đánh vào đó khi trận bắt đầu."
       },
       "endHour": 8,
-      "playSeconds": 25,
+      "playSeconds": 45,
       "units": [
         {
           "unit": "roman-cavalry",
@@ -421,7 +421,7 @@
         },
         {
           "unit": "camp-force",
-          "formation": { "center": { "x": -1600, "y": 680 }, "frontage": 140, "depth": 110, "facing": 225 },
+          "formation": { "center": { "x": -2964.4, "y": -205 }, "frontage": 140, "depth": 110, "facing": 237 },
           "action": "advance",
           "men": 10000
         },
@@ -506,6 +506,7 @@
       ],
       "arrows": [
         { "side": "rome", "points": [{ "x": -1540, "y": 790 }, { "x": -1110, "y": 380 }] },
+        { "side": "rome", "points": [{ "x": -1659, "y": 642 }, { "x": -2889, "y": -156 }] },
         { "side": "rome", "points": [{ "x": -525, "y": 1000 }, { "x": -375, "y": 420 }] },
         { "side": "rome", "points": [{ "x": 255, "y": 860 }, { "x": 370, "y": 420 }] },
         { "side": "rome", "points": [{ "x": 930, "y": 1020 }, { "x": 1080, "y": 370 }] },
@@ -670,7 +671,7 @@
         { "side": "carthage", "points": [{ "x": 400, "y": -50 }, { "x": 400, "y": -5 }] },
         { "side": "rome", "points": [{ "x": -1050, "y": 290 }, { "x": -1075, "y": 125 }] },
         { "side": "carthage", "points": [{ "x": -1150, "y": -220 }, { "x": -1100, "y": -20 }] },
-        { "side": "rome", "points": [{ "x": -1667, "y": 636 }, { "x": -3318, "y": -435 }] }
+        { "side": "rome", "points": [{ "x": -3023, "y": -243 }, { "x": -3318, "y": -435 }] }
       ]
     },
     {
@@ -1152,7 +1153,7 @@
         "vi": "Kỵ binh của Hasdrubal liên tục xung phong vào lưng quân La Mã, và vòng vây khép kín. Bị dồn chặt đến mức nhiều người không thể vung vũ khí, quân La Mã chống cự chừng nào các hàng ngoài còn đứng vững, rồi bị giết ngay tại chỗ. Paullus tử trận trong cuộc tàn sát, cùng với hai chấp chính quan của năm trước; Varro thoát được cùng một nhóm nhỏ kỵ sĩ. Hannibal cũng kéo về giải vây cho trại của mình. Toán quân La Mã bị đánh lui về trại của họ, mất hai nghìn người; số còn lại về sau bị bắt làm tù binh."
       },
       "endHour": 17,
-      "playSeconds": 30,
+      "playSeconds": 39,
       "units": [
         {
           "unit": "roman-cavalry",
@@ -1187,7 +1188,7 @@
         {
           "unit": "triarii",
           "formation": { "center": { "x": -60, "y": -208.9 }, "frontage": 413.9, "depth": 40, "facing": 0 },
-          "action": "fight",
+          "action": "stand",
           "men": 300
         },
         {
@@ -1229,13 +1230,13 @@
         {
           "unit": "iberian-cavalry",
           "formation": { "center": { "x": -197.6, "y": -157.4 }, "frontage": 134.6, "depth": 60, "facing": 180 },
-          "action": "fight",
+          "action": "overrun",
           "men": 1960
         },
         {
           "unit": "gallic-cavalry",
           "formation": { "center": { "x": 9.3, "y": -157.4 }, "frontage": 271.2, "depth": 60, "facing": 180 },
-          "action": "fight",
+          "action": "overrun",
           "men": 3880
         },
         {
