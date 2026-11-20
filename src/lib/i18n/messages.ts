@@ -51,7 +51,7 @@ const en = {
   "about.accuracy.battle.figures":
     "each figure stands for {men} men, and the figures are drawn larger than life;",
   "about.accuracy.battle.duels":
-    "the men who fight in pairs, the press of the ranks behind them and the javelins thrown over the front rank show what hand-to-hand fighting was like; they are not a record of who fought whom, or of what the rear ranks did;",
+    "the melee where the lines break up and men fight in pairs, the press of the ranks behind them and the javelins thrown over the front rank show what hand-to-hand fighting was like; they are not a record of who fought whom, of how long the lines kept their order, or of what the rear ranks did;",
   "about.accuracy.battle.time": "each battle lasted many hours, but plays in a few minutes;",
   "about.accuracy.battle.pulses":
     "the fighting is shown without a pause; in a real battle the lines probably fought in short bursts and drew apart to rest in between;",
@@ -337,7 +337,7 @@ const vi: Record<MessageKey, string> = {
   "about.accuracy.battle.figures":
     "mỗi hình lính tượng trưng cho {men} người, và hình lính được vẽ to hơn thật;",
   "about.accuracy.battle.duels":
-    "các cặp lính đấu với nhau, cảnh chen lấn ở các hàng sau và những cây lao ném qua đầu hàng trước là minh hoạ cho cảnh giáp lá cà, không phải ghi chép ai đánh với ai hay hàng sau đã làm gì;",
+    "cảnh hỗn chiến khi hàng lối vỡ ra và lính đấu từng cặp, cảnh chen lấn ở các hàng sau và những cây lao ném qua đầu hàng trước là minh hoạ cho cảnh giáp lá cà, không phải ghi chép ai đánh với ai, hàng lối giữ được bao lâu hay hàng sau đã làm gì;",
   "about.accuracy.battle.time": "mỗi trận thật kéo dài nhiều giờ, nhưng chỉ được phát trong vài phút;",
   "about.accuracy.battle.pulses":
     "cảnh vẽ hai bên đánh liên tục; trong trận thật, nhiều khả năng hai tuyến đánh theo từng đợt ngắn, giữa các đợt thì lùi ra nghỉ;",
