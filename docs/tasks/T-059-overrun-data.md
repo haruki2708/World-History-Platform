@@ -226,3 +226,14 @@ Bốn commit trên cùng nhánh, sau khi gộp `main` (`23b172e`): `57d3254` (5a
 
 **e)** `npm run validate` (không cảnh báo), `npm run lint`, `npm run build`: qua.
 
+### Mục 6 (phiên chính làm thay lane 2, 2026-11-20)
+
+Người dùng giao phiên chính làm luôn việc của lane 1 và lane 2 ở lượt này. Nhánh `batch-l/T-059-s6` từ `main`.
+
+- `playSeconds`: Cannae giai đoạn 6 39 → 60 (cả trận 169 → 190 giây), Trasimene giai đoạn 5 34 → 45 (181 → 192 giây). Không đổi gì khác.
+- `main-tools/gait/slide.mjs` (`run=2.2 runHorse=1.5`): chân trượt hơn 5% còn 0,0% thời gian di chuyển ở Cannae (trước 1,8%), 0,6% ở Trasimene (trước 1,0%). `camp-force` và `allied-right-rear` không còn trong danh sách trượt; còn `extraordinarii` ở Trasimene giai đoạn 4, trượt tối đa 6%.
+- `main-tools/overrun/check.mjs` cho Cannae: người cưỡi chạy 6,5–6,8 vòng ở giai đoạn 6, bước lớn nhất 31 m/s; cả 195 triarii chết vẫn ngã lúc có ngựa trong vòng 4,5 m. Phần tính trước lúc nạp trận 437 ms thay vì 372 ms.
+- `main-tools/melee/falls.mjs` cho Cannae: 94% người ngã có đòn chạm đúng lúc (trước 91%).
+- `cannae.md` mục 19 và `trasimene.md` mục 13: bảng thời lượng, tốc độ, phần mới ở cuối mục; dòng "Còn lại" về `knockdown` sửa lại vì T-057 đã gộp.
+- `npm run validate`, `npm run lint`, `npm run build`: qua.
+

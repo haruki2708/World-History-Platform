@@ -130,7 +130,7 @@ Không nguồn nào cho giờ cụ thể, trừ việc quân La Mã ra trận "n
 | 3. Kỵ binh bên sông | 9:45 | 20 | Polybius 3.115 và Livy 22.47: chỗ hẹp, không xoay trở được, kỵ binh xuống ngựa đánh bộ; kỵ binh La Mã bị đánh tan và bị đuổi dọc bờ sông. Lính nhẹ lui về, bộ binh nặng tiến lên (Polybius 3.115). Kỵ binh Numidia cầm chân kỵ binh đồng minh (Polybius 3.116) |
 | 4. Lưỡi liềm bị đẩy lõm | 11:00 | 25 | Polybius 3.115 và Livy 22.47: lính Gaul và Iberia trụ một lúc rồi lùi; lưỡi liềm lõm vào; quân La Mã dồn từ hai cánh vào giữa. Mặt trận La Mã được đặt cách mép lưỡi liềm 6 m, xoay và phình theo đúng chỗ lõm (mục 9) |
 | 5. Cái bẫy sập | 12:30 | 25 | Polybius 3.115: lính châu Phi hai bên quay vào đánh sườn. Polybius 3.116: Hasdrubal vòng sang giúp kỵ binh Numidia, kỵ binh đồng minh bỏ chạy, ông để Numidia đuổi theo |
-| 6. Vòng vây khép lại | 17:00 | 39 (trước T-059: 30) | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
+| 6. Vòng vây khép lại | 17:00 | 60 (trước T-059: 30) | Polybius 3.116: Hasdrubal đánh vào lưng các quân đoàn; quân La Mã chống cự tới khi các hàng ngoài ngã rồi bị giết tại chỗ; Paullus, Servilius và Atilius tử trận; Varro chạy về Venusia. Polybius 3.117: Hannibal giải vây trại, đánh lui toán La Mã về trại của họ |
 
 **Từ T-059 (mục 19, "Thời lượng")** giai đoạn 1 và 6 phát lâu hơn, để các khối đi nhanh nhất không trượt chân; mốc giờ không đổi.
 
@@ -836,7 +836,7 @@ Không đổi: vị trí, quân số, thương vong, mũi tên và lời dẫn. 
 ### Còn lại
 
 - `scripts/battles/cannae-lines.mjs`: bảng `STATES` của mốc 6 đã sửa theo (triarii `stand`, hai khối kỵ binh `overrun`; mục 5 của task, sau review). Chạy script không có `--write` báo 0 dòng sẽ đổi.
-- Clip `knockdown` (T-057) chưa có trong mô hình: bộ binh bị xô ngã theo clip `die`, nằm một lát, rồi gượng dậy bằng chính clip đó phát ngược.
+- Clip `knockdown` (T-057) đã có trong cả tám mô hình bộ binh (gộp 2026-11-20): người bị xô ngã ngửa, nằm một lát rồi gượng dậy theo clip riêng. Trước đó cảnh dùng clip `die` phát xuôi rồi ngược.
 - Người cưỡi đi sâu tới 90 m (giới hạn của cảnh), qua hàng triarii (sâu 40 m) vào cả đám lính nhẹ trong lòng hộp. Nguồn không nói kỵ binh vào sâu tới đâu.
 
 ### Thời lượng (sau review, 2026-11-20)
@@ -846,7 +846,7 @@ Người dùng chọn sửa chân trượt khi chạy (việc B2 của đợt L,
 | Giai đoạn | `playSeconds` cũ | mới | Khối nhanh nhất | Tốc độ trên sân, cũ → mới (m mỗi giây phát) |
 |---|---|---|---|---|
 | 1. Dàn trận | 25 | 45 | Quân Carthage dàn trận | khoảng 70 → 39 |
-| 6. Vòng vây khép lại | 30 | 39 | Lực lượng ở trại lớn (`camp-force`) rút về trại | 77,5 → 59,6 |
+| 6. Vòng vây khép lại | 30 | 39, rồi 60 (mục 6) | Lực lượng ở trại lớn (`camp-force`) rút về trại | 77,5 → 59,6 → 38,7 |
 
 Đo bằng `main-tools/gait/slide.mjs` của phiên chính (mô phỏng cách cảnh chọn dáng đi, sải chân đo từ cảnh trong `main-tools/gait-cannae.json`). Con số là phần thời gian di chuyển mà chân trượt hơn 5%:
 
@@ -890,7 +890,7 @@ Phiên chính hỏi thêm (mục 5c của task, tuỳ chọn): ở giai đoạn 
 - Phần đất trại lớn không dựng lều (`camp-occupancy.mjs` của T-045): 6,1% còn 3,8%, vì khối không còn đứng trong trại lúc đầu trận.
 - `main-tools/gait/slide.mjs` với `run=2.2 runHorse=1.5`: chân trượt hơn 5% còn 1,8% thời gian di chuyển (với thời lượng mới mà chưa đổi đường đi: 2,6%). Với trần cũ: 14,7%.
 
-**Còn lại:** khối rút về trại lớn ở giai đoạn 6, 2 324 m trong 39 giây phát (59,6 m/s), là chỗ trượt chân duy nhất còn lại ở Cannae (35%). Polybius cho Hannibal dồn họ về tận trại, nên mốc 6 phải ở trại lớn. Muốn hết trượt thì giai đoạn 6 phải phát ít nhất khoảng 60 giây; tôi để phiên chính quyết.
+**Còn lại:** khối rút về trại lớn ở giai đoạn 6, 2 324 m trong 39 giây phát (59,6 m/s), là chỗ trượt chân duy nhất còn lại ở Cannae (35%). Polybius cho Hannibal dồn họ về tận trại, nên mốc 6 phải ở trại lớn. Muốn hết trượt thì giai đoạn 6 phải phát ít nhất khoảng 60 giây; tôi để phiên chính quyết. (Người dùng chọn kéo dài: giai đoạn 6 nay phát 60 giây, xem phần "Giai đoạn 6 dài 60 giây" ở cuối mục.)
 
 ### Khung hình/giây đo lại (sau review, 2026-11-20)
 
@@ -911,3 +911,13 @@ Mục 5d của task: đo lại Cannae giai đoạn 6 và Trasimene giai đoạn 
 | | 2 | trước | có | 43,1 | 23,1 ms | 12,7 ms |
 
 Godot chạy suốt các lượt này. Ở cả hai trận, phần việc JS mỗi khung của hai bản như nhau. Nó tăng giảm theo việc Blender có chạy hay không, không theo bản. Không hàm nào của phần xông qua lọt vào nhóm tốn nhiều nhất; các hàng đầu là `update` của `units.ts`, `heightAt` và `sample` của `timeline.ts`, ở cả hai bản. Như vậy những lần bản sau tụt xuống 33–43 khung/giây (ở đây và ở phần "Kiểm tra") nhiều khả năng là do máy bận, không do kỵ binh xông qua. Nhưng đây chưa phải số đo trên máy rảnh, nên phiên chính đo lại khi gộp.
+
+### Giai đoạn 6 dài 60 giây (mục 6 của task, 2026-11-20)
+
+Phiên chính làm mục này thay lane 2, theo lời người dùng. Sau khi gộp T-059, người dùng chọn kéo dài giai đoạn 6 để `camp-force` hết trượt chân lúc rút về trại: `playSeconds` 39 → 60. Không đổi gì khác. Cả trận 169 → 190 giây phát.
+
+- `camp-force` rút 2 324 m trong 60 giây phát: 38,7 m/s, đúng bằng trần chạy mới.
+- `main-tools/gait/slide.mjs` (`run=2.2 runHorse=1.5`): chân trượt hơn 5% còn 0,0% thời gian di chuyển (trước mục 6: 1,8%). Không khối nào còn trong danh sách trượt.
+- Kỵ binh xông qua (`main-tools/overrun/check.mjs`): người cưỡi chạy 6,5–6,8 vòng (trước 4,2–4,3); bước lớn nhất 31 m/s, không ai nhảy chỗ. Cả 195 hình triarii chết ở giai đoạn 6 vẫn ngã lúc có ngựa trong vòng 4,5 m. Triarii bị xô ngã 910 lần, bị chém lúc đang đứng 373 lần, trên 191 trong 210 hình (trước: 555, 229, 180).
+- Phần tính trước lúc nạp trận (các lần ngựa chạm) lâu hơn theo số vòng: 437 ms thay vì 372 ms (Node). Mỗi khung không làm thêm việc gì, vì số hình trên sân mỗi lúc không đổi.
+- Giáp lá cà (`main-tools/melee/falls.mjs`): 94% người ngã có đòn chạm đúng lúc, giai đoạn 6 riêng 91% (trước mục 6: 91% và 88%).
