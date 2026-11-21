@@ -110,6 +110,78 @@ export interface ModelIndex {
 }
 
 /**
+ * Each man his own look (T-061, đợt L, B1). A unit model may carry, all of
+ * it optional (a model without it looks as before):
+ *
+ * - the vertex attribute `_LOOK` on every level of detail, one number:
+ *   primary slot + LOOK_SECONDARY_STEP x secondary slot + LOOK_VARIANT_STEP
+ *   x variant shape. Slots count from 1 into ModelLooks.slots (0: none). A
+ *   variant shape (a beard, a way of wearing the hair) is drawn only for
+ *   the men who drew it in its group; shape 0 is always drawn.
+ * - the dye mask, in the red channel of the metallicRoughness image: 1 dyes
+ *   a texel as its vertex's primary slot, 0.5 as its secondary, 0 keeps the
+ *   colour of the atlas (iron, bronze, leather, a woven border); values in
+ *   between blend.
+ * - shield designs: grey masks (green channel) in a room of the colour
+ *   image, laid across the shield's face by its frame (LookDesigns).
+ * - `scenes[0].extras[LOOKS_EXTRAS]`: a JSON string, a ModelLooks.
+ *
+ * The scene draws, for each man and once for all (from his own random
+ * number), one option of every slot, every variant group and the designs,
+ * with chances in proportion to the weights: the same at every level of
+ * detail and wherever the timeline is scrubbed. Colours are linear RGB.
+ */
+export const LOOKS_EXTRAS = "whp_looks";
+export const LOOK_SECONDARY_STEP = 8;
+export const LOOK_VARIANT_STEP = 64;
+export const LOOK_LIMITS = { slots: 6, options: 8, groups: 4, shapes: 15, designs: 8 } as const;
+
+export interface LookSlot {
+  name: string;
+  /**
+   * "tint": the colour of the atlas times the option. "dye": the luminance
+   * of the atlas, over `ref`, times the option (to change the hue: a red
+   * tunic into an undyed one).
+   */
+  mode: "tint" | "dye";
+  /** Mean luminance (linear) of the slot's dyed texels. */
+  ref: number;
+  /** [r, g, b, weight]; at most LOOK_LIMITS.options. */
+  options: [number, number, number, number][];
+}
+
+export interface LookVariants {
+  name: string;
+  /** [variant shape, or 0 for none of them, weight]; at most LOOK_LIMITS.options. */
+  options: [number, number][];
+}
+
+export interface LookDesigns {
+  /** The slot the designs are painted over (counted from 1): its dyed texels take them. */
+  slot: number;
+  /** Each design's mask in the colour image: [u, v, width, height], glTF UVs (origin top left). */
+  tiles: [number, number, number, number][];
+  /** [index into tiles, or -1 for a plain shield, weight]; at most LOOK_LIMITS.designs + 1. */
+  options: [number, number][];
+  /** [r, g, b, weight]: laid on as a dye, with the slot's ref; at most LOOK_LIMITS.options. */
+  colors: [number, number, number, number][];
+  /**
+   * The shield at rest, in the model's space: its centre, its long axis
+   * (the tile's height, upwards) and its short axis (the tile's width).
+   */
+  frame: [number, number, number, number, number, number, number, number, number];
+  /** Metres along the short axis (from, to) then the long axis (from, to): the tile's edges. */
+  extent: [number, number, number, number];
+}
+
+export interface ModelLooks {
+  version: 1;
+  slots: LookSlot[];
+  variants?: LookVariants[];
+  designs?: LookDesigns;
+}
+
+/**
  * What a unit is doing during a phase; the engine picks clips from it.
  *
  * Two of them are fighting. `skirmish` is at a distance (javelins, sling

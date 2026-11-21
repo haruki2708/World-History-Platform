@@ -353,7 +353,7 @@ export interface CrowdCounts {
 }
 
 /** What the depth pass of the shadows reads from a figure mesh (see material.ts). */
-const DEPTH_ATTRIBUTES = ["position", "aBoneIndex", "aBoneWeight", "aMount"] as const;
+const DEPTH_ATTRIBUTES = ["position", "aBoneIndex", "aBoneWeight", "aMount", "aLook"] as const;
 const depthGeometries = new WeakMap<BufferGeometry, BufferGeometry>();
 
 /**

@@ -18,6 +18,15 @@
  *            plus 2 when the clip on top is for the rider alone: his horse
  *            keeps the clip below (its gallop)
  *
+ * Each man his own look (T-061): a model with looks (UnitModel.looks) is
+ * drawn with FIG_LOOKS defined. Its vertices carry aLook (slots and variant
+ * shape, see ModelLooks in src/lib/battle.ts); the vertex shader draws this
+ * man's options from his seed and hands the fragment shader the factors of
+ * the vertex's two slots, which the dye mask (red of the
+ * roughness-metalness map) lays on texel by texel, with the shield's
+ * design. A variant shape he did not draw is gathered into one point, in
+ * the shadow pass too.
+ *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
  *     and the far levels of detail at high quality.
@@ -43,8 +52,10 @@ import {
   Vector3,
   Vector4,
 } from "three";
-import { UNIT_CLIPS } from "@/lib/battle";
+import { LOOK_LIMITS, LOOK_SECONDARY_STEP, LOOK_VARIANT_STEP, UNIT_CLIPS } from "@/lib/battle";
 import { CLIP_INDEX, type UnitModel } from "./model";
+
+const OPTIONS = LOOK_LIMITS.options;
 
 export interface FigureShared {
   /** Seconds since the scene opened. */
@@ -99,6 +110,42 @@ vec4 figR1;
 vec4 figR2;
 float figCos;
 float figSin;
+
+#ifdef FIG_LOOKS
+attribute float aLook;
+uniform vec2 uLookVariant[${LOOK_LIMITS.groups * OPTIONS}];
+uniform float uLookShapeGroup[${LOOK_LIMITS.shapes + 1}];
+
+/** A fixed random number 0..1 of this man for one choice (\`salt\`). */
+float figChance(float salt) {
+  return fract(iSeed * (37.0 + 11.0 * salt) + 0.6180339 * salt);
+}
+
+/** This vertex's primary slot, secondary slot and variant shape. */
+vec3 figLook() {
+  float n = floor(aLook + 0.5);
+  return vec3(
+    mod(n, ${LOOK_SECONDARY_STEP}.0),
+    mod(floor(n / ${LOOK_SECONDARY_STEP}.0), ${LOOK_VARIANT_STEP / LOOK_SECONDARY_STEP}.0),
+    floor(n / ${LOOK_VARIANT_STEP}.0));
+}
+
+/** True when the vertex belongs to a variant shape this man did not draw. */
+bool figHidden(float shape) {
+  if (shape < 0.5) return false;
+  int g = int(uLookShapeGroup[int(shape + 0.5)] + 0.5);
+  float r = figChance(16.0 + float(g));
+  float chosen = 0.0;
+  for (int o = 0; o < ${OPTIONS}; o++) {
+    vec2 option = uLookVariant[g * ${OPTIONS} + o];
+    if (r < option.y) {
+      chosen = option.x;
+      break;
+    }
+  }
+  return abs(chosen - shape) > 0.5;
+}
+#endif
 
 float figFrame(float clip) {
   int index = int(clip + 0.5);
@@ -175,7 +222,129 @@ void figureTransform(vec3 p, vec3 n) {
   figSin = sin(iPosYaw.w);
   figPosition = vec3(figCos * sp.x + figSin * sp.z, sp.y, figCos * sp.z - figSin * sp.x) + iPosYaw.xyz;
   figNormal = figDirection(n);
+  #ifdef FIG_LOOKS
+    // A shape he did not draw: all its vertices at one point, so nothing is drawn.
+    if (figHidden(figLook().z)) figPosition = iPosYaw.xyz;
+  #endif
 }
+`;
+
+/**
+ * The looks in the vertex shader of the two looks that colour (not the
+ * shadow's): this man's option of each slot of the vertex, and his design if
+ * the vertex is on the painted shield.
+ */
+const LOOK_VERTEX = /* glsl */ `
+#ifdef FIG_LOOKS
+uniform vec4 uLookOption[${LOOK_LIMITS.slots * OPTIONS}];
+uniform vec2 uLookMode[${LOOK_LIMITS.slots}];
+uniform vec2 uLookDesignInfo;
+uniform vec4 uLookDesignTile[${LOOK_LIMITS.designs}];
+uniform vec2 uLookDesignOption[${LOOK_LIMITS.designs + 1}];
+uniform vec4 uLookDesignColor[${OPTIONS}];
+uniform vec3 uLookDesignFrame[3];
+uniform vec4 uLookDesignExtent;
+varying vec4 vLookA;
+varying vec4 vLookB;
+varying vec4 vLookTile;
+varying vec3 vLookDesignK;
+varying vec2 vLookDesignUv;
+
+/** rgb: this man's factor for the slot (1 for none); a: 1 to dye, 0 to tint. */
+vec4 figSlot(float slot) {
+  if (slot < 0.5) return vec4(1.0, 1.0, 1.0, 0.0);
+  int s = int(slot + 0.5) - 1;
+  float r = figChance(float(s) + 1.0);
+  vec4 chosen = uLookOption[s * ${OPTIONS}];
+  for (int o = 0; o < ${OPTIONS}; o++) {
+    vec4 option = uLookOption[s * ${OPTIONS} + o];
+    if (r < option.w) {
+      chosen = option;
+      break;
+    }
+  }
+  return vec4(chosen.rgb, uLookMode[s].x);
+}
+
+void figLooks(vec3 bindPosition) {
+  vec3 look = figLook();
+  vLookA = figSlot(look.x);
+  vLookB = figSlot(look.y);
+  vLookTile = vec4(0.0);
+  vLookDesignK = vec3(1.0);
+  vLookDesignUv = vec2(0.0);
+  if (uLookDesignInfo.x < 0.5 || abs(look.x - uLookDesignInfo.x) > 0.5) return;
+  float r = figChance(24.0);
+  float tile = -1.0;
+  for (int o = 0; o < ${LOOK_LIMITS.designs + 1}; o++) {
+    vec2 option = uLookDesignOption[o];
+    if (r < option.y) {
+      tile = option.x;
+      break;
+    }
+  }
+  if (tile < -0.5) return;
+  vLookTile = uLookDesignTile[int(tile + 0.5)];
+  int count = max(int(uLookDesignInfo.y + 0.5), 1);
+  float rc = figChance(25.0);
+  int c = 0;
+  for (int o = 0; o < ${OPTIONS}; o++) {
+    if (rc < uLookDesignColor[o].w) {
+      c = o;
+      break;
+    }
+  }
+  vec3 k = uLookDesignColor[c].rgb;
+  // Never the colour of his paint: then the next one.
+  if (distance(k, vLookA.rgb) < 0.3 * length(vLookA.rgb)) k = uLookDesignColor[(c + 1) % count].rgb;
+  vLookDesignK = k;
+  vec3 d = bindPosition - uLookDesignFrame[0];
+  vLookDesignUv = vec2(
+    (dot(d, uLookDesignFrame[2]) - uLookDesignExtent.x) / (uLookDesignExtent.y - uLookDesignExtent.x),
+    (dot(d, uLookDesignFrame[1]) - uLookDesignExtent.z) / (uLookDesignExtent.w - uLookDesignExtent.z));
+}
+#endif
+`;
+
+/**
+ * The looks in the fragment shader: the dye mask lays the two slots'
+ * colours over the atlas's (1: primary, 0.5: secondary, 0: none), then the
+ * design over the shield's paint, both keeping the atlas's light and shade.
+ */
+const LOOK_FRAGMENT = /* glsl */ `
+#ifdef FIG_LOOKS
+uniform sampler2D uLookDye;
+varying vec4 vLookA;
+varying vec4 vLookB;
+varying vec4 vLookTile;
+varying vec3 vLookDesignK;
+varying vec2 vLookDesignUv;
+
+vec3 figDyed(vec3 c, vec2 uv) {
+  float dye = texture2D(uLookDye, uv).r;
+  float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  vec3 a = mix(c * vLookA.rgb, lum * vLookA.rgb, vLookA.a);
+  vec3 b = mix(c * vLookB.rgb, lum * vLookB.rgb, vLookB.a);
+  vec3 dyed = dye < 0.5 ? mix(c, b, dye * 2.0) : mix(b, a, dye * 2.0 - 1.0);
+  if (vLookTile.z > 0.0) {
+    vec2 d = clamp(vLookDesignUv, 0.0, 1.0);
+    float mask = texture2D(map, vLookTile.xy + vec2(d.x, 1.0 - d.y) * vLookTile.zw).g;
+    dyed = mix(dyed, lum * vLookDesignK, mask * smoothstep(0.6, 0.9, dye));
+  }
+  return dyed;
+}
+#endif
+`;
+
+/** map_fragment of three.js, with the looks laid on the atlas's colour. */
+const MAP_FRAGMENT = /* glsl */ `
+#ifdef USE_MAP
+  vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+  #ifdef FIG_LOOKS
+    sampledDiffuseColor.rgb = figDyed( sampledDiffuseColor.rgb, vMapUv );
+  #endif
+  diffuseColor *= sampledDiffuseColor;
+#endif
 `;
 
 /**
@@ -222,14 +391,27 @@ vec3 figFill(vec3 viewNormal) {
 }
 `;
 
+/** The fragment changes common to both looks: the looks on the atlas colour. */
+function figureFragment(fragmentShader: string): string {
+  return fragmentShader
+    .replace("#include <map_pars_fragment>", `#include <map_pars_fragment>\n${LOOK_FRAGMENT}`)
+    .replace("#include <map_fragment>", MAP_FRAGMENT);
+}
+
 /** The vertex changes common to both looks. */
 function figureVertex(vertexShader: string): string {
   return vertexShader
-    .replace("#include <common>", `#include <common>\n${PARS}`)
+    .replace("#include <common>", `#include <common>\n${PARS}\n${LOOK_VERTEX}`)
     .replace(
       "#include <color_vertex>",
       `#include <color_vertex>
-      vColor.rgb *= mix(vec3(1.0), uTeam, aTeam) * (0.84 + 0.3 * fract(iSeed * 5.77));`,
+      // Each man a little lighter or darker; less where his looks vary.
+      #ifdef FIG_LOOKS
+        vColor.rgb *= mix(vec3(1.0), uTeam, aTeam) * (0.95 + 0.1 * fract(iSeed * 5.77));
+        figLooks(position);
+      #else
+        vColor.rgb *= mix(vec3(1.0), uTeam, aTeam) * (0.84 + 0.3 * fract(iSeed * 5.77));
+      #endif`,
     )
     .replace(
       "#include <beginnormal_vertex>",
@@ -254,6 +436,24 @@ export function createFigureMaterials(
     uTeam: { value: new Color(team) },
     uStow: { value: model.stow ? new Vector4(...model.stow.pivot, model.stow.bone) : new Vector4(0, 0, 0, -1) },
   };
+  const looks = model.looks;
+  const lookUniforms: Record<string, IUniform> = looks
+    ? {
+        uLookVariant: { value: looks.variants },
+        uLookShapeGroup: { value: looks.shapeGroup },
+        uLookOption: { value: looks.options },
+        uLookMode: { value: looks.modes },
+        uLookDesignInfo: { value: looks.designInfo },
+        uLookDesignTile: { value: looks.designTiles },
+        uLookDesignOption: { value: looks.designOptions },
+        uLookDesignColor: { value: looks.designColors },
+        uLookDesignFrame: { value: looks.designFrame },
+        uLookDesignExtent: { value: looks.designExtent },
+        uLookDye: { value: model.surface?.roughnessMap ?? null },
+      }
+    : {};
+  const defines: Record<string, string> = looks ? { FIG_LOOKS: "" } : {};
+  const variant = looks ? "-looks" : "";
   const bind = (shader: { uniforms: Record<string, IUniform> }) => {
     shader.uniforms.uBoneTex = uniforms.uBoneTex;
     shader.uniforms.uClips = uniforms.uClips;
@@ -262,6 +462,7 @@ export function createFigureMaterials(
     shader.uniforms.uStow = uniforms.uStow;
     shader.uniforms.uTime = shared.uTime;
     shader.uniforms.uFigScale = shared.uFigScale;
+    Object.assign(shader.uniforms, lookUniforms);
   };
   const bindFill = (shader: { uniforms: Record<string, IUniform> }) => {
     shader.uniforms.uFillSky = shared.uFillSky;
@@ -274,11 +475,12 @@ export function createFigureMaterials(
   const side = model.doubleSided ? DoubleSide : FrontSide;
 
   const material = new MeshLambertMaterial({ vertexColors: true, map: model.map, side });
+  material.defines = { ...defines };
   material.onBeforeCompile = (shader) => {
     bind(shader);
     bindFill(shader);
     shader.vertexShader = figureVertex(shader.vertexShader);
-    shader.fragmentShader = shader.fragmentShader
+    shader.fragmentShader = figureFragment(shader.fragmentShader)
       .replace("#include <common>", `#include <common>\n${FILL_PARS}`)
       .replace(
         "#include <lights_fragment_maps>",
@@ -286,7 +488,7 @@ export function createFigureMaterials(
         irradiance += figFill(geometryNormal);`,
       );
   };
-  material.customProgramCacheKey = () => "battle-figure";
+  material.customProgramCacheKey = () => `battle-figure${variant}`;
 
   let detailed: MeshStandardMaterial | null = null;
   const surface = model.surface;
@@ -302,6 +504,7 @@ export function createFigureMaterials(
       roughness: surface.roughness,
       metalness: surface.metalness,
     });
+    detailed.defines = { ...detailed.defines, ...defines };
     detailed.onBeforeCompile = (shader) => {
       bind(shader);
       bindFill(shader);
@@ -309,7 +512,7 @@ export function createFigureMaterials(
       shader.uniforms.uEnvHorizon = shared.uEnvHorizon;
       shader.uniforms.uEnvGround = shared.uEnvGround;
       shader.vertexShader = figureVertex(shader.vertexShader);
-      shader.fragmentShader = shader.fragmentShader
+      shader.fragmentShader = figureFragment(shader.fragmentShader)
         .replace("#include <common>", `#include <common>\n${SKY_PARS}\n${FILL_PARS}`)
         .replace(
           "#include <lights_fragment_maps>",
@@ -320,10 +523,11 @@ export function createFigureMaterials(
           #endif`,
         );
     };
-    detailed.customProgramCacheKey = () => "battle-figure-detailed";
+    detailed.customProgramCacheKey = () => `battle-figure-detailed${variant}`;
   }
 
   const depthMaterial = new MeshDepthMaterial();
+  depthMaterial.defines = { ...depthMaterial.defines, ...defines };
   depthMaterial.onBeforeCompile = (shader) => {
     bind(shader);
     shader.vertexShader = shader.vertexShader
@@ -333,7 +537,7 @@ export function createFigureMaterials(
         "figureTransform(position, vec3(0.0, 1.0, 0.0));\nvec3 transformed = figPosition;",
       );
   };
-  depthMaterial.customProgramCacheKey = () => "battle-figure-depth";
+  depthMaterial.customProgramCacheKey = () => `battle-figure-depth${variant}`;
 
   return {
     material,

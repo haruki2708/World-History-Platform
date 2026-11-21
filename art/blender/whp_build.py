@@ -51,6 +51,7 @@ import numpy as np
 import whp_anim
 import whp_clips
 import whp_export
+import whp_look
 import whp_skeleton
 import whp_skin
 import whp_unit_lod
@@ -224,6 +225,9 @@ def stage_lod(unit):
     if hasattr(unit, "HORSE"):
         import whp_cavalry
         return whp_cavalry.stage_lod(unit, limits(unit))
+    # Shapes made on the rigged body before its parts are cut (T-061: beards).
+    if hasattr(unit, "before_lod"):
+        unit.before_lod()
     whp_unit_lod.build(unit, limits(unit))
 
 
@@ -232,6 +236,9 @@ def stage_export(unit):
     meshes = [bpy.data.objects[name] for name in lods()]
     os.makedirs(os.path.dirname(glb_path(unit.MODEL)), exist_ok=True)
     whp_export.export_glb(glb_path(unit.MODEL), armature, meshes, clips_of(unit))
+    looks = bpy.context.scene.get(whp_look.EXTRAS_KEY)
+    if looks and not PROFILE["hi"]:
+        whp_export.set_scene_extras(glb_path(unit.MODEL), whp_look.EXTRAS_KEY, looks)
     if not PROFILE["hi"]:
         update_index(unit.MODEL)
 
@@ -259,7 +266,8 @@ def check_model(model):
     hi = PROFILE["hi"]
     problems = whp_export.check_glb(path, lods(), limits(unit), clips_of(unit), bone_count=getattr(unit, "BONES", BONES),
                                     normal_max=HI_NORMAL_MAX if hi else 1024,
-                                    max_bytes=HI_MAX_BYTES if hi else whp_export.MAX_BYTES)
+                                    max_bytes=HI_MAX_BYTES if hi else whp_export.MAX_BYTES,
+                                    looks=None if hi else getattr(unit, "LOOKS", None))
     ground = getattr(unit, "GROUND_CHECKS", whp_export.GROUND_CHECKS)
     problems += whp_export.reimport(path, lods(), ground)
     if hi:

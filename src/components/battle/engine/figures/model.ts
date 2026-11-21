@@ -31,7 +31,8 @@ import {
   Vector4,
 } from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { UNIT_CLIPS, UNIT_LODS, type UnitClip } from "@/lib/battle";
+import { type ModelLooks, UNIT_CLIPS, UNIT_LODS, type UnitClip } from "@/lib/battle";
+import { type LookTables, lookTables } from "./looks";
 
 /** Clip indices as the shader knows them: the order of UNIT_CLIPS. */
 export const CLIP_INDEX = Object.fromEntries(
@@ -138,6 +139,12 @@ export interface UnitModel {
   surface: ModelSurface | null;
   /** Draw both faces of every triangle (cloaks, crests). */
   doubleSided: boolean;
+  /**
+   * Each man his own look (T-061): the tables the shaders draw each man's
+   * colours, shapes and shield design from, or null when the model has no
+   * looks (or no roughness-metalness map to hold the dye mask).
+   */
+  looks: LookTables | null;
   dispose(): void;
 }
 
@@ -177,6 +184,8 @@ export interface SkinnedSource {
   map: Texture | null;
   surface?: SurfaceMaps | null;
   doubleSided?: boolean;
+  /** Each man his own look (T-061): the file's looks, if it has any. */
+  looks?: ModelLooks | null;
   /** Frees whatever the source loaded (textures of a .glb, for instance). */
   release?: () => void;
 }
@@ -407,6 +416,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
       normalScale: [surface.normalStrength, tangents ? surface.normalStrength : -surface.normalStrength],
     },
     doubleSided: source.doubleSided ?? false,
+    looks: source.looks && surface?.roughnessMap ? lookTables(source.looks) : null,
     dispose() {
       for (const geometry of geometries) geometry.dispose();
       boneTexture.dispose();
@@ -658,6 +668,14 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
     for (let i = 0; i < count; i++) team.setX(i, source.attributes.aTeam.getX(i));
   }
   geometry.setAttribute("aTeam", team);
+
+  // Each man his own look (T-061): slots and variant shape, one number (0: none).
+  const look = new BufferAttribute(new Float32Array(count), 1);
+  const sourceLook = source.attributes._look;
+  if (sourceLook) {
+    for (let i = 0; i < count; i++) look.setX(i, sourceLook.getX(i));
+  }
+  geometry.setAttribute("aLook", look);
 
   const boneIndex = new BufferAttribute(new Float32Array(count * 4), 4);
   const boneWeight = new BufferAttribute(new Float32Array(count * 4), 4);

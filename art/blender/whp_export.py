@@ -82,6 +82,7 @@ def export_glb(path, armature, meshes, clips, jpeg_quality=88):
         export_cameras=False,
         export_lights=False,
         export_extras=False,
+        export_attributes=True,          # _LOOK (T-061); a model without looks has none
     )
     known = set(bpy.ops.export_scene.gltf.get_rna_type().properties.keys())
     missing = sorted(k for k in wanted if k not in known)
@@ -109,6 +110,56 @@ def read_glb(path):
         bin_length, _bin_type = struct.unpack("<I4s", data[offset:offset + 8])
         binary = data[offset + 8:offset + 8 + bin_length]
     return doc, binary, len(data)
+
+
+def write_glb(path, doc, binary):
+    """Write a GLB from its JSON document and binary chunk (read_glb)."""
+    text = json.dumps(doc, separators=(",", ":")).encode("utf-8")
+    text += b" " * (-len(text) % 4)
+    chunks = struct.pack("<I4s", len(text), b"JSON") + text
+    if binary:
+        binary = binary + b"\x00" * (-len(binary) % 4)
+        chunks += struct.pack("<I4s", len(binary), b"BIN\x00") + binary
+    with open(path, "wb") as f:
+        f.write(struct.pack("<4sII", b"glTF", 2, 12 + len(chunks)) + chunks)
+
+
+def set_scene_extras(path, key, value):
+    """Put `value` under `key` in the extras of the file's scene (T-061: the
+    looks' JSON). The exporter's own extras would carry every custom
+    property in the file; this carries one."""
+    doc, binary, _size = read_glb(path)
+    scene = doc["scenes"][doc.get("scene", 0)]
+    scene.setdefault("extras", {})[key] = value
+    write_glb(path, doc, binary)
+    log(f"{os.path.basename(path)}: scene extras {key} ({len(value)} characters)")
+
+
+def check_looks(doc, lods, looks):
+    """The looks of a model (T-061): the JSON in the scene's extras, _LOOK on
+    every level, the shield's frame for the designs. Returns a list of
+    problems."""
+    problems = []
+    scene = doc["scenes"][doc.get("scene", 0)]
+    try:
+        table = json.loads(scene.get("extras", {}).get("whp_looks", ""))
+    except ValueError:
+        return ["no looks in the scene's extras"]
+    if len(table.get("slots", [])) != len(looks.slots):
+        problems.append(f"looks: {len(table.get('slots', []))} slots in the file, {len(looks.slots)} in LOOKS")
+    log(f"  looks: slots {[s['name'] for s in table['slots']]}, refs {[s['ref'] for s in table['slots']]}, "
+        f"variants {[v['name'] for v in table.get('variants', [])]}, designs {len(table.get('designs', {}).get('tiles', []))}")
+    nodes = {n.get("name"): n for n in doc["nodes"] if "mesh" in n}
+    for name in lods:
+        node = nodes.get(name)
+        if node is None:
+            continue
+        attrs = doc["meshes"][node["mesh"]]["primitives"][0]["attributes"]
+        if "_LOOK" not in attrs:
+            problems.append(f"{name} has no _LOOK")
+    if table.get("designs") and len(table["designs"].get("frame", [])) != 9:
+        problems.append("looks: the designs have no shield frame")
+    return problems
 
 
 def _accessor_count(doc, index):
@@ -163,10 +214,14 @@ def _node_matrices(doc):
     return [get(i) for i in range(len(nodes))]
 
 
-def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024, max_bytes=MAX_BYTES):
-    """Check the file against the contract; return a list of problems."""
+def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024, max_bytes=MAX_BYTES,
+              looks=None):
+    """Check the file against the contract; return a list of problems.
+    `looks`: the unit's whp_look.Looks, if it has any (T-061)."""
     doc, binary, size = read_glb(path)
     problems = []
+    if looks is not None:
+        problems += check_looks(doc, lods, looks)
     log(f"check {os.path.basename(path)}: {size / 1024:.0f} KB")
     if size > max_bytes:
         problems.append(f"file is {size / 1024 / 1024:.2f} MB, over {max_bytes / 1024 / 1024:.0f} MB")

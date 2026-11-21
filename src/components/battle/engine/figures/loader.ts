@@ -17,7 +17,8 @@ import {
 } from "three";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { MODEL_INDEX_URL, type ModelIndex, modelUrl, UNIT_LODS } from "@/lib/battle";
+import { LOOKS_EXTRAS, MODEL_INDEX_URL, type ModelIndex, modelUrl, UNIT_LODS } from "@/lib/battle";
+import { parseLooks } from "./looks";
 import type { SkinnedSource, SurfaceMaps } from "./model";
 
 function isSkinnedMesh(object: Object3D): object is SkinnedMesh {
@@ -176,6 +177,7 @@ export async function loadModelSource(
       map,
       surface: surfaceMaps(material),
       doubleSided: material.side === DoubleSide,
+      looks: parseLooks((gltf.scene.userData as Record<string, unknown>)[LOOKS_EXTRAS], model),
       release,
     };
   } catch (error) {

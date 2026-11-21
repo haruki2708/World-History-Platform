@@ -21,6 +21,9 @@ What differs between models comes from the unit module (whp_build):
               skirt  part whose lower edge is the hem of the skirt (None:
                      trousers, no skirt)
               head   part that gives the head's size
+    LOOKS   optional whp_look.Looks (T-061): each man his own look; the
+            parts get the attribute _LOOK, the metallicRoughness image the
+            dye mask in red, the shield its designs
 """
 
 import math
@@ -32,6 +35,7 @@ from mathutils import Vector
 
 import whp_far
 import whp_lod as lod
+import whp_look
 import whp_proxy
 import whp_skeleton
 import whp_skin
@@ -208,9 +212,10 @@ def _upsample(a, factor):
     return out / 5.0
 
 
-def compose_surface(model, surface_raw):
+def compose_surface(model, surface_raw, keep_red=False):
     """The metallicRoughness image: baked large, averaged down over the
-    covered texels, padded, unused texels rough and not metal."""
+    covered texels, padded, unused texels rough and not metal. Red is 1,
+    or with `keep_red` the baked dye mask (T-061; 0 where unused)."""
     raw = lod.pixels_of(surface_raw)
     mask = raw[..., 3] > 0.5
     factor = COLOR_SIZE // SURFACE_SIZE
@@ -218,9 +223,14 @@ def compose_surface(model, surface_raw):
     count = lod.downsample(mask[..., None].astype(np.float32), factor)[..., 0]
     small = count > 0
     rgb = total / np.maximum(count, 1e-6)[..., None]
-    rgb[..., 0] = 1.0
+    if not keep_red:
+        rgb[..., 0] = 1.0
     rgb, filled = lod.dilate(rgb, small, 8)
-    rgb[~filled] = SURFACE_DEFAULT
+    rgb[~filled] = SURFACE_DEFAULT if not keep_red else (0.0, *SURFACE_DEFAULT[1:])
+    if keep_red:
+        red = rgb[..., 0][small]
+        log(f"dye mask: {(red > 0.75).mean() * 100:.1f}% of covered texels primary, "
+            f"{((red > 0.25) & (red <= 0.75)).mean() * 100:.1f}% secondary")
     metal = rgb[..., 2][small]
     log(f"surface map: {(metal > 0.5).mean() * 100:.1f}% of covered texels metal, "
         f"roughness {rgb[..., 1][small].min():.2f}..{rgb[..., 1][small].max():.2f}")
@@ -259,11 +269,13 @@ def compose_textures(model, color_raw, normal_raw, ao_raw, normal_size=NORMAL_SI
     return color_image, normal_image
 
 
-def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0):
+def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0, skip=(), looks=False):
     """The segmented stand-in for LOD2 (whp_proxy), sized from the LOD0
     parts and coloured from their atlas. Each shape follows one bone.
     `ground`: height of the soles at rest. spec["feet"] False leaves out
-    the hands and feet (a rider's stand-in, under a tighter budget)."""
+    the hands and feet (a rider's stand-in, under a tighter budget).
+    `skip`: parts left out of the colours (variant shapes, T-061); with
+    `looks` each face takes the look of the part nearest to it."""
     feet = spec.get("feet", True)
     by_name = {p.name: p for p in parts}
     body = whp_proxy.Samples([by_name[n] for n in spec["body"]])
@@ -339,9 +351,11 @@ def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0):
     pb.ellipsoid(Vector((lo + hi) / 2), radii, 6, 4, "head")
 
     proxy = pb.object("lod2-proxy")
-    source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts if p.name not in spec["own"]],
-                          "lod2-source")
+    source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts
+                           if p.name not in spec["own"] and p.name not in skip], "lod2-source")
     lod.flat_colour_uvs(proxy, source, color_image)
+    if looks:
+        whp_look.assign_from_nearest(proxy, source)
     log(f"LOD2 proxy: {triangle_count(proxy)} triangles, one flat colour each")
     delete_objects([source])
     return proxy
@@ -353,14 +367,31 @@ def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0):
 PALETTE_PAD = 16
 PALETTE_ENTRIES = 32
 PALETTE_ROOM = (16 * 32 + 2 * PALETTE_PAD + 32, 2 * 32 + 2 * PALETTE_PAD + 32)
+PALETTE_ENTRIES_LOOKS = 48          # T-061: entries are kept apart by look and dye mask
+
+
+def palette_room(looks=None):
+    """Texels kept free in the atlas for the LOD2 palette: two rows of 16
+    entries, three with looks; above them the designs (whp_look) when the
+    model has any."""
+    if looks is None:
+        return PALETTE_ROOM
+    width, height = PALETTE_ROOM[0], 3 * 32 + 2 * PALETTE_PAD + 32
+    if looks.designs is not None:
+        dw, dh = whp_look.design_room()
+        width = max(width, dw + 2 * PALETTE_PAD + 32)
+        height += dh + PALETTE_PAD
+    return width, height
 PALETTE_ROOM_KEY = "whp_palette_room"   # custom property of the final material: the room, texels (not exported)
 
 
-def finish_far(levels, material):
+def finish_far(levels, material, looks=None):
     """The game ladder's far levels, once the atlas is baked (whp_far): colour
     LOD1's islands from LOD0's, then give LOD2 its palette in cells no island
     uses. `levels`: the three lists of pieces; a LOD1 piece <part>.lod1
-    takes its colours from the LOD0 part <part>."""
+    takes its colours from the LOD0 part <part>. With `looks` (T-061): the
+    designs go into the top of the palette's room, laid across the shield by
+    its frame, and the looks' JSON is left on the scene for the export."""
     import whp_palette
     color, normal, surface = whp_palette.material_images(material)
     lod0 = {o.name: o for o in levels[0]}
@@ -369,8 +400,26 @@ def finish_far(levels, material):
     x0, y0, x1, y1 = material[PALETTE_ROOM_KEY]
     room = np.ones_like(used)
     room[int(math.ceil(y0)) + PALETTE_PAD:int(y1) - PALETTE_PAD, int(math.ceil(x0)) + PALETTE_PAD:int(x1) - PALETTE_PAD] = False
-    cells = whp_far.free_cells(used | room, whp_palette.CELL, PALETTE_ENTRIES)
-    whp_palette.apply(levels[2], color, normal, surface, whp_palette.PaletteCells(cells, COLOR_SIZE))
+    tiles, frame = [], None
+    if looks is not None and looks.designs is not None:
+        dw, dh = whp_look.design_room()
+        ox, oy = int(math.ceil(x0)) + PALETTE_PAD, int(y1) - PALETTE_PAD - dh
+        used[oy - PALETTE_PAD:oy + dh + PALETTE_PAD, ox - PALETTE_PAD:ox + dw + PALETTE_PAD] = True
+        slot = looks.slot(looks.designs.slot)
+        shield = next(o for o in levels[0] if len(o.data.vertices) and whp_look.read(o)[0][0] == slot)
+        frame = whp_look.shield_frame(shield)
+        width, height = frame[3][1] - frame[3][0], frame[4][1] - frame[4][0]
+        pixels = lod.pixels_of(color)[..., :3].copy()
+        tiles = whp_look.paint_designs(looks, pixels, (ox, oy), width, height)
+        whp_far.rewrite(color, pixels)
+        log(f"designs laid by the frame of {shield.name}: {width:.2f} x {height:.2f} m")
+    entries = PALETTE_ENTRIES if looks is None else PALETTE_ENTRIES_LOOKS
+    cells = whp_far.free_cells(used | room, whp_palette.CELL, entries)
+    whp_palette.apply(levels[2], color, normal, surface, whp_palette.PaletteCells(cells, COLOR_SIZE),
+                      looks=looks is not None)
+    if looks is not None:
+        refs = whp_look.slot_luminance(looks, levels[0], lod.pixels_of(color), lod.pixels_of(surface))
+        bpy.context.scene[whp_look.EXTRAS_KEY] = looks.extras(refs, tiles, frame)
 
 
 def finish_lod(objs, name, limit, armature, material):
@@ -404,7 +453,7 @@ def finish_lod(objs, name, limit, armature, material):
 _finish_lod = finish_lod            # the old name (horse_lod used it)
 
 
-def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_SIZE, extra=None):
+def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_SIZE, extra=None, looks=None):
     """Pack the low parts into one atlas and bake it from the detailed
     objects: normals, colour, the metallicRoughness map, ambient occlusion
     (in `ao_sets`, see bake_ao). Each spec needs `name`, `bake` (names of
@@ -412,9 +461,11 @@ def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_S
     Returns the parts (unwrapped), the final material, its colour image
     and a function that removes the raw images and the bake material.
     `extra`: pieces packed into the same atlas but not baked (the game
-    ladder's LOD1, whp_far); then the packed pieces come back fifth."""
+    ladder's LOD1, whp_far); then the packed pieces come back fifth.
+    `looks` (T-061): the dye mask is baked into red, and the room is
+    larger."""
     scene = bpy.context.scene
-    room = PALETTE_ROOM if extra is not None else None
+    room = palette_room(looks) if extra is not None else None
     packed = lod.unwrap_atlas(list(parts) + list(extra or []), pixels=ATLAS_MARGIN, size=COLOR_SIZE, room=room)
     parts, extra_out = packed[:len(parts)], packed[len(parts):]
     material = lod.bake_material()
@@ -429,12 +480,12 @@ def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_S
     bake_selected_to_active(scene, specs, parts, "NORMAL", normal_raw, material)
     with lod.EmissionSwap(detailed):
         bake_selected_to_active(scene, specs, parts, "EMIT", color_raw, material)
-    with lod.SurfaceSwap(detailed):
+    with lod.SurfaceSwap(detailed, dye=looks.dye(specs) if looks is not None else None):
         bake_selected_to_active(scene, specs, parts, "EMIT", surface_raw, material)
     bake_ao(scene, specs, parts, ao_raw, material, ao_sets)
 
     color_image, normal_image = compose_textures(model, color_raw, normal_raw, ao_raw, normal_size)
-    surface_image = compose_surface(model, surface_raw)
+    surface_image = compose_surface(model, surface_raw, keep_red=looks is not None)
     final = lod.final_material(model, color_image, normal_image, surface_image=surface_image)
 
     def clean_up():
@@ -450,13 +501,14 @@ def bake_atlas(model, specs, parts, detailed, ao_sets=None, normal_size=NORMAL_S
     return parts, final, color_image, clean_up
 
 
-def figure_levels(specs, parts, armature, color_image, spec, ground=0.0, lod1=None):
+def figure_levels(specs, parts, armature, color_image, spec, ground=0.0, lod1=None, looks=None):
     """The pieces of LOD0, LOD1 and LOD2 of a figure from its baked LOD0
     parts: LOD1 decimated from them (or `lod1`, made beforehand by
     whp_far.lod1_pieces), LOD2 the stand-in (build_lod2_proxy) with the
     parts in spec["own"]. Returns three lists of objects."""
     levels = [[], [], []]
-    levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground))
+    skip = looks.variant_parts if looks is not None else ()
+    levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground, skip=skip, looks=looks is not None))
     if lod1 is not None:
         levels[1] = list(lod1)
     for part, low in zip(specs, parts):
@@ -521,9 +573,15 @@ def build(unit, limits):
         levels = figure_levels_hi(specs, parts, game, armature, color_image, unit.LOD2)
     else:
         lod1 = whp_far.lod1_pieces([p.name for p in specs], parts, [p.budget[1] for p in specs])
-        parts, final, color_image, clean_up, lod1 = bake_atlas(model, specs, parts, detailed, extra=lod1)
-        levels = figure_levels(specs, parts, armature, color_image, unit.LOD2, lod1=lod1)
-        finish_far(levels, final)
+        looks = getattr(unit, "LOOKS", None)
+        if looks is not None:
+            for part, low in zip(specs, parts):
+                whp_look.assign(low, looks.look(part.name))
+            for piece in lod1:
+                whp_look.assign(piece, looks.look(piece.name[:-len(".lod1")]))
+        parts, final, color_image, clean_up, lod1 = bake_atlas(model, specs, parts, detailed, extra=lod1, looks=looks)
+        levels = figure_levels(specs, parts, armature, color_image, unit.LOD2, lod1=lod1, looks=looks)
+        finish_far(levels, final, looks=looks)
     lods = [finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.

@@ -443,10 +443,16 @@ GREY_METAL_ROUGHNESS = 0.35
 class SurfaceSwap:
     """Temporarily make every material emit (1, roughness, metallic), read
     from its Principled BSDF, so an EMIT bake writes the glTF
-    metallicRoughness image: green is roughness, blue is metalness."""
+    metallicRoughness image: green is roughness, blue is metalness.
 
-    def __init__(self, objs):
+    `dye` (T-061, whp_look.Looks.dye): material name -> the red value, the
+    dye mask (a number, or a function (tree, bsdf, node) -> socket); red is
+    then that value where the material is not metal, and 0 for a material
+    not named."""
+
+    def __init__(self, objs, dye=None):
         self.materials = {m for o in objs for m in o.data.materials if m is not None}
+        self.dye = dye
         self.undo = []
 
     def __enter__(self):
@@ -487,6 +493,30 @@ class SurfaceSwap:
                 tree.links.new(grey.outputs["Result"], mix.inputs["Factor"])
                 tree.links.new(mix.outputs["Result"], combine.inputs["Green"])
                 tree.links.new(grey.outputs["Result"], combine.inputs["Blue"])
+            if self.dye is not None:
+                red = self.dye.get(mat.name, 0.0)
+                socket = red(tree, bsdf, node) if callable(red) else None
+                metal_linked = combine.inputs["Blue"].is_linked
+                if socket is None and not metal_linked:
+                    combine.inputs["Red"].default_value = float(red) * (1.0 - metal)
+                else:
+                    # Metal never dyes: red times (1 - metalness).
+                    keep = node("ShaderNodeMath")
+                    keep.operation = "SUBTRACT"
+                    keep.inputs[0].default_value = 1.0
+                    if metal_linked:
+                        tree.links.new(combine.inputs["Blue"].links[0].from_socket, keep.inputs[1])
+                    else:
+                        keep.inputs[1].default_value = metal
+                    times = node("ShaderNodeMath")
+                    times.operation = "MULTIPLY"
+                    times.use_clamp = True
+                    if socket is not None:
+                        tree.links.new(socket, times.inputs[0])
+                    else:
+                        times.inputs[0].default_value = float(red)
+                    tree.links.new(keep.outputs["Value"], times.inputs[1])
+                    tree.links.new(times.outputs["Value"], combine.inputs["Red"])
             emit = node("ShaderNodeEmission")
             tree.links.new(combine.outputs["Color"], emit.inputs["Color"])
             tree.links.new(emit.outputs["Emission"], out.inputs["Surface"])
