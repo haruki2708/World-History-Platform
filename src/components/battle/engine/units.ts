@@ -436,6 +436,13 @@ const MAX_STRETCH = 64;
  * levels as the crowd in view changes.
  */
 const STRETCH_EASE = 0.97;
+/**
+ * The stretch eases back only while the triangles at the eased stretch stay
+ * this far under the budget. Without the room, the men it brings up a level
+ * put the count back over the budget, the stretch jumps, and men near a
+ * threshold flick back and forth (48 times in 8 s of Cannae playing, B4).
+ */
+const EASE_ROOM = 0.95;
 
 /**
  * The figures of a chunk drawn at one level of detail this frame: their own
@@ -556,6 +563,8 @@ class Chunk {
   drawn = 0;
   /** From the camera to the nearest figure drawn, metres. */
   distance = 0;
+  /** How tall the nearest figure drawn stands on screen, CSS pixels. */
+  nearest = 0;
   inView = false;
 
   constructor(
@@ -605,6 +614,16 @@ class Chunk {
       if (d < nearest) nearest = d;
     }
     this.distance = nearest;
+    this.nearest = size / nearest;
+  }
+
+  /**
+   * True when every figure drawn is at LOD2 for these thresholds, whatever
+   * level it had: even the nearest is below the LOD1 threshold with KEEP.
+   * Most chunks in a view of the whole field; they skip the figure by figure.
+   */
+  private allFar(lod1: number): boolean {
+    return this.nearest <= lod1 * KEEP;
   }
 
   /** The level of figure `k` for the thresholds given (CSS pixels). */
@@ -621,6 +640,7 @@ class Chunk {
     const t0 = lods[0].triangles;
     const t1 = lods[1].triangles;
     const t2 = lods[2].triangles;
+    if (this.allFar(lod1)) return this.drawn * t2;
     let total = 0;
     for (let k = 0; k < this.drawn; k++) {
       const l = this.levelOf(k, lod0, lod1);
@@ -642,7 +662,9 @@ class Chunk {
     fill[2] = 0;
     // The level of every figure drawn, or -1 when they differ.
     let all = LEVELS - 1;
-    if (inView) {
+    if (inView && this.allFar(lod1)) {
+      level.fill(LEVELS - 1);
+    } else if (inView) {
       for (let k = 0; k < drawn; k++) {
         const l = this.levelOf(k, lod0, lod1);
         level[slot[k]] = l;
@@ -1630,7 +1652,8 @@ export class Crowd {
   readonly group = new Group();
   readonly blocks: UnitBlock[] = [];
   private readonly chunks: Chunk[] = [];
-  private readonly ordered: Chunk[] = [];
+  /** Scratch of `selectLods`: the chunks in view. */
+  private readonly shown: Chunk[] = [];
   /** How far the triangle budget stretches the thresholds now (selectLods), 1 when it does not. */
   private stretch = 1;
   private readonly march: March = { step: 0, halted: true, jumped: false };
@@ -1796,7 +1819,7 @@ export class Crowd {
     frustum.setFromProjectionMatrix(projection);
     const pixelsPerMetreAtOne = viewportHeight / (2 * Math.tan(fovRadians / 2));
     const counts: CrowdCounts = { standing: 0, drawn: 0, lods: [0, 0, 0] };
-    const shown = this.ordered;
+    const shown = this.shown;
     shown.length = 0;
 
     for (const block of this.blocks) {
@@ -1824,10 +1847,10 @@ export class Crowd {
       return total;
     };
     // The stretch comes down by STRETCH_EASE a frame at most: if that much
-    // less fits, that is the answer; if only last frame's fits, it holds
-    // (within STRETCH_EASE of the least that fits). Mostly one or two passes.
+    // less fits with EASE_ROOM to spare, that is the answer; if only last
+    // frame's fits, it holds. Mostly one or two passes.
     const eased = Math.max(this.stretch * STRETCH_EASE, 1);
-    if (triangles(eased) <= triangleBudget) {
+    if (triangles(eased) <= triangleBudget * EASE_ROOM) {
       this.stretch = eased;
     } else if (eased === this.stretch || triangles(this.stretch) > triangleBudget) {
       // More men in view than last frame: the least stretch that fits, at
