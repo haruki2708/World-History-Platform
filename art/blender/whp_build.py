@@ -222,12 +222,12 @@ def stage_anim(unit):
 
 
 def stage_lod(unit):
-    if hasattr(unit, "HORSE"):
-        import whp_cavalry
-        return whp_cavalry.stage_lod(unit, limits(unit))
     # Shapes made on the rigged body before its parts are cut (T-061: beards).
     if hasattr(unit, "before_lod"):
         unit.before_lod()
+    if hasattr(unit, "HORSE"):
+        import whp_cavalry
+        return whp_cavalry.stage_lod(unit, limits(unit))
     whp_unit_lod.build(unit, limits(unit))
 
 

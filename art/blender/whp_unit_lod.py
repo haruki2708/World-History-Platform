@@ -269,13 +269,14 @@ def compose_textures(model, color_raw, normal_raw, ao_raw, normal_size=NORMAL_SI
     return color_image, normal_image
 
 
-def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0, skip=(), looks=False):
+def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0, skip=(), looks=None):
     """The segmented stand-in for LOD2 (whp_proxy), sized from the LOD0
     parts and coloured from their atlas. Each shape follows one bone.
     `ground`: height of the soles at rest. spec["feet"] False leaves out
     the hands and feet (a rider's stand-in, under a tighter budget).
     `skip`: parts left out of the colours (variant shapes, T-061); with
-    `looks` each face takes the look of the part nearest to it."""
+    `looks` (whp_look.Looks) each face takes the look of the part nearest to
+    it, as LOD2 draws it."""
     feet = spec.get("feet", True)
     by_name = {p.name: p for p in parts}
     body = whp_proxy.Samples([by_name[n] for n in spec["body"]])
@@ -354,8 +355,8 @@ def build_lod2_proxy(parts, armature, color_image, spec, ground=0.0, skip=(), lo
     source = join_objects([lod.duplicate_object(p, f"{p.name}.src") for p in parts
                            if p.name not in spec["own"] and p.name not in skip], "lod2-source")
     lod.flat_colour_uvs(proxy, source, color_image)
-    if looks:
-        whp_look.assign_from_nearest(proxy, source)
+    if looks is not None:
+        whp_look.assign_from_nearest(proxy, source, far=looks.far)
     log(f"LOD2 proxy: {triangle_count(proxy)} triangles, one flat colour each")
     delete_objects([source])
     return proxy
@@ -414,6 +415,8 @@ def finish_far(levels, material, looks=None):
         whp_far.rewrite(color, pixels)
         log(f"designs laid by the frame of {shield.name}: {width:.2f} x {height:.2f} m")
     entries = PALETTE_ENTRIES if looks is None else PALETTE_ENTRIES_LOOKS
+    if looks is not None:
+        looks.far_pieces(levels[2])         # LOD2 without the slots that do not read there
     cells = whp_far.free_cells(used | room, whp_palette.CELL, entries)
     whp_palette.apply(levels[2], color, normal, surface, whp_palette.PaletteCells(cells, COLOR_SIZE),
                       looks=looks is not None)
@@ -508,7 +511,7 @@ def figure_levels(specs, parts, armature, color_image, spec, ground=0.0, lod1=No
     parts in spec["own"]. Returns three lists of objects."""
     levels = [[], [], []]
     skip = looks.variant_parts if looks is not None else ()
-    levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground, skip=skip, looks=looks is not None))
+    levels[2].append(build_lod2_proxy(parts, armature, color_image, spec, ground, skip=skip, looks=looks))
     if lod1 is not None:
         levels[1] = list(lod1)
     for part, low in zip(specs, parts):
@@ -546,9 +549,45 @@ def figure_levels_hi(specs, parts, game, armature, color_image, spec, ground=0.0
     return levels
 
 
+def check_variants(specs, spec, looks):
+    """Variant shapes (T-061) are drawn only on the men who drew them: each
+    must be a part, bake its occlusion alone (or the head under a beard
+    would be dark on every man), and stay out of LOD2 (the stand-in has no
+    room for them). The parts named in LOOKS must exist."""
+    names = {p.name: p for p in specs}
+    unknown = sorted(set(looks.parts) - set(names))
+    if unknown:
+        raise ValueError(f"LOOKS names parts that do not exist: {unknown}")
+    for name in sorted(looks.variant_parts):
+        part = names.get(name)
+        if part is None:
+            raise ValueError(f"variant shape {name} is not a part")
+        lod2 = [key for key in ("own", "body") if name in (spec.get(key) or ())]
+        if not part.ao_alone or part.budget[2] or lod2:
+            raise ValueError(f"variant shape {name}: needs ao_alone, no LOD2 budget and no place in LOD2 {lod2}")
+
+
+def variant_allowance(objs, looks):
+    """Triangles of a level's variant shapes beyond those one man draws: of
+    each group only one choice is drawn (T-061), so a level's limit counts
+    only the largest. 0 without LOOKS."""
+    if looks is None or not looks.variants:
+        return 0
+    tris = {}
+    for obj in objs:
+        base = obj.name.split(".")[0]
+        tris[base] = tris.get(base, 0) + triangle_count(obj)
+    extra = 0
+    for group in looks.variants:
+        counts = [tris.get(part, 0) for part in {p for _, p in group.options if p}]
+        extra += sum(counts) - max(counts, default=0)
+    return extra
+
+
 def build(unit, limits):
     """`limits`: triangles of each level. Three levels: the game ladder;
-    four: the "hi" ladder."""
+    four: the "hi" ladder. With LOOKS, a level may hold the variant shapes
+    one man does not draw on top of its limit (variant_allowance)."""
     model = unit.MODEL
     specs = unit.PARTS
     hi = len(limits) == 4
@@ -560,6 +599,9 @@ def build(unit, limits):
         armature.animation_data.action = None
     whp_skeleton.reset_pose(armature)
 
+    looks = None if hi else getattr(unit, "LOOKS", None)
+    if looks is not None:
+        check_variants(specs, unit.LOD2, looks)
     game = [game_budget(part) for part in specs]
     parts = build_low_parts(specs, hi=hi)
     for part, low in zip(specs, parts):
@@ -573,7 +615,6 @@ def build(unit, limits):
         levels = figure_levels_hi(specs, parts, game, armature, color_image, unit.LOD2)
     else:
         lod1 = whp_far.lod1_pieces([p.name for p in specs], parts, [p.budget[1] for p in specs])
-        looks = getattr(unit, "LOOKS", None)
         if looks is not None:
             for part, low in zip(specs, parts):
                 whp_look.assign(low, looks.look(part.name))
@@ -582,7 +623,8 @@ def build(unit, limits):
         parts, final, color_image, clean_up, lod1 = bake_atlas(model, specs, parts, detailed, extra=lod1, looks=looks)
         levels = figure_levels(specs, parts, armature, color_image, unit.LOD2, lod1=lod1, looks=looks)
         finish_far(levels, final, looks=looks)
-    lods = [finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
+    lods = [finish_lod(objs, f"LOD{i}", limits[i] + variant_allowance(objs, looks), armature, final)
+            for i, objs in enumerate(levels)]
 
     # Leave the detailed model in the file, out of the way.
     for obj in detailed:

@@ -11,8 +11,10 @@ this model.
 
 import bpy
 
+import roman_beard
 import roman_fit
 import roman_kit
+import roman_looks
 import roman_mail
 import roman_source
 import whp_clips
@@ -91,6 +93,8 @@ PARTS = [
     Part("shield", ["Scutum.low"], ["Scutum"], (None, 100, 40), uv=lambda slot: 0.45 if slot == 2 else 1.0,
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("hook", ["Mail_hook.low"], ["Mail_hook"], (None, 0, 0), extrusion=0.008, ray=0.02),
+    # Variant shapes (T-061): the beards.
+    *roman_beard.PARTS,
 ]
 
 LOD2 = dict(
@@ -100,6 +104,16 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+
+LOOKS = roman_looks.looks()
+
+
+def before_lod():
+    """The beards (roman_beard), short of the cheek pieces and the collar."""
+    roman_beard.build(avoid=["Helmet_cheeks", "Mail_yoke", "Tunic_1"])
 
 
 # -- review images (render_review.py) -----------------------------------------

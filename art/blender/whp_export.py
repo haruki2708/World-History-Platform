@@ -14,6 +14,7 @@ import bpy
 import numpy as np
 from mathutils import Quaternion
 
+import whp_look
 from whp_common import log, reset_scene, select_only
 
 MAX_BYTES = 4 * 1024 * 1024
@@ -166,6 +167,40 @@ def _accessor_count(doc, index):
     return doc["accessors"][index]["count"]
 
 
+def _accessor_array(doc, binary, index):
+    """The values of an accessor (tightly packed scalars, as the exporter
+    writes indices and _LOOK)."""
+    acc = doc["accessors"][index]
+    view = doc["bufferViews"][acc["bufferView"]]
+    dtype = {5126: np.float32, 5125: np.uint32, 5123: np.uint16, 5121: np.uint8}[acc["componentType"]]
+    width = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}[acc["type"]]
+    start = view.get("byteOffset", 0) + acc.get("byteOffset", 0)
+    data = np.frombuffer(binary, dtype=dtype, count=acc["count"] * width, offset=start)
+    return data if width == 1 else data.reshape(acc["count"], width)
+
+
+def variant_allowance(doc, binary, mesh, table):
+    """Triangles of a level's variant shapes beyond those one man draws (of
+    each group only the largest choice counts; whp_unit_lod.variant_allowance),
+    read from _LOOK in the file."""
+    groups = (table or {}).get("variants", [])
+    if not groups:
+        return 0
+    per_variant = {}
+    for prim in mesh["primitives"]:
+        if "_LOOK" not in prim["attributes"]:
+            return 0
+        look = _accessor_array(doc, binary, prim["attributes"]["_LOOK"])
+        first = _accessor_array(doc, binary, prim["indices"]).reshape(-1, 3)[:, 0]
+        for v in (look[first].round().astype(int) // whp_look.VARIANT_STEP).tolist():
+            per_variant[v] = per_variant.get(v, 0) + 1
+    extra = 0
+    for group in groups:
+        counts = [per_variant.get(i, 0) for i in {o[0] for o in group["options"] if o[0]}]
+        extra += sum(counts) - max(counts, default=0)
+    return extra
+
+
 def _image_size(blob):
     """Width and height of a JPEG or PNG held in memory."""
     if blob[:8] == b"\x89PNG\r\n\x1a\n":
@@ -220,8 +255,13 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
     `looks`: the unit's whp_look.Looks, if it has any (T-061)."""
     doc, binary, size = read_glb(path)
     problems = []
+    table = None
     if looks is not None:
         problems += check_looks(doc, lods, looks)
+        try:
+            table = json.loads(doc["scenes"][doc.get("scene", 0)].get("extras", {}).get("whp_looks", ""))
+        except ValueError:
+            table = None
     log(f"check {os.path.basename(path)}: {size / 1024:.0f} KB")
     if size > max_bytes:
         problems.append(f"file is {size / 1024 / 1024:.2f} MB, over {max_bytes / 1024 / 1024:.0f} MB")
@@ -239,11 +279,13 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
         tris = sum(_accessor_count(doc, p["indices"]) // 3 for p in mesh["primitives"])
         verts = sum(_accessor_count(doc, p["attributes"]["POSITION"]) for p in mesh["primitives"])
         attrs = sorted(mesh["primitives"][0]["attributes"])
-        log(f"  {name}: {tris} triangles, {verts} vertices, {len(mesh['primitives'])} primitive(s), {attrs}")
+        allowance = variant_allowance(doc, binary, mesh, table)
+        log(f"  {name}: {tris} triangles, {verts} vertices, {len(mesh['primitives'])} primitive(s), {attrs}"
+            + (f", {allowance} of them variant shapes one man does not draw" if allowance else ""))
         if any(a.startswith("COLOR_") for a in attrs):
             problems.append(f"{name} has vertex colours (three.js would multiply them into the material)")
-        if tris > limit:
-            problems.append(f"{name} has {tris} triangles, over {limit}")
+        if tris > limit + allowance:
+            problems.append(f"{name} has {tris} triangles, over {limit}" + (f" + {allowance}" if allowance else ""))
         if "skin" not in node:
             problems.append(f"{name} is not skinned")
     extra = sorted(set(mesh_nodes) - set(lods))

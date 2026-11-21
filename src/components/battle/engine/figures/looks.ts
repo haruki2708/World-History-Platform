@@ -1,8 +1,10 @@
 /**
  * Each man his own look (T-061): the looks of a unit model file (ModelLooks,
  * src/lib/battle.ts) read and turned into the uniform tables of the figure
- * shaders (material.ts). Each man's choices are drawn in the vertex shader
- * from his seed, so nothing per figure is kept here.
+ * shaders (material.ts). Each man's choices are drawn once, here, from his
+ * seed (lookChoices), and handed to the shaders packed in the last two
+ * numbers of his instance attribute iStrike: drawing them per vertex cost a
+ * loop for every slot.
  */
 
 import { Vector2, Vector3, Vector4 } from "three";
@@ -11,8 +13,20 @@ import { LOOK_LIMITS, type LookDesigns, type ModelLooks } from "@/lib/battle";
 const OPTIONS = LOOK_LIMITS.options;
 const DESIGN_OPTIONS = LOOK_LIMITS.designs + 1;
 
+/**
+ * Where each choice lies in iStrike.zw (lookChoices): in z, the option of slot s
+ * at bit `option` x s (3 bits each); in w, the shape chosen in variant group
+ * g at bit `shape` x g (4 bits each), the design's tile + 1 at bit `tile` (4
+ * bits, 0 for a plain shield) and its colour at bit `color` (3 bits). Both
+ * stay under 2^24, so a float holds them exactly.
+ */
+export const LOOK_BITS = { option: 3, shape: 4, tile: 16, color: 20 } as const;
+
 /** The tables, in the layout material.ts declares. */
 export interface LookTables {
+  /** Slots and variant groups in the file. */
+  slotCount: number;
+  groupCount: number;
   /** Slot s, option o at s * OPTIONS + o: rgb the factor (dye: the colour over the slot's ref), w the chance up to it. */
   options: Vector4[];
   /** Per slot: x 1 for dye, 0 for tint. */
@@ -131,6 +145,8 @@ export function lookTables(looks: ModelLooks): LookTables {
     designExtent.fromArray(designs.extent);
   }
   return {
+    slotCount: looks.slots.length,
+    groupCount: looks.variants?.length ?? 0,
     options,
     modes,
     variants,
@@ -142,4 +158,49 @@ export function lookTables(looks: ModelLooks): LookTables {
     designFrame,
     designExtent,
   };
+}
+
+/** A fixed random number 0..1 of a man (his seed) for one choice (`salt`). */
+function chance(seed: number, salt: number): number {
+  const x = seed * (37 + 11 * salt) + 0.6180339 * salt;
+  return x - Math.floor(x);
+}
+
+/** The first of `count` options whose chance up to it (`up`) lies above r. */
+function pick(r: number, count: number, up: (o: number) => number): number {
+  let o = 0;
+  while (o < count - 1 && !(r < up(o))) o++;
+  return o;
+}
+
+/**
+ * One man's choices, drawn from his seed with the chances of the tables and
+ * packed as LOOK_BITS says: the option of each slot, the shape of each
+ * variant group, his design and its colour (never the colour of his paint:
+ * then the next one).
+ */
+export function lookChoices(tables: LookTables, seed: number): [number, number] {
+  let x = 0;
+  for (let s = 0; s < tables.slotCount; s++) {
+    const o = pick(chance(seed, s + 1), OPTIONS, (k) => tables.options[s * OPTIONS + k].w);
+    x += o * 2 ** (LOOK_BITS.option * s);
+  }
+  let y = 0;
+  for (let g = 0; g < tables.groupCount; g++) {
+    const o = pick(chance(seed, 16 + g), OPTIONS, (k) => tables.variants[g * OPTIONS + k].y);
+    y += tables.variants[g * OPTIONS + o].x * 2 ** (LOOK_BITS.shape * g);
+  }
+  const slot = tables.designInfo.x;
+  if (slot >= 1) {
+    const option = tables.designOptions[pick(chance(seed, 24), DESIGN_OPTIONS, (k) => tables.designOptions[k].y)];
+    const count = Math.max(tables.designInfo.y, 1);
+    let c = pick(chance(seed, 25), count, (k) => tables.designColors[k].w);
+    const s = slot - 1;
+    const paint = tables.options[s * OPTIONS + Math.floor(x / 2 ** (LOOK_BITS.option * s)) % 8];
+    const k = tables.designColors[c];
+    const far = Math.hypot(k.x - paint.x, k.y - paint.y, k.z - paint.z);
+    if (far < 0.3 * Math.hypot(paint.x, paint.y, paint.z)) c = (c + 1) % count;
+    y += (option.x + 1) * 2 ** LOOK_BITS.tile + c * 2 ** LOOK_BITS.color;
+  }
+  return [x, y];
 }

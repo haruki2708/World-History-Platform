@@ -10,22 +10,24 @@
  *            (metres), which sets the pose of the walk, run and jog clips; for a
  *            fallen one, seconds into the clip that does not loop
  *   iSeed    a fixed random number 0..1: animation offset, size, tint
- *   iStrike  x: seconds into the clip for a figure fighting hand to hand
+ *   iStrike  (vec4) x: seconds into the clip for a figure fighting hand to hand
  *            (attack, block or hit; engine/melee.ts times the blows) or bowled
  *            over by a horse (knockdown; engine/overrun.ts), or negative:
  *            attack then loops on the clock like idle;
  *            y: how far it has put away what its model stows to fight, 0..1;
  *            plus 2 when the clip on top is for the rider alone: his horse
- *            keeps the clip below (its gallop)
+ *            keeps the clip below (its gallop);
+ *            zw: with looks, his choices, packed (looks.ts, LOOK_BITS)
  *
  * Each man his own look (T-061): a model with looks (UnitModel.looks) is
- * drawn with FIG_LOOKS defined. Its vertices carry aLook (slots and variant
- * shape, see ModelLooks in src/lib/battle.ts); the vertex shader draws this
- * man's options from his seed and hands the fragment shader the factors of
- * the vertex's two slots, which the dye mask (red of the
- * roughness-metalness map) lays on texel by texel, with the shield's
- * design. A variant shape he did not draw is gathered into one point, in
- * the shadow pass too.
+ * drawn with FIG_LOOKS defined. Its vertices carry their look in aPart.y
+ * (slots and variant shape, see ModelLooks in src/lib/battle.ts); each
+ * figure carries his choices, drawn once from his seed (looks.ts,
+ * lookChoices), in iStrike.zw. The vertex
+ * shader hands the fragment shader the factors of the vertex's two slots,
+ * which the dye mask (red of the roughness-metalness map) lays on texel by
+ * texel, with the shield's design. A variant shape he did not draw is
+ * gathered into one point, in the shadow pass too.
  *
  * Two looks share that vertex work:
  *   - `material`: diffuse light only (Lambert). Every figure at low quality,
@@ -53,6 +55,7 @@ import {
   Vector4,
 } from "three";
 import { LOOK_LIMITS, LOOK_SECONDARY_STEP, LOOK_VARIANT_STEP, UNIT_CLIPS } from "@/lib/battle";
+import { LOOK_BITS } from "./looks";
 import { CLIP_INDEX, type UnitModel } from "./model";
 
 const OPTIONS = LOOK_LIMITS.options;
@@ -87,12 +90,12 @@ const PARS = /* glsl */ `
 attribute vec4 iPosYaw;
 attribute vec4 iAnim;
 attribute float iSeed;
-attribute vec2 iStrike;
+attribute vec4 iStrike;
 attribute vec4 aBoneIndex;
 attribute vec4 aBoneWeight;
 attribute float aTeam;
-// How much of the vertex is skinned to the horse of a mounted figure.
-attribute float aMount;
+// Of the vertex's part: x how much of it is skinned to the horse of a mounted figure; y its look (T-061).
+attribute vec2 aPart;
 uniform highp sampler2D uBoneTex;
 uniform vec4 uClips[${UNIT_CLIPS.length}];
 // Ground covered by one cycle of walk, run and jog, metres.
@@ -112,18 +115,18 @@ float figCos;
 float figSin;
 
 #ifdef FIG_LOOKS
-attribute float aLook;
-uniform vec2 uLookVariant[${LOOK_LIMITS.groups * OPTIONS}];
+// This man's choices (looks.ts, LOOK_BITS), in the last two numbers of iStrike.
+#define iLook (iStrike.zw)
 uniform float uLookShapeGroup[${LOOK_LIMITS.shapes + 1}];
 
-/** A fixed random number 0..1 of this man for one choice (\`salt\`). */
-float figChance(float salt) {
-  return fract(iSeed * (37.0 + 11.0 * salt) + 0.6180339 * salt);
+/** \`width\` bits of a packed choice (LOOK_BITS), from bit \`shift\`. */
+int figBits(float packed, int shift, int width) {
+  return (int(packed + 0.5) >> shift) & ((1 << width) - 1);
 }
 
 /** This vertex's primary slot, secondary slot and variant shape. */
 vec3 figLook() {
-  float n = floor(aLook + 0.5);
+  float n = floor(aPart.y + 0.5);
   return vec3(
     mod(n, ${LOOK_SECONDARY_STEP}.0),
     mod(floor(n / ${LOOK_SECONDARY_STEP}.0), ${LOOK_VARIANT_STEP / LOOK_SECONDARY_STEP}.0),
@@ -133,17 +136,9 @@ vec3 figLook() {
 /** True when the vertex belongs to a variant shape this man did not draw. */
 bool figHidden(float shape) {
   if (shape < 0.5) return false;
-  int g = int(uLookShapeGroup[int(shape + 0.5)] + 0.5);
-  float r = figChance(16.0 + float(g));
-  float chosen = 0.0;
-  for (int o = 0; o < ${OPTIONS}; o++) {
-    vec2 option = uLookVariant[g * ${OPTIONS} + o];
-    if (r < option.y) {
-      chosen = option.x;
-      break;
-    }
-  }
-  return abs(chosen - shape) > 0.5;
+  int s = int(shape + 0.5);
+  int g = int(uLookShapeGroup[s] + 0.5);
+  return figBits(iLook.y, ${LOOK_BITS.shape} * g, ${LOOK_BITS.shape}) != s;
 }
 #endif
 
@@ -202,7 +197,7 @@ void figureTransform(vec3 p, vec3 n) {
     vec4 s2;
     figBones(figFrame(iAnim.y), s0, s1, s2);
     // A clip for the rider alone leaves his horse to the clip below.
-    float share = iAnim.z * (1.0 - step(1.5, iStrike.y) * aMount);
+    float share = iAnim.z * (1.0 - step(1.5, iStrike.y) * aPart.x);
     figR0 = mix(figR0, s0, share);
     figR1 = mix(figR1, s1, share);
     figR2 = mix(figR2, s2, share);
@@ -236,72 +231,48 @@ void figureTransform(vec3 p, vec3 n) {
  */
 const LOOK_VERTEX = /* glsl */ `
 #ifdef FIG_LOOKS
-uniform vec4 uLookOption[${LOOK_LIMITS.slots * OPTIONS}];
-uniform vec2 uLookMode[${LOOK_LIMITS.slots}];
+#ifdef FIG_DESIGNS
 uniform vec2 uLookDesignInfo;
 uniform vec4 uLookDesignTile[${LOOK_LIMITS.designs}];
-uniform vec2 uLookDesignOption[${LOOK_LIMITS.designs + 1}];
-uniform vec4 uLookDesignColor[${OPTIONS}];
 uniform vec3 uLookDesignFrame[3];
 uniform vec4 uLookDesignExtent;
-varying vec4 vLookA;
-varying vec4 vLookB;
-varying vec4 vLookTile;
-varying vec3 vLookDesignK;
+#endif
+// What the fragment shader needs of this man's looks, packed: the option of the vertex's primary slot,
+// of its secondary slot (each 1 + its index in uLookOption, 0 for none), and his design's colour (1 + its
+// index, 0 for no design), 6, 6 and 4 bits. The same at the three corners of a triangle (a part has one
+// look): few varyings, as each one costs on millions of small triangles. Not "flat": ANGLE on Direct3D
+// draws flat varyings through a slow path, to emulate their provoking vertex.
+varying float vLook;
+#ifdef FIG_DESIGNS
+// Where the design's mask lies in the atlas under this point (a model without designs has no such varying).
 varying vec2 vLookDesignUv;
+#endif
 
-/** rgb: this man's factor for the slot (1 for none); a: 1 to dye, 0 to tint. */
-vec4 figSlot(float slot) {
-  if (slot < 0.5) return vec4(1.0, 1.0, 1.0, 0.0);
+/** 1 + this man's option of the slot, as an index into uLookOption; 0 for no slot. */
+float figOption(float slot) {
+  if (slot < 0.5) return 0.0;
   int s = int(slot + 0.5) - 1;
-  float r = figChance(float(s) + 1.0);
-  vec4 chosen = uLookOption[s * ${OPTIONS}];
-  for (int o = 0; o < ${OPTIONS}; o++) {
-    vec4 option = uLookOption[s * ${OPTIONS} + o];
-    if (r < option.w) {
-      chosen = option;
-      break;
-    }
-  }
-  return vec4(chosen.rgb, uLookMode[s].x);
+  return float(1 + s * ${OPTIONS} + figBits(iLook.x, ${LOOK_BITS.option} * s, ${LOOK_BITS.option}));
 }
 
 void figLooks(vec3 bindPosition) {
   vec3 look = figLook();
-  vLookA = figSlot(look.x);
-  vLookB = figSlot(look.y);
-  vLookTile = vec4(0.0);
-  vLookDesignK = vec3(1.0);
+  float design = 0.0;
+  #ifdef FIG_DESIGNS
   vLookDesignUv = vec2(0.0);
-  if (uLookDesignInfo.x < 0.5 || abs(look.x - uLookDesignInfo.x) > 0.5) return;
-  float r = figChance(24.0);
-  float tile = -1.0;
-  for (int o = 0; o < ${LOOK_LIMITS.designs + 1}; o++) {
-    vec2 option = uLookDesignOption[o];
-    if (r < option.y) {
-      tile = option.x;
-      break;
-    }
+  int tile = figBits(iLook.y, ${LOOK_BITS.tile}, 4) - 1;
+  if (tile >= 0 && abs(look.x - uLookDesignInfo.x) < 0.5) {
+    design = float(1 + figBits(iLook.y, ${LOOK_BITS.color}, 3));
+    vec4 t = uLookDesignTile[tile];
+    vec3 d = bindPosition - uLookDesignFrame[0];
+    vec2 f = vec2(
+      (dot(d, uLookDesignFrame[2]) - uLookDesignExtent.x) / (uLookDesignExtent.y - uLookDesignExtent.x),
+      (dot(d, uLookDesignFrame[1]) - uLookDesignExtent.z) / (uLookDesignExtent.w - uLookDesignExtent.z));
+    // The frame spans the shield's vertices, so f stays in 0..1 (and the tiles have a margin).
+    vLookDesignUv = t.xy + vec2(f.x, 1.0 - f.y) * t.zw;
   }
-  if (tile < -0.5) return;
-  vLookTile = uLookDesignTile[int(tile + 0.5)];
-  int count = max(int(uLookDesignInfo.y + 0.5), 1);
-  float rc = figChance(25.0);
-  int c = 0;
-  for (int o = 0; o < ${OPTIONS}; o++) {
-    if (rc < uLookDesignColor[o].w) {
-      c = o;
-      break;
-    }
-  }
-  vec3 k = uLookDesignColor[c].rgb;
-  // Never the colour of his paint: then the next one.
-  if (distance(k, vLookA.rgb) < 0.3 * length(vLookA.rgb)) k = uLookDesignColor[(c + 1) % count].rgb;
-  vLookDesignK = k;
-  vec3 d = bindPosition - uLookDesignFrame[0];
-  vLookDesignUv = vec2(
-    (dot(d, uLookDesignFrame[2]) - uLookDesignExtent.x) / (uLookDesignExtent.y - uLookDesignExtent.x),
-    (dot(d, uLookDesignFrame[1]) - uLookDesignExtent.z) / (uLookDesignExtent.w - uLookDesignExtent.z));
+  #endif
+  vLook = figOption(look.x) + 64.0 * figOption(look.y) + 4096.0 * design;
 }
 #endif
 `;
@@ -314,23 +285,35 @@ void figLooks(vec3 bindPosition) {
 const LOOK_FRAGMENT = /* glsl */ `
 #ifdef FIG_LOOKS
 uniform sampler2D uLookDye;
-varying vec4 vLookA;
-varying vec4 vLookB;
-varying vec4 vLookTile;
-varying vec3 vLookDesignK;
+uniform vec4 uLookOption[${LOOK_LIMITS.slots * OPTIONS}];
+uniform vec2 uLookMode[${LOOK_LIMITS.slots}];
+varying float vLook;
+#ifdef FIG_DESIGNS
+uniform vec4 uLookDesignColor[${OPTIONS}];
 varying vec2 vLookDesignUv;
+#endif
+
+/** A texel under an option (1 + its index; 0: none): tinted, or dyed from its luminance. */
+vec3 figSlotColor(vec3 c, float lum, int option) {
+  if (option == 0) return c;
+  vec3 k = uLookOption[option - 1].rgb;
+  return uLookMode[(option - 1) / ${OPTIONS}].x > 0.5 ? lum * k : c * k;
+}
 
 vec3 figDyed(vec3 c, vec2 uv) {
+  int packed = int(vLook + 0.5);
   float dye = texture2D(uLookDye, uv).r;
   float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  vec3 a = mix(c * vLookA.rgb, lum * vLookA.rgb, vLookA.a);
-  vec3 b = mix(c * vLookB.rgb, lum * vLookB.rgb, vLookB.a);
+  vec3 a = figSlotColor(c, lum, packed & 63);
+  vec3 b = figSlotColor(c, lum, (packed >> 6) & 63);
   vec3 dyed = dye < 0.5 ? mix(c, b, dye * 2.0) : mix(b, a, dye * 2.0 - 1.0);
-  if (vLookTile.z > 0.0) {
-    vec2 d = clamp(vLookDesignUv, 0.0, 1.0);
-    float mask = texture2D(map, vLookTile.xy + vec2(d.x, 1.0 - d.y) * vLookTile.zw).g;
-    dyed = mix(dyed, lum * vLookDesignK, mask * smoothstep(0.6, 0.9, dye));
+  #ifdef FIG_DESIGNS
+  int design = packed >> 12;
+  if (design > 0) {
+    float mask = texture2D(map, vLookDesignUv).g;
+    dyed = mix(dyed, lum * uLookDesignColor[design - 1].rgb, mask * smoothstep(0.6, 0.9, dye));
   }
+  #endif
   return dyed;
 }
 #endif
@@ -439,21 +422,21 @@ export function createFigureMaterials(
   const looks = model.looks;
   const lookUniforms: Record<string, IUniform> = looks
     ? {
-        uLookVariant: { value: looks.variants },
         uLookShapeGroup: { value: looks.shapeGroup },
         uLookOption: { value: looks.options },
         uLookMode: { value: looks.modes },
         uLookDesignInfo: { value: looks.designInfo },
         uLookDesignTile: { value: looks.designTiles },
-        uLookDesignOption: { value: looks.designOptions },
         uLookDesignColor: { value: looks.designColors },
         uLookDesignFrame: { value: looks.designFrame },
         uLookDesignExtent: { value: looks.designExtent },
         uLookDye: { value: model.surface?.roughnessMap ?? null },
       }
     : {};
-  const defines: Record<string, string> = looks ? { FIG_LOOKS: "" } : {};
-  const variant = looks ? "-looks" : "";
+  // Designs need one more varying: only the models that have them pay for it.
+  const designs = !!looks && looks.designInfo.x >= 1;
+  const defines: Record<string, string> = looks ? { FIG_LOOKS: "", ...(designs ? { FIG_DESIGNS: "" } : {}) } : {};
+  const variant = looks ? (designs ? "-looks-designs" : "-looks") : "";
   const bind = (shader: { uniforms: Record<string, IUniform> }) => {
     shader.uniforms.uBoneTex = uniforms.uBoneTex;
     shader.uniforms.uClips = uniforms.uClips;

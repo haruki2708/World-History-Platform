@@ -61,6 +61,7 @@ import horse_lod
 import horse_rig
 import whp_clips
 import whp_far
+import whp_look
 import whp_skeleton
 import whp_unit_lod as ul
 from whp_anim import FPS, Poser, action_fcurves, finish_action, new_action, smooth
@@ -1546,6 +1547,7 @@ def stage_lod(unit, limits):
     ground = float(armature["whp_rider_lift"][2]) if "whp_rider_lift" in armature else 0.0
 
     hi = len(limits) == 4               # the "hi" ladder (whp_build --hi)
+    looks = None if hi else getattr(unit, "LOOKS", None)      # T-061: each man his own look
     game = [ul.game_budget(part) for part in unit.PARTS]
     rider_parts = ul.build_low_parts(unit.PARTS, ground=ground, hi=hi)
     for part, low in zip(unit.PARTS, rider_parts):
@@ -1556,6 +1558,14 @@ def stage_lod(unit, limits):
     horse_specs = horse_lod.specs(horse_parts, sources)
     specs = list(unit.PARTS) + horse_specs
     sets = [[s.name for s in unit.PARTS], [s.name for s in horse_specs]]
+    if looks is not None:
+        ul.check_variants(specs, unit.LOD2, looks)
+        if "cloth" in horse.tack:
+            import cavalry_looks
+            import horse_kit
+            border = horse.cloth[1] if horse.cloth is not None else horse_kit.WOOL_BORDER
+            count = cavalry_looks.mark_cloth_border(bpy.data.objects[HORSE_DETAILED["cloth"]], border)
+            log(f"saddle cloth: {count} vertices of border kept out of the dye")
     rest = {b.name: np.array(b.matrix_local) for b in armature.data.bones if b.name.startswith("horse_")}
     if hi:
         with horse_lod.Unskinned(horse_objs):
@@ -1570,22 +1580,35 @@ def stage_lod(unit, limits):
         # LOD1 with few seams and LOD2 a palette (whp_far), for the rider and the horse alike.
         rider_lod1 = whp_far.lod1_pieces([p.name for p in unit.PARTS], rider_parts, [p.budget[1] for p in unit.PARTS])
         horse_lod1 = horse_lod.lod1_pieces(horse_parts)
+        if looks is not None:
+            for part, low in zip(specs, rider_parts + horse_parts):
+                whp_look.assign(low, looks.look(part.name))
+            for piece in rider_lod1 + horse_lod1:
+                whp_look.assign(piece, looks.look(piece.name.split(".")[0]))
         with horse_lod.Unskinned(horse_objs):
             parts, final, color_image, clean_up, lod1 = ul.bake_atlas(model, specs, rider_parts + horse_parts,
                                                                       rider_detailed + horse_objs, ao_sets=sets,
-                                                                      extra=rider_lod1 + horse_lod1)
+                                                                      extra=rider_lod1 + horse_lod1, looks=looks)
         rider_parts, horse_parts = parts[:len(unit.PARTS)], parts[len(unit.PARTS):]
         rider_lod1, horse_lod1 = lod1[:len(rider_lod1)], lod1[len(rider_lod1):]
         apply_drape(rider_parts + rider_lod1)
         levels = ul.figure_levels(unit.PARTS, rider_parts, armature, color_image, unit.LOD2, ground=ground,
-                                  lod1=rider_lod1)
+                                  lod1=rider_lod1, looks=looks)
         horse_levels = horse_lod.levels(horse_parts, rest, color_image, lod1=horse_lod1)
+        if looks is not None:
+            # The body's far stand-in is built afresh: it takes the coat's look (its tail keeps its
+            # colour all the same, by the dye mask).
+            for pieces in horse_levels.values():
+                for piece in pieces[2]:
+                    if piece.name.split(".")[0] in looks.parts:
+                        whp_look.assign(piece, looks.look(piece.name.split(".")[0]))
     for group, pieces in horse_levels.items():
         for i in range(len(levels)):
             levels[i] += pieces[i]
     if not hi:
-        ul.finish_far(levels, final)
-    lods = [ul.finish_lod(objs, f"LOD{i}", limits[i], armature, final) for i, objs in enumerate(levels)]
+        ul.finish_far(levels, final, looks=looks)
+    lods = [ul.finish_lod(objs, f"LOD{i}", limits[i] + ul.variant_allowance(objs, looks), armature, final)
+            for i, objs in enumerate(levels)]
 
     for obj in rider_detailed + horse_objs:
         obj.hide_render = True

@@ -61,9 +61,12 @@ trousers lifted him off the horse. whp_cavalry puts him on the horse.
 import bpy
 import numpy as np
 
+import cavalry_looks
+import celt_beard
 import celt_cloak
 import celt_hair
 import celt_kit
+import celt_looks
 import celt_source
 import celt_tunic
 import roman_kit
@@ -71,6 +74,7 @@ import roman_shield
 import whp_build
 import whp_cavalry
 import whp_clips
+import whp_look
 import whp_materials
 import whp_skin
 from whp_mesh import get_coords
@@ -182,6 +186,11 @@ PARTS = [
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("sword", ["Sword_long.low"], ["Sword_long"], (None, 24, 4), uv=0.7, extrusion=0.006, ray=0.015,
          ao_alone=True),
+    # Variant shapes (T-061): the beards (celt_beard), on a horseman's budget; not at LOD2.
+    Part("beard_short", ["Beard_short"], ["Beard_short"], (156, 20, 0), uv=1.4, extrusion=0.006, ray=0.012,
+         ao_alone=True),
+    Part("beard_full", ["Beard_full"], ["Beard_full"], (228, 29, 0), uv=1.4, extrusion=0.008, ray=0.016,
+         ao_alone=True),
 ]
 
 LOD2 = dict(
@@ -192,6 +201,44 @@ LOD2 = dict(
     head="head",
     feet=False,
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# The Gallic foot's (celt_looks), with the tunic and the cloak: Diodorus
+# 5.30.1, tunics dyed in every colour and cloaks of many-coloured checks.
+# The horse (cavalry_looks): its coat; the saddle cloth keeps its colours
+# (no slot left).
+
+srgb, ONE = whp_look.srgb, whp_look.ONE
+_horse_slots, _horse_parts, _horse_materials = cavalry_looks.horse()
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("hair", "tint", celt_looks.HAIR),
+        whp_look.Slot("skin", "tint", celt_looks.SKIN),
+        whp_look.Slot("trousers", "dye", celt_looks.TROUSERS),
+        whp_look.Slot("tunic", "dye", [(3, srgb(69, 115, 60)), (2, srgb(140, 56, 42)), (2, srgb(70, 86, 120)),
+                                       (1, srgb(168, 138, 70)), (1, srgb(112, 86, 60)), (1, srgb(192, 182, 152))]),
+        whp_look.Slot("cloak", "tint", [(3, ONE), (2, (1.35, 0.85, 0.65)), (2, (0.75, 1.15, 0.80)),
+                                        (1, (1.25, 1.20, 0.75)), (1, (0.62, 0.62, 0.68))]),
+        whp_look.Slot("shield", "dye", celt_looks.SHIELD),
+        *_horse_slots,
+    ],
+    parts={"head": ("hair", "skin"), "hair": ("hair", None), "torso": ("skin", None), "arms": ("skin", None),
+           "legs": ("trousers", "skin"), "tunic": ("tunic", None), "cloak": ("cloak", None),
+           "shield": ("shield", None), "beard_short": ("hair", None), "beard_full": ("hair", None), **_horse_parts},
+    materials={"Celt_Head": celt_looks.head_dye, "Celt_Body": "skin", "Celt_Hands": "skin",
+               "Celt_Legs": celt_looks.legs_dye, "whp-hair": "hair", "whp-tunic": "tunic", "whp-cloak": "cloak",
+               "whp-shield-paint": "shield", **_horse_materials},
+    # Diodorus 5.28.3: some shave, some let the beard grow a little; the nobles keep only the moustache.
+    variants=[whp_look.Variants("beard", [(5, None), (3, "beard_short"), (2, "beard_full")])],
+    designs=celt_looks.DESIGNS,
+)
+
+
+def before_lod():
+    """The beards (celt_beard), in the hair's own material."""
+    celt_beard.build("Celt_head", material=bpy.data.materials["whp-hair"])
 
 
 # -- review images (render_review.py) -----------------------------------------

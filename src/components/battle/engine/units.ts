@@ -23,6 +23,7 @@ import {
   SrcAlphaFactor,
   Vector3,
 } from "three";
+import { lookChoices } from "./figures/looks";
 import type { FigureMaterials } from "./figures/material";
 import { CLIP_INDEX, type UnitModel } from "./figures/model";
 import { type BlowFigures, Blows } from "./blows";
@@ -32,7 +33,7 @@ import type { Occluder } from "./occlusion";
 import { blankRiding, type Ride, type Riding } from "./overrun";
 import type { HeightAt } from "./terrain";
 import { DYING, GONE, type UnitTrack } from "./timeline";
-import { KNOCKDOWN_SECONDS, REACTION_IMPACT, RIDEDOWN_IMPACT } from "@/lib/battle";
+import { KNOCKDOWN_SECONDS, LOOK_VARIANT_STEP, REACTION_IMPACT, RIDEDOWN_IMPACT } from "@/lib/battle";
 
 /**
  * Figures are drawn larger than life: one figure stands for twenty men, and
@@ -352,8 +353,12 @@ export interface CrowdCounts {
   lods: number[];
 }
 
+/** Numbers per figure in iStrike (Chunk.strike): the blow, the stowing, the looks (two). */
+const STRIKE = 4;
+
 /** What the depth pass of the shadows reads from a figure mesh (see material.ts). */
-const DEPTH_ATTRIBUTES = ["position", "aBoneIndex", "aBoneWeight", "aMount", "aLook"] as const;
+const DEPTH_ATTRIBUTES = ["position", "aBoneIndex", "aBoneWeight", "aPart"] as const;
+const PART = DEPTH_ATTRIBUTES.indexOf("aPart");
 const depthGeometries = new WeakMap<BufferGeometry, BufferGeometry>();
 
 /**
@@ -379,11 +384,17 @@ function depthGeometry(base: BufferGeometry): BufferGeometry {
   const firstOf = new Map<string, number>();
   const merged = new Uint32Array(count);
   const kept: number[] = [];
+  // Of a vertex's look (aPart.y) the depth pass needs only its variant shape (a beard it may gather into a
+  // point, material.ts): the slots would keep apart vertices it can merge.
+  const value = (a: number, v: number, c: number): number => {
+    const x = sources[a].array[v * sources[a].itemSize + c];
+    return a === PART && c === 1 ? Math.floor((x + 0.5) / LOOK_VARIANT_STEP) * LOOK_VARIANT_STEP : x;
+  };
   for (let v = 0; v < count; v++) {
     let key = "";
-    for (const source of sources) {
-      for (let c = 0; c < source.itemSize; c++) key += `${source.array[v * source.itemSize + c]},`;
-    }
+    sources.forEach((source, a) => {
+      for (let c = 0; c < source.itemSize; c++) key += `${value(a, v, c)},`;
+    });
     let to = firstOf.get(key);
     if (to === undefined) {
       to = kept.length;
@@ -394,10 +405,10 @@ function depthGeometry(base: BufferGeometry): BufferGeometry {
   }
   const geometry = new BufferGeometry();
   DEPTH_ATTRIBUTES.forEach((name, a) => {
-    const { array, itemSize, normalized } = sources[a];
+    const { itemSize, normalized } = sources[a];
     const out = new Float32Array(kept.length * itemSize);
     kept.forEach((v, i) => {
-      for (let c = 0; c < itemSize; c++) out[i * itemSize + c] = array[v * itemSize + c];
+      for (let c = 0; c < itemSize; c++) out[i * itemSize + c] = value(a, v, c);
     });
     geometry.setAttribute(name, new BufferAttribute(out, itemSize, normalized));
   });
@@ -412,6 +423,12 @@ class Chunk {
   readonly posYaw: InstancedBufferAttribute;
   readonly anim: InstancedBufferAttribute;
   readonly seed: InstancedBufferAttribute;
+  /**
+   * Per figure: seconds into its blow (-1: none); how far it has put away
+   * what it stows to fight; and its looks, drawn once (figures/looks.ts,
+   * lookChoices; 0 for a model without looks). One attribute: each is a
+   * stream the graphics card fetches on its own (T-061).
+   */
   readonly strike: InstancedBufferAttribute;
   readonly sphere = new Sphere();
   readonly display: InstancedBufferGeometry[];
@@ -433,13 +450,10 @@ class Chunk {
     this.posYaw = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.anim = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
     this.seed = new InstancedBufferAttribute(new Float32Array(count), 1);
-    // Per figure: seconds into its blow (-1: none), and how far it has put away what it stows to fight.
-    const strike = new Float32Array(count * 2);
-    for (let k = 0; k < count; k++) strike[k * 2] = -1;
-    this.strike = new InstancedBufferAttribute(strike, 2);
-    for (const attribute of [this.posYaw, this.anim, this.seed, this.strike]) {
-      attribute.setUsage(DynamicDrawUsage);
-    }
+    const strike = new Float32Array(count * STRIKE);
+    for (let k = 0; k < count; k++) strike[k * STRIKE] = -1;
+    this.strike = new InstancedBufferAttribute(strike, STRIKE);
+    for (const attribute of this.attributes) attribute.setUsage(DynamicDrawUsage);
     const instanced = (base: BufferGeometry) => {
       const geometry = new InstancedBufferGeometry();
       geometry.setIndex(base.index);
@@ -478,6 +492,11 @@ class Chunk {
     this.shadowMesh.onAfterShadow = (_renderer, _scene, _camera, _shadowCamera, geometry) => {
       (geometry as InstancedBufferGeometry).instanceCount = 0;
     };
+  }
+
+  /** The per-figure attributes, written every frame for the figures drawn. */
+  get attributes(): InstancedBufferAttribute[] {
+    return [this.posYaw, this.anim, this.seed, this.strike];
   }
 
   setLod(lod: number, settings: LodSettings): void {
@@ -568,6 +587,8 @@ export class UnitBlock {
   private gaitList: Gait[] | null = null;
   /** Ground speed of the block, metres per second of real time, smoothed. */
   private speed = 0;
+  /** Each figure's looks, packed (figures/looks.ts, lookChoices): two numbers a figure; null without looks. */
+  private readonly looks: Float32Array | null;
   /** Where each figure stood in the last frame, to measure its step. */
   private readonly lastX: Float32Array;
   private readonly lastY: Float32Array;
@@ -647,6 +668,11 @@ export class UnitBlock {
     this.groundX = new Float32Array(track.count).fill(NaN);
     this.groundY = new Float32Array(track.count).fill(NaN);
     this.groundH = new Float32Array(track.count);
+    const tables = model.looks;
+    this.looks = tables ? new Float32Array(track.count * 2) : null;
+    if (tables && this.looks) {
+      for (let i = 0; i < track.count; i++) this.looks.set(lookChoices(tables, track.seed[i]), i * 2);
+    }
     const chunkCount = Math.ceil(track.count / CHUNK_SIZE);
     for (let c = 0; c < chunkCount; c++) {
       const first = Math.floor((c * track.count) / chunkCount);
@@ -854,6 +880,7 @@ export class UnitBlock {
       const anim = chunk.anim.array as Float32Array;
       const seed = chunk.seed.array as Float32Array;
       const strike = chunk.strike.array as Float32Array;
+      const looks = this.looks;
       let n = 0;
       let minX = Infinity;
       let minY = Infinity;
@@ -971,7 +998,7 @@ export class UnitBlock {
               stowed[i] = away;
             }
           }
-          strike[n * 2 + 1] = away;
+          strike[n * STRIKE + 1] = away;
         }
         if (status === DYING) {
           const since = track.since[i];
@@ -979,7 +1006,7 @@ export class UnitBlock {
           anim[o + 1] = DIE;
           anim[o + 2] = 0;
           anim[o + 3] = since;
-          strike[n * 2] = -1;
+          strike[n * STRIKE] = -1;
         } else {
           const heading = track.heading[i];
           // In a fight at a distance only the front ranks throw; the rest wait their turn.
@@ -1274,9 +1301,9 @@ export class UnitBlock {
             anim[o + 2] = mix;
           }
           anim[o + 3] = walked[i];
-          strike[n * 2] = into;
-          if (riderOnly) strike[n * 2 + 1] = 2;
-          else if (ride !== null) strike[n * 2 + 1] = 0;
+          strike[n * STRIKE] = into;
+          if (riderOnly) strike[n * STRIKE + 1] = 2;
+          else if (ride !== null) strike[n * STRIKE + 1] = 0;
         }
         posYaw[o] = x;
         posYaw[o + 1] = y;
@@ -1284,6 +1311,10 @@ export class UnitBlock {
         // A fallen figure keeps the turn it had when it fell.
         posYaw[o + 3] = Math.PI - (track.heading[i] + turn[i]);
         seed[n] = track.seed[i];
+        if (looks) {
+          strike[n * STRIKE + 2] = looks[i * 2];
+          strike[n * STRIKE + 3] = looks[i * 2 + 1];
+        }
         n++;
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
@@ -1296,7 +1327,7 @@ export class UnitBlock {
       for (const geometry of chunk.display) geometry.instanceCount = n;
       chunk.mesh.visible = n > 0;
       if (n === 0) continue;
-      for (const attribute of [chunk.posYaw, chunk.anim, chunk.seed, chunk.strike]) {
+      for (const attribute of chunk.attributes) {
         attribute.clearUpdateRanges();
         attribute.addUpdateRange(0, n * attribute.itemSize);
         attribute.needsUpdate = true;

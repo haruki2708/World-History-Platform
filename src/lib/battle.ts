@@ -134,7 +134,8 @@ export interface ModelIndex {
 export const LOOKS_EXTRAS = "whp_looks";
 export const LOOK_SECONDARY_STEP = 8;
 export const LOOK_VARIANT_STEP = 64;
-export const LOOK_LIMITS = { slots: 6, options: 8, groups: 4, shapes: 15, designs: 8 } as const;
+/** Slots: primary and secondary each fit below LOOK_SECONDARY_STEP (0: none), so at most 7. */
+export const LOOK_LIMITS = { slots: 7, options: 8, groups: 4, shapes: 15, designs: 8 } as const;
 
 export interface LookSlot {
   name: string;

@@ -264,7 +264,9 @@ def apply(objs, color_image, normal_image, surface_image, cells, looks=False):
     if looks:
         tri_looks = [k for o in objs for k in whp_look.triangle_keys(o)]
         dyed = np.round(np.clip(surf[:, 0], 0.0, 1.0) * 2.0) / 2.0
-        group = [(k, float(m)) for k, m in zip(tri_looks, dyed)]
+        # A triangle with no slot (or none left at LOD2, Looks.far) is never dyed, whatever its mask:
+        # it may share an entry with any other such triangle.
+        group = [(k, float(m) if (k[0] or k[1]) else 0.0) for k, m in zip(tri_looks, dyed)]
     entry, centres = _merge(lab, areas, MERGE, group)
     entry = _smooth(entry, lab, centres, pieces, group)
 

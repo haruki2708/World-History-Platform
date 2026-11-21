@@ -13,6 +13,8 @@ Built on the Roman source body; the build itself is whp_build.
 
 import bpy
 
+import iberian_looks
+import roman_beard
 import roman_faces
 import roman_fit
 import roman_hands
@@ -23,6 +25,7 @@ import roman_shield
 import roman_source
 import roman_weapons
 import whp_clips
+import whp_look
 import whp_materials
 from roman_fit import FINAL_SCALE
 from whp_unit_lod import Part
@@ -104,6 +107,8 @@ PARTS = [
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("javelins", ["Javelins.low"], ["Javelins"], (None, 50, 10), uv=0.6, extrusion=0.005, ray=0.012,
          ao_alone=True),
+    # Variant shapes (T-061): the beards.
+    *roman_beard.PARTS,
 ]
 
 LOD2 = dict(
@@ -113,6 +118,34 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# iberian_looks: white linen and purple in shades, shields with devices.
+
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("tunic", "dye", iberian_looks.LINEN),
+        whp_look.Slot("border", "dye", iberian_looks.PURPLE),
+        whp_look.Slot("shield", "dye", iberian_looks.SHIELD),
+        whp_look.Slot("skin", "tint", iberian_looks.SKIN),
+        whp_look.Slot("hair", "dye", iberian_looks.HAIR),
+        whp_look.Slot("cap", "tint", iberian_looks.CAP),
+    ],
+    parts={"head": ("skin", None), "arms": ("skin", None), "legs": ("skin", None), "tunic": ("tunic", "border"),
+           "shield": ("shield", None), "cap": ("cap", None),
+           "beard_short": ("hair", None), "beard_full": ("hair", None)},
+    materials={"New_head0": "skin", "New_arms0": "skin", "New_legs0": "skin", "Tunic_10": whp_look.woven_border(),
+               "whp-shield-paint": "shield", "whp-sinew": "cap", "whp-beard": "hair"},
+    variants=[whp_look.Variants("beard", iberian_looks.BEARDS)],
+    designs=iberian_looks.DESIGNS,
+)
+
+
+def before_lod():
+    """The beards (roman_beard), short of the tunic's collar."""
+    roman_beard.build(avoid=["Tunic_1"])
 
 
 # -- review images (render_review.py) -----------------------------------------

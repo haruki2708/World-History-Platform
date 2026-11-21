@@ -195,6 +195,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
   - `LOD0`: tối đa 8 000 tam giác;
   - `LOD1`: tối đa 1 500;
   - `LOD2`: tối đa 300.
+  - Mô hình có hình biến thể (râu, da sói; mục "Mỗi lính một vẻ"): giới hạn tính theo số tam giác **một người vẽ**, tức mỗi nhóm biến thể chỉ tính lựa chọn lớn nhất. Các hình còn lại vẫn nằm trong lưới nhưng thu về một điểm.
   - Từ T-047, LOD1 và LOD2 có ít đường nối UV, nên số đỉnh gần với số vị trí (LOD2 khoảng 1,2–1,5 lần, LOD1 1,6–2,2 lần; trước đó 3–3,6 và 2,3–3,4): LOD2 tô màu theo một bảng nhỏ 12–20 màu, mỗi màu một ô 32×32 trong atlas; LOD1 chia mỗi mảnh thành ít vùng UV lớn, dùng chung atlas với LOD0. Vẫn một vật liệu, một ảnh màu. GPU vẽ một khung ở góc nhìn mở nhanh hơn khoảng 19%. Chi tiết: `art/README.md`, mục "Giai đoạn `lod`".
 - **Danh sách mô hình đã có:** `public/battles/models/index.json` (`ModelIndex`, đường dẫn `MODEL_INDEX_URL` trong `src/lib/battle.ts`). Cảnh chỉ tải các mô hình có trong danh sách, còn lại vẽ hình tạm, nên console không có lỗi 404. Script xuất của lane 1 tự cập nhật file này; `npm run validate` kiểm tra danh sách khớp với các file `.glb` trong thư mục.
 - **Vật liệu:** một vật liệu.
@@ -308,7 +309,7 @@ Trong giai đoạn `fight`, người đứng đầu mỗi hàng dọc của kh�
 - **Vẽ** (`engine/units.ts`):
   - Hình lính dời từ chỗ trong đội hình tới chỗ đấu với tốc độ 6 m/s theo thời gian thật; quay mặt về đối thủ, tối đa 80° so với hướng khối (bộ binh 135°, vì trong hỗn chiến các cặp xoay đủ hướng).
   - **Cất đồ cầm thêm** (T-035): mô hình nào thu nhỏ một xương trong các clip đánh (hai cây *pilum* của hastatus) thì cảnh nhận ra lúc nạp (`UnitModel.stow`). Người đầu hàng dọc của khối đang `fight` cất chúng trong 0,3 giây và giữ như vậy giữa các clip; hàng sau vẫn cầm. Shader co các đỉnh của xương đó về cổ tay theo số thứ hai của `iStrike`.
-  - Thuộc tính `iStrike` của từng hình có hai số. Số đầu cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`).
+  - Thuộc tính `iStrike` của từng hình có bốn số (hai số từ T-032, hai số sau từ T-061). Số đầu cho shader biết đang ở giây thứ mấy của clip `attack`, `block` hay `hit`. Giá trị âm thì `attack` lặp theo đồng hồ như trước (dùng cho `skirmish`). Hai số cuối là các lựa chọn của mục "Mỗi lính một vẻ".
   - Một nhát đã bắt đầu thì phát hết, dù đối thủ đã ngã; nhát mới chỉ bắt đầu ở đầu clip (`swingBeat` trong `melee.ts`). Ngoại lệ là nhát hạ gục đối thủ: nó được bắt đầu muộn, bất cứ lúc nào trước khi đòn chạm, và cắt ngang nhát đang dở. Sau khi tua, hình lính đứng ngay vào chỗ đấu và vào đúng khung của nhát đang diễn ra.
   - Người ngã nằm lại ở chỗ đang đấu, không bị kéo về chỗ trong đội hình. Sau khi tua, chỗ đấu không biết được nếu không phát lại từ đầu: người ngã trong giáp lá cà của bộ binh nằm rải quanh chỗ của mình trong đội hình (tới 4 m về trước hay sau, 2 m sang bên, cố định theo từng người); người ngã khác nằm ở chỗ trong đội hình.
   - Trong khối đứng yên, người tự di chuyển (bước lên thay người ngã, bước tới đối thủ) thì chân đi theo clip `walk`.
@@ -355,12 +356,65 @@ Người dùng chọn 2026-11-20: kỵ binh gặp bộ binh thì không dừng l
   - Thứ tự dựng: `BattleEngine` dựng `UnitTrack` của các khối kỵ binh có `overrun` trước, rồi `Ride` của chúng, rồi mới tới các khối bộ binh.
 - **Vẽ** (`engine/units.ts`, `figures/material.ts`):
   - Người cưỡi đang trên vòng được đặt thẳng vào chỗ đồng hồ trận cho, mặt theo hướng chạy, không qua bước làm mượt. Chân ngựa theo quãng đường nó đi: nước kiệu (`jog`) cho tới chỗ kiệu nhường cho phi, rồi `run`.
-  - Nhát đánh lúc phi ngang: clip `ridedown` (hay `attack`) phát một lần trên người cưỡi, ngựa vẫn phi. Shader biết điều này qua số thứ hai của `iStrike` (cộng 2) và thuộc tính đỉnh `aMount` (phần của đỉnh gắn vào xương ngựa, tính lúc nạp mô hình).
+  - Nhát đánh lúc phi ngang: clip `ridedown` (hay `attack`) phát một lần trên người cưỡi, ngựa vẫn phi. Shader biết điều này qua số thứ hai của `iStrike` (cộng 2) và số đầu của thuộc tính đỉnh `aPart` (phần của đỉnh gắn vào xương ngựa, tính lúc nạp mô hình; trước T-061 là thuộc tính riêng `aMount`).
   - Bộ binh bị xô phát `knockdown` đè lên việc đang làm, bắt đầu `REACTION_IMPACT` trước khi ngựa tới, và xoay nhanh (14 rad/giây) về phía con ngựa. Mô hình chưa có clip thì ngã theo clip `die`, nằm 0,9 giây, rồi gượng dậy bằng chính clip đó phát ngược; không có cả `die` thì phát `hit`.
 - **Trang thử:** `/battle-lab?duel=1&pair=8` (kỵ binh Gaul xông qua một khối hastati); `/battle-lab?battle=<id>&overrun=1` thử một trận thật với mọi khối kỵ binh đang đấu bộ binh đổi thành xông qua (`src/app/battle-lab/overrunPreview.ts`: khối kỵ binh nào đang `fight` mà có bộ binh địch trước mặt thì đổi thành `overrun`).
 - **Dùng trong dữ liệu** (T-059, gộp 2026-11-20; lane 2 quyết theo nguồn): Cannae giai đoạn 6, kỵ binh Iberia và Gaul của Hasdrubal xông qua triarii (Polybius 3.116; triarii `stand`); hồ Trasimene giai đoạn 3–4, kỵ binh Gaul xông qua velites quân đoàn II (Livy 22.6). Các chỗ kỵ binh khác đấu bộ binh giữ `fight`. Lý do từng chỗ: `docs/data/battles/cannae.md`, `trasimene.md`. Cả tám mô hình bộ binh có `knockdown` (T-057).
 - **Kiểm bằng Node:** `main-tools/overrun/check.mjs` (số vòng, tốc độ, số lần xô, ai chết dưới vó ngựa), `same.mjs` (trận không có `overrun` ra đúng như trước).
 - **Clip:** `knockdown` và `ridedown`, xem mục "Mô hình lính", phần hoạt hình.
+
+### Mỗi lính một vẻ (đợt L, B1)
+
+Người dùng chọn 2026-11-21: trong một khối, mỗi người một vẻ (màu áo, màu da, tóc, râu, màu và hình trên khiên), mức độ theo dân tộc:
+
+- Quân La Mã ở mức A: các sắc của một màu. Mào lông tía hoặc đen (Polybius 6.23.12). Có râu.
+- Quân Hannibal ở mức B: nhiều màu, mỗi khiên một hình.
+- Điều nguồn ghi rõ thì giữ nguyên, ví dụ áo lanh trắng viền tía của người Iberia (Polybius 3.114.4).
+
+Mô hình không có phần này (không có `_LOOK` và JSON) vẫn vẽ như cũ.
+
+- **Trong file `.glb`** (hợp đồng ở `src/lib/battle.ts`: `ModelLooks`, `LOOKS_EXTRAS`, `LOOK_LIMITS`):
+  - **Thuộc tính đỉnh `_LOOK`:** một số bằng ô màu chính + 8 × ô màu phụ + 64 × hình biến thể. Ô đếm từ 1, số 0 là không có. Mọi đỉnh của một mảnh có cùng số.
+  - **Mặt nạ nhuộm** ở kênh R của ảnh metallicRoughness (trước đây bỏ trống):
+    - 1 là nhuộm theo ô chính của đỉnh, 0,5 là theo ô phụ, 0 là giữ màu atlas (sắt, đồng, da thuộc, viền dệt);
+    - giá trị ở giữa thì trộn;
+    - kim loại không bao giờ nhuộm.
+  - **Hai kiểu ô màu:**
+    - `tint`: nhân màu atlas với màu đã chọn (da, tóc);
+    - `dye`: lấy độ sáng của atlas chia cho độ sáng trung bình của ô (`ref`) rồi nhân với màu đã chọn. Kiểu này giữ nếp vải mà đổi được sắc, ví dụ áo đỏ thành áo len mộc.
+  - **Hình trên khiên:** mặt nạ xám nằm trong một vùng của ảnh màu, đọc ở kênh G. Hình được đặt lên mặt khiên theo khung của khiên lúc ở tư thế gốc: tâm, trục dài, trục ngắn (theo trục glTF) và tầm theo mỗi trục. Nhờ vậy không cần UV thứ hai. Màu hình được nhuộm cùng sáng tối với nước sơn. Lần bốc màu cho hình bỏ qua màu trùng với nước sơn.
+  - **JSON** ở `scenes[0].extras.whp_looks`: các ô (tên, kiểu, `ref`, các màu kèm trọng số), các nhóm biến thể, và các hình khiên (ô của khiên, ô trong atlas, trọng số, màu, khung).
+  - **Giới hạn:** 7 ô màu (ô chính và ô phụ đều phải dưới 8), 8 lựa chọn mỗi ô, 4 nhóm biến thể, 15 hình biến thể, 8 hình khiên.
+  - **Hình biến thể** (râu; da sói trên mũ velites):
+    - mỗi người chỉ vẽ hình mình bốc được trong nhóm;
+    - hình không bốc thì shader thu về một điểm, cả ở lượt vẽ bóng;
+    - LOD2 không có hình biến thể;
+    - hình biến thể nướng độ che khuất (AO) riêng, để đầu người không râu không bị tối.
+  - **LOD2 bỏ ô màu da.** Ở tầm đó người chỉ cao vài điểm ảnh, da sáng hay tối hơn chút không thấy được, mà mỗi ô màu lại tách mặt và đỉnh của hình thay thế. Các tam giác không còn ô nào trong `_LOOK` thì không nhuộm.
+- **Trong cảnh** (`engine/figures/looks.ts`, `material.ts`, `units.ts`; `#define FIG_LOOKS`, thêm `FIG_DESIGNS` cho mô hình có hình khiên):
+  - **Bốc thăm:** mỗi người bốc một lựa chọn cho mỗi ô, mỗi nhóm biến thể và cho hình khiên. Xác suất theo trọng số, từ số ngẫu nhiên riêng của người đó (`iSeed`). Thăm bốc **một lần trên CPU** lúc dựng khối (`lookChoices`), gói vào hai số cuối của `iStrike` (`LOOK_BITS`). Vì vậy giống nhau ở mọi bậc chi tiết, và tua tới đâu cũng vậy.
+  - **Thuộc tính:** `_LOOK` của file vào số thứ hai của thuộc tính đỉnh `aPart` (số đầu là phần gắn vào ngựa). Phần này không thêm luồng thuộc tính nào: mỗi thuộc tính là một luồng card đồ hoạ đọc riêng, và hai luồng thêm làm trận lớn chậm khoảng 4% (đo T-061).
+  - **Giá trị nội suy:** shader đỉnh chỉ chuyển cho shader điểm ảnh một số (chỉ số lựa chọn của ô chính, ô phụ và màu hình khiên), cộng toạ độ hình khiên ở mô hình có hình khiên. Màu tra trong bảng ở shader điểm ảnh. Với hàng triệu tam giác nhỏ, mỗi giá trị nội suy thêm đều tốn: bản đầu chuyển 18 số và chậm 15–20%. Không dùng `flat`: ANGLE trên Direct3D vẽ giá trị `flat` qua một đường chậm.
+  - **Độ sáng:** vốn mỗi người có độ sáng chung lệch 0,84–1,14 cho đỡ giống nhau. Mô hình có phần này thì chỉ lệch 0,95–1,05, vì màu đã khác nhau.
+  - **Lưới bóng** chỉ giữ hình biến thể của `_LOOK` (số × 64), nên các đỉnh gộp lại như trước.
+  - **LOD2:** bảng màu tách theo (ô màu, mức mặt nạ), tối đa 48 màu. Hình thay thế ở xa lấy `_LOOK` của mảnh gần nhất. Thân ngựa ở xa lấy ô màu lông.
+- **Mười hai mô hình** (lựa chọn và nguồn ghi trong từng `art/blender/unit_*.py` và các file `*_looks.py`):
+  - La Mã: `roman-legionary`, `roman-hastatus`, `roman-triarii`. Áo và khiên giữ màu đỏ của mô hình, đổi sắc. Polybius 6.39.15 chỉ cho biết quân đội cấp áo rồi trừ tiền vào lương, không nói áo cùng một màu; các sắc khác nhau (vải nhiều đợt, cũ, bạc nắng) là lựa chọn, không phải nguồn. Mào tía hoặc đen. Râu theo Pliny, *Natural History* 7.211 (thợ cạo tới Rome năm 300 TCN; Scipio Africanus là người đầu tiên cạo hằng ngày). Hastati trẻ nên ít râu hơn; triarii nhiều râu hơn, có người râu bạc.
+  - `roman-velites`: như trên. Polybius 6.22.3 nói mũ "đôi khi" bọc da sói, nên khoảng 6/10 người có da sói, da mỗi người một màu.
+  - `roman-cavalry`: như lính bộ La Mã, cộng màu lông ngựa và vải lót yên màu đỏ đổi sắc.
+  - Quân Hannibal:
+    - `gallic-infantry`: tóc, da, quần nhiều màu, khiên có hình; râu theo Diodorus 5.28.3.
+    - `gallic-cavalry`: thêm áo, áo choàng kẻ ô (Diodorus 5.30.1) và màu lông ngựa; vải lót yên giữ màu.
+    - `iberian-infantry`: áo lanh trắng các sắc, viền tía các sắc, khiên da hay sơn có hình, mũ gân các màu.
+    - `iberian-gallic-cavalry`: như bộ binh Iberia (trừ mũ, đã hết ô màu), cộng ngựa và vải lót yên len sẫm (Diodorus 5.33).
+    - `libyan-infantry`: áo len mộc các màu đất, không bao giờ đỏ La Mã; khiên da, vài chiếc có hình; râu ngắn hay râu rậm.
+    - `balearic-slinger`, `numidian-cavalry`: áo len mộc các sắc, viền rộng các màu sẫm (Strabo 3.5.1; 17.3.7); khiên da sống (Numidia); tóc và râu sẫm.
+  - **Ngựa:** lông hồng (màu của mô hình), nâu sẫm, hạt dẻ, và ít con đen, xám, vàng xám. Chân đen và mõm sẫm giữ nguyên; bờm và đuôi giữ màu đen.
+- **Chi phí:**
+  - File: mỗi mô hình tăng 131–212 KB (râu, thuộc tính `_LOOK`, vùng hình khiên); các file nặng 1,93–2,72 MB.
+  - Số đỉnh: LOD0 tăng 4–16%, LOD1 2–12% (râu nằm sẵn trong lưới), LOD2 1–19% (ranh giới giữa các ô màu). Số tam giác LOD2 không đổi.
+  - Khung hình (RTX 3050 laptop, Cannae, 2026-11-21): cảnh mở đang dừng 103 → 98 khung/giây (−5%); đang phát giai đoạn 5 và 6 chậm hơn 3–5%. Riêng phần shader tốn khoảng 2% (đo bật/tắt trong một trang). Cách đo và các bước tối ưu ở mục "Kết quả" của T-061.
+- **Dựng:** `art/README.md`, mục "Mỗi lính một vẻ".
 
 ### Phong cảnh (đợt H)
 

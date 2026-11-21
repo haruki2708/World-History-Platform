@@ -669,14 +669,6 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
   }
   geometry.setAttribute("aTeam", team);
 
-  // Each man his own look (T-061): slots and variant shape, one number (0: none).
-  const look = new BufferAttribute(new Float32Array(count), 1);
-  const sourceLook = source.attributes._look;
-  if (sourceLook) {
-    for (let i = 0; i < count; i++) look.setX(i, sourceLook.getX(i));
-  }
-  geometry.setAttribute("aLook", look);
-
   const boneIndex = new BufferAttribute(new Float32Array(count * 4), 4);
   const boneWeight = new BufferAttribute(new Float32Array(count * 4), 4);
   const skinIndex = source.attributes.skinIndex;
@@ -699,14 +691,21 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
   geometry.setAttribute("aBoneIndex", boneIndex);
   geometry.setAttribute("aBoneWeight", boneWeight);
 
-  // How much of each vertex is skinned to the horse (the bones named
-  // horse_*): the horse keeps its gallop under a rider who strikes
-  // (material.ts).
-  const mount = new BufferAttribute(new Float32Array(count), 1);
+  // Of the part each vertex belongs to, in one attribute (each attribute is
+  // a stream the graphics card fetches on its own: one more cost a few per
+  // cent of the frame in a big battle, T-061):
+  //   x: how much of the vertex is skinned to the horse (the bones named
+  //      horse_*): the horse keeps its gallop under a rider who strikes;
+  //   y: its look, slots and variant shape in one number (0: none; T-061).
+  const part = new BufferAttribute(new Float32Array(count * 2), 2);
+  const sourceLook = source.attributes._look;
+  if (sourceLook) {
+    for (let i = 0; i < count; i++) part.setY(i, sourceLook.getX(i));
+  }
   const horse = mesh.skeleton.bones.map((bone) => (bone.name.toLowerCase().startsWith("horse_") ? 1 : 0));
   if (horse.some((flag) => flag === 1)) {
     for (let i = 0; i < count; i++) {
-      mount.setX(
+      part.setX(
         i,
         boneWeight.getX(i) * (horse[skinIndex.getX(i)] ?? 0) +
           boneWeight.getY(i) * (horse[skinIndex.getY(i)] ?? 0) +
@@ -715,7 +714,7 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
       );
     }
   }
-  geometry.setAttribute("aMount", mount);
+  geometry.setAttribute("aPart", part);
 
   if (source.index) {
     geometry.setIndex(new BufferAttribute(source.index.array.slice(), 1));

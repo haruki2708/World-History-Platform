@@ -37,7 +37,7 @@ ATTRIBUTE = "_LOOK"             # exported as is: glTF custom attributes start w
 SECONDARY_STEP, VARIANT_STEP = 8, 64   # _LOOK = primary + 8 secondary + 64 variant
 EXTRAS_KEY = "whp_looks"        # key of the JSON in the glTF scene's extras (and on the Blender scene)
 PRIMARY, SECONDARY = 1.0, 0.5   # dye mask values
-MAX_SLOTS = 6
+MAX_SLOTS = 7                   # primary and secondary slot each in 1..7 (0: none), under SECONDARY_STEP
 MAX_OPTIONS = 8
 MAX_GROUPS = 4
 MAX_VARIANTS = 15
@@ -51,6 +51,9 @@ DESIGN_GAP = 8
 
 
 ONE = (1.0, 1.0, 1.0)
+# Slots LOD2 leaves out (Looks.near_only): at that range a man is a few pixels
+# tall, and a skin a little lighter or darker does not show.
+NEAR_ONLY = ("skin",)
 
 
 def srgb(r, g, b):
@@ -109,10 +112,13 @@ class Looks:
     `materials`: detailed material name -> the slot its texels take, or a
     function (tree, bsdf, node) -> socket giving PRIMARY, SECONDARY or 0 per
     texel, for a texture of two slots (hair and skin on one head); `node`
-    makes a node that is removed after the bake."""
+    makes a node that is removed after the bake. `near_only`: slots left
+    out of LOD2, where a figure is a few pixels tall: each slot there keeps
+    the stand-in's faces and palette apart, and splits their vertices."""
 
-    def __init__(self, slots, parts, materials, variants=(), designs=None):
+    def __init__(self, slots, parts, materials, variants=(), designs=None, near_only=NEAR_ONLY):
         self.slots = list(slots)
+        self.near_only = tuple(near_only)
         names = [s.name for s in self.slots]
         if len(names) > MAX_SLOTS or len(set(names)) != len(names):
             raise ValueError(f"slots {names}")
@@ -138,6 +144,22 @@ class Looks:
 
     def slot(self, name):
         return 0 if name is None else [s.name for s in self.slots].index(name) + 1
+
+    def far(self, value):
+        """A look (primary, secondary, variant) as LOD2 draws it: without the
+        slots in `near_only`."""
+        primary, secondary, variant = (int(x) for x in value)
+        names = [s.name for s in self.slots]
+        drop = lambda k: 0 if k and names[k - 1] in self.near_only else k  # noqa: E731
+        return (float(drop(primary)), float(drop(secondary)), float(variant))
+
+    def far_pieces(self, pieces):
+        """Rewrite the _LOOK of LOD2's pieces as LOD2 draws it (Looks.far)."""
+        for piece in pieces:
+            if not len(piece.data.vertices):
+                continue
+            values = read(piece)
+            _write(piece.data, [pack(self.far(v)) for v in values])
 
     def look(self, part):
         primary, secondary = self.parts.get(part, (None, None))
@@ -205,6 +227,36 @@ class Looks:
         return json.dumps(doc, separators=(",", ":"))
 
 
+def rider_lift():
+    """How far whp_cavalry.mount lifted a horseman's rest pose (x, y, z
+    metres), zeros for a man on foot: shapes and heights given for a man
+    standing are moved by it."""
+    import whp_skeleton
+    rig = bpy.data.objects.get(whp_skeleton.RIG_NAME)
+    if rig is None or "whp_rider_lift" not in rig:
+        return np.zeros(3)
+    return np.array(rig["whp_rider_lift"], dtype=np.float64)
+
+
+def woven_border(attribute="whp_border", secondary=True):
+    """The dye mask of a tunic with a woven border (roman_source.border_attribute,
+    a colour attribute 1 in the border): a function for Looks.materials. The
+    cloth takes the part's primary slot; the border its secondary slot, or
+    keeps its colour (secondary=False)."""
+    low = SECONDARY if secondary else 0.0
+
+    def red(tree, bsdf, node):
+        attr = node("ShaderNodeAttribute")
+        attr.attribute_name = attribute
+        out = node("ShaderNodeMath")
+        out.operation = "MULTIPLY_ADD"          # PRIMARY + (low - PRIMARY) x border
+        tree.links.new(attr.outputs["Fac"], out.inputs[0])
+        out.inputs[1].default_value = low - PRIMARY
+        out.inputs[2].default_value = PRIMARY
+        return out.outputs["Value"]
+    return red
+
+
 # --------------------------------------------------------------------------
 # The attribute
 # --------------------------------------------------------------------------
@@ -239,14 +291,17 @@ def read(obj):
                      n // VARIANT_STEP], axis=1).astype(np.float32)
 
 
-def assign_from_nearest(target, source):
+def assign_from_nearest(target, source, far=None):
     """Each face of `target` (the LOD2 stand-in) takes the _LOOK of the
-    nearest face of `source` (the parts it is coloured from); edges between
-    faces of different looks are split, so every vertex has one look."""
+    nearest face of `source` (the parts it is coloured from), as `far`
+    (Looks.far) gives it; edges between faces of different looks are split,
+    so every vertex has one look."""
     smesh = source.data
     looks = read(source)
     tree = BVHTree.FromPolygons([v.co.copy() for v in smesh.vertices], [tuple(p.vertices) for p in smesh.polygons])
     face_look = [tuple(looks[p.vertices[0]]) for p in smesh.polygons]
+    if far is not None:
+        face_look = [far(v) for v in face_look]
     bm = bmesh.new()
     bm.from_mesh(target.data)
     bm.faces.ensure_lookup_table()

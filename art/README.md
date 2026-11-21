@@ -268,6 +268,46 @@ Các clip kiếm của thư viện (`Sword_Attack`, `Sword_Regular_*`, `Sword_Da
 
   Sau đó nhập lại file vào Blender và thử vài tư thế với mặt đất: khung đầu `idle` và `walk` đứng trên đế dép, khung cuối `die` nằm sát đất và không vật nào xuyên xuống. Có lỗi thì script dừng với mã 1.
 
+## Mỗi lính một vẻ (T-061)
+
+Hợp đồng với cảnh nằm ở `docs/ARCHITECTURE.md`, mục "Mỗi lính một vẻ". Mô hình không khai báo `LOOKS` thì dựng đúng như trước (đã kiểm: dựng lại `roman-hastatus` khi chưa có `LOOKS` ra file giống từng byte).
+
+- **Khai báo trong `unit_<id>.py`** (`whp_look.py`):
+  - `LOOKS = whp_look.Looks(slots, parts, materials, variants, designs)`;
+  - `slots`: các `Slot(tên, kiểu, lựa chọn)`. Kiểu `tint` nhân màu atlas, `dye` giữ độ sáng và thay sắc. Lựa chọn là các cặp (trọng số, màu tuyến tính); tối đa 7 ô, 8 lựa chọn mỗi ô;
+  - `parts`: tên phần → (ô chính, ô phụ hoặc `None`);
+  - `materials`: tên vật liệu chi tiết → tên ô, hoặc một hàm dựng nút trả về 1 / 0,5 / 0 cho từng điểm ảnh. Dùng hàm khi một ảnh chứa hai ô: tóc và da trên đầu người Celt (`celt_looks.head_dye`), quần và bàn chân trần (`legs_dye`), viền dệt của áo (`whp_look.woven_border`), lông ngựa có chân đen (`cavalry_looks.coat_dye`). Vật liệu không có tên ở đây giữ màu;
+  - `variants`: các nhóm `Variants(tên, lựa chọn)`. Lựa chọn là (trọng số, tên phần hoặc `None`);
+  - `designs`: `Designs(ô, lựa chọn, màu)`, hình trên khiên. Hình vẽ bằng numpy trong `whp_look.design_mask`, gồm `rim`, `band`, `cross`, `rings`, `diagonal`, `lunettes`, `triskele`, `rays`; nét hơi run như vẽ tay;
+  - `near_only` (mặc định `("skin",)`): ô bỏ ở LOD2. Ở tầm đó người chỉ cao vài điểm ảnh; mỗi ô lại tách mặt và đỉnh của hình thay thế.
+- **Lựa chọn và nguồn** ghi trong comment của từng mô hình và các file `roman_looks.py`, `celt_looks.py`, `iberian_looks.py`, `cavalry_looks.py` (ngựa, vải lót yên).
+- **Râu** (`whp_beard.py`):
+  - là một lớp vỏ mỏng: các mặt của lưới đầu trong một vùng (thấp, cao, giới hạn sau, các hộp chừa trống cho môi, mũi, ria vẽ sẵn), đẩy ra theo pháp tuyến, mỏng dần ở ba vòng đỉnh ngoài cùng;
+  - dựng ở đầu giai đoạn `lod` (hàm `before_lod` của mô hình, `whp_build.stage_lod` gọi cho cả bộ binh lẫn kỵ binh), trên đầu đã gắn xương, nên lớp vỏ giữ trọng số của đầu;
+  - vùng của đầu Celt ở `celt_beard.py`, của đầu La Mã ở `roman_beard.py` (đo bằng mét ở tư thế gốc);
+  - `avoid`: những vật sát mặt, như má che của mũ (cách da 0–7 mm) hay cổ áo. Râu dừng trước chúng, nên không lòi qua;
+  - người cưỡi được nhấc lên lưng ngựa; vùng râu dịch theo `whp_look.rider_lift()`;
+  - mỗi kiểu râu là một phần riêng, `ao_alone=True`, không có ở LOD2 (`whp_unit_lod.check_variants` kiểm điều này).
+- **Bake:**
+  - `whp_lod.SurfaceSwap(dye=Looks.dye(specs))` nướng mặt nạ nhuộm vào kênh R của ảnh độ nhám/kim loại, cùng lượt với độ nhám (G) và kim loại (B);
+  - kim loại không nhuộm: R = giá trị × (1 − kim loại);
+  - `_LOOK` gán cho các phần LOD0 và mảnh LOD1 trước khi bake.
+- **LOD1, LOD2:**
+  - LOD1 lấy `_LOOK` theo phần;
+  - hình thay thế ở LOD2 lấy `_LOOK` của mặt gần nhất trên LOD0 (`whp_look.assign_from_nearest`), bỏ các ô `near_only`, và tách cạnh giữa hai kiểu;
+  - bảng màu LOD2 không gộp màu khác (kiểu, mức mặt nạ); tam giác không còn ô nào thì gộp với nhau thoải mái. Tối đa 48 màu (`PALETTE_ENTRIES_LOOKS`);
+  - thân ngựa ở xa (dựng lại) lấy ô màu lông.
+- **Hình trên khiên:** vẽ vào một vùng trống trên cùng của chỗ dành cho bảng màu, lưới 4 × 2 ô, mỗi ô 104 × 184 điểm ảnh. Khung của khiên (`whp_look.shield_frame`, tính từ phần LOD0 có ô của khiên) ghi vào JSON.
+- **Xuất:**
+  - JSON của các ô ghi vào `scenes[0].extras.whp_looks` sau khi xuất (`whp_export.set_scene_extras`);
+  - thuộc tính `_LOOK` xuất cùng lưới (`export_attributes`);
+  - `check_glb` kiểm JSON, `_LOOK` ở cả ba mức, và khung khiên;
+  - giới hạn tam giác tính theo số một người vẽ: mỗi nhóm biến thể chỉ tính lựa chọn lớn nhất, đọc từ `_LOOK` trong file (`variant_allowance`, cùng cách tính lúc dựng ở `whp_unit_lod.variant_allowance`).
+- **Kỵ binh** (`whp_cavalry.stage_lod`):
+  - như bộ binh, cộng các phần của ngựa (`body`, `cloth`);
+  - viền vải lót yên được đánh dấu thành thuộc tính `whp_border` (`cavalry_looks.mark_cloth_border`), để viền giữ màu.
+- **Kiểm tra trong cảnh:** `main-tools/drive/s-b1-looks.mjs` (một khối ở vài khoảng cách), `s-b1-faces.mjs` (mặt hàng đầu), `s-b1-toggle.mjs` (đo khung hình khi bật và tắt phần này trong cùng một trang).
+
 ## Thang chi tiết `hi` (T-042, đang thử)
 
 Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đồ hoạ lính và ngựa. **Cảnh 3D chưa dùng**: file xuất ra `art/build/<id>/<id>-hi.glb`, không đụng `public/battles/models/` và `index.json`. Đường dựng thường không đổi. Chi tiết, số liệu và nhận xét ở [T-042](../docs/tasks/T-042-model-upgrade.md).
@@ -326,6 +366,10 @@ Một thang bốn mức dựng lại từ mô hình gốc, để thử nâng đ�
 | `whp_far.py` | LOD1 ít đường nối UV (T-047): chia mảnh, trải UV theo góc, chép màu từ atlas LOD0; tìm chỗ trống trong atlas. |
 | `whp_palette.py` | Bảng màu nhỏ cho LOD2 (T-047): gom màu tam giác, làm mượt theo tam giác kề, ghi các ô màu vào atlas. |
 | `whp_export.py` | Xuất glTF và kiểm tra file `.glb` theo hợp đồng. |
+| `whp_look.py` | Mỗi lính một vẻ (T-061): ô màu, hình biến thể, hình trên khiên; thuộc tính `_LOOK`, mặt nạ nhuộm, JSON. |
+| `whp_beard.py` | Râu thành lớp vỏ trên lưới đầu đã gắn xương, chừa vật sát mặt (T-061). |
+| `celt_beard.py`, `roman_beard.py` | Vùng râu của đầu Celt và đầu La Mã. |
+| `celt_looks.py`, `roman_looks.py`, `iberian_looks.py`, `cavalry_looks.py` | Lựa chọn màu và nguồn cho từng dân tộc; mặt nạ của ảnh Celt; lông ngựa và vải lót yên. |
 | `unit_<id>.py` | Phần riêng của từng mô hình (mười hai file: tám bộ binh, bốn kỵ binh). |
 | `whp_cavalry.py` | Kỵ binh: ghép ngựa vào file, nối hai khung xương, tư thế và các clip của người cưỡi, giai đoạn `lod` chung cho người và ngựa. |
 | `roman_kit.py` | Phần chung của các mô hình dựng trên lính La Mã: chuẩn bị thân (kiếm trong tay, trong bao hay bỏ), mũ, khiên, vật liệu, luật gắn xương, dữ liệu cho clip. |
