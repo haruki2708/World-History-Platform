@@ -551,6 +551,8 @@ class Chunk {
   readonly sphere = new Sphere();
   readonly levels: Level[];
   private readonly fill = [0, 0, 0];
+  /** Scratch of `sort`: the level of each figure drawn, in the order written. */
+  private readonly order: Uint8Array;
   drawn = 0;
   /** From the camera to the nearest figure drawn, metres. */
   distance = 0;
@@ -570,6 +572,7 @@ class Chunk {
     this.slot = new Uint16Array(count);
     this.pixels = new Float32Array(count);
     this.level = new Uint8Array(count).fill(LEVELS - 1);
+    this.order = new Uint8Array(count);
     // The men drawn at LOD0 cast their shadows from LOD1, the rest from LOD2.
     this.levels = model.lods.map(
       (lod, l) =>
@@ -632,16 +635,33 @@ class Chunk {
    * is only drawn into the shadow map, all of it at LOD2.
    */
   sort(lod0: number, lod1: number, settings: LodSettings, counts: number[]): void {
-    const { posYaw, anim, seed, strike, slot, level, levels, fill, inView } = this;
+    const { posYaw, anim, seed, strike, slot, level, levels, fill, order, inView } = this;
+    const drawn = this.drawn;
     fill[0] = 0;
     fill[1] = 0;
     fill[2] = 0;
-    for (let k = 0; k < this.drawn; k++) {
-      let l = LEVELS - 1;
-      if (inView) {
-        l = this.levelOf(k, lod0, lod1);
+    // The level of every figure drawn, or -1 when they differ.
+    let all = LEVELS - 1;
+    if (inView) {
+      for (let k = 0; k < drawn; k++) {
+        const l = this.levelOf(k, lod0, lod1);
         level[slot[k]] = l;
+        order[k] = l;
+        if (k === 0) all = l;
+        else if (l !== all) all = -1;
       }
+    }
+    if (all >= 0) {
+      // One level for the whole chunk (most chunks, and all those out of view): copied in one go.
+      const to = levels[all];
+      (to.posYaw.array as Float32Array).set(posYaw.subarray(0, drawn * 4));
+      (to.anim.array as Float32Array).set(anim.subarray(0, drawn * 4));
+      (to.seed.array as Float32Array).set(seed.subarray(0, drawn));
+      (to.strike.array as Float32Array).set(strike.subarray(0, drawn * STRIKE));
+      fill[all] = drawn;
+    }
+    for (let k = 0; all < 0 && k < drawn; k++) {
+      const l = order[k];
       const to = levels[l];
       const j = fill[l]++;
       const toPosYaw = to.posYaw.array as Float32Array;
@@ -1803,22 +1823,28 @@ export class Crowd {
       for (const chunk of shown) total += chunk.triangles(lod0Pixels * stretch, lod1Pixels * stretch);
       return total;
     };
-    let fits = 1;
-    if (triangles(1) > triangleBudget) {
-      // Double until it fits, then halve the gap a few times: within 4%.
-      let over = 1;
-      fits = 2;
+    // The stretch comes down by STRETCH_EASE a frame at most: if that much
+    // less fits, that is the answer; if only last frame's fits, it holds
+    // (within STRETCH_EASE of the least that fits). Mostly one or two passes.
+    const eased = Math.max(this.stretch * STRETCH_EASE, 1);
+    if (triangles(eased) <= triangleBudget) {
+      this.stretch = eased;
+    } else if (eased === this.stretch || triangles(this.stretch) > triangleBudget) {
+      // More men in view than last frame: the least stretch that fits, at
+      // once. Double until it fits, then halve the gap a few times: within 5%.
+      let over = this.stretch;
+      let fits = this.stretch * 2;
       while (fits < MAX_STRETCH && triangles(fits) > triangleBudget) {
         over = fits;
         fits *= 2;
       }
-      for (let step = 0; step < 6; step++) {
+      for (let step = 0; step < 5; step++) {
         const middle = Math.sqrt(over * fits);
         if (triangles(middle) > triangleBudget) over = middle;
         else fits = middle;
       }
+      this.stretch = fits;
     }
-    this.stretch = fits >= this.stretch ? fits : Math.max(fits, this.stretch * STRETCH_EASE);
 
     for (const chunk of this.chunks) {
       chunk.sort(lod0Pixels * this.stretch, lod1Pixels * this.stretch, settings, counts.lods);

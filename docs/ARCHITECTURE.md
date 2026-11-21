@@ -244,7 +244,12 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 ### Cảnh 3D
 
 - **Component:** `BattleScene` (`src/components/battle/BattleScene.tsx`) nhận `BattleSceneProps` và đọc `battleTime` từ store. Nó chỉ được nạp ở phía trình duyệt (`next/dynamic` với `ssr: false`), nên three.js không nằm trong gói của trang chính.
-- **Vẽ lính:** hàng nghìn hình lính có hoạt hình được vẽ theo lô (instancing). Mức chi tiết chọn cho từng lô, theo khoảng cách tới hình lính gần camera nhất của lô. Thiếu file mô hình thì vẽ hình tạm theo màu của phe. Màu phe lấy từ `polities.json` qua `polityId`.
+- **Vẽ lính:** hàng nghìn hình lính có hoạt hình được vẽ theo lô (instancing). Thiếu file mô hình thì vẽ hình tạm theo màu của phe. Màu phe lấy từ `polities.json` qua `polityId`.
+  - **Mỗi người một mức chi tiết** (B4, T-062; `Crowd.selectLods` trong `engine/units.ts`). Lô (tối đa 256 người của một khối) chỉ còn là đơn vị cắt theo khung nhìn. Mỗi khung, người của lô được ghi vào lô như trước, rồi chép sang bộ đệm của mức mình (`Chunk.sort`); mỗi mức đang dùng là một lượt vẽ.
+  - Ngưỡng theo chiều cao của người trên màn hình, đo bằng điểm ảnh CSS (mức chất lượng `high` trong `BattleEngine.ts`): LOD0 trên 36, LOD1 trên 12, còn lại LOD2. Một người giữ mức cũ tới khi qua ngưỡng 12%, để người đứng ở ngưỡng không nhấp nháy.
+  - **Trần tam giác** (4,5 triệu, chỉ tính lính trong khung nhìn): khi vượt, cả hai ngưỡng giãn theo cùng một hệ số, nhỏ nhất vừa trần. Người nhỏ nhất trên màn hình, tức xa nhất, bị hạ trước; tỉ lệ giữa hai ngưỡng giữ nguyên. Hệ số tăng ngay khi cần và giảm dần, 3% mỗi khung.
+  - Lô ngoài khung nhìn chỉ vẽ vào bản đồ bóng, ở LOD2. Người ở LOD0 đổ bóng từ LOD1, người khác từ LOD2.
+  - Trước B4, mức chi tiết chọn cho cả lô theo người gần camera nhất của lô. Lô trải hàng trăm mét (người ngã nằm rải dọc đường đi), nên một người đứng gần kéo cả lô lên LOD0, tổng vượt xa trần, và bước hạ cấp đẩy mọi lô về LOD1, LOD2: giữa trận LOD0 không bao giờ hiện, kể cả khi camera cách khối quân 40 m.
 - **Quay đầu:** hướng của một khối đổi từ 135° trở lên giữa hai mốc thì từng người quay đầu tại chỗ, hàng cuối thành hàng đầu; cả khối không xoay quanh tâm. Muốn một khối bẻ hướng cả đội hình quá 135° thì chia thành hai giai đoạn.
   - Mỗi người giữ chỗ của mình: sau một số lẻ lần quay đầu, ô của người ở các mốc sau được lật từ (u, v) thành (−u, 1 − v), cùng đội hình đó nhìn từ phía sau. Trước bản sửa (2026-11-17, lỗi lane 2 tìm ra ở T-027), mỗi người đi xuyên qua khối tới vị trí đối xứng, và khối co về giữa giữa giai đoạn.
 - **Đi xiên** (T-028, `engine/units.ts`): các clip chỉ bước thẳng tới hay lùi, nên hình lính đi lệch hướng mặt thì trượt chân. Mỗi hình lính tự quay về hướng nó đi, theo vận tốc riêng làm mượt trong 0,25 s:
@@ -261,6 +266,7 @@ mô hình lính (Lane 1): art/blender/ (script)  ──►  public/battles/model
 - **Bấm một khối** (T-028): tia từ camera qua điểm bấm, gặp hộp của khối nào trước thì chọn khối đó (`engine.pickUnit`). Thẻ hiện cạnh khối: tên, phe, loại lính, quân số đầu trận và lúc này, đang làm gì (`battle.action.*`). Quân số lúc này nội suy như cảnh (`unitState.ts`).
 - **Hiệu năng:**
   - Mục tiêu: khoảng 7 000 hình lính, từ 50 khung hình/giây trở lên ở 1280×800 trên máy của người dùng (laptop RTX 3050).
+  - Màn hình thật của người dùng là 2880×1620, phóng 175% (khung nhìn 1646×926 điểm ảnh CSS, tỉ lệ điểm ảnh 1,75), tức gấp khoảng bốn lần số điểm ảnh của 1280×800. Từ B4, phiên chính đo ở đúng cỡ đó (`W=1646 H=830 DSF=1.75` với `drive.mjs`). Ở đó góc mở trận Cannae, nhìn cả chiến trường, chạy khoảng 53 khung hình/giây (ở 1280×800 là 95): đây là góc nặng nhất, vì mặt đất, cây và cỏ phủ kín màn hình, còn mọi người lính đều ở LOD2.
   - Có mức chất lượng thấp cho máy yếu.
   - Mở rồi đóng cảnh nhiều lần không rò bộ nhớ (giải phóng WebGL).
   - Bóng của hình lính (T-031) vẽ từ lưới đã gộp đỉnh (`depthGeometry` trong `units.ts`). Mô hình tách đỉnh theo đường nối UV (LOD1, LOD2 gấp 3–4 lần), còn lượt vẽ bóng không đọc UV, nên gộp lại ra đúng bóng cũ mà rẻ hơn. Lưới chỉ để đổ bóng nằm ở `SHADOW_LAYER`: camera của bóng thấy, camera chính không thấy.
