@@ -21,6 +21,10 @@ their corners.
      triangle points at the centre of its entry's square: the UVs do not
      vary across a triangle, so the GPU reads the full-size image there.
 
+With looks (T-061, whp_look) triangles of different _LOOK or a different
+dye mask (red of the metallicRoughness image: 0, 0.5 or 1) never share an
+entry, and an entry's red is its triangles' dye mask.
+
 The exporter writes JPEGs, which keep colour in blocks of 16 x 16 texels:
 a square is 32 texels in the colour image and 16 in the half-size normal
 and metallicRoughness maps, aligned to those blocks, so each entry comes
@@ -31,6 +35,7 @@ import numpy as np
 
 import whp_far
 import whp_lod as lod
+import whp_look
 from whp_common import log
 
 MERGE = 0.04            # OKLab distance under which two palette entries are merged
@@ -130,16 +135,17 @@ def _triangle_colours(uv, colour, surface):
 # The palette
 # --------------------------------------------------------------------------
 
-def _merge(lab, area, threshold):
+def _merge(lab, area, threshold, group=None):
     """Agglomerative merging of the triangles' colours: returns the entry
-    of each triangle and the entries' OKLab colours."""
+    of each triangle and the entries' OKLab colours. `group` (T-061): a key
+    per triangle; triangles of different keys are never merged."""
     keys = {}
     clusters = []                                   # [weighted sum, weight, members]
     for i, value in enumerate(lab):
-        key = tuple(np.round(value, 5))
+        key = tuple(np.round(value, 5)) + ((group[i],) if group is not None else ())
         if key not in keys:
             keys[key] = len(clusters)
-            clusters.append([np.zeros(3), 0.0, []])
+            clusters.append([np.zeros(3), 0.0, [], group[i] if group is not None else None])
         c = clusters[keys[key]]
         c[0] = c[0] + value * max(area[i], 1e-9)
         c[1] += max(area[i], 1e-9)
@@ -147,9 +153,13 @@ def _merge(lab, area, threshold):
     centres = np.array([c[0] / c[1] for c in clusters])
     weights = [c[1] for c in clusters]
     members = [c[2] for c in clusters]
+    groups = [c[3] for c in clusters]
     while len(centres) > 1:
         d = np.linalg.norm(centres[:, None] - centres[None], axis=2)
         np.fill_diagonal(d, np.inf)
+        if group is not None:
+            same = np.array([[a == b for b in groups] for a in groups])
+            d[~same] = np.inf
         i, j = np.unravel_index(int(np.argmin(d)), d.shape)
         if d[i, j] > threshold:
             break
@@ -161,18 +171,20 @@ def _merge(lab, area, threshold):
         centres = np.delete(centres, j, axis=0)
         del weights[j]
         del members[j]
+        del groups[j]
     entry = np.empty(len(lab), dtype=np.int64)
     for k, m in enumerate(members):
         entry[m] = k
     return entry, centres
 
 
-def _smooth(entry, lab, centres, pieces):
+def _smooth(entry, lab, centres, pieces, group=None):
     """Iterated conditional modes: a triangle takes the entry, among its own
     and its neighbours', that costs least (colour difference plus SPLIT_COST
     per corner shared with a triangle of another entry), never one more
     than CAP from its colour. `pieces`: (first triangle, vertex indices
-    (n, 3)) of each mesh; triangles of different meshes share no corner."""
+    (n, 3)) of each mesh; triangles of different meshes share no corner.
+    `group` (T-061): a triangle only takes an entry of its own key."""
     corner_tris = []                                # per triangle: for each corner, the other triangles there
     for first, verts in pieces:
         at = {}
@@ -181,12 +193,18 @@ def _smooth(entry, lab, centres, pieces):
                 at.setdefault(int(v), []).append(first + t)
         for t, tri in enumerate(verts):
             corner_tris.append([[g for g in at[int(v)] if g != first + t] for v in tri])
+    entry_group = {}
+    if group is not None:
+        for t, k in enumerate(entry):
+            entry_group[int(k)] = group[t]
     for _ in range(30):
         changed = 0
         for t in range(len(entry)):
             options = {int(entry[t])}
             for others in corner_tris[t]:
                 options.update(int(entry[g]) for g in others)
+            if group is not None:
+                options = {k for k in options if entry_group[k] == group[t]}
             best, best_cost = int(entry[t]), None
             for k in sorted(options):
                 diff = float(np.linalg.norm(lab[t] - centres[k]))
@@ -222,10 +240,12 @@ def material_images(material):
     return found["color"], found["normal"], found["surface"]
 
 
-def apply(objs, color_image, normal_image, surface_image, cells):
+def apply(objs, color_image, normal_image, surface_image, cells, looks=False):
     """Give the LOD2 meshes `objs` (triangulated, with atlas UVs) palette
     colours: write the entries into the three images (in `cells`) and point
-    every triangle's UVs at its entry. Returns the number of entries."""
+    every triangle's UVs at its entry. Returns the number of entries.
+    `looks` (T-061): entries kept apart by _LOOK and dye mask, which they
+    carry in red."""
     colour = lod.pixels_of(color_image)
     surface = lod.pixels_of(surface_image)
     data = [_triangles(o) for o in objs]
@@ -240,8 +260,15 @@ def apply(objs, color_image, normal_image, surface_image, cells):
         first += len(verts)
     srgb, surf, areas = np.vstack(srgb), np.vstack(surf), np.concatenate(areas)
     lab = oklab(srgb_to_linear(srgb))
-    entry, centres = _merge(lab, areas, MERGE)
-    entry = _smooth(entry, lab, centres, pieces)
+    group = None
+    if looks:
+        tri_looks = [k for o in objs for k in whp_look.triangle_keys(o)]
+        dyed = np.round(np.clip(surf[:, 0], 0.0, 1.0) * 2.0) / 2.0
+        # A triangle with no slot (or none left at LOD2, Looks.far) is never dyed, whatever its mask:
+        # it may share an entry with any other such triangle.
+        group = [(k, float(m) if (k[0] or k[1]) else 0.0) for k, m in zip(tri_looks, dyed)]
+    entry, centres = _merge(lab, areas, MERGE, group)
+    entry = _smooth(entry, lab, centres, pieces, group)
 
     # Entries in use, in order of first use; their colours as the means of their triangles.
     used = []
@@ -266,12 +293,13 @@ def apply(objs, color_image, normal_image, surface_image, cells):
         value = lod.linear_to_srgb(from_oklab(mean_lab[None]))[0]
         rough = float((surf[mine, 1] * w).sum() / w.sum())
         metal = float((surf[mine, 2] * w).sum() / w.sum())
+        red = group[int(np.argmax(mine))][1] if group is not None else 1.0
         x, y = cells.cell(k)
         rgb_out[y:y + CELL, x:x + CELL] = value
         nx, ny, nc = int(x * nscale), int(y * nscale), max(int(CELL * nscale), 1)
         normal[ny:ny + nc, nx:nx + nc] = (0.5, 0.5, 1.0)
         sx, sy, sc = int(x * sscale), int(y * sscale), max(int(CELL * sscale), 1)
-        surface_out[sy:sy + sc, sx:sx + sc] = (1.0, rough, metal)
+        surface_out[sy:sy + sc, sx:sx + sc] = (red, rough, metal)
     error = np.concatenate(error)
     whp_far.rewrite(color_image, rgb_out)
     whp_far.rewrite(normal_image, normal)

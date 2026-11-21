@@ -18,11 +18,13 @@ Built on the Roman source body; the build itself is whp_build.
 import bpy
 
 import balearic_kit
+import roman_beard
 import roman_faces
 import roman_fit
 import roman_kit
 import roman_source
 import whp_clips
+import whp_look
 import whp_materials
 import whp_skin
 from roman_fit import FINAL_SCALE
@@ -106,7 +108,9 @@ PARTS = [
     Part("head", ["New_head", "New_eye", "New_eye_2"], ["New_head", "New_eye", "New_eye_2"], (1200, 200, 36),
          reach=0.035, uv=1.8, extrusion=0.015, ray=0.035),
     Part("hair", ["Hair"], ["Hair"], (300, 60, 0), uv=1.0, extrusion=0.008, ray=0.015),
-    Part("beard", ["Beard"], ["Beard"], (240, 40, 0), uv=1.0, extrusion=0.006, ray=0.012),
+    # Variant shapes (T-061): the short beard of the kit and a full one (roman_beard).
+    Part("beard", ["Beard"], ["Beard"], (240, 28, 0), uv=1.0, extrusion=0.006, ray=0.012, ao_alone=True),
+    *roman_beard.parts("beard_full"),
     Part("arms", ["New_arms"], ["New_arms"], (1150, 200, 44), covers=["Tunic_1"], reach=0.03),
     Part("legs", ["New_legs"], ["New_legs", "Boots"], (1400, 240, 50), extrusion=0.02, ray=0.04, sole=["Boots"]),
     Part("tunic", ["Tunic_1"], ["Tunic_1"], (1300, 230, 24), covers=["Belly_sling"], reach=0.03, uv=1.0),
@@ -123,6 +127,39 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# Hannibal's men: strong variety (the user's choice, 2026-11-21). Strabo
+# 3.5.1 gives the tunic a broad border, not its colour: the undyed wool
+# varies from cream to brown and grey, the border through dark purples, red
+# and brown. Dark hair; most men bearded.
+
+srgb, ONE = whp_look.srgb, whp_look.ONE
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("tunic", "dye", [(3, srgb(181, 173, 158)), (2, srgb(160, 150, 130)), (2, srgb(200, 194, 178)),
+                                       (1, srgb(140, 126, 108)), (1, srgb(120, 116, 110)), (1, srgb(176, 150, 110))]),
+        whp_look.Slot("border", "dye", [(3, srgb(97, 41, 60)), (2, srgb(70, 30, 52)), (2, srgb(110, 38, 36)),
+                                        (1, srgb(48, 40, 36)), (1, srgb(60, 50, 80))]),
+        whp_look.Slot("skin", "tint", [(3, ONE), (2, (0.90, 0.85, 0.80)), (2, (1.08, 1.04, 1.00)),
+                                       (2, (0.84, 0.77, 0.70)), (1, (1.02, 0.94, 0.88))]),
+        whp_look.Slot("hair", "dye", [(4, srgb(36, 28, 22)), (3, srgb(26, 22, 20)), (2, srgb(56, 42, 32)),
+                                      (1, srgb(80, 60, 42))]),
+    ],
+    parts={"head": ("skin", None), "arms": ("skin", None), "legs": ("skin", None), "tunic": ("tunic", "border"),
+           "hair": ("hair", None), "beard": ("hair", None), "beard_full": ("hair", None)},
+    materials={"New_head0": "skin", "New_arms0": "skin", "New_legs0": "skin", "Tunic_10": whp_look.woven_border(),
+               "whp-hair": "hair"},
+    variants=[whp_look.Variants("beard", [(3, None), (5, "beard"), (2, "beard_full")])],
+)
+
+
+def before_lod():
+    """The full beard (roman_beard), in the hair of the kit's beard, short
+    of the tunic's collar."""
+    roman_beard.build(avoid=["Tunic_1"], material=bpy.data.materials["whp-hair"], names=("beard_full",))
 
 
 # -- review images (render_review.py) -----------------------------------------

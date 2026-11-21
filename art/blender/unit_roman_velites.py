@@ -16,9 +16,11 @@ import functools
 
 import bpy
 
+import roman_beard
 import roman_fit
 import roman_helmet
 import roman_kit
+import roman_looks
 import roman_mail
 import roman_parma
 import roman_shield
@@ -26,6 +28,7 @@ import roman_source
 import roman_weapons
 import roman_hands
 import whp_clips
+import whp_look
 import whp_materials
 from roman_fit import FINAL_SCALE
 from whp_unit_lod import Part
@@ -89,24 +92,59 @@ PARTS = [
     Part("belt", ["Belt"], ["Belt"], (140, 40, 0)),
     Part("scabbard", ["Scabbard"], ["Scabbard"], (220, 0, 0)),
     Part("sword", ["Sword2_1"], ["Sword2_1"], (90, 0, 0), covers=["Scabbard"], reach=0.02),
-    Part("helmet", ["Helmet.low"], ["Helmet"], (None, 90, 0), covers=["Pelt"], reach=0.02, uv=1.1, extrusion=0.008,
-         ray=0.02),
+    # Whole under the pelt: not every man wears one (LOOKS).
+    Part("helmet", ["Helmet.low"], ["Helmet"], (None, 90, 0), uv=1.1, extrusion=0.008, ray=0.02),
     Part("cheeks", ["Helmet_cheeks.low"], ["Helmet_cheeks"], (None, 40, 0), uv=1.2, extrusion=0.005, ray=0.012),
-    Part("pelt", ["Pelt.low"], ["Pelt"], (None, 110, 16), uv=1.2, extrusion=0.01, ray=0.025),
+    # A variant shape (T-061): drawn only on the men who drew it; not at LOD2.
+    Part("pelt", ["Pelt.low"], ["Pelt"], (None, 110, 0), uv=1.2, extrusion=0.01, ray=0.025, ao_alone=True),
     Part("shield", ["Parma.low"], ["Parma"], (None, 100, 34), uv=lambda slot: 0.45 if slot == 2 else 1.0,
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("javelin", ["Javelin.low"], ["Javelin"], (None, 30, 6), uv=0.6, extrusion=0.005, ray=0.012, ao_alone=True),
     Part("javelins", ["Javelins.low"], ["Javelins"], (None, 60, 12), uv=0.6, extrusion=0.005, ray=0.012,
          ao_alone=True),
+    # Variant shapes (T-061): the beards.
+    *roman_beard.PARTS,
 ]
 
 LOD2 = dict(
-    own=("shield", "pelt", "javelin", "javelins"),
+    own=("shield", "javelin", "javelins"),
     body=("head", "arms", "legs", "tunic", "belt"),
     trunk="belt",
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# Romans: shades of one colour (roman_looks). The velites are the youngest
+# and poorest (Polybius 6.21.7): few beards. Polybius 6.22.3: the plain
+# helmet is "sometimes" covered with a wolf's skin or the like, so not
+# every man has one, and the skins differ.
+
+PELT = [(3, whp_look.ONE), (2, (0.72, 0.72, 0.74)), (2, (1.22, 1.20, 1.24)), (2, (1.12, 0.95, 0.80)),
+        (1, (0.55, 0.52, 0.50))]
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("tunic", "dye", roman_looks.TUNIC),
+        whp_look.Slot("shield", "dye", roman_looks.SHIELD),
+        whp_look.Slot("skin", "tint", roman_looks.SKIN),
+        whp_look.Slot("hair", "dye", roman_looks.HAIR),
+        whp_look.Slot("pelt", "tint", PELT),
+    ],
+    parts={"head": ("skin", None), "arms": ("skin", None), "legs": ("skin", None), "tunic": ("tunic", None),
+           "shield": ("shield", None), "pelt": ("pelt", None),
+           "beard_short": ("hair", None), "beard_full": ("hair", None)},
+    materials={"New_head0": "skin", "New_arms0": "skin", "New_legs0": "skin", "Tunic_10": "tunic",
+               "whp-shield-paint": "shield", "whp-beard": "hair", "whp-fur": "pelt"},
+    variants=[whp_look.Variants("beard", [(6, None), (3, "beard_short"), (1, "beard_full")]),
+              whp_look.Variants("pelt", [(6, "pelt"), (4, None)])],
+)
+
+
+def before_lod():
+    """The beards (roman_beard), short of the cheek pieces and the collar."""
+    roman_beard.build(avoid=["Helmet_cheeks", "Tunic_1"])
 
 
 # -- review images (render_review.py) -----------------------------------------

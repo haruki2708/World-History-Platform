@@ -21,8 +21,10 @@ this model.
 import bpy
 
 import roman_armour
+import roman_beard
 import roman_fit
 import roman_kit
+import roman_looks
 import roman_mail
 import roman_source
 import whp_clips
@@ -110,6 +112,8 @@ PARTS = [
     Part("greaves", ["Greave_l.low", "Greave_r.low"], ["Greave_l", "Greave_r"], (None, 60, 0),
          uv=1.1, extrusion=0.008, ray=0.02),
     Part("pila", ["Pila.low"], ["Pila"], (None, 44, 8), uv=0.7, extrusion=0.006, ray=0.015, ao_alone=True),
+    # Variant shapes (T-061): the beards.
+    *roman_beard.PARTS,
 ]
 
 LOD2 = dict(
@@ -119,6 +123,17 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+
+# The hastati are the young men (Polybius 6.21.7): fewer beards, and short.
+LOOKS = roman_looks.looks(beards=[(6, None), (3, "beard_short"), (1, "beard_full")])
+
+
+def before_lod():
+    """The beards (roman_beard), short of the cheek pieces and the collar."""
+    roman_beard.build(avoid=["Helmet_cheeks", "Tunic_1"])
 
 
 # -- review images (render_review.py) -----------------------------------------

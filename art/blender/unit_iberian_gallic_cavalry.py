@@ -28,6 +28,8 @@ import functools
 
 import bpy
 
+import iberian_looks
+import roman_beard
 import roman_faces
 import roman_fit
 import roman_hands
@@ -37,8 +39,10 @@ import roman_mail
 import roman_shield
 import roman_source
 import roman_weapons
+import cavalry_looks
 import whp_cavalry
 import whp_clips
+import whp_look
 import whp_materials
 from roman_fit import FINAL_SCALE
 from whp_unit_lod import Part
@@ -145,6 +149,8 @@ PARTS = [
     Part("shield", ["Shield.low"], ["Shield"], (260, 70, 16), uv=lambda slot: 0.45 if slot == 2 else 1.0,
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("spear", ["Spear.low"], ["Spear"], (None, 20, 4), uv=0.6, extrusion=0.005, ray=0.012, ao_alone=True),
+    # Variant shapes (T-061): the beards, on a horseman's budget.
+    *roman_beard.parts(scale=0.6),
 ]
 
 LOD2 = dict(
@@ -155,6 +161,39 @@ LOD2 = dict(
     head="head",
     feet=False,
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# The Iberian foot's (iberian_looks; the cap keeps its colour: no slot
+# left), and the horse (cavalry_looks): its coat, and the saddle cloth's
+# dark wool in shades (Diodorus 5.33: the Celtiberians' rough black wool).
+
+srgb = whp_look.srgb
+CLOTH = [(3, srgb(41, 45, 56)), (2, srgb(30, 30, 32)), (2, srgb(58, 46, 38)), (1, srgb(70, 36, 32)),
+         (1, srgb(50, 56, 66))]
+_horse_slots, _horse_parts, _horse_materials = cavalry_looks.horse(cloth=CLOTH)
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("tunic", "dye", iberian_looks.LINEN),
+        whp_look.Slot("border", "dye", iberian_looks.PURPLE),
+        whp_look.Slot("shield", "dye", iberian_looks.SHIELD),
+        whp_look.Slot("skin", "tint", iberian_looks.SKIN),
+        whp_look.Slot("hair", "dye", iberian_looks.HAIR),
+        *_horse_slots,
+    ],
+    parts={"head": ("skin", None), "arms": ("skin", None), "legs": ("skin", None), "tunic": ("tunic", "border"),
+           "shield": ("shield", None), "beard_short": ("hair", None), "beard_full": ("hair", None), **_horse_parts},
+    materials={"New_head0": "skin", "New_arms0": "skin", "New_legs0": "skin", "Tunic_10": whp_look.woven_border(),
+               "whp-shield-paint": "shield", "whp-beard": "hair", **_horse_materials},
+    variants=[whp_look.Variants("beard", iberian_looks.BEARDS)],
+    designs=iberian_looks.DESIGNS,
+)
+
+
+def before_lod():
+    """The beards (roman_beard), short of the tunic's collar."""
+    roman_beard.build(avoid=["Tunic_1"])
 
 
 # -- review images (render_review.py) -----------------------------------------

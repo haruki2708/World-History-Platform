@@ -31,7 +31,8 @@ import {
   Vector4,
 } from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { UNIT_CLIPS, UNIT_LODS, type UnitClip } from "@/lib/battle";
+import { type ModelLooks, UNIT_CLIPS, UNIT_LODS, type UnitClip } from "@/lib/battle";
+import { type LookTables, lookTables } from "./looks";
 
 /** Clip indices as the shader knows them: the order of UNIT_CLIPS. */
 export const CLIP_INDEX = Object.fromEntries(
@@ -138,6 +139,12 @@ export interface UnitModel {
   surface: ModelSurface | null;
   /** Draw both faces of every triangle (cloaks, crests). */
   doubleSided: boolean;
+  /**
+   * Each man his own look (T-061): the tables the shaders draw each man's
+   * colours, shapes and shield design from, or null when the model has no
+   * looks (or no roughness-metalness map to hold the dye mask).
+   */
+  looks: LookTables | null;
   dispose(): void;
 }
 
@@ -177,6 +184,8 @@ export interface SkinnedSource {
   map: Texture | null;
   surface?: SurfaceMaps | null;
   doubleSided?: boolean;
+  /** Each man his own look (T-061): the file's looks, if it has any. */
+  looks?: ModelLooks | null;
   /** Frees whatever the source loaded (textures of a .glb, for instance). */
   release?: () => void;
 }
@@ -407,6 +416,7 @@ export function buildUnitModel(source: SkinnedSource): UnitModel {
       normalScale: [surface.normalStrength, tangents ? surface.normalStrength : -surface.normalStrength],
     },
     doubleSided: source.doubleSided ?? false,
+    looks: source.looks && surface?.roughnessMap ? lookTables(source.looks) : null,
     dispose() {
       for (const geometry of geometries) geometry.dispose();
       boneTexture.dispose();
@@ -681,14 +691,21 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
   geometry.setAttribute("aBoneIndex", boneIndex);
   geometry.setAttribute("aBoneWeight", boneWeight);
 
-  // How much of each vertex is skinned to the horse (the bones named
-  // horse_*): the horse keeps its gallop under a rider who strikes
-  // (material.ts).
-  const mount = new BufferAttribute(new Float32Array(count), 1);
+  // Of the part each vertex belongs to, in one attribute (each attribute is
+  // a stream the graphics card fetches on its own: one more cost a few per
+  // cent of the frame in a big battle, T-061):
+  //   x: how much of the vertex is skinned to the horse (the bones named
+  //      horse_*): the horse keeps its gallop under a rider who strikes;
+  //   y: its look, slots and variant shape in one number (0: none; T-061).
+  const part = new BufferAttribute(new Float32Array(count * 2), 2);
+  const sourceLook = source.attributes._look;
+  if (sourceLook) {
+    for (let i = 0; i < count; i++) part.setY(i, sourceLook.getX(i));
+  }
   const horse = mesh.skeleton.bones.map((bone) => (bone.name.toLowerCase().startsWith("horse_") ? 1 : 0));
   if (horse.some((flag) => flag === 1)) {
     for (let i = 0; i < count; i++) {
-      mount.setX(
+      part.setX(
         i,
         boneWeight.getX(i) * (horse[skinIndex.getX(i)] ?? 0) +
           boneWeight.getY(i) * (horse[skinIndex.getY(i)] ?? 0) +
@@ -697,7 +714,7 @@ function prepareGeometry(mesh: SkinnedMesh, remap: number[], withTangents: boole
       );
     }
   }
-  geometry.setAttribute("aMount", mount);
+  geometry.setAttribute("aPart", part);
 
   if (source.index) {
     geometry.setIndex(new BufferAttribute(source.index.array.slice(), 1));

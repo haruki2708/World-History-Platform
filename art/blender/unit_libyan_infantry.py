@@ -18,12 +18,14 @@ this model.
 
 import bpy
 
+import roman_beard
 import roman_faces
 import roman_fit
 import roman_kit
 import roman_mail
 import roman_source
 import whp_clips
+import whp_look
 import whp_materials
 from whp_unit_lod import Part
 
@@ -89,7 +91,9 @@ KIT = whp_clips.Kit(shield=True, attack="sword-thrust")
 PARTS = [
     Part("head", ["New_head", "New_eye", "New_eye_2"], ["New_head", "New_eye", "New_eye_2"], (1150, 190, 36),
          covers=["Helmet"], reach=0.035, uv=1.8, extrusion=0.015, ray=0.035),
-    Part("beard", ["Beard"], ["Beard"], (280, 50, 0), uv=1.0, extrusion=0.006, ray=0.012),
+    # Variant shapes (T-061): the short beard of the kit and a full one (roman_beard).
+    Part("beard", ["Beard"], ["Beard"], (280, 34, 0), uv=1.0, extrusion=0.006, ray=0.012, ao_alone=True),
+    *roman_beard.parts("beard_full"),
     Part("arms", ["New_arms"], ["New_arms"], (1100, 190, 44),
          covers=["Tunic_1", "Mail", "Mail_yoke"], reach=0.03),
     Part("legs", ["New_legs"], ["New_legs", "Boots"], (1300, 230, 50), extrusion=0.02, ray=0.04,
@@ -115,6 +119,44 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+#
+# Hannibal's men: strong variety (the user's choice, 2026-11-21), within what
+# tells the Libyans from the Romans (see above): undyed wool in earth
+# colours, never Roman red; hide on the captured shields, a few marked with
+# a device; dark hair and beard, but not on every man (no source gives the
+# share).
+
+srgb, ONE = whp_look.srgb, whp_look.ONE
+LOOKS = whp_look.Looks(
+    slots=[
+        whp_look.Slot("tunic", "dye", [(3, srgb(149, 129, 103)), (2, srgb(178, 164, 136)), (2, srgb(120, 104, 84)),
+                                       (1, srgb(132, 124, 110)), (1, srgb(160, 122, 82)), (1, srgb(150, 98, 74))]),
+        whp_look.Slot("shield", "dye", [(3, srgb(188, 175, 151)), (2, srgb(170, 150, 118)), (2, srgb(204, 194, 170)),
+                                        (1, srgb(150, 124, 92)), (1, srgb(176, 162, 142))]),
+        whp_look.Slot("skin", "tint", [(3, ONE), (2, (0.86, 0.80, 0.76)), (2, (1.12, 1.07, 1.02)),
+                                       (2, (0.94, 0.86, 0.78)), (1, (1.04, 0.95, 0.88))]),
+        whp_look.Slot("hair", "dye", [(4, srgb(30, 25, 22)), (3, srgb(42, 32, 25)), (2, srgb(58, 44, 33))]),
+    ],
+    parts={"head": ("skin", None), "arms": ("skin", None), "legs": ("skin", None), "tunic": ("tunic", None),
+           "shield": ("shield", None), "beard": ("hair", None), "beard_full": ("hair", None)},
+    materials={"New_head0": "skin", "New_arms0": "skin", "New_legs0": "skin", "Tunic_10": "tunic",
+               "whp-shield-paint": "shield", "whp-hair": "hair"},
+    variants=[whp_look.Variants("beard", [(2, None), (5, "beard"), (3, "beard_full")])],
+    designs=whp_look.Designs(
+        "shield",
+        [(4, None), (1, "rim"), (1, "band"), (1, "rays"), (1, "rings")],
+        [(2, srgb(120, 44, 36)), (2, srgb(40, 34, 30)), (1, srgb(150, 110, 60))]),
+)
+
+
+def before_lod():
+    """The full beard (roman_beard), in the hair of the kit's beard, short
+    of the cheek pieces and the collar."""
+    roman_beard.build(avoid=["Helmet_cheeks", "Mail_yoke", "Tunic_1"], material=bpy.data.materials["whp-hair"],
+                      names=("beard_full",))
 
 
 # -- review images (render_review.py) -----------------------------------------

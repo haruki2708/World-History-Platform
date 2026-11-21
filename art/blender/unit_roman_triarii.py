@@ -14,8 +14,10 @@ import functools
 
 import bpy
 
+import roman_beard
 import roman_fit
 import roman_kit
+import roman_looks
 import roman_mail
 import roman_source
 import roman_weapons
@@ -93,6 +95,8 @@ PARTS = [
          extrusion=0.02, ray=0.045, ao_alone=True),
     Part("hook", ["Mail_hook.low"], ["Mail_hook"], (None, 0, 0), extrusion=0.008, ray=0.02),
     Part("spear", ["Spear.low"], ["Spear"], (None, 40, 8), uv=0.6, extrusion=0.006, ray=0.015, ao_alone=True),
+    # Variant shapes (T-061): the beards.
+    *roman_beard.PARTS,
 ]
 
 LOD2 = dict(
@@ -102,6 +106,18 @@ LOD2 = dict(
     skirt="tunic",
     head="head",
 )
+
+
+# -- each man his own look (T-061) --------------------------------------------
+
+# The triarii are the oldest men (Polybius 6.21.9): more beards, some grey.
+LOOKS = roman_looks.looks(beards=[(3, None), (3, "beard_short"), (4, "beard_full")],
+                          hair=roman_looks.HAIR_OLDER)
+
+
+def before_lod():
+    """The beards (roman_beard), short of the cheek pieces and the collar."""
+    roman_beard.build(avoid=["Helmet_cheeks", "Mail_yoke", "Tunic_1"])
 
 
 # The spear held upright stands higher than the man: its point at about 2.4 m.

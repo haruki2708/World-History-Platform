@@ -14,6 +14,7 @@ import bpy
 import numpy as np
 from mathutils import Quaternion
 
+import whp_look
 from whp_common import log, reset_scene, select_only
 
 MAX_BYTES = 4 * 1024 * 1024
@@ -82,6 +83,7 @@ def export_glb(path, armature, meshes, clips, jpeg_quality=88):
         export_cameras=False,
         export_lights=False,
         export_extras=False,
+        export_attributes=True,          # _LOOK (T-061); a model without looks has none
     )
     known = set(bpy.ops.export_scene.gltf.get_rna_type().properties.keys())
     missing = sorted(k for k in wanted if k not in known)
@@ -111,8 +113,92 @@ def read_glb(path):
     return doc, binary, len(data)
 
 
+def write_glb(path, doc, binary):
+    """Write a GLB from its JSON document and binary chunk (read_glb)."""
+    text = json.dumps(doc, separators=(",", ":")).encode("utf-8")
+    text += b" " * (-len(text) % 4)
+    chunks = struct.pack("<I4s", len(text), b"JSON") + text
+    if binary:
+        binary = binary + b"\x00" * (-len(binary) % 4)
+        chunks += struct.pack("<I4s", len(binary), b"BIN\x00") + binary
+    with open(path, "wb") as f:
+        f.write(struct.pack("<4sII", b"glTF", 2, 12 + len(chunks)) + chunks)
+
+
+def set_scene_extras(path, key, value):
+    """Put `value` under `key` in the extras of the file's scene (T-061: the
+    looks' JSON). The exporter's own extras would carry every custom
+    property in the file; this carries one."""
+    doc, binary, _size = read_glb(path)
+    scene = doc["scenes"][doc.get("scene", 0)]
+    scene.setdefault("extras", {})[key] = value
+    write_glb(path, doc, binary)
+    log(f"{os.path.basename(path)}: scene extras {key} ({len(value)} characters)")
+
+
+def check_looks(doc, lods, looks):
+    """The looks of a model (T-061): the JSON in the scene's extras, _LOOK on
+    every level, the shield's frame for the designs. Returns a list of
+    problems."""
+    problems = []
+    scene = doc["scenes"][doc.get("scene", 0)]
+    try:
+        table = json.loads(scene.get("extras", {}).get("whp_looks", ""))
+    except ValueError:
+        return ["no looks in the scene's extras"]
+    if len(table.get("slots", [])) != len(looks.slots):
+        problems.append(f"looks: {len(table.get('slots', []))} slots in the file, {len(looks.slots)} in LOOKS")
+    log(f"  looks: slots {[s['name'] for s in table['slots']]}, refs {[s['ref'] for s in table['slots']]}, "
+        f"variants {[v['name'] for v in table.get('variants', [])]}, designs {len(table.get('designs', {}).get('tiles', []))}")
+    nodes = {n.get("name"): n for n in doc["nodes"] if "mesh" in n}
+    for name in lods:
+        node = nodes.get(name)
+        if node is None:
+            continue
+        attrs = doc["meshes"][node["mesh"]]["primitives"][0]["attributes"]
+        if "_LOOK" not in attrs:
+            problems.append(f"{name} has no _LOOK")
+    if table.get("designs") and len(table["designs"].get("frame", [])) != 9:
+        problems.append("looks: the designs have no shield frame")
+    return problems
+
+
 def _accessor_count(doc, index):
     return doc["accessors"][index]["count"]
+
+
+def _accessor_array(doc, binary, index):
+    """The values of an accessor (tightly packed scalars, as the exporter
+    writes indices and _LOOK)."""
+    acc = doc["accessors"][index]
+    view = doc["bufferViews"][acc["bufferView"]]
+    dtype = {5126: np.float32, 5125: np.uint32, 5123: np.uint16, 5121: np.uint8}[acc["componentType"]]
+    width = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}[acc["type"]]
+    start = view.get("byteOffset", 0) + acc.get("byteOffset", 0)
+    data = np.frombuffer(binary, dtype=dtype, count=acc["count"] * width, offset=start)
+    return data if width == 1 else data.reshape(acc["count"], width)
+
+
+def variant_allowance(doc, binary, mesh, table):
+    """Triangles of a level's variant shapes beyond those one man draws (of
+    each group only the largest choice counts; whp_unit_lod.variant_allowance),
+    read from _LOOK in the file."""
+    groups = (table or {}).get("variants", [])
+    if not groups:
+        return 0
+    per_variant = {}
+    for prim in mesh["primitives"]:
+        if "_LOOK" not in prim["attributes"]:
+            return 0
+        look = _accessor_array(doc, binary, prim["attributes"]["_LOOK"])
+        first = _accessor_array(doc, binary, prim["indices"]).reshape(-1, 3)[:, 0]
+        for v in (look[first].round().astype(int) // whp_look.VARIANT_STEP).tolist():
+            per_variant[v] = per_variant.get(v, 0) + 1
+    extra = 0
+    for group in groups:
+        counts = [per_variant.get(i, 0) for i in {o[0] for o in group["options"] if o[0]}]
+        extra += sum(counts) - max(counts, default=0)
+    return extra
 
 
 def _image_size(blob):
@@ -163,10 +249,19 @@ def _node_matrices(doc):
     return [get(i) for i in range(len(nodes))]
 
 
-def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024, max_bytes=MAX_BYTES):
-    """Check the file against the contract; return a list of problems."""
+def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=1024, max_bytes=MAX_BYTES,
+              looks=None):
+    """Check the file against the contract; return a list of problems.
+    `looks`: the unit's whp_look.Looks, if it has any (T-061)."""
     doc, binary, size = read_glb(path)
     problems = []
+    table = None
+    if looks is not None:
+        problems += check_looks(doc, lods, looks)
+        try:
+            table = json.loads(doc["scenes"][doc.get("scene", 0)].get("extras", {}).get("whp_looks", ""))
+        except ValueError:
+            table = None
     log(f"check {os.path.basename(path)}: {size / 1024:.0f} KB")
     if size > max_bytes:
         problems.append(f"file is {size / 1024 / 1024:.2f} MB, over {max_bytes / 1024 / 1024:.0f} MB")
@@ -184,11 +279,13 @@ def check_glb(path, lods, limits, clips, bone_count, color_max=2048, normal_max=
         tris = sum(_accessor_count(doc, p["indices"]) // 3 for p in mesh["primitives"])
         verts = sum(_accessor_count(doc, p["attributes"]["POSITION"]) for p in mesh["primitives"])
         attrs = sorted(mesh["primitives"][0]["attributes"])
-        log(f"  {name}: {tris} triangles, {verts} vertices, {len(mesh['primitives'])} primitive(s), {attrs}")
+        allowance = variant_allowance(doc, binary, mesh, table)
+        log(f"  {name}: {tris} triangles, {verts} vertices, {len(mesh['primitives'])} primitive(s), {attrs}"
+            + (f", {allowance} of them variant shapes one man does not draw" if allowance else ""))
         if any(a.startswith("COLOR_") for a in attrs):
             problems.append(f"{name} has vertex colours (three.js would multiply them into the material)")
-        if tris > limit:
-            problems.append(f"{name} has {tris} triangles, over {limit}")
+        if tris > limit + allowance:
+            problems.append(f"{name} has {tris} triangles, over {limit}" + (f" + {allowance}" if allowance else ""))
         if "skin" not in node:
             problems.append(f"{name} is not skinned")
     extra = sorted(set(mesh_nodes) - set(lods))
