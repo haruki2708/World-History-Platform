@@ -36,4 +36,46 @@ Người dùng chọn (2026-11-22, câu hỏi chọn phương án, sau khi xem `
 
 ## Kết quả
 
-(điền khi xong)
+**Trạng thái:** phần chọn mức theo từng người xong trên nhánh `batch-l/B4-lod` (phiên chính làm). Người dùng xem ảnh và chọn gộp ngay, đo chốt sau khi máy rảnh (2026-11-22). Còn trong B4: thử vẽ cảnh ở tỉ lệ điểm ảnh 1,5 cho góc mở trận (mục "Còn lại").
+
+### Đã làm
+
+- `units.ts`:
+  - lớp `Level` mới: một mức chi tiết của một lô, với bộ đệm riêng cho bốn thuộc tính của từng người (`iPosYaw`, `iAnim`, `iSeed`, `iStrike`), một lưới cho khung nhìn và một lưới đổ bóng;
+  - `Chunk`: bốn mảng dữ liệu của lô nay chỉ nằm ở CPU, được ghi mỗi khung như trước (thêm `slot`: người thứ mấy của lô). `measure` tính chiều cao trên màn hình của từng người; `sort` chép từng người sang bộ đệm của mức mình. Lô cả một mức (đa số, và mọi lô ngoài khung nhìn) chép cả khối một lần; lô mà người gần nhất cũng dưới ngưỡng LOD1 thì không xét từng người;
+  - `Crowd.selectLods`: chọn mức theo từng người, giãn ngưỡng theo trần (`stretch`, `MAX_STRETCH`, `STRETCH_EASE`, `EASE_ROOM`). Thường chỉ một hay hai lượt duyệt mỗi khung.
+- `BattleEngine.ts`, mức `high`: ngưỡng 36 / 12 điểm ảnh CSS (trước 58 / 17), trần 4,5 triệu (trước 2,5 triệu). Mức `low` giữ nguyên.
+- Khung số liệu của `/battle-lab?stats=1` đếm người ở mỗi mức thay vì lô (`battle.scene.stats.lods`, `en` và `vi`).
+- ARCHITECTURE: mục "Vẽ lính" (mỗi người một mức, trần, chống nhấp nháy) và "Hiệu năng" (màn hình thật của người dùng).
+
+### Kiểm tra
+
+- `npm run lint`, `npx tsc --noEmit`, `npm run validate`, `npm run build` qua.
+- Hồi quy lõi (`main-tools/reg-core.js`, bản production của nhánh, `TUTOR_MOCK=1`): 17/17.
+- Trận hồ Trasimene mở được, console không có lỗi hay cảnh báo; ở góc gần (40 m cách `hastati-2`, giai đoạn 4) có 174 người ở LOD0, 56 ở LOD1.
+- Số người ở mỗi mức, Cannae giai đoạn 5, cùng góc nhìn, màn hình người dùng (`main` → nhánh): 15 m: LOD0 0 → 309; 40 m: 0 → 260; 110 m: 0 → 231; 200 m: 0 → 148; 320 m: 0 → 16.
+- Nhấp nháy (`main-tools/drive/s-b4-flicker.mjs`; "lật" là một người đổi mức rồi đổi lại trong vòng 15 khung): camera đứng ở 60 m khi trận đang phát: 8 lần lật trong khoảng 6 giây với hơn 2 100 người trong khung nhìn (trước khi thêm `EASE_ROOM`: 48 lần trong 8 giây); camera trôi từ 300 m vào 30 m: 0 lần lật.
+
+### Khung hình
+
+Đo ở đúng màn hình của người dùng (`W=1646 H=830 DSF=1.75`), Cannae.
+
+- Lúc máy yên (quét theo trần trên bản thử, trung vị 3 vòng, camera 40 m và 110 m): trần 2,5 triệu 86–88 khung/giây; 4 triệu 67; 6 triệu 52–57; 9 triệu 40–41. Mỗi triệu tam giác của lính tốn khoảng 2 ms một khung. Trần 4,5 triệu ước khoảng 62.
+- Góc mở trận (mọi người ở LOD2) không phụ thuộc trần: khoảng 53 khung/giây.
+- Đo xen kẽ hai bản production (`main-tools/perf/fps-servers-ab.sh`, `main` cổng 3200, nhánh cổng 3201) **chưa chốt được**: suốt lúc đo có Godot chạy (không phải của phiên chính) và RAM chỉ còn khoảng 1,4 GB. Trong điều kiện đó, trung vị 3 vòng (`main` → nhánh): góc mở trận 62,9 → 58,5; giai đoạn 5 đang phát 40,7 → 40,2; giai đoạn 6 38,7 → 39,5; camera 40 m 60,6 → 41,6; 110 m 58,7 → 40,2. Godot làm mọi số tụt khoảng 28% (bản `main` ở góc 40 m: 86 lúc máy yên, 60 lúc có Godot).
+- Vài giây đầu sau khi đưa camera lại gần, khung hình thấp hơn hẳn (lần quét theo trần: vòng đầu ở 40 m chỉ 34–49, các vòng sau 52–89). Kịch bản `s-b4-perf.mjs` đo ngay sau khi đặt camera nên dính phần này; lần đo chốt nên chờ lâu hơn hoặc đo nhiều cửa sổ liền (`s-b4-warm.mjs`).
+- CPU của `selectLods`: 0,45–0,5 ms một khung trên bản đã tối ưu (trước B4: 0,1–0,17 ms).
+
+### Còn lại
+
+- **Đo chốt** khi máy yên (không Godot, không Blender): `ROUNDS=3 bash main-tools/perf/fps-servers-ab.sh`, rồi ghi số vào đây.
+- **Tỉ lệ điểm ảnh của góc mở trận** (người dùng chọn thử trong B4, 2026-11-22): ở màn hình người dùng, góc mở trận đã sát hoặc dưới 50 khung/giây từ trước (Cannae khoảng 53, hồ Trasimene khoảng 47). Thử vẽ cảnh ở tỉ lệ 1,5 và 1,25 thay vì 1,75: đo khi máy yên, chụp ảnh so độ nét, người dùng quyết.
+
+### Ảnh duyệt
+
+`E:\World_History_Platform_assets\duyet\B4\`:
+- `B4-01-ba-ban-linh.jpg`: ba bản lính ở cùng khoảng cách, 60–360 m;
+- `B4-02-truoc-sau.jpg`: trước/sau ở 40, 110, 200, 320 m;
+- `B4-03-can-canh.jpg`: trước/sau ở 15 và 25 m.
+
+Script: `E:\World_History_Platform_assets\main-tools\drive\s-b4-*.mjs`, `main-tools\b4\compose_lods.py`, `main-tools\perf\fps-servers-ab.sh`.
