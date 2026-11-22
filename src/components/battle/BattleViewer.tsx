@@ -6,6 +6,7 @@ import type { Battle } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleScene } from "./BattleScene";
+import { ChapterCard } from "./viewer/ChapterCard";
 import { ControlBar } from "./viewer/ControlBar";
 import { InfoPanel, sideColor } from "./viewer/InfoPanel";
 import { StoryPanel } from "./viewer/StoryPanel";
@@ -60,6 +61,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("story");
+  const [scrubbing, setScrubbing] = useState(false);
   /** The unit whose card is open on the scene. */
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   /** Bumped by a choice in the list of units: the camera flies to the unit. */
@@ -294,6 +296,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                 chromeHidden={chromeHidden}
                 viewerPanelOpen={panelOpen}
               />
+              <ChapterCard battle={battle} scrubbing={scrubbing} panelOpen={panelOpen} />
             </div>
 
             <div
@@ -302,7 +305,12 @@ function ViewerDialog({ battleId }: { battleId: string }) {
               } ${chromeHidden ? "lg:translate-y-2 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"}`}
             >
               <div className={chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"}>
-                <ControlBar battle={battle} playback={playback} />
+                <ControlBar
+                  battle={battle}
+                  playback={playback}
+                  onScrubStart={() => setScrubbing(true)}
+                  onScrubEnd={() => setScrubbing(false)}
+                />
               </div>
             </div>
 

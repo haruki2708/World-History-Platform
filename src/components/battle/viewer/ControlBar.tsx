@@ -11,6 +11,8 @@ import { PLAYBACK_SPEEDS, type Playback } from "./usePlayback";
 interface ControlBarProps {
   battle: Battle;
   playback: Playback;
+  onScrubStart?: () => void;
+  onScrubEnd?: () => void;
 }
 
 const ICON_BUTTON =
@@ -21,7 +23,7 @@ const ICON_BUTTON =
  * under way. Re-renders on every tick of the battle clock, so it is kept
  * small and apart from the panels.
  */
-export function ControlBar({ battle, playback }: ControlBarProps) {
+export function ControlBar({ battle, playback, onScrubStart, onScrubEnd }: ControlBarProps) {
   const { t, locale } = useT();
   const end = battle.phases.length;
   const time = useAppStore((state) => Math.min(state.battleTime, end));
@@ -88,6 +90,8 @@ export function ControlBar({ battle, playback }: ControlBarProps) {
           time={time}
           phases={end}
           onSeek={playback.seek}
+          onScrubStart={onScrubStart}
+          onScrubEnd={onScrubEnd}
           label={t("battle.controls.time")}
           valueText={`${clock}. ${phaseLabel}: ${phase.title[locale]}`}
         />

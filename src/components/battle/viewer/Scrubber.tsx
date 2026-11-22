@@ -7,6 +7,9 @@ interface ScrubberProps {
   time: number;
   phases: number;
   onSeek: (time: number) => void;
+  /** Called when a pointer drag on the seek bar starts and finishes. */
+  onScrubStart?: () => void;
+  onScrubEnd?: () => void;
   label: string;
   /** What a screen reader says for the current position. */
   valueText: string;
@@ -21,7 +24,7 @@ const COARSE_STEP = 0.1;
  * boundary between two phases. Pointer input is taken on the whole bar, so
  * the drag target is tall; keyboard input goes to the `role="slider"` thumb.
  */
-export function Scrubber({ time, phases, onSeek, label, valueText }: ScrubberProps) {
+export function Scrubber({ time, phases, onSeek, onScrubStart, onScrubEnd, label, valueText }: ScrubberProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
   const value = Math.min(Math.max(time, 0), phases);
@@ -41,6 +44,7 @@ export function Scrubber({ time, phases, onSeek, label, valueText }: ScrubberPro
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     thumbRef.current?.focus({ preventScroll: true });
+    onScrubStart?.();
     seekTo(event.clientX);
   };
 
@@ -51,6 +55,7 @@ export function Scrubber({ time, phases, onSeek, label, valueText }: ScrubberPro
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
+      onScrubEnd?.();
     }
   };
 
