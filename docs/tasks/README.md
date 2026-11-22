@@ -75,6 +75,9 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-054](T-054-about-two-battles.md) | 1 | Trận hồ Trasimene (đợt K), chặng 3: hộp thoại Giới thiệu nói đúng về cả hai trận (ý riêng từng trận, nguồn của Trasimene) | Xong, đã gộp 2026-11-19 |
 | [T-055](T-055-trasimene-dawn-load.md) | 3 | Trận hồ Trasimene: cảnh lúc mở trận (4:30) quá tối; cảnh tải chậm hơn Cannae 2,5–3 giây; hai chỗ nhỏ ở mép nước | Xong, đã gộp 2026-11-19 (phiên chính làm thay lane 3) |
 | [T-056](T-056-map-lake-trasimene.md) | 2 | Bản đồ nền thiếu hồ Trasimene: thêm hồ, thấy được trong cú bay tới chiến trường | Xong, đã gộp 2026-11-19 |
-| [T-057](T-057-knockdown-clip.md) | 1 | Đợt L (kỵ binh xông qua): clip `knockdown`, bộ binh bị ngựa xô ngã rồi gượng dậy; một mô hình trước, người dùng xem, rồi cả tám | Đã giao 2026-11-20 |
-| [T-058](T-058-horse-walk.md) | 2 | Đợt L (làm đẹp lính): móng ngựa trượt và lún khi đi bước; xuất lại bốn mô hình kỵ binh | Đã giao 2026-11-20, làm sau T-059 |
-| [T-059](T-059-overrun-data.md) | 2 | Đợt L, chặng A3: kỵ binh xông qua bộ binh trong dữ liệu Cannae và hồ Trasimene, theo nguồn | Đã giao 2026-11-20 |
+| [T-057](T-057-knockdown-clip.md) | 1 | Đợt L (kỵ binh xông qua): clip `knockdown`, bộ binh bị ngựa xô ngã rồi gượng dậy; một mô hình trước, người dùng xem, rồi cả tám | Xong, đã gộp 2026-11-20 |
+| [T-058](T-058-horse-walk.md) | 2 | Đợt L (làm đẹp lính): móng ngựa trượt và lún khi đi bước; xuất lại bốn mô hình kỵ binh | Xong, đã gộp 2026-11-21 (phiên chính làm thay lane 2) |
+| [T-059](T-059-overrun-data.md) | 2 | Đợt L, chặng A3: kỵ binh xông qua bộ binh trong dữ liệu Cannae và hồ Trasimene, theo nguồn | Xong, đã gộp 2026-11-20; mục 6 gộp 2026-11-21 (phiên chính làm thay lane 2) |
+| [T-060](T-060-ridedown-rider.md) | 1 | Đợt L: clip `ridedown` cho bốn mô hình kỵ binh; chân người cưỡi đung đưa, vạt áo thu gọn, cú ngã có đường bay | Xong, đã gộp 2026-11-21 (phiên chính làm thay lane 1) |
+| [T-061](T-061-soldier-looks.md) | Phiên chính | Đợt L, B1: mỗi lính một vẻ (màu áo, tóc, râu, hoa văn khiên, màu lông ngựa) cho 12 mô hình | Xong, đã gộp 2026-11-21 |
+| [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Xong trên nhánh `batch-l/B4-lod`, chờ người dùng duyệt gộp |

@@ -97,7 +97,7 @@ export interface EngineStats {
   drawn: number;
   drawCalls: number;
   triangles: number;
-  /** Blocks in view at LOD0, LOD1, LOD2. */
+  /** Figures in view at LOD0, LOD1, LOD2. */
   lods: number[];
   quality: Quality;
   /** The graphics card as the browser reports it, when it does. */
@@ -157,9 +157,15 @@ const INTRO_POLAR = 0.02;
 const QUALITY: Record<Quality, { pixelRatio: number } & LodSettings> = {
   high: {
     pixelRatio: 2,
-    lod0Pixels: 58,
-    lod1Pixels: 17,
-    triangleBudget: 2_500_000,
+    // Each figure picks its own level (units.ts, Crowd.selectLods); the
+    // budget stretches both thresholds when the men in view are too many.
+    // Measured on the user's laptop (RTX 3050, 2880×1620 at 175%, B4): at
+    // 4.5 million the views close to a melee keep 60–65 frames a second,
+    // with the 230–260 men nearest the camera at LOD0. The opening view of
+    // the whole field (about 53 a second there) is all LOD2 either way.
+    lod0Pixels: 36,
+    lod1Pixels: 12,
+    triangleBudget: 4_500_000,
     shadows: true,
     // Every level: figures keep their look (metal stays metal) as they
     // change level with distance. Measured no slower than LOD0 alone.

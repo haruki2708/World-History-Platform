@@ -1,7 +1,8 @@
 /**
  * The troops on the field. Each battle unit is a UnitBlock; its figures are
- * split into chunks of neighbouring files, and every chunk is one instanced
- * draw call with its own level of detail and its own bounds for culling.
+ * split into chunks of neighbouring files, each with its own bounds for
+ * culling. Every figure is drawn at its own level of detail: a chunk draws
+ * its figures with one instanced draw call per level in use.
  */
 
 import {
@@ -334,7 +335,7 @@ export interface LodSettings {
   lod0Pixels: number;
   /** A figure taller than this gets LOD1; smaller ones LOD2. */
   lod1Pixels: number;
-  /** Most triangles of figures in view, before the far blocks are coarsened. */
+  /** Most triangles of figures in view, before the farthest figures are coarsened. */
   triangleBudget: number;
   shadows: boolean;
   /**
@@ -349,7 +350,7 @@ export interface CrowdCounts {
   standing: number;
   /** Figures sent to the graphics card this frame (standing or fallen, in view). */
   drawn: number;
-  /** Chunks in view per level of detail. */
+  /** Figures in view per level of detail. */
   lods: number[];
 }
 
@@ -419,40 +420,50 @@ function depthGeometry(base: BufferGeometry): BufferGeometry {
   return geometry;
 }
 
-class Chunk {
+/** Levels of detail of every figure model: LOD0, LOD1, LOD2 (UNIT_LODS). */
+const LEVELS = 3;
+/**
+ * A figure keeps its level until its size on screen is this far past the
+ * threshold, so one standing on a threshold does not flicker.
+ */
+const KEEP = 0.88;
+/** Most the triangle budget may stretch the thresholds (Crowd.selectLods). */
+const MAX_STRETCH = 64;
+/**
+ * Per frame, the share of the stretch kept once fewer triangles are in view.
+ * It rises at once, so a crowd coming into view never overruns the budget,
+ * and eases back over a fraction of a second, so men do not flicker between
+ * levels as the crowd in view changes.
+ */
+const STRETCH_EASE = 0.97;
+/**
+ * The stretch eases back only while the triangles at the eased stretch stay
+ * this far under the budget. Without the room, the men it brings up a level
+ * put the count back over the budget, the stretch jumps, and men near a
+ * threshold flick back and forth (48 times in 8 s of Cannae playing, B4).
+ */
+const EASE_ROOM = 0.95;
+
+/**
+ * The figures of a chunk drawn at one level of detail this frame: their own
+ * instance buffers, filled from the chunk's every frame (Chunk.sort), a mesh
+ * for the view and one for the shadow map.
+ */
+class Level {
   readonly posYaw: InstancedBufferAttribute;
   readonly anim: InstancedBufferAttribute;
   readonly seed: InstancedBufferAttribute;
-  /**
-   * Per figure: seconds into its blow (-1: none); how far it has put away
-   * what it stows to fight; and its looks, drawn once (figures/looks.ts,
-   * lookChoices; 0 for a model without looks). One attribute: each is a
-   * stream the graphics card fetches on its own (T-061).
-   */
   readonly strike: InstancedBufferAttribute;
-  readonly sphere = new Sphere();
-  readonly display: InstancedBufferGeometry[];
-  readonly shadow: InstancedBufferGeometry[];
+  readonly geometry: InstancedBufferGeometry;
   readonly mesh: Mesh;
   readonly shadowMesh: Mesh;
-  drawn = 0;
-  lod = 2;
-  /** From the camera to the nearest figure drawn, metres. */
-  distance = 0;
-  inView = false;
+  count = 0;
 
-  constructor(
-    readonly first: number,
-    readonly count: number,
-    readonly model: UnitModel,
-    private readonly materials: FigureMaterials,
-  ) {
-    this.posYaw = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
-    this.anim = new InstancedBufferAttribute(new Float32Array(count * 4), 4);
-    this.seed = new InstancedBufferAttribute(new Float32Array(count), 1);
-    const strike = new Float32Array(count * STRIKE);
-    for (let k = 0; k < count; k++) strike[k * STRIKE] = -1;
-    this.strike = new InstancedBufferAttribute(strike, STRIKE);
+  constructor(capacity: number, display: BufferGeometry, shadow: BufferGeometry, sphere: Sphere, materials: FigureMaterials) {
+    this.posYaw = new InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
+    this.anim = new InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
+    this.seed = new InstancedBufferAttribute(new Float32Array(capacity), 1);
+    this.strike = new InstancedBufferAttribute(new Float32Array(capacity * STRIKE), STRIKE);
     for (const attribute of this.attributes) attribute.setUsage(DynamicDrawUsage);
     const instanced = (base: BufferGeometry) => {
       const geometry = new InstancedBufferGeometry();
@@ -464,76 +475,246 @@ class Chunk {
       geometry.setAttribute("iAnim", this.anim);
       geometry.setAttribute("iSeed", this.seed);
       geometry.setAttribute("iStrike", this.strike);
-      geometry.boundingSphere = this.sphere;
+      geometry.boundingSphere = sphere;
       geometry.instanceCount = 0;
       return geometry;
     };
-    this.display = model.lods.map((lod) => instanced(lod.geometry));
-    // Shadows are drawn from LOD1 and LOD2 only (see setLod).
-    this.shadow = model.lods.map((lod, level) => instanced(level === 0 ? lod.geometry : depthGeometry(lod.geometry)));
-
-    this.mesh = new Mesh(this.display[2], materials.material);
+    this.geometry = instanced(display);
+    this.mesh = new Mesh(this.geometry, materials.material);
     this.mesh.receiveShadow = true;
     this.mesh.matrixAutoUpdate = false;
     this.mesh.renderOrder = FIGURE_ORDER;
+    this.mesh.visible = false;
 
     // Shadows come from a coarser mesh than the one on screen. This second
     // mesh stands on SHADOW_LAYER, which only the camera of the shadow map
     // sees, so the main pass does not even set it up; it gets its instances
     // only while the shadow map is drawn.
-    this.shadowMesh = new Mesh(this.shadow[2], materials.material);
+    this.shadowMesh = new Mesh(instanced(shadow), materials.material);
     this.shadowMesh.layers.set(SHADOW_LAYER);
     this.shadowMesh.customDepthMaterial = materials.depthMaterial;
     this.shadowMesh.castShadow = true;
     this.shadowMesh.matrixAutoUpdate = false;
+    this.shadowMesh.visible = false;
     this.shadowMesh.onBeforeShadow = (_renderer, _scene, _camera, _shadowCamera, geometry) => {
-      (geometry as InstancedBufferGeometry).instanceCount = this.drawn;
+      (geometry as InstancedBufferGeometry).instanceCount = this.count;
     };
     this.shadowMesh.onAfterShadow = (_renderer, _scene, _camera, _shadowCamera, geometry) => {
       (geometry as InstancedBufferGeometry).instanceCount = 0;
     };
   }
 
-  /** The per-figure attributes, written every frame for the figures drawn. */
   get attributes(): InstancedBufferAttribute[] {
     return [this.posYaw, this.anim, this.seed, this.strike];
   }
 
-  setLod(lod: number, settings: LodSettings): void {
-    const { shadows, detailedLods } = settings;
-    this.lod = lod;
-    this.mesh.geometry = this.display[lod];
-    this.mesh.material =
-      lod < detailedLods && this.materials.detailed ? this.materials.detailed : this.materials.material;
-    this.mesh.visible = this.drawn > 0;
-    this.shadowMesh.geometry = this.shadow[lod === 0 ? 1 : 2];
-    this.shadowMesh.visible = shadows && this.drawn > 0;
-  }
-
-  get detailedMaterial(): FigureMaterials["detailed"] {
-    return this.materials.detailed;
-  }
-
-  /**
-   * Measures `distance`: to the nearest figure, not to the middle of the
-   * chunk, which for a loose screen of skirmishers may lie half a kilometre
-   * off while some of its men stand at the camera's feet.
-   */
-  measureDistance(camera: Vector3): void {
-    const posYaw = this.posYaw.array as Float32Array;
-    let nearest = Infinity;
-    for (let o = 0; o < this.drawn * 4; o += 4) {
-      const dx = posYaw[o] - camera.x;
-      const dy = posYaw[o + 1] - camera.y;
-      const dz = posYaw[o + 2] - camera.z;
-      const d = dx * dx + dy * dy + dz * dz;
-      if (d < nearest) nearest = d;
+  /** Draws the first `count` figures of the buffers, sending them to the graphics card. */
+  commit(count: number, shadows: boolean): void {
+    this.count = count;
+    this.geometry.instanceCount = count;
+    this.mesh.visible = count > 0;
+    this.shadowMesh.visible = shadows && count > 0;
+    if (count === 0) return;
+    for (const attribute of this.attributes) {
+      attribute.clearUpdateRanges();
+      attribute.addUpdateRange(0, count * attribute.itemSize);
+      attribute.needsUpdate = true;
     }
-    this.distance = Math.max(Math.sqrt(nearest), 1);
   }
 
   dispose(): void {
-    for (const geometry of [...this.display, ...this.shadow]) geometry.dispose();
+    this.geometry.dispose();
+    this.shadowMesh.geometry.dispose();
+  }
+}
+
+/**
+ * Up to CHUNK_SIZE figures of a block, with one set of bounds for culling.
+ * Each figure is drawn at its own level of detail: every frame the figures
+ * drawn are written here in turn (UnitBlock.update), then sorted into the
+ * buffers of their levels (sort). A man at the camera's feet is then drawn
+ * in full while the far end of his file, a few hundred metres off, is not.
+ * When the whole chunk had one level, one near man put all of it at LOD0,
+ * and the triangle budget then took LOD0 from every chunk in view (B4).
+ */
+class Chunk {
+  // Per figure drawn, in the order written: what the figure shader reads (material.ts).
+  readonly posYaw: Float32Array;
+  readonly anim: Float32Array;
+  readonly seed: Float32Array;
+  /**
+   * Per figure: seconds into its blow (-1: none); how far it has put away
+   * what it stows to fight; and its looks, drawn once (figures/looks.ts,
+   * lookChoices; 0 for a model without looks). One attribute: each is a
+   * stream the graphics card fetches on its own (T-061).
+   */
+  readonly strike: Float32Array;
+  /** Per figure drawn: which figure of the chunk it is, 0 to count - 1. */
+  readonly slot: Uint16Array;
+  /** Per figure drawn: how tall it stands on screen this frame, CSS pixels. */
+  readonly pixels: Float32Array;
+  /** Per figure of the chunk (by slot): the level it was last drawn at, for KEEP. */
+  readonly level: Uint8Array;
+  readonly sphere = new Sphere();
+  readonly levels: Level[];
+  private readonly fill = [0, 0, 0];
+  /** Scratch of `sort`: the level of each figure drawn, in the order written. */
+  private readonly order: Uint8Array;
+  drawn = 0;
+  /** From the camera to the nearest figure drawn, metres. */
+  distance = 0;
+  /** How tall the nearest figure drawn stands on screen, CSS pixels. */
+  nearest = 0;
+  inView = false;
+
+  constructor(
+    readonly first: number,
+    readonly count: number,
+    readonly model: UnitModel,
+    readonly materials: FigureMaterials,
+  ) {
+    this.posYaw = new Float32Array(count * 4);
+    this.anim = new Float32Array(count * 4);
+    this.seed = new Float32Array(count);
+    this.strike = new Float32Array(count * STRIKE);
+    for (let k = 0; k < count; k++) this.strike[k * STRIKE] = -1;
+    this.slot = new Uint16Array(count);
+    this.pixels = new Float32Array(count);
+    this.level = new Uint8Array(count).fill(LEVELS - 1);
+    this.order = new Uint8Array(count);
+    // The men drawn at LOD0 cast their shadows from LOD1, the rest from LOD2.
+    this.levels = model.lods.map(
+      (lod, l) =>
+        new Level(count, lod.geometry, depthGeometry(model.lods[l === 0 ? 1 : 2].geometry), this.sphere, materials),
+    );
+  }
+
+  /** The meshes to add to the scene. */
+  get meshes(): Mesh[] {
+    return this.levels.flatMap((level) => [level.mesh, level.shadowMesh]);
+  }
+
+  /**
+   * Measures every figure drawn: how tall it stands on screen (`pixels`; `size`
+   * is what it covers at one metre from the camera) and how far off the
+   * nearest one is (`distance`). The nearest figure, not the middle of the
+   * chunk, which for a loose screen of skirmishers may lie half a kilometre
+   * off while some of its men stand at the camera's feet.
+   */
+  measure(camera: Vector3, size: number): void {
+    const { posYaw, pixels } = this;
+    let nearest = Infinity;
+    for (let k = 0; k < this.drawn; k++) {
+      const o = k * 4;
+      const dx = posYaw[o] - camera.x;
+      const dy = posYaw[o + 1] - camera.y;
+      const dz = posYaw[o + 2] - camera.z;
+      const d = Math.max(Math.sqrt(dx * dx + dy * dy + dz * dz), 1);
+      pixels[k] = size / d;
+      if (d < nearest) nearest = d;
+    }
+    this.distance = nearest;
+    this.nearest = size / nearest;
+  }
+
+  /**
+   * True when every figure drawn is at LOD2 for these thresholds, whatever
+   * level it had: even the nearest is below the LOD1 threshold with KEEP.
+   * Most chunks in a view of the whole field; they skip the figure by figure.
+   */
+  private allFar(lod1: number): boolean {
+    return this.nearest <= lod1 * KEEP;
+  }
+
+  /** The level of figure `k` for the thresholds given (CSS pixels). */
+  private levelOf(k: number, lod0: number, lod1: number): number {
+    const pixels = this.pixels[k];
+    const last = this.level[this.slot[k]];
+    if (pixels > lod0 * (last === 0 ? KEEP : 1)) return 0;
+    return pixels > lod1 * (last <= 1 ? KEEP : 1) ? 1 : 2;
+  }
+
+  /** Triangles of the figures drawn, at the levels the thresholds give them. */
+  triangles(lod0: number, lod1: number): number {
+    const lods = this.model.lods;
+    const t0 = lods[0].triangles;
+    const t1 = lods[1].triangles;
+    const t2 = lods[2].triangles;
+    if (this.allFar(lod1)) return this.drawn * t2;
+    let total = 0;
+    for (let k = 0; k < this.drawn; k++) {
+      const l = this.levelOf(k, lod0, lod1);
+      total += l === 0 ? t0 : l === 1 ? t1 : t2;
+    }
+    return total;
+  }
+
+  /**
+   * Sorts the figures drawn into the buffers of their levels and draws them;
+   * adds the figures in view at each level to `counts`. A chunk out of view
+   * is only drawn into the shadow map, all of it at LOD2.
+   */
+  sort(lod0: number, lod1: number, settings: LodSettings, counts: number[]): void {
+    const { posYaw, anim, seed, strike, slot, level, levels, fill, order, inView } = this;
+    const drawn = this.drawn;
+    fill[0] = 0;
+    fill[1] = 0;
+    fill[2] = 0;
+    // The level of every figure drawn, or -1 when they differ.
+    let all = LEVELS - 1;
+    if (inView && this.allFar(lod1)) {
+      level.fill(LEVELS - 1);
+    } else if (inView) {
+      for (let k = 0; k < drawn; k++) {
+        const l = this.levelOf(k, lod0, lod1);
+        level[slot[k]] = l;
+        order[k] = l;
+        if (k === 0) all = l;
+        else if (l !== all) all = -1;
+      }
+    }
+    if (all >= 0) {
+      // One level for the whole chunk (most chunks, and all those out of view): copied in one go.
+      const to = levels[all];
+      (to.posYaw.array as Float32Array).set(posYaw.subarray(0, drawn * 4));
+      (to.anim.array as Float32Array).set(anim.subarray(0, drawn * 4));
+      (to.seed.array as Float32Array).set(seed.subarray(0, drawn));
+      (to.strike.array as Float32Array).set(strike.subarray(0, drawn * STRIKE));
+      fill[all] = drawn;
+    }
+    for (let k = 0; all < 0 && k < drawn; k++) {
+      const l = order[k];
+      const to = levels[l];
+      const j = fill[l]++;
+      const toPosYaw = to.posYaw.array as Float32Array;
+      const toAnim = to.anim.array as Float32Array;
+      const toStrike = to.strike.array as Float32Array;
+      const a = k * 4;
+      const b = j * 4;
+      toPosYaw[b] = posYaw[a];
+      toPosYaw[b + 1] = posYaw[a + 1];
+      toPosYaw[b + 2] = posYaw[a + 2];
+      toPosYaw[b + 3] = posYaw[a + 3];
+      toAnim[b] = anim[a];
+      toAnim[b + 1] = anim[a + 1];
+      toAnim[b + 2] = anim[a + 2];
+      toAnim[b + 3] = anim[a + 3];
+      (to.seed.array as Float32Array)[j] = seed[k];
+      const s = k * STRIKE;
+      const t = j * STRIKE;
+      for (let c = 0; c < STRIKE; c++) toStrike[t + c] = strike[s + c];
+    }
+    const { material, detailed } = this.materials;
+    for (let l = 0; l < LEVELS; l++) {
+      const to = levels[l];
+      to.mesh.material = l < settings.detailedLods && detailed ? detailed : material;
+      to.commit(fill[l], settings.shadows);
+      if (inView) counts[l] += fill[l];
+    }
+  }
+
+  dispose(): void {
+    for (const level of this.levels) level.dispose();
   }
 }
 
@@ -679,7 +860,7 @@ export class UnitBlock {
       const end = Math.floor(((c + 1) * track.count) / chunkCount);
       const chunk = new Chunk(first, end - first, model, materials);
       this.chunks.push(chunk);
-      group.add(chunk.mesh, chunk.shadowMesh);
+      group.add(...chunk.meshes);
     }
 
     const geometry = new BufferGeometry();
@@ -876,10 +1057,7 @@ export class UnitBlock {
     const knockStep = KNOCK_TURN * tick;
 
     for (const chunk of this.chunks) {
-      const posYaw = chunk.posYaw.array as Float32Array;
-      const anim = chunk.anim.array as Float32Array;
-      const seed = chunk.seed.array as Float32Array;
-      const strike = chunk.strike.array as Float32Array;
+      const { posYaw, anim, seed, strike, slot } = chunk;
       const looks = this.looks;
       let n = 0;
       let minX = Infinity;
@@ -1311,6 +1489,7 @@ export class UnitBlock {
         // A fallen figure keeps the turn it had when it fell.
         posYaw[o + 3] = Math.PI - (track.heading[i] + turn[i]);
         seed[n] = track.seed[i];
+        slot[n] = i - chunk.first;
         if (looks) {
           strike[n * STRIKE + 2] = looks[i * 2];
           strike[n * STRIKE + 3] = looks[i * 2 + 1];
@@ -1323,15 +1502,9 @@ export class UnitBlock {
         if (z < minZ) minZ = z;
         if (z > maxZ) maxZ = z;
       }
+      // Drawn once Crowd.selectLods has sorted them into their levels.
       chunk.drawn = n;
-      for (const geometry of chunk.display) geometry.instanceCount = n;
-      chunk.mesh.visible = n > 0;
       if (n === 0) continue;
-      for (const attribute of chunk.attributes) {
-        attribute.clearUpdateRanges();
-        attribute.addUpdateRange(0, n * attribute.itemSize);
-        attribute.needsUpdate = true;
-      }
       chunk.sphere.center.set((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
       chunk.sphere.radius =
         Math.hypot(maxX - minX, maxY - minY, maxZ - minZ) / 2 + figureHeight * 1.2;
@@ -1479,7 +1652,10 @@ export class Crowd {
   readonly group = new Group();
   readonly blocks: UnitBlock[] = [];
   private readonly chunks: Chunk[] = [];
-  private readonly ordered: Chunk[] = [];
+  /** Scratch of `selectLods`: the chunks in view. */
+  private readonly shown: Chunk[] = [];
+  /** How far the triangle budget stretches the thresholds now (selectLods), 1 when it does not. */
+  private stretch = 1;
   private readonly march: March = { step: 0, halted: true, jumped: false };
   private lastNow = NaN;
   private lastClock = NaN;
@@ -1626,8 +1802,11 @@ export class Crowd {
   }
 
   /**
-   * Picks a level of detail for every chunk from its size on screen, then
-   * coarsens the farthest chunks until the triangles in view fit the budget.
+   * Picks a level of detail for every figure from its size on screen. When
+   * the figures in view would come to more triangles than the budget, both
+   * thresholds are stretched by the smallest factor that fits: the smallest
+   * figures on screen, the farthest, are coarsened first, and the ratio of
+   * the two thresholds holds, so neither level is emptied for the other.
    */
   selectLods(
     camera: Camera,
@@ -1640,73 +1819,76 @@ export class Crowd {
     frustum.setFromProjectionMatrix(projection);
     const pixelsPerMetreAtOne = viewportHeight / (2 * Math.tan(fovRadians / 2));
     const counts: CrowdCounts = { standing: 0, drawn: 0, lods: [0, 0, 0] };
-    let triangles = 0;
-    this.ordered.length = 0;
+    const shown = this.shown;
+    shown.length = 0;
 
     for (const block of this.blocks) {
       counts.standing += block.standing;
-      const height = block.model.height * FIGURE_SCALE;
+      const size = block.model.height * FIGURE_SCALE * pixelsPerMetreAtOne;
       for (const chunk of block.chunks) {
         if (chunk.drawn === 0) {
           chunk.inView = false;
-          chunk.setLod(chunk.lod, settings);
           continue;
         }
         chunk.inView = frustum.intersectsSphere(chunk.sphere);
-        chunk.measureDistance(camera.position);
-        const pixels = (height * pixelsPerMetreAtOne) / chunk.distance;
-        // A little hysteresis, so a chunk on a threshold does not flicker.
-        const keep = 0.88;
-        let lod = 2;
-        if (pixels > settings.lod0Pixels * (chunk.lod === 0 ? keep : 1)) lod = 0;
-        else if (pixels > settings.lod1Pixels * (chunk.lod <= 1 ? keep : 1)) lod = 1;
-        chunk.lod = lod;
+        chunk.measure(camera.position, size);
         if (chunk.inView) {
-          this.ordered.push(chunk);
-          triangles += chunk.drawn * block.model.lods[lod].triangles;
+          shown.push(chunk);
+          counts.drawn += chunk.drawn;
         }
       }
       block.setFootprintLook(camera.position, pixelsPerMetreAtOne, daylight);
     }
 
-    if (triangles > settings.triangleBudget) {
-      this.ordered.sort((a, b) => b.distance - a.distance);
-      for (let pass = 0; pass < 2 && triangles > settings.triangleBudget; pass++) {
-        for (const chunk of this.ordered) {
-          if (triangles <= settings.triangleBudget) break;
-          if (chunk.lod >= 2) continue;
-          const lods = chunk.model.lods;
-          triangles -= chunk.drawn * (lods[chunk.lod].triangles - lods[chunk.lod + 1].triangles);
-          chunk.lod++;
-        }
+    const { lod0Pixels, lod1Pixels, triangleBudget } = settings;
+    const triangles = (stretch: number): number => {
+      let total = 0;
+      for (const chunk of shown) total += chunk.triangles(lod0Pixels * stretch, lod1Pixels * stretch);
+      return total;
+    };
+    // The stretch comes down by STRETCH_EASE a frame at most: if that much
+    // less fits with EASE_ROOM to spare, that is the answer; if only last
+    // frame's fits, it holds. Mostly one or two passes.
+    const eased = Math.max(this.stretch * STRETCH_EASE, 1);
+    if (triangles(eased) <= triangleBudget * EASE_ROOM) {
+      this.stretch = eased;
+    } else if (eased === this.stretch || triangles(this.stretch) > triangleBudget) {
+      // More men in view than last frame: the least stretch that fits, at
+      // once. Double until it fits, then halve the gap a few times: within 5%.
+      let over = this.stretch;
+      let fits = this.stretch * 2;
+      while (fits < MAX_STRETCH && triangles(fits) > triangleBudget) {
+        over = fits;
+        fits *= 2;
       }
+      for (let step = 0; step < 5; step++) {
+        const middle = Math.sqrt(over * fits);
+        if (triangles(middle) > triangleBudget) over = middle;
+        else fits = middle;
+      }
+      this.stretch = fits;
     }
 
     for (const chunk of this.chunks) {
-      if (chunk.drawn === 0) continue;
-      chunk.setLod(chunk.lod, settings);
-      if (chunk.inView) {
-        counts.drawn += chunk.drawn;
-        counts.lods[chunk.lod]++;
-      }
+      chunk.sort(lod0Pixels * this.stretch, lod1Pixels * this.stretch, settings, counts.lods);
     }
     return counts;
   }
 
   /**
-   * Meshes that show every material a chunk may switch to, for compiling the
-   * shaders up front: otherwise the first zoom onto a block would stall
+   * Meshes that show every material a figure may be drawn with, for compiling
+   * the shaders up front: otherwise the first zoom onto a block would stall
    * while the detailed material compiles. Remove them once compiled.
    */
   warmUpMeshes(): Mesh[] {
     const meshes: Mesh[] = [];
     const seen = new Set<unknown>();
     for (const chunk of this.chunks) {
-      for (const material of [chunk.mesh.material, chunk.detailedMaterial]) {
+      for (const material of [chunk.materials.material, chunk.materials.detailed]) {
         if (!material || seen.has(material)) continue;
         seen.add(material);
-        for (const geometry of chunk.display) {
-          const mesh = new Mesh(geometry, material);
+        for (const level of chunk.levels) {
+          const mesh = new Mesh(level.geometry, material);
           mesh.receiveShadow = true;
           mesh.frustumCulled = false;
           meshes.push(mesh);
