@@ -91,23 +91,23 @@ export function Scrubber({ time, phases, onSeek, label, valueText }: ScrubberPro
     <div className="min-w-0 flex-1 px-2">
       <div
         ref={trackRef}
-        className="relative h-8 cursor-pointer touch-none select-none"
+        className="group relative h-8 cursor-pointer touch-none select-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <div aria-hidden className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-line" />
+        <div aria-hidden className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-line/85" />
         <div
           aria-hidden
-          className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
+          className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-accent"
           style={{ width: percent }}
         />
         {Array.from({ length: Math.max(phases - 1, 0) }, (_, i) => (
           <span
             key={i}
             aria-hidden
-            className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted"
+            className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted/75"
             style={{ left: `${((i + 1) / phases) * 100}%` }}
           />
         ))}
@@ -122,7 +122,7 @@ export function Scrubber({ time, phases, onSeek, label, valueText }: ScrubberPro
           aria-valuenow={Math.round(value * 100) / 100}
           aria-valuetext={valueText}
           onKeyDown={handleKeyDown}
-          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-accent shadow-sm transition-transform duration-150 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           style={{ left: percent }}
         />
       </div>

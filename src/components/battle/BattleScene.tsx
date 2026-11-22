@@ -168,6 +168,9 @@ export function BattleScene({
   selectedUnit,
   onSelectUnit,
   unitFocusRequest = 0,
+  inViewer = false,
+  chromeHidden = false,
+  viewerPanelOpen = false,
 }: BattleSceneProps &
   UnitSelection & {
     /**
@@ -175,6 +178,12 @@ export function BattleScene({
      * and bring the camera down to the opening view (the battle viewer).
      */
     introFromAbove?: boolean;
+    /** Rendered inside the full-bleed battle viewer: aligns overlays with viewer chrome. */
+    inViewer?: boolean;
+    /** Viewer chrome is faded out during idle playback. */
+    chromeHidden?: boolean;
+    /** Viewer side panel is open on desktop: shifts bottom-stage hints clear of it. */
+    viewerPanelOpen?: boolean;
   }) {
   const showStats = debug?.showStats ?? false;
   const stressFigures = debug?.stressFigures;
@@ -190,6 +199,9 @@ export function BattleScene({
       selectedUnit={selectedUnit}
       onSelectUnit={onSelectUnit}
       unitFocusRequest={unitFocusRequest}
+      inViewer={inViewer}
+      chromeHidden={chromeHidden}
+      viewerPanelOpen={viewerPanelOpen}
     />
   );
 }
@@ -201,6 +213,9 @@ interface SceneViewProps extends UnitSelection {
   stressFigures: number | undefined;
   introFromAbove: boolean;
   unitFocusRequest: number;
+  inViewer: boolean;
+  chromeHidden: boolean;
+  viewerPanelOpen: boolean;
 }
 
 // Memoised: a parent that re-renders on every tick of the battle clock (the
@@ -214,6 +229,9 @@ const SceneView = memo(function SceneView({
   selectedUnit,
   onSelectUnit,
   unitFocusRequest,
+  inViewer,
+  chromeHidden,
+  viewerPanelOpen,
 }: SceneViewProps) {
   const { t, locale } = useT();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -633,7 +651,7 @@ const SceneView = memo(function SceneView({
               ref={(element) => {
                 labelTextRefs.current[i] = element;
               }}
-              className={`absolute left-0 top-0 whitespace-nowrap rounded-sm border border-line bg-background/75 px-1.5 py-0.5 text-xs text-foreground ${
+              className={`absolute left-0 top-0 whitespace-nowrap rounded-md border border-line/80 bg-background/82 px-2 py-0.5 text-xs text-foreground shadow-xs ${
                 label.river ? "italic" : ""
               }`}
               title={label.approximate ? t("battle.scene.approximate") : undefined}
@@ -695,13 +713,27 @@ const SceneView = memo(function SceneView({
 
       {status === "ready" && (
         <>
-          <div className="absolute right-3 top-3 flex flex-col items-end gap-2">
+          <div
+            className={
+              inViewer
+                ? `absolute right-2.5 top-2.5 z-20 flex flex-col items-end gap-1.5 lg:top-4 lg:right-28 lg:flex-row lg:items-center lg:gap-1 lg:rounded-xl lg:border lg:border-line/80 lg:bg-background/88 lg:p-1 lg:shadow-lg lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
+                    chromeHidden
+                      ? "lg:pointer-events-none lg:-translate-y-2 lg:opacity-0"
+                      : "lg:translate-y-0 lg:opacity-100"
+                  }`
+                : "absolute right-3 top-3 flex flex-col items-end gap-2"
+            }
+          >
             <button
               type="button"
               data-battle-overlay
               aria-pressed={unitNames}
               onClick={toggleUnitNames}
-              className="flex items-center gap-1.5 rounded-md border border-line bg-background/85 py-1 pr-2.5 pl-2 text-xs text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+              className={
+                inViewer
+                  ? "flex items-center gap-1.5 rounded-lg border border-line/80 bg-background/88 py-1 pr-2.5 pl-2 text-xs font-medium text-foreground shadow-sm hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent lg:h-9 lg:border-0 lg:bg-transparent lg:py-0 lg:px-2.5 lg:shadow-none lg:hover:bg-surface/80"
+                  : "flex items-center gap-1.5 rounded-md border border-line bg-background/85 py-1 pr-2.5 pl-2 text-xs text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+              }
             >
               <span
                 aria-hidden
@@ -717,20 +749,29 @@ const SceneView = memo(function SceneView({
               </span>
               {t("battle.scene.unitNames")}
             </button>
+            {inViewer && <span aria-hidden className="hidden h-4 w-px bg-line/80 lg:block" />}
             <button
               type="button"
               data-battle-overlay
               onClick={toggleQuality}
-              className="rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+              className={
+                inViewer
+                  ? "rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent lg:h-9 lg:border-0 lg:bg-transparent lg:py-0 lg:shadow-none lg:hover:bg-surface/80"
+                  : "rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+              }
             >
-              {t("battle.scene.quality")}:{" "}
+              <span className={inViewer ? "text-muted font-normal" : ""}>{t("battle.scene.quality")}:</span>{" "}
               {t(quality === "high" ? "battle.scene.quality.high" : "battle.scene.quality.low")}
             </button>
             {lowered && (
               <p
                 role="status"
                 data-battle-overlay
-                className="max-w-56 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
+                className={
+                  inViewer
+                    ? "max-w-56 rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-xs text-muted shadow-md lg:absolute lg:top-13 lg:right-0 lg:w-max lg:max-w-64"
+                    : "max-w-56 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
+                }
               >
                 {t("battle.scene.quality.lowered")}
               </p>
@@ -740,7 +781,13 @@ const SceneView = memo(function SceneView({
           {!hintSeen && (
             <p
               data-battle-overlay
-              className="pointer-events-none absolute bottom-3 left-3 mr-3 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
+              className={
+                inViewer
+                  ? `pointer-events-none absolute inset-x-3 bottom-2.5 z-10 mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-center text-xs text-muted shadow-sm lg:inset-x-auto lg:bottom-[6.25rem] lg:left-4 lg:rounded-full lg:px-3.5 lg:py-1.5 lg:shadow-md lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
+                      viewerPanelOpen ? "lg:right-[24rem]" : "lg:right-4"
+                    } ${chromeHidden ? "lg:translate-y-1 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"}`
+                  : "pointer-events-none absolute bottom-3 left-3 mr-3 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
+              }
             >
               {t("battle.scene.hint")}
             </p>
@@ -826,7 +873,7 @@ function UnitCard({ cardRef, battle, unit, color, type, onClose }: UnitCardProps
       aria-labelledby={titleId}
       aria-describedby={`${titleId}-about`}
       data-battle-card
-      className="absolute left-0 top-0 w-64 max-w-[calc(100%-1rem)] rounded-md border border-line bg-background/95 p-3 text-sm text-foreground shadow-lg focus-visible:outline-2 focus-visible:outline-accent"
+      className="absolute left-0 top-0 z-30 w-64 max-w-[calc(100%-1rem)] rounded-xl border border-line/85 bg-background/94 p-3.5 text-sm text-foreground shadow-xl focus-visible:outline-2 focus-visible:outline-accent"
       style={{ visibility: "hidden" }}
     >
       <span id={`${titleId}-about`} className="sr-only">

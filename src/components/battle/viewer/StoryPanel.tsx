@@ -39,7 +39,7 @@ export function StoryPanel({ battle, onPhase }: StoryPanelProps) {
 
   return (
     <>
-      <ol aria-label={t("battle.phase.list")} className="space-y-1">
+      <ol aria-label={t("battle.phase.list")} className="space-y-1.5">
         {battle.phases.map((item, index) => {
           const open = index === current;
           const hours = phaseHours(battle, index);
@@ -47,34 +47,38 @@ export function StoryPanel({ battle, onPhase }: StoryPanelProps) {
             <li
               key={item.id}
               ref={open ? currentRef : undefined}
-              className={`rounded-md ${open ? "bg-surface ring-1 ring-accent/40" : ""}`}
+              className={`rounded-xl transition-colors duration-150 ${
+                open
+                  ? "bg-surface/90 ring-1 ring-accent/35 shadow-sm"
+                  : "hover:bg-surface/65"
+              }`}
             >
               <button
                 type="button"
                 onClick={() => onPhase(index)}
                 aria-current={open ? "step" : undefined}
-                className={`flex w-full items-baseline gap-2.5 rounded-md px-3 py-2 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
-                  open ? "" : "text-foreground/80"
+                className={`flex w-full items-baseline gap-2.5 rounded-xl px-3 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
+                  open ? "" : "text-foreground/85"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`flex size-5 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-semibold tabular-nums ${
-                    open ? "bg-accent text-on-accent" : "border border-line text-muted"
+                    open ? "bg-accent text-on-accent shadow-xs" : "border border-line bg-background/60 text-muted"
                   }`}
                 >
                   {index + 1}
                 </span>
                 <span className="sr-only">{label(index)}: </span>
-                <span className={`min-w-0 flex-1 text-sm ${open ? "font-semibold" : "font-medium"}`}>
+                <span className={`min-w-0 flex-1 text-sm leading-snug ${open ? "font-semibold text-foreground" : "font-medium"}`}>
                   {item.title[locale]}
                 </span>
-                <span className="shrink-0 text-xs text-muted tabular-nums">
+                <span className="shrink-0 text-[11px] text-muted tabular-nums">
                   {formatHour(hours.start)}–{formatHour(hours.end)}
                 </span>
               </button>
               {open && (
-                <p className="px-3 pb-3 pt-0.5 text-sm leading-relaxed text-foreground/90">
+                <p className="px-3.5 pb-3.5 pt-0.5 text-[13.5px] leading-relaxed text-foreground/90">
                   {item.narration[locale]}
                 </p>
               )}
