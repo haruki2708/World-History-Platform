@@ -27,6 +27,7 @@ const COARSE_STEP = 0.1;
 export function Scrubber({ time, phases, onSeek, onScrubStart, onScrubEnd, label, valueText }: ScrubberProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
   const value = Math.min(Math.max(time, 0), phases);
   const percent = `${phases > 0 ? (value / phases) * 100 : 0}%`;
 
@@ -38,25 +39,34 @@ export function Scrubber({ time, phases, onSeek, onScrubStart, onScrubEnd, label
     onSeek(Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1) * phases);
   };
 
+  const finishDrag = () => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    onScrubEnd?.();
+  };
+
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     // No text selection while dragging; the keyboard picks up from the thumb.
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     thumbRef.current?.focus({ preventScroll: true });
+    draggingRef.current = true;
     onScrubStart?.();
     seekTo(event.clientX);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) seekTo(event.clientX);
+    if (draggingRef.current || event.currentTarget.hasPointerCapture(event.pointerId)) {
+      seekTo(event.clientX);
+    }
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
-      onScrubEnd?.();
     }
+    finishDrag();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -101,6 +111,7 @@ export function Scrubber({ time, phases, onSeek, onScrubStart, onScrubEnd, label
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onLostPointerCapture={finishDrag}
       >
         <div aria-hidden className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-line/85" />
         <div

@@ -102,7 +102,7 @@ export function ChapterCard({ battle, scrubbing, panelOpen }: ChapterCardProps) 
       }`}
     >
       <div
-        className={`max-w-[min(32rem,100%)] rounded-2xl border border-line/85 bg-background/92 px-5 py-3.5 text-center shadow-2xl transition-[opacity,transform] ease-out motion-reduce:transform-none motion-reduce:transition-none lg:px-9 lg:py-5 ${
+        className={`max-w-[min(32rem,100%)] rounded-2xl border border-line/85 bg-background/96 px-5 py-3.5 text-center shadow-2xl transition-[opacity,transform] ease-out motion-reduce:transform-none motion-reduce:transition-none lg:px-9 lg:py-5 ${
           card.visible
             ? "translate-y-0 scale-100 opacity-100 duration-300"
             : "-translate-y-1.5 scale-[0.98] opacity-0 duration-500"

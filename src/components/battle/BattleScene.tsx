@@ -171,6 +171,7 @@ export function BattleScene({
   inViewer = false,
   chromeHidden = false,
   viewerPanelOpen = false,
+  onSceneReady,
 }: BattleSceneProps &
   UnitSelection & {
     /**
@@ -184,6 +185,8 @@ export function BattleScene({
     chromeHidden?: boolean;
     /** Viewer side panel is open on desktop: shifts bottom-stage hints clear of it. */
     viewerPanelOpen?: boolean;
+    /** Fires once the 3D scene has loaded terrain and models and drawn its first frame. */
+    onSceneReady?: () => void;
   }) {
   const showStats = debug?.showStats ?? false;
   const stressFigures = debug?.stressFigures;
@@ -202,6 +205,7 @@ export function BattleScene({
       inViewer={inViewer}
       chromeHidden={chromeHidden}
       viewerPanelOpen={viewerPanelOpen}
+      onSceneReady={onSceneReady}
     />
   );
 }
@@ -216,6 +220,7 @@ interface SceneViewProps extends UnitSelection {
   inViewer: boolean;
   chromeHidden: boolean;
   viewerPanelOpen: boolean;
+  onSceneReady?: () => void;
 }
 
 // Memoised: a parent that re-renders on every tick of the battle clock (the
@@ -232,6 +237,7 @@ const SceneView = memo(function SceneView({
   inViewer,
   chromeHidden,
   viewerPanelOpen,
+  onSceneReady,
 }: SceneViewProps) {
   const { t, locale } = useT();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -257,8 +263,10 @@ const SceneView = memo(function SceneView({
   const controlled = onSelectUnit !== undefined;
   const selected = controlled ? (selectedUnit ?? null) : ownSelection;
   const select = useRef<(id: string | null) => void>(() => {});
+  const onSceneReadyRef = useRef(onSceneReady);
   useEffect(() => {
     select.current = (id) => (controlled ? onSelectUnit?.(id) : setOwnSelection(id));
+    onSceneReadyRef.current = onSceneReady;
   });
 
   // What the frame loop reads; it lives outside React.
@@ -474,7 +482,10 @@ const SceneView = memo(function SceneView({
         getTime: () => useAppStore.getState().battleTime,
         quality: initialQuality.current,
         stressFigures,
-        onReady: () => setStatus("ready"),
+        onReady: () => {
+          setStatus("ready");
+          onSceneReadyRef.current?.();
+        },
         onError: () => setStatus("error"),
         onStats: showStats ? setStats : undefined,
         onQualityLowered: () => {

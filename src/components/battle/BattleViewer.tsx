@@ -62,6 +62,13 @@ function ViewerDialog({ battleId }: { battleId: string }) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("story");
   const [scrubbing, setScrubbing] = useState(false);
+  /**
+   * True once BattleScene finishes loading terrain and models. Viewer chrome
+   * carries `data-battle-overlay` only after this point so test harnesses that
+   * wait for `[data-battle-overlay]` still wait for the 3D scene to be ready.
+   */
+  const [sceneReady, setSceneReady] = useState(false);
+  const handleSceneReady = useCallback(() => setSceneReady(true), []);
   /** The unit whose card is open on the scene. */
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   /** Bumped by a choice in the list of units: the camera flies to the unit. */
@@ -203,7 +210,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
           }`}
         >
           <div
-            data-battle-overlay
+            data-battle-overlay={sceneReady ? "" : undefined}
             className={`flex min-w-0 flex-1 items-center gap-3 lg:flex-initial lg:max-w-[calc(100%-25rem)] lg:rounded-2xl lg:border lg:border-line/80 lg:bg-background/88 lg:px-4 lg:py-2 lg:shadow-lg ${
               chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"
             }`}
@@ -239,7 +246,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
           </div>
 
           <div
-            data-battle-overlay
+            data-battle-overlay={sceneReady ? "" : undefined}
             className={`flex shrink-0 items-center gap-1 lg:rounded-xl lg:border lg:border-line/80 lg:bg-background/88 lg:p-1 lg:shadow-lg ${
               chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"
             }`}
@@ -295,6 +302,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                 inViewer
                 chromeHidden={chromeHidden}
                 viewerPanelOpen={panelOpen}
+                onSceneReady={handleSceneReady}
               />
               <ChapterCard battle={battle} scrubbing={scrubbing} panelOpen={panelOpen} />
             </div>
@@ -308,6 +316,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                 <ControlBar
                   battle={battle}
                   playback={playback}
+                  sceneReady={sceneReady}
                   onScrubStart={() => setScrubbing(true)}
                   onScrubEnd={() => setScrubbing(false)}
                 />
@@ -319,7 +328,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
             <aside
               id={panelId}
               aria-label={t("battle.viewer.panel")}
-              data-battle-overlay={panelOpen ? "" : undefined}
+              data-battle-overlay={sceneReady && panelOpen ? "" : undefined}
               className={`min-h-0 flex-1 flex-col border-t border-line bg-background lg:absolute lg:top-[4.75rem] lg:right-4 lg:z-20 lg:max-h-[calc(100dvh-5.75rem)] lg:w-[22rem] lg:flex-none lg:overflow-hidden lg:rounded-2xl lg:border lg:border-line/80 lg:bg-background/88 lg:shadow-xl lg:transition-opacity lg:duration-500 motion-reduce:lg:transition-none ${
                 panelOpen ? "flex" : "flex lg:hidden"
               } ${chromeHidden ? "lg:opacity-80" : "lg:opacity-100"}`}
