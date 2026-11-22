@@ -80,4 +80,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-059](T-059-overrun-data.md) | 2 | Đợt L, chặng A3: kỵ binh xông qua bộ binh trong dữ liệu Cannae và hồ Trasimene, theo nguồn | Xong, đã gộp 2026-11-20; mục 6 gộp 2026-11-21 (phiên chính làm thay lane 2) |
 | [T-060](T-060-ridedown-rider.md) | 1 | Đợt L: clip `ridedown` cho bốn mô hình kỵ binh; chân người cưỡi đung đưa, vạt áo thu gọn, cú ngã có đường bay | Xong, đã gộp 2026-11-21 (phiên chính làm thay lane 1) |
 | [T-061](T-061-soldier-looks.md) | Phiên chính | Đợt L, B1: mỗi lính một vẻ (màu áo, tóc, râu, hoa văn khiên, màu lông ngựa) cho 12 mô hình | Xong, đã gộp 2026-11-21 |
-| [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Phần chính gộp 2026-11-22; còn đo chốt khi máy yên và thử tỉ lệ điểm ảnh 1,5 cho góc mở trận |
+| [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Xong, đã gộp 2026-11-22 |

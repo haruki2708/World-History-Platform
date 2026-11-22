@@ -36,7 +36,7 @@ Người dùng chọn (2026-11-22, câu hỏi chọn phương án, sau khi xem `
 
 ## Kết quả
 
-**Trạng thái:** phần chọn mức theo từng người xong trên nhánh `batch-l/B4-lod` (phiên chính làm). Người dùng xem ảnh và chọn gộp ngay, đo chốt sau khi máy rảnh (2026-11-22). Còn trong B4: thử vẽ cảnh ở tỉ lệ điểm ảnh 1,5 cho góc mở trận (mục "Còn lại").
+**Trạng thái:** xong, gộp 2026-11-22 (phiên chính làm). Người dùng xem ảnh và chọn gộp ngay; sau đó nói không cần đo thêm (nguyên văn: "không cần đo gì nữa đâu, ổn cả rồi"), nên không có lần đo chốt lúc máy yên và tỉ lệ điểm ảnh giữ nguyên (mục "Để lại").
 
 ### Đã làm
 
@@ -66,16 +66,17 @@ Người dùng chọn (2026-11-22, câu hỏi chọn phương án, sau khi xem `
 - Vài giây đầu sau khi đưa camera lại gần, khung hình thấp hơn hẳn (lần quét theo trần: vòng đầu ở 40 m chỉ 34–49, các vòng sau 52–89). Kịch bản `s-b4-perf.mjs` đo ngay sau khi đặt camera nên dính phần này; lần đo chốt nên chờ lâu hơn hoặc đo nhiều cửa sổ liền (`s-b4-warm.mjs`).
 - CPU của `selectLods`: 0,45–0,5 ms một khung trên bản đã tối ưu (trước B4: 0,1–0,17 ms).
 
-### Còn lại
+### Để lại
 
-- **Đo chốt** khi máy yên (không Godot, không Blender): `ROUNDS=3 bash main-tools/perf/fps-servers-ab.sh`, rồi ghi số vào đây.
-- **Tỉ lệ điểm ảnh của góc mở trận** (người dùng chọn thử trong B4, 2026-11-22): ở màn hình người dùng, góc mở trận đã sát hoặc dưới 50 khung/giây từ trước (Cannae khoảng 53, hồ Trasimene khoảng 47). Thử vẽ cảnh ở tỉ lệ 1,5 và 1,25 thay vì 1,75: đo khi máy yên, chụp ảnh so độ nét, người dùng quyết.
+- **Đo chốt lúc máy yên:** người dùng thấy không cần. Muốn đo lại: `ROUNDS=3 bash main-tools/perf/fps-servers-ab.sh` khi không có Godot hay Blender chạy; nhớ phần khởi động chậm ở góc gần (mục "Khung hình").
+- **Tỉ lệ điểm ảnh của góc mở trận:** giữ 1,75. Ở màn hình người dùng, góc mở trận đã sát hoặc dưới 50 khung/giây từ trước B4 (Cannae khoảng 53, hồ Trasimene khoảng 47). Ảnh so độ nét `B4-04`: tỉ lệ 1,5 gần như không khác 1,75, còn 1,25 hơi mềm ở mép cỏ và mép khiên. Nếu sau này cần nhanh hơn ở góc này, đây là cách rẻ nhất (một dòng `pixelRatio` của mức `high` trong `BattleEngine.ts`), nhưng phải đo lúc máy yên trước.
 
 ### Ảnh duyệt
 
 `E:\World_History_Platform_assets\duyet\B4\`:
 - `B4-01-ba-ban-linh.jpg`: ba bản lính ở cùng khoảng cách, 60–360 m;
 - `B4-02-truoc-sau.jpg`: trước/sau ở 40, 110, 200, 320 m;
-- `B4-03-can-canh.jpg`: trước/sau ở 15 và 25 m.
+- `B4-03-can-canh.jpg`: trước/sau ở 15 và 25 m;
+- `B4-04-ti-le-diem-anh.jpg`: cùng góc nhìn ở tỉ lệ điểm ảnh 1,75, 1,5 và 1,25, phóng về cỡ màn hình như trình duyệt làm.
 
 Script: `E:\World_History_Platform_assets\main-tools\drive\s-b4-*.mjs`, `main-tools\b4\compose_lods.py`, `main-tools\perf\fps-servers-ab.sh`.
