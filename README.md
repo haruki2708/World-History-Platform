@@ -2,6 +2,8 @@
 
 An interactive world history web app: scrub through time, watch empires rise and fall on the map, and ask an AI tutor that knows which era and place you are looking at.
 
+Major battles can be watched in 3D, phase by phase, on the real terrain: Cannae (216 BCE) and Lake Trasimene (217 BCE) so far, with thousands of animated soldiers, narration in both languages, and notes on what the sources say and what is illustration.
+
 The first release covers the Roman Republic, 509–27 BCE, in English and Vietnamese.
 
 ## Run locally
