@@ -71,6 +71,35 @@ Người dùng có thể yêu cầu đổi hướng ở bước này.
 - `npm run lint`, `npm run validate`, `npm run build` qua.
 - Mục "Kết quả" ghi: đã làm gì, kiểm tra thế nào, ảnh ở đâu, các đề nghị ngoài phạm vi.
 
+## Review lượt 1 (phiên chính, 2026-11-23)
+
+Bản đầu (tới `1a77bee`) đúng phạm vi, gộp với `main` không xung đột, lint, validate, build qua. Lớp phủ tự mờ dùng timer, thẻ chương chỉ đổi khi sang giai đoạn, không có `backdrop-filter`, nhãn trên cảnh tránh được lớp phủ mới nhờ `data-battle-overlay`. Hình ảnh đẹp. Có hai vấn đề:
+
+1. **Khung hình/giây giảm khoảng 15%.** Đo ở màn hình người dùng (1646×926 CSS, tỉ lệ điểm ảnh 1,75), hai bản production, hai vòng xen kẽ, không có Godot hay Blender (`main-tools/perf/fps-servers-ab.sh`):
+
+   | Góc | `main` | nhánh |
+   |---|---|---|
+   | Mở trận Cannae, đang dừng | 59,7 / 50,2 | 49,7 / 44,3 |
+   | Giai đoạn 5 đang phát | 38,3 / 40,0 | 31,3 / 30,2 |
+   | Giai đoạn 6 đang phát | 38,9 / 38,9 | 34,8 / 30,2 |
+   | Camera 40 m | 42,0 / 40,9 | 35,9 / 34,3 |
+   | Camera 110 m | 39,1 / 39,4 | 35,7 / 34,7 |
+
+   Nguyên nhân: canvas giờ phủ cả khung xem, nhiều hơn khoảng 46% điểm ảnh, kể cả phần nằm dưới panel. Lỗi ở cách viết task (yêu cầu "cảnh chiếm toàn bộ khung xem"), không ở code.
+2. **Panel che một phần trận.** Góc mở trận căn theo cả canvas, nên ở hồ Trasimene đầu đoàn quân và quân của Hannibal (bộ binh Libya, Iberia, núi Gualandro) nằm dưới panel và nhãn của họ bị ẩn (`duyet\T-063\so-sanh\05-…`). Ở Cannae kỵ binh đồng minh cánh phải sát mép panel.
+
+**Người dùng chọn: panel nằm cạnh cảnh.**
+
+### Yêu cầu lượt 2
+
+1. **Trên máy tính, khi panel mở:** canvas (khung chứa `BattleScene`) chỉ chiếm phần bên trái panel; phía sau panel không có cảnh 3D. Panel có thể giữ dáng thẻ bo góc hay neo sát mép phải, tuỳ bạn, nhưng nền sau nó là `bg-background`, không phải cảnh. Header và thanh điều khiển vẫn nổi trên phần cảnh và tự mờ như bản đầu. **Khi panel đóng:** cảnh tràn cả khung xem như bản đầu.
+2. **Không làm hoạt hình độ rộng của canvas** khi mở hay đóng panel. Engine đổi cỡ renderer mỗi lần khung chứa đổi cỡ (`ResizeObserver` trong `BattleEngine`), nên trượt độ rộng sẽ dựng lại bộ đệm mỗi khung hình. Đổi cỡ một lần; muốn mượt thì chỉ cho panel hiện dần bằng `opacity`/`transform`.
+3. Góc mở trận phải thấy được đầu đoàn quân và quân của Hannibal ở hồ Trasimene khi panel mở. Nếu canvas đã đúng cỡ thì góc mở tự đúng như `main`; không sửa `engine/`.
+4. Chữ lời dẫn trở lại `text-sm` (14 px) như `main`; bản đầu hạ còn 13,5 px.
+5. Tuỳ chọn, nếu gọn: khi lớp phủ đã mờ hẳn, nhãn trên cảnh không cần tránh chỗ đó nữa (hiện các vùng `data-battle-overlay` vẫn được đo dù đã mờ, nên nhãn gần header và thanh điều khiển bị ẩn vô ích). Không được làm hỏng việc chờ cảnh sẵn sàng: lúc mở trận các lớp phủ vẫn có thuộc tính này.
+6. Ghi vào "Kết quả" độ rộng canvas khi panel mở và khi đóng ở 1646×926 (`canvas.clientWidth` so với `innerWidth`).
+7. Chụp lại 01, 02, 03 và 05 ở 1646×926, sáng và tối, đặt tên `…-C-luot2.png` cùng thư mục, rồi dừng và báo người dùng. Phiên chính đo lại khung hình sau lượt 2.
+
 ## Kết quả
 
 (Lane điền.)
