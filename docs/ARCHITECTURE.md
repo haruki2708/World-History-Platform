@@ -15,11 +15,11 @@ src/
     timeline/          Lane 1
     panel/             Lane 1 (danh sách và chi tiết sự kiện)
     tutor/             Lane 1 (khung chat), giai đoạn 4
-    battle/            Lane 3: cảnh trận đánh 3D (three.js)
+    battle/            Lane Gemini Neon: cảnh trận đánh 3D (three.js)
   data/
-    events.json        Lane 3
-    polities.json      Lane 3
-    border-snapshots.json   Lane 3 (danh mục các mốc biên giới)
+    events.json        Lane Gemini Neon
+    polities.json      Lane Gemini Neon
+    border-snapshots.json   Lane Gemini Neon (danh mục các mốc biên giới)
     battles/           Lane 2: dữ liệu trận đánh 3D, loại lính
     index.ts           hàm truy vấn dữ liệu (phiên chính)
   lib/
@@ -30,11 +30,11 @@ src/
   store/
     useAppStore.ts     trạng thái chung
   app/battle-lab/      trang thử cảnh trận đánh, chỉ chạy khi phát triển (phiên chính)
-public/data/borders/   file GeoJSON biên giới, Lane 3
+public/data/borders/   file GeoJSON biên giới, Lane Gemini Neon
 public/data/terrain/   lưới độ cao của chiến trường, Lane 2
 public/battles/models/ mô hình lính .glb, Lane 1
 public/map/            bản đồ nền (Natural Earth), Lane 2
-scripts/               script kiểm tra dữ liệu, Lane 3 (trừ scripts/battles/ của Lane 2)
+scripts/               script kiểm tra dữ liệu, Lane Gemini Neon (trừ scripts/battles/ của Lane 2)
 art/                   script Blender dựng mô hình lính, Lane 1
 ```
 
@@ -151,7 +151,7 @@ src/components/tutor/   --POST TutorRequest-->  src/app/api/tutor/route.ts   --s
 Bấm một trận lớn thì xem trận đó trong cảnh 3D: địa hình thật, các khối quân chuyển động qua từng giai đoạn, lời dẫn, ánh sáng theo giờ. Hợp đồng nằm ở `src/lib/battle.ts`. Chỉ phiên chính được sửa file này.
 
 ```
-dữ liệu trận (Lane 2)                cảnh 3D, khung xem trận (Lane 3)
+dữ liệu trận (Lane 2)                cảnh 3D, khung xem trận (Lane Gemini Neon)
 src/data/battles/*.json     ──►   src/components/battle/  ◄──  useAppStore.battleId, battleTime
 public/data/terrain/*.bin            three.js
                                           ▲

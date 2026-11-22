@@ -41,6 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local Claude Code launchers and settings (machine-specific)
+# local Claude Code and Antigravity launchers, settings (machine-specific)
 mo_claude_*.cmd
+mo_gemini_*.cmd
 .claude/settings.local.json

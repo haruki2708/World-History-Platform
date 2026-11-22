@@ -14,14 +14,14 @@ Web app khám phá lịch sử: kéo thanh thời gian để xem các thế lự
 ## Mô hình làm việc
 
 - **Phiên chính** điều phối: viết task, giữ hợp đồng chung, review và gộp code.
-- **Lane 1, 2, 3** thực thi. Mỗi lane là một phiên Claude Code riêng, không chia sẻ hội thoại hay bộ nhớ với phiên khác. Mọi thứ cần truyền đạt phải nằm trong repo.
+- **Lane 1, Lane 2 và Lane Gemini Neon** thực thi. Lane 1 và Lane 2 là các phiên Claude Code riêng. Lane Gemini Neon chạy Antigravity CLI với model Gemini 4 Neon, nhận vùng của Lane 3 cũ từ 2026-11-23; quy tắc của nó nằm ở `.agents/rules/whp-project.md`, có chép nguyên file này. Không lane nào chia sẻ hội thoại hay bộ nhớ với phiên khác. Mọi thứ cần truyền đạt phải nằm trong repo.
 - Người dùng duyệt ở cuối mỗi giai đoạn.
 
 | Ai | Sở hữu |
 |---|---|
 | Lane 1 | `src/components/timeline/`, `src/components/panel/`, `src/components/tutor/`, `src/components/shell/`, `src/components/LocaleSwitch.tsx`; trận đánh 3D: `art/` (script Blender, trừ các file ngựa của Lane 2), `public/battles/models/` |
 | Lane 2 | `src/components/map/`, `public/map/`, `src/app/api/tutor/`, `src/server/tutor/`; trận đánh 3D: `src/data/battles/`, `public/data/terrain/`, `scripts/battles/`, `docs/data/battles/`; ngựa: `art/blender/horse_*.py`, `art/renders/horse/` (chỉ import các module `whp_*.py` của Lane 1, không sửa) |
-| Lane 3 | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` (trừ các thư mục trận đánh của Lane 2); trận đánh 3D: `src/components/battle/` |
+| Lane Gemini Neon (trước là Lane 3) | `src/data/*.json`, `public/data/`, `docs/data/`, `scripts/` (trừ các thư mục trận đánh của Lane 2); trận đánh 3D: `src/components/battle/` |
 | Phiên chính | Mọi thứ còn lại, gồm `src/lib/`, `src/store/`, `src/data/index.ts`, `src/app/`, `package.json`, `docs/` |
 
 Quy tắc cho lane:
