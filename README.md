@@ -4,6 +4,10 @@ An interactive world history web app: scrub through time, watch empires rise and
 
 Major battles can be watched in 3D, phase by phase, on the real terrain: Cannae (216 BCE) and Lake Trasimene (217 BCE) so far, with thousands of animated soldiers, narration in both languages, and notes on what the sources say and what is illustration.
 
+## Why it matters for learning history
+
+History is usually taught one thread at a time, and learners are left to join the year, the place and the powers involved on their own. Here the timeline, the map and the tutor stay in step: move to 216 BCE and you see where Rome and Carthage stood, where Cannae lies, and then the battle itself. The tutor answers about what you are looking at, from a curated and sourced dataset, and says when it goes beyond it. Every event and border has a source, disputed dates and uncertain places are flagged, and the 3D scenes say what follows the ancient accounts and what is illustration, so learners practise telling what is known from what is reconstructed. Everything is in English and Vietnamese, and a shared link opens the same year and event for a whole class.
+
 The first release covers the Roman Republic, 509–27 BCE, in English and Vietnamese.
 
 ## Run locally

@@ -11,6 +11,16 @@ Một web app giúp khám phá lịch sử thế giới theo cách trực quan h
 
 Điểm khác biệt nằm ở sự đồng bộ này: gia sư trả lời theo đúng ngữ cảnh đang xem, và về sau có thể tự điều khiển bản đồ ("để tôi đưa bạn tới năm 216 TCN, trận Cannae").
 
+## Vì sao dự án quan trọng với việc học lịch sử
+
+- **Thời gian, không gian và ngữ cảnh đi cùng nhau.** Sách và bài giảng thường kể theo từng mạch; người học phải tự ghép năm, nơi chốn và quan hệ giữa các thế lực. Ở đây kéo thanh thời gian thì biên giới, sự kiện và câu trả lời của gia sư cùng đổi theo. Đứng ở năm 216 TCN, người học thấy La Mã và Carthage chiếm những vùng nào, Cannae nằm ở đâu, rồi mở được chính trận đó.
+- **Hỏi đúng chỗ đang xem.** Câu hỏi như "chuyện gì đang xảy ra ở đây?" được trả lời theo năm, vùng và sự kiện người học đang chọn. Câu trả lời có nút đưa tới đúng sự kiện và năm trên bản đồ, nên việc hỏi dẫn tiếp sang việc khám phá.
+- **AI có kiểm soát.** Gia sư ưu tiên trả lời từ bộ dữ liệu đã biên soạn, có nguồn, và nói rõ khi nó vượt ra ngoài. Với một môn mà chi tiết sai rất dễ được nhớ như thật, đây là điều kiện để dùng AI vào việc học.
+- **Thấy được trận đánh, không chỉ đọc về nó.** Trận đánh 3D dựng trên địa hình thật, đi qua từng giai đoạn theo Polybius và Livy, có lời dẫn song ngữ. Người học thấy vì sao địa hình, đội hình và kỵ binh quyết định kết quả: vòng vây ở Cannae, cuộc phục kích giữa đồi và hồ ở Trasimene.
+- **Phân biệt điều đã biết với điều phỏng dựng.** Mỗi sự kiện và mốc biên giới có nguồn; mốc năm còn tranh cãi được nói rõ; vị trí không chắc được đánh dấu là ước lượng; cảnh 3D ghi rõ thứ gì theo tư liệu, thứ gì là minh hoạ (ví dụ cây và nhà trên đồng Cannae, nơi Polybius tả là đất trống). Đọc nguồn và biết giới hạn của nó là kỹ năng cốt lõi của môn sử; app tập cho người học thói quen đó ngay trong lúc xem.
+- **Song ngữ Việt–Anh.** Người Việt học lịch sử thế giới bằng tiếng mẹ đẻ, và đổi sang tiếng Anh khi cần làm quen tên riêng, thuật ngữ, hay đọc tiếp tài liệu nước ngoài.
+- **Dùng được trên lớp.** Link chia sẻ mở đúng năm và sự kiện, nên giáo viên có thể đưa cả lớp tới cùng một khoảnh khắc. Về sau, quiz do AI tạo và cá nhân hoá biến công cụ khám phá thành công cụ học có đánh giá.
+
 ## Phạm vi bản đầu tiên (MVP)
 
 Làm trọn vẹn một thời kỳ trước khi mở rộng:
