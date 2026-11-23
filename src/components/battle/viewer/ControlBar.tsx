@@ -11,17 +11,30 @@ import { PLAYBACK_SPEEDS, type Playback } from "./usePlayback";
 interface ControlBarProps {
   battle: Battle;
   playback: Playback;
+  /** True once the 3D scene is ready; exposes data-battle-overlay for label avoidance. */
+  sceneReady?: boolean;
+  /** True when the floating control bar is faded out during idle playback. */
+  chromeHidden?: boolean;
+  onScrubStart?: () => void;
+  onScrubEnd?: () => void;
 }
 
 const ICON_BUTTON =
-  "flex size-8 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent aria-disabled:opacity-40 aria-disabled:hover:bg-transparent";
+  "flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground hover:bg-surface/90 focus-visible:outline-2 focus-visible:outline-accent aria-disabled:opacity-35 aria-disabled:hover:bg-transparent";
 
 /**
  * Play, previous and next phase, the seek bar, the time of day and the phase
  * under way. Re-renders on every tick of the battle clock, so it is kept
  * small and apart from the panels.
  */
-export function ControlBar({ battle, playback }: ControlBarProps) {
+export function ControlBar({
+  battle,
+  playback,
+  sceneReady = false,
+  chromeHidden = false,
+  onScrubStart,
+  onScrubEnd,
+}: ControlBarProps) {
   const { t, locale } = useT();
   const end = battle.phases.length;
   const time = useAppStore((state) => Math.min(state.battleTime, end));
@@ -41,7 +54,9 @@ export function ControlBar({ battle, playback }: ControlBarProps) {
     <div
       role="group"
       aria-label={t("battle.controls.label")}
-      className="shrink-0 border-t border-line bg-background px-3 pt-1.5 pb-2"
+      data-battle-overlay={sceneReady ? "" : undefined}
+      data-battle-overlay-hidden={sceneReady && chromeHidden ? "" : undefined}
+      className="w-full shrink-0 border-t border-line bg-background px-3 pt-1.5 pb-2 lg:mx-auto lg:max-w-[46rem] lg:rounded-2xl lg:border lg:border-line/80 lg:bg-background/88 lg:px-4 lg:py-2.5 lg:shadow-xl"
     >
       <div className="flex items-center gap-1.5">
         <IconButton
@@ -60,7 +75,7 @@ export function ControlBar({ battle, playback }: ControlBarProps) {
           aria-keyshortcuts="Space"
           title={playLabel}
           data-battle-play
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current">
             {playback.playing ? (
@@ -87,12 +102,14 @@ export function ControlBar({ battle, playback }: ControlBarProps) {
           time={time}
           phases={end}
           onSeek={playback.seek}
+          onScrubStart={onScrubStart}
+          onScrubEnd={onScrubEnd}
           label={t("battle.controls.time")}
           valueText={`${clock}. ${phaseLabel}: ${phase.title[locale]}`}
         />
 
         <span
-          className="w-12 shrink-0 text-right text-sm tabular-nums"
+          className="w-12 shrink-0 text-right text-sm font-medium tabular-nums"
           title={t("battle.controls.clock")}
         >
           <span className="sr-only">{t("battle.controls.clock")}: </span>
@@ -103,19 +120,19 @@ export function ControlBar({ battle, playback }: ControlBarProps) {
           onClick={() => playback.setSpeed(nextSpeed)}
           aria-label={`${t("battle.controls.speed")}: ${playback.speed}×`}
           title={t("battle.controls.speed")}
-          className="w-10 shrink-0 rounded-md border border-line py-1 text-xs tabular-nums text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+          className="w-10 shrink-0 rounded-lg border border-line/80 bg-surface/65 py-1 text-xs font-medium tabular-nums text-foreground hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
         >
           {playback.speed}×
         </button>
       </div>
 
-      <div className="mt-0.5 flex items-baseline justify-between gap-4 text-xs">
+      <div className="mt-1 flex items-baseline justify-between gap-4 text-xs">
         <p className="min-w-0 truncate" title={phase.title[locale]}>
-          <span className="text-muted tabular-nums">{phaseLabel}</span>
+          <span className="font-medium text-accent tabular-nums">{phaseLabel}</span>
           <span className="text-muted"> · </span>
-          <span className="font-medium">{phase.title[locale]}</span>
+          <span className="font-medium text-foreground">{phase.title[locale]}</span>
         </p>
-        <p className="hidden shrink-0 text-muted lg:block">{t("battle.viewer.keys")}</p>
+        <p className="hidden shrink-0 text-[11px] text-muted lg:block">{t("battle.viewer.keys")}</p>
       </div>
     </div>
   );

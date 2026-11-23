@@ -51,7 +51,7 @@ export function InfoPanel({ battle, selectedUnit, onChooseUnit }: InfoPanelProps
         <h3 className={HEADING}>{t("battle.info.sides")}</h3>
         <div className="mt-2 space-y-2.5">
           {battle.sides.map((side, index) => (
-            <div key={side.id} className="rounded-md border border-line p-3">
+            <div key={side.id} className="rounded-xl border border-line/75 bg-surface/55 p-3.5">
               <h4 className="flex items-center gap-2 font-semibold">
                 <span
                   aria-hidden
@@ -175,8 +175,8 @@ function UnitList({ battle, side, hint, selectedUnit, onChoose }: UnitListProps)
                 type="button"
                 aria-current={current ? "true" : undefined}
                 onClick={(event) => onChoose(unit.id, event.currentTarget)}
-                className={`flex w-full items-baseline justify-between gap-3 rounded-sm px-1.5 py-1 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent ${
-                  current ? "bg-surface font-medium" : ""
+                className={`flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-1 text-left hover:bg-background/80 focus-visible:outline-2 focus-visible:outline-accent ${
+                  current ? "bg-background/90 font-medium ring-1 ring-accent/35" : ""
                 }`}
               >
                 <span className="min-w-0">

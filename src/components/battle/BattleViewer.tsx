@@ -6,9 +6,11 @@ import type { Battle } from "@/lib/battle";
 import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleScene } from "./BattleScene";
+import { ChapterCard } from "./viewer/ChapterCard";
 import { ControlBar } from "./viewer/ControlBar";
 import { InfoPanel, sideColor } from "./viewer/InfoPanel";
 import { StoryPanel } from "./viewer/StoryPanel";
+import { useIdleChrome } from "./viewer/useIdleChrome";
 import { type Playback, usePlayback } from "./viewer/usePlayback";
 
 /**
@@ -37,7 +39,7 @@ const TABS: { id: PanelTab; label: "battle.viewer.tab.story" | "battle.viewer.ta
 ];
 
 const HEADER_BUTTON =
-  "flex size-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent";
+  "flex size-8 lg:size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface/80 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent";
 
 /** Somewhere the user types, or picks from a list with the arrow keys. */
 function isTypingTarget(target: Element): boolean {
@@ -59,6 +61,14 @@ function ViewerDialog({ battleId }: { battleId: string }) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("story");
+  const [scrubbing, setScrubbing] = useState(false);
+  /**
+   * True once BattleScene finishes loading terrain and models. Viewer chrome
+   * carries `data-battle-overlay` only after this point so test harnesses that
+   * wait for `[data-battle-overlay]` still wait for the 3D scene to be ready.
+   */
+  const [sceneReady, setSceneReady] = useState(false);
+  const handleSceneReady = useCallback(() => setSceneReady(true), []);
   /** The unit whose card is open on the scene. */
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   /** Bumped by a choice in the list of units: the camera flies to the unit. */
@@ -67,6 +77,7 @@ function ViewerDialog({ battleId }: { battleId: string }) {
   const unitOpener = useRef<HTMLElement | null>(null);
   const battle = load.status === "ready" ? load.battle : null;
   const playback = usePlayback(battle);
+  const chromeHidden = useIdleChrome(playback.playing, dialogRef);
   const event = getEvent(battleId);
   const title = event?.title[locale] ?? battleId;
 
@@ -192,72 +203,111 @@ function ViewerDialog({ battleId }: { battleId: string }) {
       data-battle-viewer
       className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden border-0 bg-background p-0 text-foreground backdrop:bg-background"
     >
-      <div className="flex h-full flex-col">
-        <header className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-2">
-          <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="truncate text-base font-semibold leading-tight">
-              {title}
-            </h2>
-            {battle && <p className="truncate text-xs text-muted">{battle.date[locale]}</p>}
-          </div>
+      <div className="flex h-full flex-col bg-background lg:flex-row">
+        {/* Stage: holds the 3D scene and its floating overlays. On desktop it
+            stops at the side panel's left edge when the panel is open, and
+            expands to fill the whole viewer in one step when the panel closes
+            (no width animation, so BattleEngine resizes once). */}
+        <div
+          className={`@container/stage relative flex flex-col lg:block lg:min-h-0 lg:min-w-0 lg:flex-1 ${
+            battle ? "shrink-0" : "min-h-0 flex-1"
+          }`}
+        >
+          <header
+            className={`flex shrink-0 items-center justify-between gap-3 border-b border-line bg-background px-3.5 py-2 lg:pointer-events-none lg:absolute lg:inset-x-4 lg:top-4 lg:z-20 lg:items-start lg:border-0 lg:bg-transparent lg:p-0 lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
+              chromeHidden ? "lg:-translate-y-2 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"
+            }`}
+          >
+            <div
+              data-battle-overlay={sceneReady ? "" : undefined}
+              data-battle-overlay-hidden={sceneReady && chromeHidden ? "" : undefined}
+              className={`flex min-w-0 flex-1 flex-col gap-1.5 lg:flex-initial lg:max-w-[calc(100%-23rem)] lg:rounded-2xl lg:border lg:border-line/80 lg:bg-background/88 lg:px-4 lg:py-2 lg:shadow-lg @min-[66rem]/stage:flex-row @min-[66rem]/stage:items-center @min-[66rem]/stage:gap-3 ${
+                chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"
+              }`}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span aria-hidden className="hidden h-8 w-1 shrink-0 rounded-full bg-accent lg:block" />
+                <div className="min-w-0">
+                  <h2 id={titleId} className="truncate text-base font-semibold tracking-tight leading-tight">
+                    {title}
+                  </h2>
+                  {battle && <p className="mt-0.5 truncate text-xs text-muted">{battle.date[locale]}</p>}
+                </div>
+              </div>
 
-          {battle && (
-            <ul className="hidden shrink-0 items-center gap-2 text-xs md:flex">
-              {battle.sides.map((side) => (
-                <li
-                  key={side.id}
-                  className="flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5"
-                >
+              {battle && (
+                <>
                   <span
                     aria-hidden
-                    className="size-2.5 rounded-full border border-line"
-                    style={{ backgroundColor: sideColor(side.polityId) }}
+                    className="hidden h-7 w-px shrink-0 bg-line/80 @min-[66rem]/stage:block"
                   />
-                  {side.name[locale]}
-                </li>
-              ))}
-            </ul>
-          )}
+                  <ul className="hidden shrink-0 flex-wrap items-center gap-1.5 text-xs md:flex lg:pl-4 @min-[66rem]/stage:pl-0">
+                    {battle.sides.map((side) => (
+                      <li
+                        key={side.id}
+                        className="flex items-center gap-1.5 rounded-full border border-line/75 bg-surface/75 px-2.5 py-0.5 font-medium @min-[66rem]/stage:py-1"
+                      >
+                        <span
+                          aria-hidden
+                          className="size-2.5 shrink-0 rounded-full ring-1 ring-background/90"
+                          style={{ backgroundColor: sideColor(side.polityId) }}
+                        />
+                        {side.name[locale]}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
 
-          {battle && (
-            <button
-              type="button"
-              onClick={() => setPanelOpen(!panelOpen)}
-              aria-expanded={panelOpen}
-              aria-controls={panelId}
-              aria-label={panelLabel}
-              title={panelLabel}
-              className={`${HEADER_BUTTON} hidden lg:flex`}
+            <div
+              data-battle-overlay={sceneReady ? "" : undefined}
+              data-battle-overlay-hidden={sceneReady && chromeHidden ? "" : undefined}
+              className={`flex shrink-0 items-center gap-1 lg:rounded-xl lg:border lg:border-line/80 lg:bg-background/88 lg:p-1 lg:shadow-lg ${
+                chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"
+              }`}
             >
-              <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current">
-                <path
-                  fillRule="evenodd"
-                  d="M3.5 2A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 12.5 2h-9Zm-.2 1.5c0-.11.09-.2.2-.2h5.7v9.4H3.5a.2.2 0 0 1-.2-.2v-9Z"
-                />
-              </svg>
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => dialogRef.current?.close()}
-            aria-label={t("battle.viewer.close")}
-            aria-keyshortcuts="Escape"
-            title={t("battle.viewer.close")}
-            data-battle-close
-            className={HEADER_BUTTON}
-          >
-            <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current">
-              <path d="M4.2 3a.85.85 0 0 0-1.2 1.2L6.8 8 3 11.8A.85.85 0 1 0 4.2 13L8 9.2l3.8 3.8a.85.85 0 0 0 1.2-1.2L9.2 8 13 4.2A.85.85 0 0 0 11.8 3L8 6.8 4.2 3Z" />
-            </svg>
-          </button>
-        </header>
+              {battle && (
+                <button
+                  type="button"
+                  onClick={() => setPanelOpen(!panelOpen)}
+                  aria-expanded={panelOpen}
+                  aria-controls={panelId}
+                  aria-label={panelLabel}
+                  title={panelLabel}
+                  className={`${HEADER_BUTTON} hidden lg:flex ${
+                    panelOpen ? "bg-accent/12 text-accent hover:bg-accent/18 hover:text-accent" : ""
+                  }`}
+                >
+                  <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current">
+                    <path
+                      fillRule="evenodd"
+                      d="M3.5 2A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 12.5 2h-9Zm-.2 1.5c0-.11.09-.2.2-.2h5.7v9.4H3.5a.2.2 0 0 1-.2-.2v-9Z"
+                    />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => dialogRef.current?.close()}
+                aria-label={t("battle.viewer.close")}
+                aria-keyshortcuts="Escape"
+                title={t("battle.viewer.close")}
+                data-battle-close
+                className={HEADER_BUTTON}
+              >
+                <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current">
+                  <path d="M4.2 3a.85.85 0 0 0-1.2 1.2L6.8 8 3 11.8A.85.85 0 1 0 4.2 13L8 9.2l3.8 3.8a.85.85 0 0 0 1.2-1.2L9.2 8 13 4.2A.85.85 0 0 0 11.8 3L8 6.8 4.2 3Z" />
+                </svg>
+              </button>
+            </div>
+          </header>
 
-        {battle ? (
-          <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-            <div className="flex min-w-0 shrink-0 flex-col lg:min-h-0 lg:flex-1">
-              {/* On a phone the scene takes the upper part of the screen and
-                  the panel scrolls below it. */}
-              <div className="relative h-[42dvh] min-h-52 lg:h-auto lg:min-h-0 lg:flex-1">
+          {battle ? (
+            <>
+              {/* On desktop the 3D battlefield fills the whole stage beside the
+                  panel; on a phone it takes the upper part and the panel scrolls below. */}
+              <div className="relative h-[42dvh] min-h-52 shrink-0 lg:absolute lg:inset-0 lg:h-full">
                 <BattleScene
                   battle={battle}
                   unitTypes={unitTypes}
@@ -265,23 +315,76 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                   selectedUnit={selectedUnit}
                   onSelectUnit={selectUnit}
                   unitFocusRequest={unitFocus}
+                  inViewer
+                  chromeHidden={chromeHidden}
+                  onSceneReady={handleSceneReady}
                 />
+                <ChapterCard battle={battle} scrubbing={scrubbing} />
               </div>
-              <ControlBar battle={battle} playback={playback} />
-            </div>
 
-            <aside
-              id={panelId}
-              aria-label={t("battle.viewer.panel")}
-              className={`min-h-0 flex-1 flex-col border-t border-line lg:w-[22.5rem] lg:flex-none lg:border-t-0 lg:border-l ${
-                panelOpen ? "flex" : "flex lg:hidden"
-              }`}
-            >
+              <div
+                className={`shrink-0 lg:pointer-events-none lg:absolute lg:inset-x-4 lg:bottom-4 lg:z-20 lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
+                  chromeHidden ? "lg:translate-y-2 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"
+                }`}
+              >
+                <div className={chromeHidden ? "lg:pointer-events-none" : "lg:pointer-events-auto"}>
+                  <ControlBar
+                    battle={battle}
+                    playback={playback}
+                    sceneReady={sceneReady}
+                    chromeHidden={chromeHidden}
+                    onScrubStart={() => setScrubbing(true)}
+                    onScrubEnd={() => setScrubbing(false)}
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="grid min-h-0 flex-1 place-items-center px-6 text-center text-sm lg:h-full">
+              {load.status === "loading" ? (
+                <div
+                  role="status"
+                  className="flex items-center gap-3 rounded-2xl border border-line/80 bg-background/95 px-6 py-4 shadow-xl"
+                >
+                  <span aria-hidden className="size-2.5 rounded-full bg-accent" />
+                  <p className="font-medium text-muted">{t("battle.viewer.loading")}</p>
+                </div>
+              ) : (
+                <div
+                  role="alert"
+                  className="space-y-3 rounded-2xl border border-line/80 bg-background/95 px-6 py-5 shadow-xl"
+                >
+                  <p>{t("battle.viewer.error")}</p>
+                  <button
+                    type="button"
+                    onClick={() => dialogRef.current?.close()}
+                    className="rounded-lg border border-line px-3 py-1.5 hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+                  >
+                    {t("battle.viewer.close")}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {battle && (
+          /* Beside the scene on desktop (on bg-background, no 3D canvas behind
+             it) so the scene keeps full frame rate and opening framing. */
+          <aside
+            id={panelId}
+            aria-label={t("battle.viewer.panel")}
+            data-battle-chrome
+            className={`min-h-0 flex-1 flex-col border-t border-line bg-background lg:w-[22.5rem] lg:flex-none lg:border-t-0 lg:border-l lg:border-line/80 ${
+              panelOpen ? "flex" : "flex lg:hidden"
+            }`}
+          >
+            <div className="shrink-0 border-b border-line/75 px-3 py-2.5">
               <div
                 role="tablist"
                 aria-label={t("battle.viewer.tabs")}
                 onKeyDown={handleTabKeys}
-                className="flex shrink-0 border-b border-line"
+                className="grid grid-cols-2 gap-1 rounded-xl bg-surface/80 p-1"
               >
                 {TABS.map(({ id, label }) => (
                   <button
@@ -293,53 +396,34 @@ function ViewerDialog({ battleId }: { battleId: string }) {
                     aria-controls={`${panelId}-${id}`}
                     tabIndex={tab === id ? 0 : -1}
                     onClick={() => setTab(id)}
-                    className={`flex-1 border-b-2 px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
                       tab === id
-                        ? "border-accent text-foreground"
-                        : "border-transparent text-muted hover:text-foreground"
+                        ? "bg-background text-foreground shadow-xs ring-1 ring-line/60"
+                        : "text-muted hover:text-foreground"
                     }`}
                   >
                     {t(label)}
                   </button>
                 ))}
               </div>
-              {/* `relative`: keeps screen-reader-only text inside this scroller.
-                  Keyed by tab: the story scrolls itself to the phase under
-                  way, and the info must not open at that scroll position. */}
-              <div
-                key={tab}
-                role="tabpanel"
-                id={`${panelId}-${tab}`}
-                aria-labelledby={`${panelId}-tab-${tab}`}
-                className="relative min-h-0 flex-1 overflow-y-auto p-3"
-              >
-                {tab === "story" ? (
-                  <StoryPanel battle={battle} onPhase={playback.goToPhase} />
-                ) : (
-                  <InfoPanel battle={battle} selectedUnit={selectedUnit} onChooseUnit={chooseUnit} />
-                )}
-              </div>
-            </aside>
-          </div>
-        ) : (
-          <div className="grid min-h-0 flex-1 place-items-center px-6 text-center text-sm">
-            {load.status === "loading" ? (
-              <p role="status" className="text-muted">
-                {t("battle.viewer.loading")}
-              </p>
-            ) : (
-              <div role="alert" className="space-y-3">
-                <p>{t("battle.viewer.error")}</p>
-                <button
-                  type="button"
-                  onClick={() => dialogRef.current?.close()}
-                  className="rounded-md border border-line px-3 py-1.5 hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
-                >
-                  {t("battle.viewer.close")}
-                </button>
-              </div>
-            )}
-          </div>
+            </div>
+            {/* `relative`: keeps screen-reader-only text inside this scroller.
+                Keyed by tab: the story scrolls itself to the phase under
+                way, and the info must not open at that scroll position. */}
+            <div
+              key={tab}
+              role="tabpanel"
+              id={`${panelId}-${tab}`}
+              aria-labelledby={`${panelId}-tab-${tab}`}
+              className="relative min-h-0 flex-1 overflow-y-auto p-3"
+            >
+              {tab === "story" ? (
+                <StoryPanel battle={battle} onPhase={playback.goToPhase} />
+              ) : (
+                <InfoPanel battle={battle} selectedUnit={selectedUnit} onChooseUnit={chooseUnit} />
+              )}
+            </div>
+          </aside>
         )}
       </div>
     </dialog>
