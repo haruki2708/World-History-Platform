@@ -14,6 +14,8 @@ interface EventListItemProps {
   active: boolean;
   /** Within the window shown around the current year. */
   nearby: boolean;
+  /** Compact single-line row (details are shown in EventDetailCard above). */
+  compact?: boolean;
   onToggle: () => void;
 }
 
@@ -29,116 +31,163 @@ export function EventListItem({
   selected,
   active,
   nearby,
+  compact = false,
   onToggle,
 }: EventListItemProps) {
   const { t, locale } = useT();
   const requestBattle = useAppStore((state) => state.requestBattle);
   const dimmed = !selected && !active && !nearby;
+  const battle = hasBattle(event.id);
+  const expanded = selected && !compact;
+
+  const polities = expanded
+    ? event.polityIds
+        .map((id) => getPolity(id))
+        .filter((p): p is NonNullable<typeof p> => p !== undefined)
+    : [];
 
   return (
     <li data-event-id={event.id} className="py-0.5">
-      <button
-        type="button"
-        aria-pressed={selected}
-        onClick={onToggle}
-        className={`relative w-full rounded-md py-2 pr-2 pl-4 text-left transition-[background-color,opacity] duration-200 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
-          selected ? "bg-surface ring-1 ring-accent/40" : ""
-        } ${dimmed ? "opacity-50 hover:opacity-100" : ""}`}
+      <div
+        className={`relative rounded-xl transition-[background-color,opacity,box-shadow] duration-200 motion-reduce:transition-none ${
+          expanded
+            ? "bg-surface/85 shadow-xs ring-1 ring-accent/35"
+            : selected
+              ? "bg-surface/90 ring-1 ring-accent/35"
+              : "hover:bg-surface/70"
+        } ${dimmed ? "opacity-55 hover:opacity-100" : ""}`}
       >
         {/* Accent bar marks events under way in the current year. */}
         <span
           aria-hidden
-          className={`absolute inset-y-2 left-1 w-1 rounded-full bg-accent transition-opacity duration-200 ${
+          className={`pointer-events-none absolute inset-y-2 left-1 w-1 rounded-full bg-accent transition-opacity duration-200 motion-reduce:transition-none ${
             active ? "opacity-100" : "opacity-0"
           }`}
         />
 
-        <span className="flex items-baseline gap-2">
-          <span
-            aria-hidden
-            className={`inline-block shrink-0 self-center rounded-full ${IMPORTANCE_DOT[event.importance]} ${
-              event.importance === 1 && !active ? "bg-muted" : "bg-accent"
-            }`}
-          />
-          <span
-            className={`shrink-0 text-xs tabular-nums ${
-              active ? "font-semibold text-accent" : "text-muted"
-            }`}
-          >
-            {formatYearRange(event.year, event.endYear, locale)}
-          </span>
-          <span
-            className={`min-w-0 flex-1 text-sm ${
-              event.importance === 3 ? "font-semibold" : "font-medium"
-            }`}
-          >
-            {event.title[locale]}
-          </span>
-          {active && (
-            <span className="shrink-0 self-center rounded-full bg-accent px-1.5 py-px text-[10px] font-semibold uppercase leading-tight tracking-wide text-on-accent">
-              {t("events.now")}
+        <button
+          type="button"
+          aria-pressed={selected}
+          onClick={onToggle}
+          className={`w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
+            compact ? "py-1.5 pr-2.5 pl-4" : expanded ? "px-3.5 pt-3 pb-2.5 pl-4" : "py-2 pr-2.5 pl-4"
+          }`}
+        >
+          <span className="flex items-baseline gap-2">
+            <span
+              aria-hidden
+              className={`inline-block shrink-0 self-center rounded-full ${IMPORTANCE_DOT[event.importance]} ${
+                event.importance === 1 && !active ? "bg-muted" : "bg-accent"
+              }`}
+            />
+            <span
+              className={`shrink-0 text-xs tabular-nums ${
+                active ? "font-semibold text-accent" : "text-muted"
+              }`}
+            >
+              {formatYearRange(event.year, event.endYear, locale)}
             </span>
-          )}
-        </span>
-
-        {selected && (
-          <span className="mt-2 block space-y-2 text-sm">
-            <span className="block text-foreground/90">
-              {event.summary[locale]}
+            <span
+              className={`min-w-0 flex-1 leading-snug ${
+                expanded
+                  ? "text-[15px] font-semibold tracking-tight text-foreground"
+                  : event.importance === 3
+                    ? "text-sm font-semibold text-foreground"
+                    : "text-sm font-medium text-foreground/90"
+              } ${compact ? "truncate" : ""}`}
+            >
+              {event.title[locale]}
             </span>
-            <span className="flex flex-wrap gap-1.5">
-              {event.polityIds.map((id) => {
-                const polity = getPolity(id);
-                if (!polity) return null;
-                return (
-                  <span
-                    key={id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-xs"
-                  >
-                    <span
-                      aria-hidden
-                      className="size-2 rounded-full"
-                      style={{ backgroundColor: polity.color }}
-                    />
-                    {polity.name[locale]}
-                  </span>
-                );
-              })}
-            </span>
-            {event.location && (
-              <span className="block text-xs text-muted">
-                {event.location.name[locale]}
-                {event.location.approximate &&
-                  ` · ${t("events.approximate")}`}
+            {battle && !expanded && (
+              <span
+                aria-hidden
+                className="shrink-0 self-center rounded-md border border-accent/30 bg-accent/10 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent"
+              >
+                3D
               </span>
             )}
-            <span className="block text-xs text-muted">
-              {t("events.sources")}:{" "}
-              {event.sources.map((source) => source.title).join("; ")}
-            </span>
+            {active && (
+              <span
+                className={`shrink-0 self-center rounded-full px-1.5 py-px text-[10px] leading-tight font-semibold tracking-wide uppercase ${
+                  expanded
+                    ? "bg-accent/14 text-accent"
+                    : "bg-accent text-on-accent"
+                }`}
+              >
+                {t("events.now")}
+              </span>
+            )}
           </span>
-        )}
-      </button>
 
-      {/* Outside the item's own button: a button may not contain another.
-          Sticky, so it stays in sight at the bottom of the list while the
-          summary above it is longer than the list is tall. The battle viewer
-          returns focus here when it closes. */}
-      {selected && hasBattle(event.id) && (
-        <div className="sticky bottom-0 bg-background pt-1.5 pb-1 pl-4">
-          <button
-            type="button"
-            data-battle-open={event.id}
-            onClick={() => requestBattle(event.id)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 fill-current">
-              <path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7Z" />
-            </svg>
-            {t("battle.open")}
-          </button>
-        </div>
-      )}
+          {expanded && (
+            <span className="mt-2.5 block space-y-2.5">
+              <span className="block text-sm leading-relaxed text-foreground/90">
+                {event.summary[locale]}
+              </span>
+
+              <span className="block space-y-2 border-t border-line/70 pt-2.5">
+                {polities.length > 0 && (
+                  <span className="flex flex-wrap gap-1.5">
+                    {polities.map((polity) => (
+                      <span
+                        key={polity.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-background/85 px-2.5 py-0.5 text-xs font-medium text-foreground"
+                      >
+                        <span
+                          aria-hidden
+                          className="size-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: polity.color }}
+                        />
+                        {polity.name[locale]}
+                      </span>
+                    ))}
+                  </span>
+                )}
+
+                {event.location && (
+                  <span className="flex items-center gap-1.5 text-xs text-muted">
+                    <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 shrink-0 fill-current opacity-80">
+                      <path d="M8 1.5a4.75 4.75 0 0 0-4.75 4.75c0 3.3 3.86 7.45 4.2 7.8a.75.75 0 0 0 1.1 0c.34-.35 4.2-4.5 4.2-7.8A4.75 4.75 0 0 0 8 1.5Zm0 6.6a1.85 1.85 0 1 1 0-3.7 1.85 1.85 0 0 1 0 3.7Z" />
+                    </svg>
+                    <span>
+                      <span className="font-medium text-foreground/85">
+                        {event.location.name[locale]}
+                      </span>
+                      {event.location.approximate && ` · ${t("events.approximate")}`}
+                    </span>
+                  </span>
+                )}
+
+                {event.sources.length > 0 && (
+                  <span className="block text-[11px] leading-relaxed text-muted">
+                    <span className="font-semibold">{t("events.sources")}:</span>{" "}
+                    {event.sources.map((source) => source.title).join("; ")}
+                  </span>
+                )}
+              </span>
+            </span>
+          )}
+        </button>
+
+        {/* Outside the item's own button: a button may not contain another.
+            Placed cleanly in the card's footer so it never covers the summary.
+            The battle viewer returns focus here when it closes. */}
+        {expanded && battle && (
+          <div className="px-3.5 pt-0.5 pb-3 pl-4">
+            <button
+              type="button"
+              data-battle-open={event.id}
+              onClick={() => requestBattle(event.id)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3.5 py-2 text-sm font-semibold text-on-accent shadow-sm hover:opacity-92 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 fill-current">
+                <path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7Z" />
+              </svg>
+              {t("battle.open")}
+            </button>
+          </div>
+        )}
+      </div>
     </li>
   );
 }

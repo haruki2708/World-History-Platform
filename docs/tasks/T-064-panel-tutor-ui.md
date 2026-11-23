@@ -77,4 +77,50 @@ Phiên chính sẽ ghi yêu cầu lượt 2 vào file này sau khi người dùn
 
 ## Kết quả
 
-(Lane điền.)
+### Đã làm (Lượt 1: 3 phương án A, B, C)
+
+- **Chuyển giữa các phương án:** mặc định là `"A"` (`DEFAULT_PANEL_VARIANT` trong `src/components/panel/panelVariant.ts`); thêm tham số `?panel=A`, `?panel=B`, hoặc `?panel=C` trên địa chỉ trang để xem trực tiếp từng phương án.
+- **Bề rộng cột phải:** nâng nhẹ từ `lg:w-96` (384 px) lên `lg:w-[26rem]` (416 px, trong trần 28 rem = 448 px) trong `<aside>` của `src/components/AppShell.tsx` để dòng chữ đọc thoáng hơn và dãy chip ngữ cảnh của gia sư nằm gọn trên một hàng.
+- **Nâng cấp phân tầng chung cho cả 3 phương án** (`EventListItem.tsx`, `EventDetailCard.tsx`, `ChatEntryView.tsx`, `Composer.tsx`, `MapLinkButtons.tsx`):
+  - Thẻ sự kiện phân lớp rõ: năm + nhãn `Đang diễn ra`, tiêu đề đậm hơn, đoạn tóm tắt thoáng dòng, ngăn cách rõ phần thông tin phụ (thế lực dạng pill kèm chấm màu, địa điểm kèm biểu tượng ghim và ghi chú ước lượng, nguồn chữ nhỏ hơn). Nút `Xem trận đánh 3D` (`data-battle-open`) đặt gọn trong chân thẻ, không còn dính đè lên chữ tóm tắt. Sự kiện có trận 3D trong danh sách mang thẻ nhỏ `3D`.
+  - Gia sư: khung nhập gom ô gõ và nút gửi/dừng vào một khối bo góc gọn, chip ngữ cảnh đồng bộ viền/nền, tin nhắn người dùng và câu trả lời tách bạch hơn, nút dẫn đường trên bản đồ đồng bộ bo góc với T-063.
+  - Giữ nguyên phím tắt `/`, thuộc tính `data-event-id`, `data-battle-open`, vùng `aria-live`, và hai tab cho màn hẹp 390 px.
+
+### So sánh 3 phương án
+
+- **Phương án A — Hai khối trên/dưới linh hoạt (gia sư thu gọn ở đáy, tự mở khi hỏi):**
+  - *Ý tưởng:* Giữ cả danh sách sự kiện và gia sư cùng hiện trên máy tính, nhưng khi chưa hỏi gì thì gia sư thu gọn thành một thanh ở đáy (~155 px: tiêu đề, dải câu gợi ý một hàng cuộn ngang, ô hỏi kèm chip ngữ cảnh và công tắc Giải thích sâu). Danh sách sự kiện nhận hơn 420 px, đọc trọn Trận Cannae và nút Xem trận đánh 3D. Khi bấm câu gợi ý hoặc gửi câu hỏi, gia sư tự mở rộng (tỉ lệ 3:2) và có nút mũi tên để chủ động thu gọn/mở rộng bất cứ lúc nào.
+  - *Ưu:* Không phải đổi tab, thấy ngay cả hai chức năng khi vừa mở app; ở 1646×830 và 1280×800 đều đọc trọn sự kiện đang chọn và nút 3D.
+  - *Nhược:* Khi chưa mở rộng, câu gợi ý thứ 3 nằm ngoài mép ngang của dải cuộn; lúc đã hỏi gia sư thì danh sách sự kiện phía trên thu hẹp lại còn khoảng 40% chiều cao.
+
+- **Phương án B — Hai tab trọn chiều cao trên cả máy tính (`Các sự kiện` | `Gia sư AI`):**
+  - *Ý tưởng:* Dùng chung thanh tab dạng pill (đồng bộ với khung xem trận T-063) cho cả máy tính và điện thoại. Mỗi tab hưởng trọn chiều cao cột (~559 px ở 1646×830). Khi gia sư đang trả lời hoặc vừa trả lời xong lúc người dùng đứng ở tab Sự kiện, tab Gia sư hiện chấm đỏ báo hiệu; bấm `/` từ tab Sự kiện tự chuyển sang tab Gia sư và đưa con trỏ vào ô hỏi.
+  - *Ưu:* Rộng rãi nhất cho cả hai việc — vừa thấy trọn thẻ Cannae cùng 5–6 sự kiện lân cận trong dòng thời gian, vừa có khung chat dài thoáng khi đọc câu trả lời nhiều đoạn; giao diện tinh gọn và đồng nhất nhất với khung xem trận 3D.
+  - *Nhược:* Phải bấm chuyển tab (hoặc bấm `/`) để tới câu gợi ý của gia sư; không vừa đọc sự kiện vừa nhìn câu trả lời song song.
+
+- **Phương án C — Thẻ chi tiết riêng cố định ở trên + danh sách mốc gọn bên dưới (kèm tab Gia sư trọn chiều cao):**
+  - *Ý tưởng:* Tách việc đọc sự kiện đang chọn ra một khối chi tiết cố định ở đầu tab Sự kiện (dải nhấn đỏ La Mã bên trái, tiêu đề lớn, tóm tắt, thế lực, địa điểm, nguồn, nút Xem trận đánh 3D, nút đóng `×`), bên dưới là danh sách sự kiện một dòng rất gọn không bao giờ co giãn khi chọn. Tab Gia sư giống phương án B (trọn chiều cao, có chấm báo khi trả lời xong, `/` tự mở). Trên 390 px, chọn sự kiện mở khối chi tiết trọn tab, bấm `×` về lại danh sách.
+  - *Ưu:* Thẻ sự kiện đang chọn có bố cục nổi bật, luôn đứng yên một chỗ dù cuộn danh sách bên dưới để lướt mốc năm khác; nút Xem trận đánh 3D luôn hiện trọn vẹn không bị che hay cuộn mất.
+  - *Nhược:* Khi chọn sự kiện trên máy tính, tên sự kiện xuất hiện ở cả thẻ trên lẫn dòng đang chọn bên dưới; vẫn cần chuyển tab sang Gia sư như phương án B.
+
+### Kiểm tra
+
+- `npm run lint`, `npm run build`, `npm run tutor:check`: qua sạch.
+- Kiểm tra trên Chrome headless (`TUTOR_MOCK=1`, 1646×830 @ 1,75×, 1280×800 @ 1×, 390×844 @ 2×):
+  - Bề rộng `<aside>` đo thực tế: `416 px` (`26rem`).
+  - Ở cả 3 phương án A, B, C tại 1646×830 và 1280×800: tóm tắt Trận Cannae và nút `Xem trận đánh 3D` (`data-battle-open`) hiện trọn vẹn, không bị cắt hay đè chữ.
+  - Bấm câu gợi ý trả câu trả lời giả lập kèm nút dẫn đường bản đồ; màn 390 px không cuộn ngang (`scrollWidth <= innerWidth`) ở cả 3 phương án.
+- Đã tắt dev server cổng 3300 sau khi chụp xong.
+
+### Ảnh duyệt (24 ảnh)
+
+Thư mục `E:\World_History_Platform_assets\duyet\T-064\`:
+- `01-cannae-{sang,toi}-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `02-hoi-sang-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `03-khong-tran-sang-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `04-1280-sang-{truoc,A,B,C}.png` (1280×800, DSF 1)
+- `05-390-sang-{truoc,A,B,C}.png` (390×844, DSF 2)
+
+### Đề nghị ngoài phạm vi
+
+Không có. Mọi phần đều dùng token màu, font, store và hợp đồng sẵn có.

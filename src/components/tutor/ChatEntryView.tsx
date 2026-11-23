@@ -26,7 +26,7 @@ export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
             formatYear(entry.context.year, locale),
           )}
         </span>
-        <p className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm bg-surface px-3 py-2 text-sm">
+        <p className="max-w-[88%] rounded-2xl rounded-br-sm border border-line/70 bg-surface/90 px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
           {entry.content}
         </p>
       </li>
@@ -36,11 +36,12 @@ export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
   const waiting = entry.status === "streaming" && entry.content === "";
 
   return (
-    <li className="flex flex-col gap-1">
-      <span className="flex items-center gap-1.5 text-[11px] text-muted">
+    <li className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
+        <span aria-hidden className="size-1.5 rounded-full bg-accent" />
         {t("tutor.assistant")}
         {entry.depth === "deep" && (
-          <span className="rounded-full border border-line px-1.5 leading-tight">
+          <span className="rounded-full border border-accent/30 bg-accent/10 px-1.5 py-px text-[10px] leading-tight font-semibold text-accent">
             {t("tutor.deepTag")}
           </span>
         )}
@@ -67,13 +68,13 @@ export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
         <p className="text-xs text-muted italic">{t("tutor.truncated")}</p>
       )}
       {entry.status === "error" && entry.error && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-accent/40 bg-accent/5 px-3 py-2 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-accent/40 bg-accent/6 px-3 py-2 text-sm">
           <p className="min-w-0 flex-1">{t(`tutor.error.${entry.error}`)}</p>
           {isLast && RETRYABLE_ERRORS.has(entry.error) && (
             <button
               type="button"
               onClick={onRetry}
-              className="shrink-0 rounded-md border border-line bg-background px-2.5 py-1 text-xs font-medium hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
+              className="shrink-0 rounded-lg border border-line bg-background px-2.5 py-1 text-xs font-medium hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
             >
               {t("tutor.retry")}
             </button>
@@ -131,17 +132,17 @@ function AnswerText({ text, streaming }: { text: string; streaming: boolean }) {
   const caret: ReactNode = streaming ? (
     <span
       aria-hidden
-      className="ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 bg-accent/60 motion-safe:animate-pulse"
+      className="ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 rounded-xs bg-accent/65 motion-safe:animate-pulse"
     />
   ) : null;
 
   return (
-    <div className="space-y-2 text-sm leading-relaxed">
+    <div className="space-y-2 text-sm leading-relaxed text-foreground/95">
       {blocks.map((block, index) => {
         const isLastBlock = index === blocks.length - 1;
         if (block.kind === "paragraph") {
           return (
-            <p key={index} className="whitespace-pre-line break-words">
+            <p key={index} className="break-words whitespace-pre-line">
               {block.text}
               {isLastBlock && caret}
             </p>

@@ -6,11 +6,10 @@ import { useT } from "@/lib/i18n/useT";
 import { useAppStore } from "@/store/useAppStore";
 import { BattleViewerLoading } from "./battle/BattleViewerLoading";
 import { MapView } from "./map/MapView";
-import { EventPanel } from "./panel/EventPanel";
+import { SidePanel, type SidePanelTab } from "./panel/SidePanel";
 import { HeaderActions } from "./shell/HeaderActions";
 import { UrlSync } from "./shell/UrlSync";
 import { TimelineBar } from "./timeline/TimelineBar";
-import { TutorPanel } from "./tutor/TutorPanel";
 
 // The battle viewer brings three.js with it, so its code is fetched only when
 // a battle is first asked for, and never on the server.
@@ -37,24 +36,13 @@ function OpenBattle() {
   return <Viewer />;
 }
 
-type PanelTab = "events" | "tutor";
-
-const TABS: { id: PanelTab; label: "events.heading" | "tutor.heading" }[] = [
-  { id: "events", label: "events.heading" },
-  { id: "tutor", label: "tutor.heading" },
-];
-
 /**
  * Page layout: header, map + side panel, timeline along the bottom.
  * Each region is owned by one lane; this file only arranges them.
- *
- * On wide screens the side panel stacks the event list above the tutor and
- * gives the chat the larger share (2:3). On narrow screens there is not
- * enough height for both, so they become tabs.
  */
 export function AppShell() {
   const { t, locale } = useT();
-  const [tab, setTab] = useState<PanelTab>("events");
+  const [tab, setTab] = useState<SidePanelTab>("events");
   const battleOpen = useAppStore((state) => state.battleId !== null);
   const battleRequested = useAppStore((state) => state.battleRequest !== null);
 
@@ -97,54 +85,11 @@ export function AppShell() {
           <MapView />
         </main>
         <aside
-          className={`flex min-h-0 flex-col border-t border-line lg:w-96 lg:flex-none lg:border-l lg:border-t-0 ${
+          className={`flex min-h-0 flex-col border-t border-line bg-background lg:w-[26rem] lg:flex-none lg:border-l lg:border-t-0 ${
             tab === "tutor" ? "flex-[2]" : "flex-1"
           }`}
         >
-          <div
-            role="tablist"
-            aria-label={t("panel.tabs")}
-            className="flex shrink-0 border-b border-line lg:hidden"
-          >
-            {TABS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                id={`panel-tab-${id}`}
-                aria-selected={tab === id}
-                aria-controls={`panel-${id}`}
-                onClick={() => setTab(id)}
-                className={`flex-1 border-b-2 px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
-                  tab === id
-                    ? "border-accent text-foreground"
-                    : "border-transparent text-muted hover:text-foreground"
-                }`}
-              >
-                {t(label)}
-              </button>
-            ))}
-          </div>
-          <div
-            id="panel-events"
-            role="tabpanel"
-            aria-labelledby="panel-tab-events"
-            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-[2] ${
-              tab === "events" ? "flex" : "hidden"
-            }`}
-          >
-            <EventPanel />
-          </div>
-          <div
-            id="panel-tutor"
-            role="tabpanel"
-            aria-labelledby="panel-tab-tutor"
-            className={`min-h-0 flex-1 flex-col lg:flex lg:flex-[3] ${
-              tab === "tutor" ? "flex" : "hidden"
-            }`}
-          >
-            <TutorPanel />
-          </div>
+          <SidePanel tab={tab} onTabChange={setTab} />
         </aside>
       </div>
 
