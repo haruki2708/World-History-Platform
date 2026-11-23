@@ -55,7 +55,26 @@ Xong lượt 1: mỗi phương án một đoạn ngắn trong mục "Kết quả
 
 ## Lượt 2
 
-Phiên chính sẽ ghi yêu cầu lượt 2 vào file này sau khi người dùng chọn: hoàn thiện phương án được chọn, xoá phần còn lại.
+**Người dùng chọn phương án C** (2026-11-23), sau khi xem ảnh ghép cột phải hiện tại | A | B | C ở `E:\World_History_Platform_assets\duyet\T-064\so-sanh\`. Phiên chính đã đọc code lượt 1 (`761ccb5`): đúng phạm vi, gộp với `main` không xung đột, phím `/`, `data-event-id`, `data-battle-open` còn đủ.
+
+### Yêu cầu lượt 2
+
+1. **Chỉ giữ phương án C.** Xoá `panelVariant.ts`, tham số `?panel=`, mọi nhánh code của A và B (thanh gia sư thu gọn/mở rộng của A, các nhánh `variant` trong `SidePanel.tsx`, `EventPanel.tsx`, `TutorPanel.tsx`), kiểu thẻ mở rộng ngay trong danh sách của `EventListItem` nếu không còn dùng, và các khoá `messages.ts` không còn dùng (cả `en` lẫn `vi`).
+2. **Màn 1280×800:** ở lượt 1 khối chi tiết (`lg:max-h-[70%]`) chiếm gần hết cột, danh sách chỉ còn khoảng 4 dòng. Khi chọn sự kiện có tóm tắt dài nhất (`marius-enrols-the-landless`, năm -107) hay Cannae, danh sách phải còn thấy **ít nhất 6 dòng**. Giới hạn chiều cao khối chi tiết; khi không đủ chỗ thì chỉ phần giữa (tóm tắt, thế lực, địa điểm, nguồn) cuộn bên trong, còn **dòng tiêu đề và nút "Xem trận đánh 3D" luôn hiện** (ở lượt 1 nút nằm trong vùng cuộn, có thể bị cuộn khuất).
+3. **Mép trên danh sách:** ở lượt 1 (ảnh `04-1280-sang-C`) dòng ngay dưới khối chi tiết hiện bị cắt nửa. Khi danh sách tự cuộn, căn theo mép dòng hoặc cho mép trên mờ dần, để không còn chữ bị cắt ngang sát khối.
+4. **Bàn phím và trình đọc màn hình:**
+   - Dòng đang chọn trỏ tới khối chi tiết (`aria-controls` tới `id` của khối).
+   - Bấm `×` thì focus về dòng của sự kiện đó trong danh sách (trên màn hẹp: sau khi danh sách hiện lại).
+   - Mở trận bằng bàn phím từ nút trong khối chi tiết, `Esc` đóng trận: focus phải về lại nút đó. Khung xem trận tìm nút theo `data-battle-open`, nên trên trang chỉ được có một nút như vậy cho mỗi sự kiện.
+5. **Đổi sự kiện lúc đang ở tab Gia sư:** nếu người dùng chọn từ trục thời gian hay bản đồ thì chuyển sang tab Sự kiện. Nếu chọn từ nút dẫn đường trong câu trả lời thì ở lại tab Gia sư và chấm báo trên tab Sự kiện, giống chấm báo của gia sư. Nếu không phân biệt được nguồn mà không đổi store, thì ở lại và chấm báo, ghi lý do vào Kết quả.
+6. **Kiểm lại cả hai ngôn ngữ:** chữ tiếng Anh (tab, nhãn, nút) không tràn hay xuống dòng xấu ở 1280×800.
+
+**Ảnh lượt 2**, tên `…-C2.png`, cùng thư mục `duyet\T-064\`:
+- 1646×830 (tỉ lệ 1,75): `01-cannae` sáng và tối, `02-hoi` sáng, `03-khong-tran` sáng;
+- 1280×800: `04-1280` Cannae sáng, `06-1280-dai` (`/?year=-107&event=marius-enrols-the-landless&lang=vi`) sáng, `07-1280-en` Cannae tiếng Anh sáng;
+- 390 px: `05-390` sáng.
+
+Xong lượt 2: ghi Kết quả, commit, dừng và báo người dùng. Phiên chính sẽ build, chạy hồi quy và cho người dùng bấm thử trước khi gộp. Khi gộp, phiên chính tự cập nhật mục bố cục trong `docs/ARCHITECTURE.md` (cột phải giờ nằm ở `panel/SidePanel.tsx`).
 
 ## Ràng buộc
 
