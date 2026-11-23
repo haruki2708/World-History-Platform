@@ -81,4 +81,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-060](T-060-ridedown-rider.md) | 1 | Đợt L: clip `ridedown` cho bốn mô hình kỵ binh; chân người cưỡi đung đưa, vạt áo thu gọn, cú ngã có đường bay | Xong, đã gộp 2026-11-21 (phiên chính làm thay lane 1) |
 | [T-061](T-061-soldier-looks.md) | Phiên chính | Đợt L, B1: mỗi lính một vẻ (màu áo, tóc, râu, hoa văn khiên, màu lông ngựa) cho 12 mô hình | Xong, đã gộp 2026-11-21 |
 | [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Xong, đã gộp 2026-11-22 |
-| [T-063](T-063-cinematic-viewer.md) | Gemini Neon | Khung xem trận kiểu điện ảnh (lớp phủ nổi trên cảnh, tự mờ khi phát), thẻ chương khi sang giai đoạn | Đã giao 2026-11-23 |
+| [T-063](T-063-cinematic-viewer.md) | Gemini Neon | Khung xem trận kiểu điện ảnh (lớp phủ nổi trên cảnh, tự mờ khi phát), thẻ chương khi sang giai đoạn | Đã gộp 2026-11-23 |

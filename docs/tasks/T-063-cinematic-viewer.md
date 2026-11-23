@@ -147,3 +147,18 @@ Bản đầu (tới `1a77bee`) đúng phạm vi, gộp với `main` không xung 
 ### Đề nghị ngoài phạm vi
 
 Không có. Mọi phần đều dùng token, thư viện và hợp đồng sẵn có.
+
+## Review lượt 2 (phiên chính, 2026-11-23)
+
+Đạt đủ 7 yêu cầu của lượt 2. Lint, validate, build qua; hồi quy lõi (`main-tools/reg-core.js`) qua 17/17 mục, không lỗi console. Góc mở trận hồ Trasimene giống hệt `main`. Một điểm nhỏ: nhãn "Núi Gualandro" lúc mở trận bị biển tiêu đề che (cách tránh lớp phủ ẩn nó đi), không phải "hiện đủ" như mục Kết quả ghi.
+
+Khung hình ở cửa sổ thật của người dùng (1646×830, tỉ lệ điểm ảnh 1,75), hai bản production, chỉ tính các lần đo không có Blender chạy:
+
+| Cảnh | `main` | Lượt 2 |
+|---|---|---|
+| Góc mở trận, đang dừng (trung vị 3 lần) | 60,3 | 49,8 |
+| Giai đoạn 5 đang phát | 35,8 | 33,4 |
+| Giai đoạn 6 đang phát | 35,6 | 34,7 |
+| Nhìn gần 40 m / 110 m | 40,5 / 40,7 | 40,4 / 40,7 |
+
+Phần chậm còn lại do header và thanh điều khiển nổi trên cảnh: canvas 1286×830 thay vì 1286×708 của `main` (thêm khoảng 17% điểm ảnh). `main` ở góc mở chạm trần 60 khung/giây nên chênh thật có thể khác. Người dùng được hỏi ba hướng (gộp; thanh điều khiển xuống dưới cảnh; cả hai ra ngoài cảnh) và chọn **gộp nguyên bản lượt 2**. Gộp vào `main` ngày 2026-11-23.
