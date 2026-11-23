@@ -13,6 +13,8 @@ interface ControlBarProps {
   playback: Playback;
   /** True once the 3D scene is ready; exposes data-battle-overlay for label avoidance. */
   sceneReady?: boolean;
+  /** True when the floating control bar is faded out during idle playback. */
+  chromeHidden?: boolean;
   onScrubStart?: () => void;
   onScrubEnd?: () => void;
 }
@@ -25,7 +27,14 @@ const ICON_BUTTON =
  * under way. Re-renders on every tick of the battle clock, so it is kept
  * small and apart from the panels.
  */
-export function ControlBar({ battle, playback, sceneReady = false, onScrubStart, onScrubEnd }: ControlBarProps) {
+export function ControlBar({
+  battle,
+  playback,
+  sceneReady = false,
+  chromeHidden = false,
+  onScrubStart,
+  onScrubEnd,
+}: ControlBarProps) {
   const { t, locale } = useT();
   const end = battle.phases.length;
   const time = useAppStore((state) => Math.min(state.battleTime, end));
@@ -46,6 +55,7 @@ export function ControlBar({ battle, playback, sceneReady = false, onScrubStart,
       role="group"
       aria-label={t("battle.controls.label")}
       data-battle-overlay={sceneReady ? "" : undefined}
+      data-battle-overlay-hidden={sceneReady && chromeHidden ? "" : undefined}
       className="w-full shrink-0 border-t border-line bg-background px-3 pt-1.5 pb-2 lg:mx-auto lg:max-w-[46rem] lg:rounded-2xl lg:border lg:border-line/80 lg:bg-background/88 lg:px-4 lg:py-2.5 lg:shadow-xl"
     >
       <div className="flex items-center gap-1.5">

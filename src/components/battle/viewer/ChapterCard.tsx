@@ -13,8 +13,6 @@ interface ChapterCardProps {
   battle: Battle;
   /** True while the user is dragging the seek bar; suppresses intermediate cards. */
   scrubbing: boolean;
-  /** True when the desktop side panel is open; centers the card over the open stage. */
-  panelOpen: boolean;
 }
 
 interface CardState {
@@ -29,7 +27,7 @@ interface CardState {
  * ticks never trigger re-renders. Screen readers already receive phase
  * announcements from StoryPanel's live region, so this card is aria-hidden.
  */
-export function ChapterCard({ battle, scrubbing, panelOpen }: ChapterCardProps) {
+export function ChapterCard({ battle, scrubbing }: ChapterCardProps) {
   const { t, locale } = useT();
   const phaseIndex = useAppStore((state) => phaseAt(battle, state.battleTime) - 1);
   const [card, setCard] = useState<CardState | null>(null);
@@ -97,9 +95,7 @@ export function ChapterCard({ battle, scrubbing, panelOpen }: ChapterCardProps) 
       aria-hidden="true"
       data-battle-chapter-card
       data-visible={card.visible ? "true" : "false"}
-      className={`pointer-events-none absolute inset-x-3 top-3 z-10 flex justify-center select-none lg:inset-x-auto lg:top-[14%] lg:left-4 ${
-        panelOpen ? "lg:right-[24rem]" : "lg:right-4"
-      }`}
+      className="pointer-events-none absolute inset-x-3 top-3 z-10 flex justify-center select-none lg:inset-x-4 lg:top-[14%]"
     >
       <div
         className={`max-w-[min(32rem,100%)] rounded-2xl border border-line/85 bg-background/96 px-5 py-3.5 text-center shadow-2xl transition-[opacity,transform] ease-out motion-reduce:transform-none motion-reduce:transition-none lg:px-9 lg:py-5 ${

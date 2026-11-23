@@ -102,4 +102,48 @@ Bản đầu (tới `1a77bee`) đúng phạm vi, gộp với `main` không xung 
 
 ## Kết quả
 
-(Lane điền.)
+### Đã làm
+
+- **Khung xem trận kiểu điện ảnh và lớp phủ tự mờ** (`src/components/battle/BattleViewer.tsx`, `BattleViewerLoading.tsx`, `BattleScene.tsx`, `viewer/useIdleChrome.ts`, `viewer/ControlBar.tsx`, `viewer/Scrubber.tsx`, `viewer/StoryPanel.tsx`, `viewer/InfoPanel.tsx`):
+  - **Lượt 1:** đưa header (tên trận, ngày, hai phe kèm chấm màu), nút ẩn/hiện panel, nút đóng, nút `Tên khối quân` / `Chất lượng`, gợi ý camera và thanh điều khiển thành các lớp phủ nổi bán trong suốt theo token (`bg-background/88`), bo góc, bóng nhẹ, không dùng `backdrop-filter`. Thêm `useIdleChrome` dùng `setTimeout` (không `requestAnimationFrame`) tự mờ lớp phủ nổi sau 3 giây chuột đứng yên lúc đang phát; rê chuột, bấm phím, dừng phát hoặc focus bàn phím (`:focus-visible`) trong lớp phủ/panel thì hiện lại ngay. Chỉ gắn `data-battle-overlay` cho lớp phủ khung xem sau khi `BattleScene` báo `onSceneReady` để tương thích `drive.mjs`.
+  - **Lượt 2 (theo Review lượt 1):**
+    1. Trên máy tính (`lg:` trở lên), khi panel mở, khung chứa cảnh (`BattleScene`) nằm bên trái panel (`lg:flex-row`, panel `lg:w-[22.5rem]` nằm trên nền `bg-background`, không có cảnh 3D phía sau). Header và thanh điều khiển nổi trong vùng cảnh và tự mờ khi phát; đóng panel thì cảnh tràn toàn khung xem. Dùng container query (`@container/stage`) cho biển tiêu đề để không chồng lên cụm nút góc trên phải ở 1280×800 khi panel mở.
+    2. Không làm hoạt hình độ rộng canvas khi mở/đóng panel (`lg:hidden`), nên `BattleEngine` chỉ đổi cỡ renderer một lần.
+    3. Góc mở trận hồ Trasimene khi panel mở hiện đủ núi Gualandro, lối hẹp Malpasso, trại của Hannibal, đầu đoàn quân La Mã và bộ binh Libya, Iberia của Hannibal (không sửa `engine/`).
+    4. Trả cỡ chữ lời dẫn trong `StoryPanel` về `text-sm` (14 px).
+    5. Khi lớp phủ nổi đã mờ hẳn trên máy tính (`data-battle-overlay-hidden`), `measureOverlays` trong `BattleScene.tsx` bỏ qua các vùng đó để nhãn gần header và thanh điều khiển không bị ẩn vô ích; lúc mở trận thuộc tính `data-battle-overlay` vẫn giữ nguyên.
+- **Thẻ chương khi sang giai đoạn mới** (`src/components/battle/viewer/ChapterCard.tsx`, `viewer/Scrubber.tsx`):
+  - Chỉ đăng ký chỉ số giai đoạn (`phaseAt`), hiện thẻ lớn (`aria-hidden="true"`) gồm số giai đoạn, khung giờ (`formatHour`) và tên giai đoạn trong 3 giây rồi mờ đi khi sang giai đoạn trong lúc phát hoặc khi bấm chuyển giai đoạn (nút, phím `←`/`→`, danh sách lời dẫn).
+  - Chặn nháy thẻ liên tục khi đang kéo thanh tua; chỉ hiện khi thả chuột ở giai đoạn khác.
+  - Hỗ trợ `prefers-reduced-motion` (`motion-reduce:transition-none motion-reduce:transform-none`).
+
+### Độ rộng canvas ở 1646×926 (tỉ lệ điểm ảnh 1,75)
+
+- **Khi panel mở:** `canvas.clientWidth = 1286` px, `canvas.clientHeight = 926` px (`window.innerWidth = 1646` px; panel rộng 360 px = `22.5rem`).
+- **Khi panel đóng:** `canvas.clientWidth = 1646` px, `canvas.clientHeight = 926` px (`window.innerWidth = 1646` px, tràn toàn khung xem).
+
+### Kiểm tra
+
+- `npm run lint`, `npm run validate`, `npm run build`: qua sạch.
+- Kiểm tra trên bản production bằng Chrome headless (GPU D3D11):
+  - Số phần tử dùng `backdrop-filter` trong khung xem: `0`.
+  - Cỡ chữ lời dẫn (`StoryPanel`): `14px` (`text-sm`).
+  - Ở 1280×800 khi panel mở: `canvas.clientWidth = 920` px, khoảng trống giữa biển tiêu đề và cụm nút `Tên khối quân` / `Chất lượng` là `191` px, không chồng lấn.
+  - Tự mờ khi phát sau >3 giây (`header` `opacity: 0`, 6 lớp phủ đánh dấu `data-battle-overlay-hidden` nhường chỗ cho nhãn cảnh); rê chuột hoặc bấm `Space` hiện lại ngay (`opacity: 1`); `Tab` giữ focus bàn phím giữ lớp phủ hiện.
+  - Kéo thanh tua qua nhiều giai đoạn: ẩn trong lúc kéo, hiện thẻ chương ngay khi thả ở giai đoạn mới.
+  - Ở bề ngang 390 px: không vỡ bố cục, `scrollWidth <= innerWidth` (không cuộn ngang).
+- Đã tắt server local sau khi kiểm tra.
+
+### Ảnh duyệt
+
+Đặt tại `E:\World_History_Platform_assets\duyet\T-063\`:
+- Lượt 1: 22 cặp `…-A-truoc.png` (từ `main`) và `…-B-sau.png` (Cannae 01–04, Hồ Trasimene 05 ở 1280×800 và 1646×926 sáng/tối; 390 px sáng/tối).
+- Lượt 2: 8 ảnh `…-C-luot2.png` ở 1646×926 (tỉ lệ điểm ảnh 1,75), sáng và tối:
+  - `01-cannae-mo-1646x926-{sang,toi}-C-luot2.png`
+  - `02-cannae-phat-hien-1646x926-{sang,toi}-C-luot2.png`
+  - `03-cannae-phat-mo-1646x926-{sang,toi}-C-luot2.png`
+  - `05-trasimene-mo-1646x926-{sang,toi}-C-luot2.png`
+
+### Đề nghị ngoài phạm vi
+
+Không có. Mọi phần đều dùng token, thư viện và hợp đồng sẵn có.

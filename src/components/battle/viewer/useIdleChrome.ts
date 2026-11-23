@@ -49,7 +49,7 @@ export function useIdleChrome(
 
     const isKeyboardFocusInOverlay = (target: EventTarget | null): boolean => {
       if (!(target instanceof HTMLElement)) return false;
-      if (!target.closest("[data-battle-overlay]")) return false;
+      if (!target.closest("[data-battle-overlay], [data-battle-chrome]")) return false;
       try {
         return target.matches(":focus-visible");
       } catch {

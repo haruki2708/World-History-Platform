@@ -72,8 +72,11 @@ const OVERLAY_FRAMES = 15;
 /** The boxes of the overlays that lie over `host`, relative to it. */
 function measureOverlays(host: HTMLElement): LabelObstacle[] {
   const frame = host.getBoundingClientRect();
+  const desktop = window.innerWidth >= 1024;
   const boxes: LabelObstacle[] = [];
   for (const element of document.querySelectorAll(OVERLAY_SELECTOR)) {
+    // Overlays faded out during idle playback no longer block labels on desktop.
+    if (desktop && element.hasAttribute("data-battle-overlay-hidden")) continue;
     const box = element.getBoundingClientRect();
     if (box.width === 0 || box.height === 0) continue;
     if (box.right <= frame.left || box.left >= frame.right) continue;
@@ -170,7 +173,6 @@ export function BattleScene({
   unitFocusRequest = 0,
   inViewer = false,
   chromeHidden = false,
-  viewerPanelOpen = false,
   onSceneReady,
 }: BattleSceneProps &
   UnitSelection & {
@@ -179,12 +181,10 @@ export function BattleScene({
      * and bring the camera down to the opening view (the battle viewer).
      */
     introFromAbove?: boolean;
-    /** Rendered inside the full-bleed battle viewer: aligns overlays with viewer chrome. */
+    /** Rendered inside the battle viewer stage: aligns overlays with viewer chrome. */
     inViewer?: boolean;
     /** Viewer chrome is faded out during idle playback. */
     chromeHidden?: boolean;
-    /** Viewer side panel is open on desktop: shifts bottom-stage hints clear of it. */
-    viewerPanelOpen?: boolean;
     /** Fires once the 3D scene has loaded terrain and models and drawn its first frame. */
     onSceneReady?: () => void;
   }) {
@@ -204,7 +204,6 @@ export function BattleScene({
       unitFocusRequest={unitFocusRequest}
       inViewer={inViewer}
       chromeHidden={chromeHidden}
-      viewerPanelOpen={viewerPanelOpen}
       onSceneReady={onSceneReady}
     />
   );
@@ -219,7 +218,6 @@ interface SceneViewProps extends UnitSelection {
   unitFocusRequest: number;
   inViewer: boolean;
   chromeHidden: boolean;
-  viewerPanelOpen: boolean;
   onSceneReady?: () => void;
 }
 
@@ -236,7 +234,6 @@ const SceneView = memo(function SceneView({
   unitFocusRequest,
   inViewer,
   chromeHidden,
-  viewerPanelOpen,
   onSceneReady,
 }: SceneViewProps) {
   const { t, locale } = useT();
@@ -738,6 +735,7 @@ const SceneView = memo(function SceneView({
             <button
               type="button"
               data-battle-overlay
+              data-battle-overlay-hidden={inViewer && chromeHidden ? "" : undefined}
               aria-pressed={unitNames}
               onClick={toggleUnitNames}
               className={
@@ -764,6 +762,7 @@ const SceneView = memo(function SceneView({
             <button
               type="button"
               data-battle-overlay
+              data-battle-overlay-hidden={inViewer && chromeHidden ? "" : undefined}
               onClick={toggleQuality}
               className={
                 inViewer
@@ -778,6 +777,7 @@ const SceneView = memo(function SceneView({
               <p
                 role="status"
                 data-battle-overlay
+                data-battle-overlay-hidden={inViewer && chromeHidden ? "" : undefined}
                 className={
                   inViewer
                     ? "max-w-56 rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-xs text-muted shadow-md lg:absolute lg:top-13 lg:right-0 lg:w-max lg:max-w-64"
@@ -792,11 +792,12 @@ const SceneView = memo(function SceneView({
           {!hintSeen && (
             <p
               data-battle-overlay
+              data-battle-overlay-hidden={inViewer && chromeHidden ? "" : undefined}
               className={
                 inViewer
-                  ? `pointer-events-none absolute inset-x-3 bottom-2.5 z-10 mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-center text-xs text-muted shadow-sm lg:inset-x-auto lg:bottom-[6.25rem] lg:left-4 lg:rounded-full lg:px-3.5 lg:py-1.5 lg:shadow-md lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
-                      viewerPanelOpen ? "lg:right-[24rem]" : "lg:right-4"
-                    } ${chromeHidden ? "lg:translate-y-1 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"}`
+                  ? `pointer-events-none absolute inset-x-3 bottom-2.5 z-10 mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-lg border border-line/80 bg-background/88 px-2.5 py-1 text-center text-xs text-muted shadow-sm lg:inset-x-4 lg:bottom-[6.25rem] lg:rounded-full lg:px-3.5 lg:py-1.5 lg:shadow-md lg:transition-[opacity,transform] lg:duration-300 lg:ease-out motion-reduce:lg:transition-none ${
+                      chromeHidden ? "lg:translate-y-1 lg:opacity-0" : "lg:translate-y-0 lg:opacity-100"
+                    }`
                   : "pointer-events-none absolute bottom-3 left-3 mr-3 rounded-md border border-line bg-background/85 px-2.5 py-1 text-xs text-muted"
               }
             >

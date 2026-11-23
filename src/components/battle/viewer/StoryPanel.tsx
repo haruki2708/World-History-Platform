@@ -78,7 +78,7 @@ export function StoryPanel({ battle, onPhase }: StoryPanelProps) {
                 </span>
               </button>
               {open && (
-                <p className="px-3.5 pb-3.5 pt-0.5 text-[13.5px] leading-relaxed text-foreground/90">
+                <p className="px-3.5 pb-3.5 pt-0.5 text-sm leading-relaxed text-foreground/90">
                   {item.narration[locale]}
                 </p>
               )}
