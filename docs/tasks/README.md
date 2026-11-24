@@ -82,4 +82,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-061](T-061-soldier-looks.md) | Phiên chính | Đợt L, B1: mỗi lính một vẻ (màu áo, tóc, râu, hoa văn khiên, màu lông ngựa) cho 12 mô hình | Xong, đã gộp 2026-11-21 |
 | [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Xong, đã gộp 2026-11-22 |
 | [T-063](T-063-cinematic-viewer.md) | Gemini Neon | Khung xem trận kiểu điện ảnh (lớp phủ nổi trên cảnh, tự mờ khi phát), thẻ chương khi sang giai đoạn | Đã gộp 2026-11-23 |
-| [T-064](T-064-panel-tutor-ui.md) | Gemini Neon (mượn vùng lane 1) | Panel sự kiện và gia sư: làm thử 2–3 phương án giao diện, người dùng chọn rồi hoàn thiện | Đã giao 2026-11-23 |
+| [T-064](T-064-panel-tutor-ui.md) | Gemini Neon (mượn vùng lane 1) | Panel sự kiện và gia sư: hai tab trọn chiều cao, khối chi tiết ghim cho sự kiện đang chọn, danh sách một dòng (phương án C trong ba phương án làm thử) | Đã gộp 2026-11-24 |

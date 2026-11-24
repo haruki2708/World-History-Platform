@@ -189,3 +189,13 @@ Thư mục `E:\World_History_Platform_assets\duyet\T-064\`:
 ### Đề nghị ngoài phạm vi
 
 Không có. Mọi phần (kể cả phân biệt nguồn chọn sự kiện giữa bản đồ/trục thời gian và nút dẫn đường trong gia sư) đều dùng token màu, font, store và hợp đồng sẵn có.
+
+## Review lượt 2 (phiên chính, 2026-11-24)
+
+Đạt đủ 6 yêu cầu. Lint, build, `tutor:check` qua. Thử tương tác tự động (`main-tools/drive/s-t064.mjs`) 30/30 mục ở 1646×830 (tỉ lệ 1,75) và 1280×800: số dòng nguyên vẹn của danh sách, không dòng nào bị cắt chữ, nút xem trận luôn trong tầm nhìn và chỉ có một, `aria-controls`, phím `/`, chấm báo hai tab, đổi tab theo nguồn chọn sự kiện, focus sau `×` và sau `Esc` của khung xem trận, không lỗi console. Hồi quy lõi (`reg-core.js`) 17/17 sau khi sửa script theo bố cục tab.
+
+Một chỗ chưa đẹp: giữ sáu dòng cho danh sách làm khối chi tiết của Cannae thiếu 15 px ở 1646×830, dòng "Nguồn" bị cắt nửa (ở 1280×800 là hàng thế lực). Người dùng chọn để phiên chính sửa khi gộp: chừa năm dòng (`lg:max-h-[calc(100%-11.75rem)]`), và một dải mờ dính đáy vùng cuộn của khối chi tiết khi còn nội dung bên dưới. Sau khi sửa, thẻ Cannae hiện trọn ở 1646×830. Ảnh: `duyet\T-064\sau-sua\`.
+
+Ghi chú: câu trả lời tới lúc tab Gia sư đang ẩn thì khung chat không tự cuộn xuống cuối; khi quay lại, người dùng thấy câu hỏi và phần đầu câu trả lời. Để nguyên, vì đọc từ đầu là hợp lý.
+
+Gộp vào `main` ngày 2026-11-24. Vùng `src/components/panel/` và `src/components/tutor/` trả về lane 1.

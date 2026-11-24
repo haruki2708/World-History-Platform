@@ -38,7 +38,7 @@ scripts/               script kiểm tra dữ liệu, Lane Gemini Neon (trừ sc
 art/                   script Blender dựng mô hình lính, Lane 1
 ```
 
-Trên màn hẹp (dưới 1024px), panel bên chia thành hai tab "Sự kiện" và "Gia sư AI". Trên màn rộng hai phần xếp chồng.
+Panel bên (`src/components/panel/SidePanel.tsx`, rộng 26rem trên màn rộng) chia thành hai tab "Sự kiện" và "Gia sư AI" ở mọi bề ngang (T-064; trước đó trên màn rộng hai phần xếp chồng). Tab Sự kiện: sự kiện đang chọn có khối chi tiết ghim ở trên (`EventDetailCard`: tiêu đề và nút xem trận luôn hiện, phần giữa cuộn khi thiếu chỗ, chừa năm dòng cho danh sách), bên dưới là danh sách mỗi sự kiện một dòng; trên màn hẹp khối chi tiết chiếm cả tab, đóng thì danh sách hiện lại. Nút `[data-battle-open]` chỉ có một trên trang (trong khối chi tiết); khung xem trận trả focus về nút này. Chọn sự kiện từ bản đồ hay trục thời gian lúc đang ở tab Gia sư thì chuyển sang tab Sự kiện; chọn từ nút dẫn đường trong câu trả lời thì ở lại và chấm báo trên tab Sự kiện (SidePanel nhận biết qua `focusRequest` và một callback từ `MapLinkButtons`, không đổi store). Gia sư trả lời xong lúc người dùng ở tab Sự kiện thì tab Gia sư có chấm báo. Phím `/` mở tab Gia sư và đưa con trỏ vào ô hỏi (trên màn hẹp chỉ khi tab đó đang mở).
 
 ## Trạng thái chung: `useAppStore`
 
