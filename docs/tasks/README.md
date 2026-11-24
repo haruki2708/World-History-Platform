@@ -83,3 +83,4 @@ Review diff của nhánh, chạy lại lint và build, kiểm tra chéo dữ li�
 | [T-062](T-062-lod-per-figure.md) | Phiên chính | Đợt L, B4: mỗi người một mức chi tiết; trần tam giác đo trên màn hình của người dùng | Xong, đã gộp 2026-11-22 |
 | [T-063](T-063-cinematic-viewer.md) | Gemini Neon | Khung xem trận kiểu điện ảnh (lớp phủ nổi trên cảnh, tự mờ khi phát), thẻ chương khi sang giai đoạn | Đã gộp 2026-11-23 |
 | [T-064](T-064-panel-tutor-ui.md) | Gemini Neon (mượn vùng lane 1) | Panel sự kiện và gia sư: hai tab trọn chiều cao, khối chi tiết ghim cho sự kiện đang chọn, danh sách một dòng (phương án C trong ba phương án làm thử) | Đã gộp 2026-11-24 |
+| [T-065](T-065-app-chrome-ui.md) | Gemini Neon (mượn vùng lane 1 và lane 2) | Làm đẹp trục thời gian, header và hộp thoại, chú giải và nút bản đồ theo phong cách T-063/T-064; một bản, dừng cho người dùng xem ảnh | Đã giao 2026-11-24 |
