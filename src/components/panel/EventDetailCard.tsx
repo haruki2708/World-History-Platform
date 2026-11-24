@@ -18,7 +18,8 @@ interface EventDetailCardProps {
  * chronological list. The header (year, title, close button) and the 3D battle
  * action stay pinned while only the middle body (summary, polities, location,
  * sources) scrolls when height is tight (e.g. 1280x800 or long summaries),
- * always leaving room for at least six rows of the list below on desktop.
+ * always leaving room for five rows of the list below on desktop. (Six rows
+ * cut the last line of the Cannae card at the user's 1646x830 window.)
  */
 export function EventDetailCard({ id, event, active, onClose }: EventDetailCardProps) {
   const { t, locale } = useT();
@@ -32,7 +33,7 @@ export function EventDetailCard({ id, event, active, onClose }: EventDetailCardP
     <article
       id={id}
       aria-labelledby={`${id}-title`}
-      className="relative flex min-h-0 flex-1 flex-col border-b border-line bg-surface/55 lg:max-h-[calc(100%-13.75rem)] lg:flex-initial lg:shrink-0"
+      className="relative flex min-h-0 flex-1 flex-col border-b border-line bg-surface/55 lg:max-h-[calc(100%-11.75rem)] lg:flex-initial lg:shrink-0"
     >
       {/* Pinned header: always visible even when the summary body scrolls. */}
       <div className="flex shrink-0 items-start gap-2.5 px-4 pt-3 pb-2">
@@ -69,7 +70,7 @@ export function EventDetailCard({ id, event, active, onClose }: EventDetailCardP
       </div>
 
       {/* Scrollable middle section: summary, polities, location, sources. */}
-      <div className={`min-h-0 flex-1 overflow-y-auto px-4 ${battle ? "pb-2.5" : "pb-3"}`}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4">
         <p className="text-sm leading-relaxed text-foreground/90">
           {event.summary[locale]}
         </p>
@@ -113,6 +114,14 @@ export function EventDetailCard({ id, event, active, onClose }: EventDetailCardP
             </p>
           )}
         </div>
+        {/* Sticks to the bottom edge of the scroller and fades the line there
+            while more of the body lies below. At the end of the scroll (or
+            when everything fits) it rests under the last line, as padding.
+            Its colour is the card's own: surface at 55% over background. */}
+        <div
+          aria-hidden
+          className="pointer-events-none sticky bottom-0 h-4 bg-gradient-to-t from-[color-mix(in_srgb,var(--surface)_55%,var(--background))] to-transparent"
+        />
       </div>
 
       {/* Pinned 3D battle CTA: always visible, and the sole [data-battle-open]
