@@ -1,31 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { events, getEvent, getEventsAround, isEventActive } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import type { HistoricalEvent, Year } from "@/lib/types";
 import { useAppStore } from "@/store/useAppStore";
 import { EventDetailCard } from "./EventDetailCard";
 import { EventListItem } from "./EventListItem";
-import type { PanelVariant } from "./panelVariant";
 
-interface EventPanelProps {
-  variant?: PanelVariant;
-  /** Hide the top "Events" label when a desktop/mobile tab bar already names it. */
-  hideHeading?: boolean;
-}
+/** Padding at the top of the scrolling list (matches Tailwind `pt-2`). */
+const LIST_TOP_PADDING = 8;
 
 /**
- * The full chronological list of events. The list itself never changes as the
- * year moves (so nothing jumps); instead events under way are highlighted,
- * events near the year are shown in full and the rest are dimmed, and the list
- * scrolls smoothly to keep the year's events in view.
+ * Selected-event detail card pinned above the compact chronological list.
+ * The list itself never expands inline (so rows never jump); events under way
+ * are highlighted, nearby events stay crisp and distant ones are dimmed, and
+ * auto-scroll snaps to a clean row boundary so no line is half-cut at the top.
  */
-export function EventPanel({ variant = "A", hideHeading = false }: EventPanelProps) {
+export function EventPanel() {
   const { t } = useT();
   const year = useAppStore((state) => state.year);
   const selectedEventId = useAppStore((state) => state.selectedEventId);
   const selectEvent = useAppStore((state) => state.selectEvent);
+  const detailId = useId();
 
   const nearbyIds = useMemo(
     () => new Set(getEventsAround(year).map((event) => event.id)),
@@ -33,88 +30,105 @@ export function EventPanel({ variant = "A", hideHeading = false }: EventPanelPro
   );
   const anchorId = pickAnchor(year, selectedEventId);
   const selectedEvent = selectedEventId ? getEvent(selectedEventId) : undefined;
-  const spotlightMode = variant === "C";
 
   const listRef = useRef<HTMLUListElement>(null);
   const hasScrolled = useRef(false);
+  /** Row id to focus after closing the detail card with its close button. */
+  const returnFocusIdRef = useRef<string | null>(null);
 
   // Scroll only when the anchor or the selection changes, not on every year,
-  // so dragging the timeline does not make the list jitter.
+  // so dragging the timeline does not make the list jitter. Snap to the top
+  // edge of a whole row so the first visible line below the detail card is
+  // never sliced horizontally.
   useEffect(() => {
     const list = listRef.current;
-    const item = anchorId
-      ? list?.querySelector<HTMLElement>(
-          `[data-event-id="${CSS.escape(anchorId)}"]`,
-        )
-      : null;
-    if (!list || !item) return;
+    if (!list || !anchorId) return;
+    const rows = Array.from(list.children) as HTMLElement[];
+    const anchorIndex = rows.findIndex((row) => row.dataset.eventId === anchorId);
+    if (anchorIndex < 0) return;
 
-    // Put the item near the top/third, keeping a tall expanded card fully visible.
-    const margin = 8;
-    const offset = Math.max(
-      margin,
-      Math.min(
-        spotlightMode ? list.clientHeight / 3 : list.clientHeight / 5,
-        list.clientHeight - item.offsetHeight - margin,
-      ),
-    );
+    const rowHeight = Math.max(rows[anchorIndex].offsetHeight, 1);
+    const visibleRows = Math.floor((list.clientHeight - LIST_TOP_PADDING) / rowHeight);
+    // Keep 1-2 rows above the anchor when there is room (upper third).
+    const rowsAbove = visibleRows >= 6 ? 2 : visibleRows >= 3 ? 1 : 0;
+    const topIndex = Math.max(0, anchorIndex - rowsAbove);
+    const targetTop = Math.max(0, rows[topIndex].offsetTop - LIST_TOP_PADDING);
+
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     list.scrollTo({
-      top: Math.max(0, item.offsetTop - offset),
+      top: targetTop,
       behavior: hasScrolled.current && !reduceMotion ? "smooth" : "auto",
     });
     hasScrolled.current = true;
-  }, [anchorId, selectedEventId, spotlightMode]);
+  }, [anchorId, selectedEventId]);
+
+  // After closing the detail card, return keyboard focus to that event's row
+  // button (on narrow screens the list has just become visible again).
+  useEffect(() => {
+    if (selectedEventId !== null || returnFocusIdRef.current === null) return;
+    const id = returnFocusIdRef.current;
+    returnFocusIdRef.current = null;
+    const button = listRef.current?.querySelector<HTMLButtonElement>(
+      `[data-event-id="${CSS.escape(id)}"] button`,
+    );
+    button?.focus({ preventScroll: true });
+  }, [selectedEventId]);
+
+  const handleCloseDetail = () => {
+    if (selectedEvent) returnFocusIdRef.current = selectedEvent.id;
+    selectEvent(null);
+  };
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      {!hideHeading && (
-        <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-3 pb-1.5">
-          <h2 className="text-xs font-semibold tracking-wider text-muted uppercase">
-            {t("events.heading")}
-          </h2>
-          <span className="text-[11px] text-muted tabular-nums">
-            {t("panel.eventsCount").replace("{count}", String(events.length))}
-          </span>
-        </div>
-      )}
-
-      {spotlightMode && selectedEvent && (
+      {selectedEvent && (
         <EventDetailCard
+          id={detailId}
           event={selectedEvent}
           active={isEventActive(selectedEvent, year)}
-          onClose={() => selectEvent(null)}
+          onClose={handleCloseDetail}
         />
       )}
 
-      <ul
-        ref={listRef}
-        className={`relative min-h-0 flex-1 overflow-y-auto px-2.5 ${
-          hideHeading ? "pt-2 pb-2.5" : "pt-1 pb-2.5"
-        } ${spotlightMode && selectedEvent ? "max-lg:hidden" : ""}`}
+      <div
+        className={`relative flex min-h-0 flex-1 flex-col ${
+          selectedEvent ? "max-lg:hidden" : ""
+        }`}
       >
-        {events.length === 0 && (
-          <li className="px-2 py-3 text-sm text-muted">{t("events.empty")}</li>
+        {/* Subtle top edge fade softens manually scrolled rows under the card. */}
+        {selectedEvent && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-10 h-2.5 bg-gradient-to-b from-background to-transparent"
+          />
         )}
-        {events.map((event) => {
-          const selected = event.id === selectedEventId;
-          return (
-            <EventListItem
-              key={event.id}
-              event={event}
-              selected={selected}
-              active={isEventActive(event, year)}
-              nearby={nearbyIds.has(event.id)}
-              compact={spotlightMode}
-              onToggle={() =>
-                selected ? selectEvent(null) : selectEvent(event.id, event.year)
-              }
-            />
-          );
-        })}
-      </ul>
+        <ul
+          ref={listRef}
+          className="relative min-h-0 flex-1 overflow-y-auto px-2.5 pt-2 pb-2.5"
+        >
+          {events.length === 0 && (
+            <li className="px-2 py-3 text-sm text-muted">{t("events.empty")}</li>
+          )}
+          {events.map((event) => {
+            const selected = event.id === selectedEventId;
+            return (
+              <EventListItem
+                key={event.id}
+                event={event}
+                selected={selected}
+                active={isEventActive(event, year)}
+                nearby={nearbyIds.has(event.id)}
+                controlsId={selected ? detailId : undefined}
+                onToggle={() =>
+                  selected ? selectEvent(null) : selectEvent(event.id, event.year)
+                }
+              />
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }

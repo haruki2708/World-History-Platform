@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useT } from "@/lib/i18n/useT";
+import { useAppStore } from "@/store/useAppStore";
 import { TutorPanel, type TutorStatus } from "../tutor/TutorPanel";
 import { EventPanel } from "./EventPanel";
-import { usePanelVariant } from "./panelVariant";
 
 export type SidePanelTab = "events" | "tutor";
 
@@ -19,52 +19,61 @@ interface SidePanelProps {
 }
 
 /**
- * Right-hand column combining Events and AI Tutor.
- * Prototype switch for T-064 round 1 (select with ?panel=A|B|C):
- * - A: Adaptive vertical split — Events takes ~70% while Tutor stays a compact
- *      dock at the bottom, and Tutor expands when the user asks a question.
- * - B: Full-height segmented tabs (Events | AI tutor) on desktop and mobile,
- *      with an indicator dot when the tutor answers while on the Events tab.
- * - C: Dedicated selected-event spotlight card pinned above a compact
- *      chronological index, paired with the full-height desktop tab bar.
+ * Right-hand column with full-height segmented tabs (Events | AI tutor) on
+ * both desktop and mobile. Events renders a pinned detail card above a compact
+ * chronological list; AI tutor gets full height with an indicator dot when an
+ * answer arrives while reading Events. Selecting an event from the map or
+ * timeline switches back to Events; selecting an event from a Tutor map link
+ * keeps the Tutor tab open and marks Events with an indicator dot.
  */
 export function SidePanel({ tab, onTabChange }: SidePanelProps) {
   const { t } = useT();
-  const variant = usePanelVariant();
-  const [tutorExpanded, setTutorExpanded] = useState(false);
+  const focusRequest = useAppStore((state) => state.focusRequest);
+  const selectedEventId = useAppStore((state) => state.selectedEventId);
   const [tutorBusy, setTutorBusy] = useState(false);
   const [tutorUnread, setTutorUnread] = useState(false);
-  const prevHasMessagesRef = useRef(false);
+  const [eventsNotice, setEventsNotice] = useState(false);
   const lastSeenAnnouncementRef = useRef<number | null>(null);
+  const prevFocusRequestRef = useRef(focusRequest);
+  /** True while a selectEvent call originated from a Tutor map link button. */
+  const fromTutorLinkRef = useRef(false);
   const tabRef = useRef(tab);
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
 
-  const isDesktopTabs = variant === "B" || variant === "C";
-
   const handleTabSelect = useCallback(
     (next: SidePanelTab) => {
       onTabChange(next);
       if (next === "tutor") setTutorUnread(false);
+      else setEventsNotice(false);
     },
     [onTabChange],
   );
 
+  // React to event selections made while the user is on the Tutor tab:
+  // - from map or timeline -> switch to Events so the user sees what they clicked;
+  // - from a map link inside a Tutor answer -> stay on Tutor and mark Events.
+  useEffect(() => {
+    if (focusRequest === prevFocusRequestRef.current) return;
+    prevFocusRequestRef.current = focusRequest;
+    const fromTutor = fromTutorLinkRef.current;
+    fromTutorLinkRef.current = false;
+    if (selectedEventId === null || tabRef.current !== "tutor") return;
+
+    queueMicrotask(() => {
+      if (fromTutor) setEventsNotice(true);
+      else handleTabSelect("events");
+    });
+  }, [focusRequest, selectedEventId, handleTabSelect]);
+
+  const handleMapLinkEventSelect = useCallback(() => {
+    fromTutorLinkRef.current = true;
+  }, []);
+
   const handleStatusChange = useCallback((status: TutorStatus) => {
     setTutorBusy(status.busy);
 
-    // Variants A & C: automatically expand when the first message is sent, and
-    // collapse back to the dock when the conversation is cleared.
-    if (status.hasMessages && !prevHasMessagesRef.current) {
-      setTutorExpanded(true);
-    } else if (!status.hasMessages && prevHasMessagesRef.current) {
-      setTutorExpanded(false);
-    }
-    prevHasMessagesRef.current = status.hasMessages;
-
-    // Variant B / mobile: mark Tutor tab unread when an answer finishes while
-    // the user is viewing the Events tab.
     if (
       status.lastAnnouncementId !== null &&
       status.lastAnnouncementId !== lastSeenAnnouncementRef.current
@@ -88,16 +97,9 @@ export function SidePanel({ tab, onTabChange }: SidePanelProps) {
     document.getElementById(`panel-tab-${target}`)?.focus();
   };
 
-  // Compact dock applies on desktop in Variants A & C while collapsed.
-  const compactTutor = !isDesktopTabs && !tutorExpanded;
-
   return (
     <>
-      <div
-        className={`shrink-0 border-b border-line/80 px-3 py-2 ${
-          isDesktopTabs ? "block" : "block lg:hidden"
-        }`}
-      >
+      <div className="shrink-0 border-b border-line/80 px-3 py-2">
         <div
           role="tablist"
           aria-label={t("panel.tabs")}
@@ -106,7 +108,8 @@ export function SidePanel({ tab, onTabChange }: SidePanelProps) {
         >
           {TABS.map(({ id, label }) => {
             const active = tab === id;
-            const showDot = id === "tutor" && !active && (tutorBusy || tutorUnread);
+            const showTutorDot = id === "tutor" && !active && (tutorBusy || tutorUnread);
+            const showEventsDot = id === "events" && !active && eventsNotice;
             return (
               <button
                 key={id}
@@ -124,7 +127,7 @@ export function SidePanel({ tab, onTabChange }: SidePanelProps) {
                 }`}
               >
                 <span>{t(label)}</span>
-                {showDot && (
+                {showTutorDot && (
                   <>
                     <span
                       aria-hidden
@@ -137,6 +140,12 @@ export function SidePanel({ tab, onTabChange }: SidePanelProps) {
                     </span>
                   </>
                 )}
+                {showEventsDot && (
+                  <>
+                    <span aria-hidden className="size-2 rounded-full bg-accent" />
+                    <span className="sr-only">({t("events.selectedNotice")})</span>
+                  </>
+                )}
               </button>
             );
           })}
@@ -147,42 +156,21 @@ export function SidePanel({ tab, onTabChange }: SidePanelProps) {
         id="panel-events"
         role="tabpanel"
         aria-labelledby="panel-tab-events"
-        className={`min-h-0 flex-1 flex-col ${
-          isDesktopTabs
-            ? tab === "events"
-              ? "flex"
-              : "hidden"
-            : `${tab === "events" ? "flex" : "hidden"} lg:flex ${
-                tutorExpanded ? "lg:flex-[2]" : "lg:flex-1"
-              }`
-        }`}
+        className={`min-h-0 flex-1 flex-col ${tab === "events" ? "flex" : "hidden"}`}
       >
-        <EventPanel variant={variant} hideHeading={isDesktopTabs} />
+        <EventPanel />
       </div>
 
       <div
         id="panel-tutor"
         role="tabpanel"
         aria-labelledby="panel-tab-tutor"
-        className={`min-h-0 flex-col ${
-          isDesktopTabs
-            ? tab === "tutor"
-              ? "flex flex-1"
-              : "hidden"
-            : `${tab === "tutor" ? "flex flex-1" : "hidden"} lg:flex ${
-                tutorExpanded ? "lg:flex-[3]" : "lg:flex-none"
-              }`
-        }`}
+        className={`min-h-0 flex-1 flex-col ${tab === "tutor" ? "flex" : "hidden"}`}
       >
         <TutorPanel
-          compact={compactTutor}
-          hideHeading={isDesktopTabs}
-          expanded={isDesktopTabs ? undefined : tutorExpanded}
-          onToggleExpand={
-            isDesktopTabs ? undefined : () => setTutorExpanded((open) => !open)
-          }
-          onRequestOpen={isDesktopTabs ? () => handleTabSelect("tutor") : undefined}
+          onRequestOpen={() => handleTabSelect("tutor")}
           onStatusChange={handleStatusChange}
+          onMapLinkEventSelect={handleMapLinkEventSelect}
         />
       </div>
     </>

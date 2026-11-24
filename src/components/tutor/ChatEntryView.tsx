@@ -11,9 +11,15 @@ interface ChatEntryViewProps {
   /** Only the latest answer can be retried. */
   isLast: boolean;
   onRetry: () => void;
+  onMapLinkEventSelect?: () => void;
 }
 
-export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
+export function ChatEntryView({
+  entry,
+  isLast,
+  onRetry,
+  onMapLinkEventSelect,
+}: ChatEntryViewProps) {
   const { t, locale } = useT();
 
   if (entry.role === "user") {
@@ -59,7 +65,7 @@ export function ChatEntryView({ entry, isLast, onRetry }: ChatEntryViewProps) {
         />
       )}
       {/* Shown as they arrive, and kept if the answer stops or fails. */}
-      <MapLinkButtons links={entry.links} />
+      <MapLinkButtons links={entry.links} onEventSelect={onMapLinkEventSelect} />
 
       {entry.status === "stopped" && (
         <p className="text-xs text-muted italic">{t("tutor.stopped")}</p>

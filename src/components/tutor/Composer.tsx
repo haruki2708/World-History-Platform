@@ -12,7 +12,6 @@ interface ComposerProps {
   busy: boolean;
   atLimit: boolean;
   deep: boolean;
-  compact?: boolean;
   onDeepChange: (deep: boolean) => void;
   onSend: (question: string) => void;
   onStop: () => void;
@@ -27,7 +26,6 @@ export function Composer({
   busy,
   atLimit,
   deep,
-  compact = false,
   onDeepChange,
   onSend,
   onStop,
@@ -71,9 +69,7 @@ export function Composer({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`shrink-0 space-y-1.5 border-t border-line/75 bg-background px-3 ${
-        compact ? "py-2" : "py-2.5"
-      }`}
+      className="shrink-0 space-y-1.5 border-t border-line/75 bg-background px-3 py-2.5"
     >
       {atLimit && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-surface px-3 py-2 text-sm">
@@ -159,12 +155,12 @@ export function Composer({
             </span>
             {t("tutor.deep")}
           </button>
-          <span id={deepNoteId} className={compact ? "sr-only" : "truncate"}>
+          <span id={deepNoteId} className="truncate">
             {t("tutor.deep.note")}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2">
-          <span id={hintId} className={compact ? "sr-only" : "hidden sm:inline"}>
+          <span id={hintId} className="hidden sm:inline">
             {t("tutor.input.hint")}
           </span>
           {showCounter && (
