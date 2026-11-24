@@ -55,7 +55,26 @@ Xong lượt 1: mỗi phương án một đoạn ngắn trong mục "Kết quả
 
 ## Lượt 2
 
-Phiên chính sẽ ghi yêu cầu lượt 2 vào file này sau khi người dùng chọn: hoàn thiện phương án được chọn, xoá phần còn lại.
+**Người dùng chọn phương án C** (2026-11-23), sau khi xem ảnh ghép cột phải hiện tại | A | B | C ở `E:\World_History_Platform_assets\duyet\T-064\so-sanh\`. Phiên chính đã đọc code lượt 1 (`761ccb5`): đúng phạm vi, gộp với `main` không xung đột, phím `/`, `data-event-id`, `data-battle-open` còn đủ.
+
+### Yêu cầu lượt 2
+
+1. **Chỉ giữ phương án C.** Xoá `panelVariant.ts`, tham số `?panel=`, mọi nhánh code của A và B (thanh gia sư thu gọn/mở rộng của A, các nhánh `variant` trong `SidePanel.tsx`, `EventPanel.tsx`, `TutorPanel.tsx`), kiểu thẻ mở rộng ngay trong danh sách của `EventListItem` nếu không còn dùng, và các khoá `messages.ts` không còn dùng (cả `en` lẫn `vi`).
+2. **Màn 1280×800:** ở lượt 1 khối chi tiết (`lg:max-h-[70%]`) chiếm gần hết cột, danh sách chỉ còn khoảng 4 dòng. Khi chọn sự kiện có tóm tắt dài nhất (`marius-enrols-the-landless`, năm -107) hay Cannae, danh sách phải còn thấy **ít nhất 6 dòng**. Giới hạn chiều cao khối chi tiết; khi không đủ chỗ thì chỉ phần giữa (tóm tắt, thế lực, địa điểm, nguồn) cuộn bên trong, còn **dòng tiêu đề và nút "Xem trận đánh 3D" luôn hiện** (ở lượt 1 nút nằm trong vùng cuộn, có thể bị cuộn khuất).
+3. **Mép trên danh sách:** ở lượt 1 (ảnh `04-1280-sang-C`) dòng ngay dưới khối chi tiết hiện bị cắt nửa. Khi danh sách tự cuộn, căn theo mép dòng hoặc cho mép trên mờ dần, để không còn chữ bị cắt ngang sát khối.
+4. **Bàn phím và trình đọc màn hình:**
+   - Dòng đang chọn trỏ tới khối chi tiết (`aria-controls` tới `id` của khối).
+   - Bấm `×` thì focus về dòng của sự kiện đó trong danh sách (trên màn hẹp: sau khi danh sách hiện lại).
+   - Mở trận bằng bàn phím từ nút trong khối chi tiết, `Esc` đóng trận: focus phải về lại nút đó. Khung xem trận tìm nút theo `data-battle-open`, nên trên trang chỉ được có một nút như vậy cho mỗi sự kiện.
+5. **Đổi sự kiện lúc đang ở tab Gia sư:** nếu người dùng chọn từ trục thời gian hay bản đồ thì chuyển sang tab Sự kiện. Nếu chọn từ nút dẫn đường trong câu trả lời thì ở lại tab Gia sư và chấm báo trên tab Sự kiện, giống chấm báo của gia sư. Nếu không phân biệt được nguồn mà không đổi store, thì ở lại và chấm báo, ghi lý do vào Kết quả.
+6. **Kiểm lại cả hai ngôn ngữ:** chữ tiếng Anh (tab, nhãn, nút) không tràn hay xuống dòng xấu ở 1280×800.
+
+**Ảnh lượt 2**, tên `…-C2.png`, cùng thư mục `duyet\T-064\`:
+- 1646×830 (tỉ lệ 1,75): `01-cannae` sáng và tối, `02-hoi` sáng, `03-khong-tran` sáng;
+- 1280×800: `04-1280` Cannae sáng, `06-1280-dai` (`/?year=-107&event=marius-enrols-the-landless&lang=vi`) sáng, `07-1280-en` Cannae tiếng Anh sáng;
+- 390 px: `05-390` sáng.
+
+Xong lượt 2: ghi Kết quả, commit, dừng và báo người dùng. Phiên chính sẽ build, chạy hồi quy và cho người dùng bấm thử trước khi gộp. Khi gộp, phiên chính tự cập nhật mục bố cục trong `docs/ARCHITECTURE.md` (cột phải giờ nằm ở `panel/SidePanel.tsx`).
 
 ## Ràng buộc
 
@@ -77,4 +96,96 @@ Phiên chính sẽ ghi yêu cầu lượt 2 vào file này sau khi người dùn
 
 ## Kết quả
 
-(Lane điền.)
+### Đã làm (Lượt 1: 3 phương án A, B, C)
+
+- **Chuyển giữa các phương án:** mặc định là `"A"` (`DEFAULT_PANEL_VARIANT` trong `src/components/panel/panelVariant.ts`); thêm tham số `?panel=A`, `?panel=B`, hoặc `?panel=C` trên địa chỉ trang để xem trực tiếp từng phương án.
+- **Bề rộng cột phải:** nâng nhẹ từ `lg:w-96` (384 px) lên `lg:w-[26rem]` (416 px, trong trần 28 rem = 448 px) trong `<aside>` của `src/components/AppShell.tsx` để dòng chữ đọc thoáng hơn và dãy chip ngữ cảnh của gia sư nằm gọn trên một hàng.
+- **Nâng cấp phân tầng chung cho cả 3 phương án** (`EventListItem.tsx`, `EventDetailCard.tsx`, `ChatEntryView.tsx`, `Composer.tsx`, `MapLinkButtons.tsx`):
+  - Thẻ sự kiện phân lớp rõ: năm + nhãn `Đang diễn ra`, tiêu đề đậm hơn, đoạn tóm tắt thoáng dòng, ngăn cách rõ phần thông tin phụ (thế lực dạng pill kèm chấm màu, địa điểm kèm biểu tượng ghim và ghi chú ước lượng, nguồn chữ nhỏ hơn). Nút `Xem trận đánh 3D` (`data-battle-open`) đặt gọn trong chân thẻ, không còn dính đè lên chữ tóm tắt. Sự kiện có trận 3D trong danh sách mang thẻ nhỏ `3D`.
+  - Gia sư: khung nhập gom ô gõ và nút gửi/dừng vào một khối bo góc gọn, chip ngữ cảnh đồng bộ viền/nền, tin nhắn người dùng và câu trả lời tách bạch hơn, nút dẫn đường trên bản đồ đồng bộ bo góc với T-063.
+  - Giữ nguyên phím tắt `/`, thuộc tính `data-event-id`, `data-battle-open`, vùng `aria-live`, và hai tab cho màn hẹp 390 px.
+
+### So sánh 3 phương án
+
+- **Phương án A — Hai khối trên/dưới linh hoạt (gia sư thu gọn ở đáy, tự mở khi hỏi):**
+  - *Ý tưởng:* Giữ cả danh sách sự kiện và gia sư cùng hiện trên máy tính, nhưng khi chưa hỏi gì thì gia sư thu gọn thành một thanh ở đáy (~155 px: tiêu đề, dải câu gợi ý một hàng cuộn ngang, ô hỏi kèm chip ngữ cảnh và công tắc Giải thích sâu). Danh sách sự kiện nhận hơn 420 px, đọc trọn Trận Cannae và nút Xem trận đánh 3D. Khi bấm câu gợi ý hoặc gửi câu hỏi, gia sư tự mở rộng (tỉ lệ 3:2) và có nút mũi tên để chủ động thu gọn/mở rộng bất cứ lúc nào.
+  - *Ưu:* Không phải đổi tab, thấy ngay cả hai chức năng khi vừa mở app; ở 1646×830 và 1280×800 đều đọc trọn sự kiện đang chọn và nút 3D.
+  - *Nhược:* Khi chưa mở rộng, câu gợi ý thứ 3 nằm ngoài mép ngang của dải cuộn; lúc đã hỏi gia sư thì danh sách sự kiện phía trên thu hẹp lại còn khoảng 40% chiều cao.
+
+- **Phương án B — Hai tab trọn chiều cao trên cả máy tính (`Các sự kiện` | `Gia sư AI`):**
+  - *Ý tưởng:* Dùng chung thanh tab dạng pill (đồng bộ với khung xem trận T-063) cho cả máy tính và điện thoại. Mỗi tab hưởng trọn chiều cao cột (~559 px ở 1646×830). Khi gia sư đang trả lời hoặc vừa trả lời xong lúc người dùng đứng ở tab Sự kiện, tab Gia sư hiện chấm đỏ báo hiệu; bấm `/` từ tab Sự kiện tự chuyển sang tab Gia sư và đưa con trỏ vào ô hỏi.
+  - *Ưu:* Rộng rãi nhất cho cả hai việc — vừa thấy trọn thẻ Cannae cùng 5–6 sự kiện lân cận trong dòng thời gian, vừa có khung chat dài thoáng khi đọc câu trả lời nhiều đoạn; giao diện tinh gọn và đồng nhất nhất với khung xem trận 3D.
+  - *Nhược:* Phải bấm chuyển tab (hoặc bấm `/`) để tới câu gợi ý của gia sư; không vừa đọc sự kiện vừa nhìn câu trả lời song song.
+
+- **Phương án C — Thẻ chi tiết riêng cố định ở trên + danh sách mốc gọn bên dưới (kèm tab Gia sư trọn chiều cao):**
+  - *Ý tưởng:* Tách việc đọc sự kiện đang chọn ra một khối chi tiết cố định ở đầu tab Sự kiện (dải nhấn đỏ La Mã bên trái, tiêu đề lớn, tóm tắt, thế lực, địa điểm, nguồn, nút Xem trận đánh 3D, nút đóng `×`), bên dưới là danh sách sự kiện một dòng rất gọn không bao giờ co giãn khi chọn. Tab Gia sư giống phương án B (trọn chiều cao, có chấm báo khi trả lời xong, `/` tự mở). Trên 390 px, chọn sự kiện mở khối chi tiết trọn tab, bấm `×` về lại danh sách.
+  - *Ưu:* Thẻ sự kiện đang chọn có bố cục nổi bật, luôn đứng yên một chỗ dù cuộn danh sách bên dưới để lướt mốc năm khác; nút Xem trận đánh 3D luôn hiện trọn vẹn không bị che hay cuộn mất.
+  - *Nhược:* Khi chọn sự kiện trên máy tính, tên sự kiện xuất hiện ở cả thẻ trên lẫn dòng đang chọn bên dưới; vẫn cần chuyển tab sang Gia sư như phương án B.
+
+### Kiểm tra
+
+- `npm run lint`, `npm run build`, `npm run tutor:check`: qua sạch.
+- Kiểm tra trên Chrome headless (`TUTOR_MOCK=1`, 1646×830 @ 1,75×, 1280×800 @ 1×, 390×844 @ 2×):
+  - Bề rộng `<aside>` đo thực tế: `416 px` (`26rem`).
+  - Ở cả 3 phương án A, B, C tại 1646×830 và 1280×800: tóm tắt Trận Cannae và nút `Xem trận đánh 3D` (`data-battle-open`) hiện trọn vẹn, không bị cắt hay đè chữ.
+  - Bấm câu gợi ý trả câu trả lời giả lập kèm nút dẫn đường bản đồ; màn 390 px không cuộn ngang (`scrollWidth <= innerWidth`) ở cả 3 phương án.
+- Đã tắt dev server cổng 3300 sau khi chụp xong.
+
+### Ảnh duyệt lượt 1 (24 ảnh)
+
+Thư mục `E:\World_History_Platform_assets\duyet\T-064\`:
+- `01-cannae-{sang,toi}-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `02-hoi-sang-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `03-khong-tran-sang-{truoc,A,B,C}.png` (1646×830, DSF 1,75)
+- `04-1280-sang-{truoc,A,B,C}.png` (1280×800, DSF 1)
+- `05-390-sang-{truoc,A,B,C}.png` (390×844, DSF 2)
+
+---
+
+### Đã làm (Lượt 2 — Hoàn thiện phương án C)
+
+1. **Xoá sạch mã của phương án A và B:**
+   - Đã xoá `src/components/panel/panelVariant.ts` và bỏ hoàn toàn tham số `?panel=`.
+   - Rút gọn `SidePanel.tsx`, `EventPanel.tsx`, `EventListItem.tsx`, `TutorPanel.tsx`, `Composer.tsx` chỉ còn phương án C (bỏ thanh gia sư thu gọn/mở rộng, bỏ các prop `variant`/`compact`/`hideHeading`/`expanded`, bỏ thẻ mở rộng inline trong `EventListItem`).
+   - Dọn các khoá không còn dùng trong `src/lib/i18n/messages.ts` (`panel.eventsCount`, `tutor.expand`, `tutor.collapse`) và thêm khoá song ngữ `events.selectedNotice` (`"Event selected"` / `"Đã chọn sự kiện mới"`).
+2. **Ngân sách chiều cao ở 1280×800 + ghim tiêu đề và nút 3D (`EventDetailCard.tsx`):**
+   - Tách `EventDetailCard` thành 3 phần `flex-col`: đầu thẻ cố định (`shrink-0`: năm, nhãn `Đang diễn ra`, tiêu đề, nút `×`), phần giữa tự cuộn (`min-h-0 flex-1 overflow-y-auto`: tóm tắt, thế lực, địa điểm, nguồn), và chân thẻ cố định (`shrink-0`: nút `Xem trận đánh 3D` mang `data-battle-open`).
+   - Giới hạn chiều cao khối chi tiết trên desktop bằng `lg:max-h-[calc(100%-13.75rem)]`, chừa cố định `220 px` cho danh sách bên dưới nên cả ở `1646×830` lẫn `1280×800` (kể cả `marius-enrols-the-landless` năm -107 và Cannae) đều hiện trọn ít nhất **6 dòng** sự kiện.
+3. **Mép trên danh sách gọn gàng (`EventPanel.tsx`):**
+   - Khi danh sách tự cuộn tới mốc mới, tính `scrollTop` căn đúng mép trên của một dòng `<li>` nguyên vẹn (`rows[topIndex].offsetTop - LIST_TOP_PADDING`, giữ 1–2 dòng ngữ cảnh phía trên khi có) thay vì cắt giữa dòng.
+   - Thêm dải chuyển sắc mờ nhẹ (`h-2.5 bg-gradient-to-b from-background to-transparent`) ở mép trên danh sách để khi người dùng tự cuộn bằng tay chữ không bị cắt gắt sát đáy khối chi tiết.
+4. **Bàn phím và trình đọc màn hình (`EventPanel.tsx`, `EventListItem.tsx`, `EventDetailCard.tsx`):**
+   - Nút của dòng đang chọn gắn `aria-controls` trỏ tới `id` của `EventDetailCard` khi khối chi tiết đang mở.
+   - Bấm `×` trên `EventDetailCard` trả focus về đúng nút của dòng sự kiện đó trong danh sách (hoạt động cả trên desktop lẫn màn hẹp `390 px` ngay sau khi danh sách hiện lại).
+   - Trên toàn trang chỉ có đúng 1 nút mang `data-battle-open` cho mỗi sự kiện (nằm cố định ở chân `EventDetailCard`); mở trận bằng `Enter` rồi bấm `Esc` đóng khung xem trận trả focus về đúng nút này.
+5. **Đổi sự kiện khi đang ở tab Gia sư (`SidePanel.tsx`, `TutorPanel.tsx`, `ChatEntryView.tsx`, `MapLinkButtons.tsx`):**
+   - Phân biệt được nguồn chọn sự kiện mà **không cần sửa `useAppStore`**: truyền callback `onMapLinkEventSelect` từ `SidePanel` → `TutorPanel` → `ChatEntryView` → `MapLinkButtons` để đánh dấu ngay trước khi nút dẫn đường trong câu trả lời gọi `selectEvent`.
+   - Khi người dùng đang ở tab Gia sư: chọn sự kiện từ **bản đồ hoặc trục thời gian** sẽ tự chuyển sang tab Sự kiện; bấm **nút dẫn đường trong câu trả lời** sẽ ở lại tab Gia sư và bật chấm đỏ báo hiệu (kèm chuỗi `sr-only` `events.selectedNotice`) trên tab Sự kiện, tự tắt khi chuyển về tab Sự kiện.
+6. **Kiểm song ngữ Anh/Việt ở 1280×800:**
+   - Rà soát tiếng Anh (`07-1280-en-C2.png`) và tiếng Việt (`04-1280-sang-C2.png`, `06-1280-dai-sang-C2.png`): tab `Events` / `AI tutor`, nhãn `Happening now`, tiêu đề, chip thế lực và nút `Watch 3D battle` hiển thị gọn, không tràn hay xuống dòng lỗi.
+
+### Kiểm tra lượt 2
+
+- `npm run lint`, `npm run build`, `npm run tutor:check`: đều qua sạch, không lỗi hay cảnh báo.
+- Kiểm tra tự động trên Chrome headless với bản build production (`TUTOR_MOCK=1`, cổng 3300):
+  - `1646×830` Cannae (`vi`), `1280×800` Cannae (`vi` & `en`), `1280×800` Marius `-107` (`vi`), `1646×830` Thành lập Cộng hoà (`-509`): danh sách luôn hiện trọn **6 dòng** (`listH >= 220 px`), đúng 1 nút `data-battle-open` nằm trong `EventDetailCard`, `aria-controls` khớp `id` khối chi tiết.
+  - Phím `/` từ tab Sự kiện chuyển sang tab Gia sư và đặt con trỏ vào `<textarea>`.
+  - Đang ở tab Gia sư: bấm nút dẫn đường trong câu trả lời (`Trận Zama`) giữ nguyên tab Gia sư + hiện chấm báo trên tab Sự kiện; bấm sự kiện trên trục thời gian tự chuyển về tab Sự kiện.
+  - Bấm `×` đóng thẻ chi tiết trả focus về dòng sự kiện trên cả desktop và `390 px` (danh sách hiện lại, không cuộn ngang).
+  - Bấm `Enter` trên `[data-battle-open="battle-of-cannae"]` mở trận 3D, bấm `Esc` đóng trận trả focus về đúng `[data-battle-open="battle-of-cannae"]`.
+- Đã tắt server cổng 3300 sau khi chụp và kiểm tra xong.
+
+### Ảnh duyệt lượt 2 (8 ảnh `-C2.png`)
+
+Thư mục `E:\World_History_Platform_assets\duyet\T-064\`:
+- `01-cannae-sang-C2.png`, `01-cannae-toi-C2.png` (1646×830, DSF 1,75)
+- `02-hoi-sang-C2.png` (1646×830, DSF 1,75)
+- `03-khong-tran-sang-C2.png` (1646×830, DSF 1,75)
+- `04-1280-sang-C2.png` (1280×800, DSF 1)
+- `05-390-sang-C2.png` (390×844, DSF 2)
+- `06-1280-dai-sang-C2.png` (1280×800, DSF 1, `marius-enrols-the-landless`)
+- `07-1280-en-sang-C2.png` (1280×800, DSF 1, Cannae tiếng Anh)
+
+### Đề nghị ngoài phạm vi
+
+Không có. Mọi phần (kể cả phân biệt nguồn chọn sự kiện giữa bản đồ/trục thời gian và nút dẫn đường trong gia sư) đều dùng token màu, font, store và hợp đồng sẵn có.

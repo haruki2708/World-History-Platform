@@ -1,10 +1,9 @@
 "use client";
 
-import { getPolity, hasBattle } from "@/data";
+import { hasBattle } from "@/data";
 import { useT } from "@/lib/i18n/useT";
 import type { HistoricalEvent } from "@/lib/types";
 import { formatYearRange } from "@/lib/years";
-import { useAppStore } from "@/store/useAppStore";
 
 interface EventListItemProps {
   event: HistoricalEvent;
@@ -14,6 +13,8 @@ interface EventListItemProps {
   active: boolean;
   /** Within the window shown around the current year. */
   nearby: boolean;
+  /** Id of the EventDetailCard when this row is selected. */
+  controlsId?: string;
   onToggle: () => void;
 }
 
@@ -29,116 +30,74 @@ export function EventListItem({
   selected,
   active,
   nearby,
+  controlsId,
   onToggle,
 }: EventListItemProps) {
   const { t, locale } = useT();
-  const requestBattle = useAppStore((state) => state.requestBattle);
   const dimmed = !selected && !active && !nearby;
+  const battle = hasBattle(event.id);
 
   return (
     <li data-event-id={event.id} className="py-0.5">
-      <button
-        type="button"
-        aria-pressed={selected}
-        onClick={onToggle}
-        className={`relative w-full rounded-md py-2 pr-2 pl-4 text-left transition-[background-color,opacity] duration-200 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent ${
-          selected ? "bg-surface ring-1 ring-accent/40" : ""
-        } ${dimmed ? "opacity-50 hover:opacity-100" : ""}`}
+      <div
+        className={`relative rounded-xl transition-[background-color,opacity] duration-200 motion-reduce:transition-none ${
+          selected ? "bg-surface/90 ring-1 ring-accent/35" : "hover:bg-surface/70"
+        } ${dimmed ? "opacity-55 hover:opacity-100" : ""}`}
       >
         {/* Accent bar marks events under way in the current year. */}
         <span
           aria-hidden
-          className={`absolute inset-y-2 left-1 w-1 rounded-full bg-accent transition-opacity duration-200 ${
+          className={`pointer-events-none absolute inset-y-1.5 left-1 w-1 rounded-full bg-accent transition-opacity duration-200 motion-reduce:transition-none ${
             active ? "opacity-100" : "opacity-0"
           }`}
         />
 
-        <span className="flex items-baseline gap-2">
-          <span
-            aria-hidden
-            className={`inline-block shrink-0 self-center rounded-full ${IMPORTANCE_DOT[event.importance]} ${
-              event.importance === 1 && !active ? "bg-muted" : "bg-accent"
-            }`}
-          />
-          <span
-            className={`shrink-0 text-xs tabular-nums ${
-              active ? "font-semibold text-accent" : "text-muted"
-            }`}
-          >
-            {formatYearRange(event.year, event.endYear, locale)}
-          </span>
-          <span
-            className={`min-w-0 flex-1 text-sm ${
-              event.importance === 3 ? "font-semibold" : "font-medium"
-            }`}
-          >
-            {event.title[locale]}
-          </span>
-          {active && (
-            <span className="shrink-0 self-center rounded-full bg-accent px-1.5 py-px text-[10px] font-semibold uppercase leading-tight tracking-wide text-on-accent">
-              {t("events.now")}
+        <button
+          type="button"
+          aria-pressed={selected}
+          aria-controls={controlsId}
+          onClick={onToggle}
+          className="w-full rounded-xl py-1.5 pr-2.5 pl-4 text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+        >
+          <span className="flex items-baseline gap-2">
+            <span
+              aria-hidden
+              className={`inline-block shrink-0 self-center rounded-full ${IMPORTANCE_DOT[event.importance]} ${
+                event.importance === 1 && !active ? "bg-muted" : "bg-accent"
+              }`}
+            />
+            <span
+              className={`shrink-0 text-xs tabular-nums ${
+                active ? "font-semibold text-accent" : "text-muted"
+              }`}
+            >
+              {formatYearRange(event.year, event.endYear, locale)}
             </span>
-          )}
-        </span>
-
-        {selected && (
-          <span className="mt-2 block space-y-2 text-sm">
-            <span className="block text-foreground/90">
-              {event.summary[locale]}
+            <span
+              className={`min-w-0 flex-1 truncate text-sm leading-snug ${
+                event.importance === 3
+                  ? "font-semibold text-foreground"
+                  : "font-medium text-foreground/90"
+              }`}
+            >
+              {event.title[locale]}
             </span>
-            <span className="flex flex-wrap gap-1.5">
-              {event.polityIds.map((id) => {
-                const polity = getPolity(id);
-                if (!polity) return null;
-                return (
-                  <span
-                    key={id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-xs"
-                  >
-                    <span
-                      aria-hidden
-                      className="size-2 rounded-full"
-                      style={{ backgroundColor: polity.color }}
-                    />
-                    {polity.name[locale]}
-                  </span>
-                );
-              })}
-            </span>
-            {event.location && (
-              <span className="block text-xs text-muted">
-                {event.location.name[locale]}
-                {event.location.approximate &&
-                  ` · ${t("events.approximate")}`}
+            {battle && (
+              <span
+                aria-hidden
+                className="shrink-0 self-center rounded-md border border-accent/30 bg-accent/10 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent"
+              >
+                3D
               </span>
             )}
-            <span className="block text-xs text-muted">
-              {t("events.sources")}:{" "}
-              {event.sources.map((source) => source.title).join("; ")}
-            </span>
+            {active && (
+              <span className="shrink-0 self-center rounded-full bg-accent px-1.5 py-px text-[10px] leading-tight font-semibold tracking-wide text-on-accent uppercase">
+                {t("events.now")}
+              </span>
+            )}
           </span>
-        )}
-      </button>
-
-      {/* Outside the item's own button: a button may not contain another.
-          Sticky, so it stays in sight at the bottom of the list while the
-          summary above it is longer than the list is tall. The battle viewer
-          returns focus here when it closes. */}
-      {selected && hasBattle(event.id) && (
-        <div className="sticky bottom-0 bg-background pt-1.5 pb-1 pl-4">
-          <button
-            type="button"
-            data-battle-open={event.id}
-            onClick={() => requestBattle(event.id)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 fill-current">
-              <path d="M4.5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L5.7 2.1a.8.8 0 0 0-1.2.7Z" />
-            </svg>
-            {t("battle.open")}
-          </button>
-        </div>
-      )}
+        </button>
+      </div>
     </li>
   );
 }

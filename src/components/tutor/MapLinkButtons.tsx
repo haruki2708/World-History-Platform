@@ -13,7 +13,13 @@ import { useAppStore } from "@/store/useAppStore";
  * (the timeline, the panel and the map follow), `setYear` for a bare year.
  * Playback pauses by itself when the year is moved from outside the timeline.
  */
-export function MapLinkButtons({ links }: { links: readonly TutorMapLink[] }) {
+export function MapLinkButtons({
+  links,
+  onEventSelect,
+}: {
+  links: readonly TutorMapLink[];
+  onEventSelect?: () => void;
+}) {
   const { t } = useT();
   if (links.length === 0) return null;
 
@@ -21,14 +27,20 @@ export function MapLinkButtons({ links }: { links: readonly TutorMapLink[] }) {
     <ul aria-label={t("tutor.mapLinks")} className="flex flex-wrap gap-1.5 pt-0.5">
       {links.map((link) => (
         <li key={`${link.eventId ?? ""}@${link.year}`} className="min-w-0 max-w-full">
-          <MapLinkButton link={link} />
+          <MapLinkButton link={link} onEventSelect={onEventSelect} />
         </li>
       ))}
     </ul>
   );
 }
 
-function MapLinkButton({ link }: { link: TutorMapLink }) {
+function MapLinkButton({
+  link,
+  onEventSelect,
+}: {
+  link: TutorMapLink;
+  onEventSelect?: () => void;
+}) {
   const { t, locale } = useT();
   const year = useAppStore((state) => state.year);
   const selectedEventId = useAppStore((state) => state.selectedEventId);
@@ -47,8 +59,12 @@ function MapLinkButton({ link }: { link: TutorMapLink }) {
 
   const go = () => {
     const { selectEvent, setYear } = useAppStore.getState();
-    if (event) selectEvent(event.id, link.year);
-    else setYear(link.year);
+    if (event) {
+      onEventSelect?.();
+      selectEvent(event.id, link.year);
+    } else {
+      setYear(link.year);
+    }
   };
 
   return (
@@ -58,10 +74,10 @@ function MapLinkButton({ link }: { link: TutorMapLink }) {
       aria-label={label}
       aria-current={current ? "location" : undefined}
       title={current ? `${label} (${t("tutor.mapLink.current")})` : label}
-      className={`flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-left text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+      className={`flex max-w-full items-center gap-1.5 rounded-xl border px-2.5 py-1 text-left text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         current
-          ? "border-accent bg-accent/10 text-foreground"
-          : "border-line text-foreground hover:border-accent hover:bg-surface"
+          ? "border-accent/60 bg-accent/10 text-foreground"
+          : "border-line/85 bg-surface/65 text-foreground hover:border-accent hover:bg-surface"
       }`}
     >
       {/* Marking the current link swaps the icon for a check rather than
